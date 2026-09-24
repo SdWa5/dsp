@@ -1,0 +1,38 @@
+{"test": "b01_in8_normal", "note": "In8 Normal-Taste 2x", "frames": [], "config_changes": [], "restored": true}
+{"test": "b02_in8_line", "note": "In8 Line 2x", "frames": [], "config_changes": [], "restored": true}
+{"test": "b04_in1_normal", "note": "In1 Normal-Taste 2x", "frames": [], "config_changes": [], "restored": true}
+{"test": "b05_in1_line", "note": "In1 Line 2x", "frames": [], "config_changes": [], "restored": true}
+{"test": "b06_in1_sens", "note": "In1 Empfindlichkeit hoch/runter (Spin)", "frames": [], "config_changes": [], "restored": true}
+{"test": "b04_in1_normal", "note": "In1 Normal-Taste 2x", "frames": ["PC->DSP 36 01 01", "PC->DSP 36 01 00"], "config_changes": [], "restored": true}
+{"test": "b05_in1_line", "note": "In1 Line 2x", "frames": ["PC->DSP 55 01 01"], "config_changes": [], "restored": true}
+{"test": "b06_in1_sens", "note": "In1 Empfindlichkeit hoch/runter (Spin)", "frames": [], "config_changes": [], "restored": true}
+{"test": "b07_in8_normal", "note": "In8 Normal 2x", "frames": [], "config_changes": [], "restored": true}
+{"test": "b08_in8_line", "note": "In8 Line 2x", "frames": [], "config_changes": [], "restored": true}
+{"test": "c01_in1_normal", "note": "In1 Normal 2x", "frames": ["PC->DSP 36 00 01", "PC->DSP 36 01 01", "PC->DSP 36 00 00", "PC->DSP 36 01 00"], "config_changes": [], "restored": null}
+{"test": "c02_in1_line", "note": "In1 Line 2x", "frames": ["PC->DSP 55 00 01", "PC->DSP 55 01 01", "PC->DSP 55 00 00", "PC->DSP 55 01 00"], "config_changes": [], "restored": null}
+{"test": "c03_in1_sens", "note": "In1 Empfindlichkeit +/-", "frames": [], "config_changes": [], "restored": null}
+{"test": "c04_in1_mic_mode", "note": "In1 Modus umschalten, Empf. +2/-2, +48V an/aus, Modus zurück", "frames": ["PC->DSP 55 00 01", "PC->DSP 55 01 01", "PC->DSP 55 00 02", "PC->DSP 55 01 02", "PC->DSP 55 00 03", "PC->DSP 55 01 03", "PC->DSP 55 00 02", "PC->DSP 55 01 02", "PC->DSP 56 00 01", "PC->DSP 56 01 01", "PC->DSP 55 00 00", "PC->DSP 55 01 00"], "config_changes": [], "restored": null}
+{"test": "d01_in1_fbq", "note": "In1 FBQ Level1, dann Close", "frames": ["PC->DSP 61 00 01", "PC->DSP 61 00 00"], "config_changes": [], "restored": null}
+{"test": "d02_in1_fbq4", "note": "In1 FBQ Level4, dann Close", "frames": ["PC->DSP 61 00 04", "PC->DSP 61 00 00"], "config_changes": [], "restored": null}
+{"test": "d03_in1_peq_gain", "note": "In1 PEQ1 Gain -1/+1", "frames": ["PC->DSP 33 00 00 77 00 31 00 19 00 00", "PC->DSP 33 00 00 78 00 31 00 19 00 00"], "config_changes": [], "restored": null}
+{"test": "d04_in1_hpf_freq", "note": "In1 HPF Freq +1/-1", "frames": ["PC->DSP 32 00 01 00 00", "PC->DSP 32 00 00 00 00"], "config_changes": [], "restored": null}
+{"test": "d05_in1_lpf_freq", "note": "In1 LPF Freq -1/+1", "frames": ["PC->DSP 31 00 2b 01 00", "PC->DSP 31 00 2c 01 00"], "config_changes": [], "restored": null}
+{"test": "d06_in1_hpf_slope", "note": "In1 HPF Flanke -> LK -24 -> zurück", "frames": ["PC->DSP 32 00 00 00 00"], "config_changes": [], "restored": null}
+{"test": "d07_in1_hpf_bypass", "note": "In1 HPF Bypass 2x", "frames": ["PC->DSP 32 00 00 00 14", "PC->DSP 32 00 00 00 00"], "config_changes": [], "restored": null}
+{"test": "e01_automix", "note": "AutoMix Off/On 2x", "frames": ["PC->DSP 64 12 63 00 b7 0b b4 00 00 00 01 00", "PC->DSP 64 12 63 00 b7 0b b4 00 00 00 00 00"], "config_changes": [], "restored": null}
+{"test": "e02_effect", "note": "Effect Off/On 2x", "frames": ["PC->DSP 63 01 37", "PC->DSP 63 00 37"], "config_changes": [], "restored": null}
+{"test": "e03_camera", "note": "Camera Off/On 2x", "frames": ["PC->DSP 64 13 63 00 b7 0b b4 00 00 00 01 00", "PC->DSP 64 13 63 00 b7 0b b4 00 00 00 00 00"], "config_changes": [], "restored": null}
+{"test": "e04_select_in8", "note": "Aux Select In8 2x", "frames": ["PC->DSP 3A 12 80 00", "PC->DSP 3A 12 00 00"], "config_changes": [], "restored": null}
+{"test": "e05_aux_mute", "note": "Aux Mute 2x", "frames": ["PC->DSP 35 12 01", "PC->DSP 35 12 00"], "config_changes": [], "restored": null}
+{"test": "e06_aux_gain", "note": "Aux Gain -1/+1", "frames": ["PC->DSP 34 12 17 01", "PC->DSP 34 12 18 01"], "config_changes": [], "restored": null}
+{"test": "e07_aux_comp", "note": "Aux Comp-Fader -1/+1", "frames": ["PC->DSP 30 12 00 00 31 00 c7 00 db 00", "PC->DSP 30 12 00 00 31 00 c7 00 dc 00"], "config_changes": [], "restored": null}
+{"test": "e08_aux_peq", "note": "Aux PEQ1 Gain -1/+1", "frames": ["PC->DSP 33 12 00 77 00 29 00 19 00 00", "PC->DSP 33 12 00 78 00 29 00 19 00 00"], "config_changes": [], "restored": null}
+{"test": "f01_gate_thr", "note": "In1 Gate Threshold +1/-1", "frames": ["PC->DSP 3E 00 00 00 b7 0b 01 00", "PC->DSP 3E 00 00 00 b7 0b 00 00"], "config_changes": [], "restored": null}
+{"test": "f02_gate_att", "note": "In1 Gate Attack +1/-1", "frames": ["PC->DSP 3E 00 01 00 b7 0b 00 00", "PC->DSP 3E 00 00 00 b7 0b 00 00"], "config_changes": [], "restored": null}
+{"test": "f03_gate_rel", "note": "In1 Gate Release -1/+1", "frames": ["PC->DSP 3E 00 00 00 b6 0b 00 00", "PC->DSP 3E 00 00 00 b7 0b 00 00"], "config_changes": [], "restored": null}
+{"test": "f04_comp_thr", "note": "Out8 Comp Threshold -1/+1", "frames": ["PC->DSP 30 0f 00 00 31 00 c7 00 db 00", "PC->DSP 30 0f 00 00 31 00 c7 00 dc 00"], "config_changes": [], "restored": null}
+{"test": "f05_comp_ratio", "note": "Out8 Comp Ratio +1/-1", "frames": ["PC->DSP 30 0f 01 00 31 00 c7 00 dc 00", "PC->DSP 30 0f 00 00 31 00 c7 00 dc 00"], "config_changes": [], "restored": null}
+{"test": "f06_delay", "note": "Out8 Delay +1/-1", "frames": ["PC->DSP 38 0f 01 00", "PC->DSP 38 0f 00 00"], "config_changes": [], "restored": null}
+{"test": "f07_unit", "note": "Einheit m, dann ms", "frames": ["PC->DSP 15 01", "PC->DSP 15 00"], "config_changes": [], "restored": null}
+{"test": "g01_out8_eqbypass", "note": "Out8 EQ Bypass 2x", "frames": ["PC->DSP 3C 0f 01", "PC->DSP 3C 0f 00"], "config_changes": [], "restored": null}
+{"test": "g02_out8_peqtype", "note": "Out8 PEQ1 Typ -> Allpass2 -> zurück", "frames": ["PC->DSP 33 0f 00 78 00 1f 00 19 06 00", "PC->DSP 33 0f 00 78 00 1f 00 19 00 00"], "config_changes": [], "restored": null}

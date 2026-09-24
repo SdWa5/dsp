@@ -1,0 +1,153 @@
+[
+ {
+  "name": "n01_in1_fbq2",
+  "frames": [
+   "PC->DSP 61 00 02",
+   "PC->DSP 61 00 00"
+  ],
+  "changes": [
+   [
+    "In1+10",
+    0,
+    2
+   ],
+   [
+    "In2+10",
+    0,
+    2
+   ]
+  ],
+  "restored": true
+ },
+ {
+  "name": "n02_in1_mic",
+  "frames": [
+   "PC->DSP 55 01 01",
+   "PC->DSP 55 00 00",
+   "PC->DSP 55 01 00"
+  ],
+  "changes": [
+   [
+    "In1+9",
+    0,
+    1
+   ],
+   [
+    "In2+9",
+    0,
+    1
+   ]
+  ],
+  "restored": true
+ },
+ {
+  "name": "n03_in1_eqbypass",
+  "frames": [
+   "PC->DSP 3C 00 01",
+   "PC->DSP 3C 00 00"
+  ],
+  "changes": [
+   [
+    "Fuß+56",
+    0,
+    3
+   ]
+  ],
+  "restored": true
+ },
+ {
+  "name": "n04_in1_band2_bypass",
+  "frames": [
+   "PC->DSP 33 00 01 78 00 65 00 19 00 01",
+   "PC->DSP 33 00 01 78 00 65 00 19 00 00"
+  ],
+  "changes": [
+   [
+    "Fuß+6",
+    0,
+    2
+   ],
+   [
+    "Fuß+8",
+    0,
+    2
+   ]
+  ],
+  "restored": true
+ },
+ {
+  "name": "n05_out8_eqbypass",
+  "frames": [
+   "PC->DSP 3C 0f 01",
+   "PC->DSP 3C 0f 00"
+  ],
+  "changes": [
+   [
+    "Fuß+58",
+    0,
+    128
+   ]
+  ],
+  "restored": true
+ },
+ {
+  "name": "n06_out8_band3_bypass",
+  "frames": [
+   "PC->DSP 33 0f 02 78 00 76 00 19 00 01",
+   "PC->DSP 33 0f 02 78 00 76 00 19 00 00"
+  ],
+  "changes": [
+   [
+    "Fuß+38",
+    0,
+    4
+   ]
+  ],
+  "restored": true
+ },
+ {
+  "name": "n07_aux_mute",
+  "frames": [
+   "PC->DSP 35 12 01",
+   "PC->DSP 35 12 00"
+  ],
+  "changes": [
+   [
+    "Fuß+2",
+    0,
+    1
+   ]
+  ],
+  "restored": true
+ },
+ {
+  "name": "n08_effect_on",
+  "frames": [
+   "PC->DSP 63 01 37",
+   "PC->DSP 63 00 37"
+  ],
+  "changes": [
+   [
+    "Aux+10",
+    0,
+    1
+   ]
+  ],
+  "restored": true
+ },
+ {
+  "name": "n09_delay_unit",
+  "frames": [
+   "PC->DSP 15 01",
+   "PC->DSP 15 00"
+  ],
+  "changes": [
+   [
+    "Fuß+52",
+    0,
+    1
+   ]
+  ],
+  "restored": true
+ }
+]

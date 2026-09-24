@@ -7,7 +7,10 @@ build/
 dist/
 *.log
 
-# Mitschnitte und Gerätedaten (Preset-Namen, Zustände) – nicht veröffentlichen
-captures/
-# Screenshots
-tools/shots/
+# Laufzeit-Steuerdateien des Aufnahmedienstes
+captures/ctl/
+# Thomann-Handbuchtext (urheberrechtlich geschützt) – Link in captures/README.md
+captures/manual.txt
+# Vollbild-Screenshots mit anderen Fenstern (Desktop, Chat)
+tools/shots/screen.png
+tools/shots/screen_now.png

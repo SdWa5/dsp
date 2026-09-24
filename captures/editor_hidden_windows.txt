@@ -1,0 +1,32 @@
+===== TfmRs232CmdEnglish 'RS232 Remote Control Code'
+--- TEdit: 7B7D01400000007D7B
+--- TGroupBox:  Parameters 
+--- TComboBox: F00
+--- TComboBox: Factory
+--- TComboBox: Input
+--- TComboBox: Aux
+--- TComboBox: Off
+--- TComboBox: Input1
+--- TComboBox: Aux
+--- TComboBox: Aux
+--- TComboBox: 02
+--- TComboBox: Aux
+--- TComboBox: Off
+--- TComboBox: Input
+--- TComboBox: UnMute
+--- TComboBox: Increase
+--- TComboBox: 0
+--- TComboBox: Input1
+--- TComboBox: Increase
+--- TComboBox: Input1
+--- TComboBox: Output1
+--- TComboBox: -60.0dB
+--- TComboBox: Output1
+--- TComboBox: U01
+--- TComboBox: UnMute
+--- TComboBox: Group Input1
+--- TGroupBox:  Command 
+--- TComboBox: 1
+--- TComboBox: Load Preset Matrix
+===== TfmRs232Code '232通讯协议控制代码'
+===== TfmHidData 'Hid Data'
