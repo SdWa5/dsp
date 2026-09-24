@@ -1,0 +1,7 @@
+# The device bridge runs next to php-fpm, started and restarted by the web container's supervisor.
+# It starts on the simulated device. Switch it with POST /api/connect {"target": "192.168.68.10"}.
+# Logs: ddev logs -s web
+web_extra_daemons:
+  - name: trackdsp-bridge
+    command: "php bin/console trackdsp:bridge --target=demo"
+    directory: /var/www/html

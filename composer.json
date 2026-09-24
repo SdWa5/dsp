@@ -1,7 +1,7 @@
 {
     "name": "gitiglitzer/trackdsp",
     "description": "Editor, CLI and library for the Thomann t.racks 8x8 Matrix DSP over USB-HID or LAN",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
@@ -14,6 +14,7 @@
         "symfony/dotenv": "7.4.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "7.4.*",
+        "symfony/process": "7.4.*",
         "symfony/runtime": "7.4.*",
         "symfony/yaml": "7.4.*"
     },

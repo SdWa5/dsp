@@ -1,0 +1,72 @@
+<?php
+
+namespace App\Tests\Bridge;
+
+use App\Bridge\BridgeClient;
+use App\Bridge\BridgeException;
+use App\Protocol\Commands;
+use App\Tests\Support\BridgeProcess;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * trackdsp:bridge as a real process, spoken to through BridgeClient.
+ */
+final class BridgeProcessTest extends TestCase
+{
+    public function testClientRequestsEventsAndShutdown(): void
+    {
+        $bridge = new BridgeProcess();
+        try {
+            $client = new BridgeClient($bridge->socket);
+            self::assertSame('pong', $client->request('ping'));
+
+            $client->request('write', ['frames' => [bin2hex(\chr(Commands::mute(9, true)->cmd).Commands::mute(9, true)->data)]]);
+            $state = $client->request('state');
+            self::assertIsArray($state);
+            self::assertTrue($state['outputs'][1]['mute']);
+
+            $seen = [];
+            foreach ($client->events(1.0) as $event) {
+                if (null !== $event) {
+                    $seen[$event['event']] = true;
+                }
+                if (isset($seen['status'], $seen['state'], $seen['meters'])) {
+                    break;
+                }
+            }
+            self::assertSame(['status', 'state', 'meters'], array_keys($seen));
+
+            try {
+                $client->request('nope');
+                self::fail('Unknown op accepted.');
+            } catch (BridgeException $e) {
+                self::assertSame(400, $e->getCode());
+            }
+        } finally {
+            $exit = $bridge->stop();
+        }
+        self::assertSame(0, $exit, $bridge->process()->getErrorOutput());
+        self::assertStringContainsString('Bridge on', $bridge->process()->getOutput());
+    }
+
+    public function testSecondBridgeOnTheSameSocketFails(): void
+    {
+        $bridge = new BridgeProcess();
+        try {
+            $second = new \Symfony\Component\Process\Process(['php', 'bin/console', 'trackdsp:bridge', '--env=test', '-t', 'demo', '-s', $bridge->socket], \dirname(__DIR__, 2));
+            $second->run();
+            self::assertSame(1, $second->getExitCode());
+            self::assertStringContainsString('already running', $second->getOutput());
+        } finally {
+            $bridge->stop();
+        }
+    }
+
+    public function testClientWithoutBridge(): void
+    {
+        $this->expectException(BridgeException::class);
+        $this->expectExceptionCode(503);
+
+        (new BridgeClient(sys_get_temp_dir().'/trackdsp-missing.sock', 0.5))->request('ping');
+    }
+}

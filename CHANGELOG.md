@@ -5,6 +5,22 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-09-25
+
+### Added
+
+- `trackdsp:bridge`: owns the device connection and serves it over a unix socket with JSON lines, merges repeated writes to the same target, re-reads the device after preset changes and periodically, polls meters for subscribers and reconnects after errors
+- JSON API `/api/status`, `state`, `write`, `connect`, `disconnect`, `refresh`, `upload`, `download` with an allow-list of write commands and range checks
+- Server-sent events `/api/events` with `status`, `state` and `meters`, relayed from the bridge
+- `DeviceState`: applies write commands to a cached configuration and keeps +48V, working status, test tone frequency and device ID
+- The simulated device stores presets and restores them on recall, and answers the preset occupancy
+- ddev runs the bridge as a daemon of the web container
+- `docs/bridge.md`
+
+### Changed
+
+- The simulated device applies writes through `DeviceState`. A channel copy now also copies the mute state
+
 ## [0.3.0] - 2026-09-25
 
 ### Added
@@ -34,5 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.3.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/10b4636...feature/symfony-rewrite
+[0.4.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/36cccde...feature/symfony-rewrite
+[0.3.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/10b4636...36cccde
 [0.2.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/commit/10b4636

@@ -139,7 +139,9 @@ reflect, time, reverb) · 84 ratio · 85 knee · 86 attack · 88 release · 90 t
 22 band bypass Aux · 24 + 2k band bypass output k · 40 sub in (gain %, mute, mask, x) · 44 sub out (same) ·
 48 test tone mode · 52 delay unit · 56 EQ bypass mask inputs · 58 EQ bypass mask outputs · 60 EQ bypass Aux
 
-Every field is checked against the vendor editor display (`tests/Model/DeviceTest.php`).
+Every field is checked against the vendor editor display (`tests/Model/DeviceTest.php`). `DeviceState` writes
+each command where `Device::parse()` reads it, checked by rebuilding the fixture from its upload frames
+(`tests/Model/DeviceStateTest.php`).
 Group control is read with `6C 00` (8 × gain %, mute, mask).
 
 ### Still open

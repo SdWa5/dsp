@@ -2,11 +2,10 @@
 
 ## Rewrite
 
-- Device bridge: a long-running `trackdsp:bridge` that owns the device, takes commands over a unix socket, coalesces fader moves, polls the meters and publishes them over Mercure
-- JSON API for the browser editor
 - Browser editor: Gain, Gate, Comp, Delay, Matrix, Aux and In1–8 / Out1–8 pages, menus and dialogs, EQ curve with draggable points, live meters
 - PHPUnit group `device` with read-only checks and reversible writes over LAN and USB
 - Packaging: `trackdsp:serve`, FrankenPHP static binary, installer, desktop entry
+- Preset upload (`Device::allFrames()`) leaves out Sub control, Group control, the delay unit and the Aux name, like the Python editor
 - Remove `legacy/python/` once the rewrite has reached parity
 
 ## Protocol

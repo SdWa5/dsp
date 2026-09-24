@@ -8,9 +8,9 @@ Windows vendor software "the t.racks 8x8 Matrix Digital Processor Editor". The p
 ## Status
 
 This branch rewrites the first implementation (Python and PySide6, kept in [legacy/python/](legacy/python/)) on
-Symfony. The protocol library, the device model and the command line are done and tested against the vendor editor
-captures and the live device over LAN. The browser editor, the device bridge and the packaging follow, see
-[TODO.md](TODO.md).
+Symfony. The protocol library, the device model, the command line, the device bridge and the JSON API are done and
+tested against the vendor editor captures and the live device over LAN. The browser editor and the packaging follow,
+see [TODO.md](TODO.md).
 
 ## Requirements
 
@@ -55,6 +55,21 @@ bin/trackdsp meters                    # levels in approximated dB, --raw for th
 The target is `usb` (first device found), `usb:/dev/hidrawN`, `demo` (simulated device) or `host[:port]`.
 Pass it with `-t` or set `TRACKDSP_TARGET` in `.env.local`. Inside ddev, run the commands with `ddev exec`.
 
+### Bridge and JSON API
+
+The web editor reaches the device through `trackdsp:bridge`, which owns the connection, merges fast writes and
+publishes state and meters. In ddev it runs by itself on the simulated device.
+
+```bash
+bin/console trackdsp:bridge -t 192.168.68.10                  # outside ddev
+curl -s localhost/api/state                                   # inside ddev: ddev exec curl ...
+curl -s -XPOST localhost/api/write -d '{"command":"mute","args":{"channel":8,"on":true}}'
+curl -s -XPOST localhost/api/connect -d '{"target":"192.168.68.10"}'
+curl -sN localhost/api/events                                 # server-sent events: status, state, meters
+```
+
+The socket protocol and every endpoint are described in [docs/bridge.md](docs/bridge.md).
+
 ### Library
 
 ```php
@@ -74,8 +89,10 @@ file_put_contents('preset.json', $device->toJson());    // same file format as t
 | `App\Protocol` | frame codec, opcodes, channel indices, scales, value labels, command builders |
 | `App\Transport` | TCP, hidraw and demo transports, hidraw discovery, target factory |
 | `App\Client` | `Matrix`: request/reply matching, retries with session re-init, reads and writes |
-| `App\Model` | the configuration as objects, JSON preset files, upload frames |
+| `App\Model` | the configuration as objects, JSON preset files, upload frames, `DeviceState` for applying writes |
+| `App\Bridge` | the bridge loop, write queue, command allow-list and the socket client |
 | `App\Command` | the `trackdsp:*` console commands |
+| `App\Controller` | the JSON API and the event stream |
 
 ## Development
 
@@ -85,7 +102,8 @@ ddev exec composer cs-fix      # apply the Symfony coding standard
 ```
 
 The tests need no device. They replay all 143 USB captures in [captures/](captures/) against the command builders,
-check the model against the editor display and run the command line against the simulated device.
+check the model against the editor display and run the command line, the bridge (in the test process and as a
+subprocess) and the JSON API against the simulated device.
 Tests in the PHPUnit group `device` talk to real hardware and are excluded by default.
 
 ## Authors
