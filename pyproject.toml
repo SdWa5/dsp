@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trackdsp"
+version = "0.2.0"
+description = "Editor und Steuerung für die Thomann t.racks 8x8 Matrix per USB-HID oder LAN (Linux/Windows)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["hidapi>=0.14", "PySide6>=6.5"]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+trackdsp = "trackdsp.cli:main"
+
+[project.gui-scripts]
+trackdsp-gui = "trackdsp.gui.main:main"
+
+[tool.setuptools]
+packages = ["trackdsp", "trackdsp.gui"]
+
+[tool.setuptools.package-data]
+trackdsp = ["data/*.bin", "data/*.svg", "data/*.desktop"]

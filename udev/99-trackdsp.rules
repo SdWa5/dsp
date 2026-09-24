@@ -1,0 +1,7 @@
+# t.racks 8x8 Matrix (Musicrown "Dsp Process") – Zugriff ohne root.
+# uaccess: angemeldeter Desktop-Benutzer; GROUP plugdev: auch ohne Desktop-Sitzung (Server, WSL).
+# Installation:
+#   sudo cp 99-trackdsp.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules && sudo udevadm trigger
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0168", ATTRS{idProduct}=="0821", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0168", ATTRS{idProduct}=="0821", MODE="0660", GROUP="plugdev", TAG+="uaccess"

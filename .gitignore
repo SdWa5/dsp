@@ -1,0 +1,13 @@
+.venv/
+.v2/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+*.log
+
+# Mitschnitte und Gerätedaten (Preset-Namen, Zustände) – nicht veröffentlichen
+captures/
+# Screenshots
+tools/shots/

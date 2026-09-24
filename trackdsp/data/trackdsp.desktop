@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=t.racks 8x8 Matrix Editor
+GenericName=DSP-Editor
+Comment=Thomann t.racks 8x8 Matrix per USB oder LAN steuern
+Exec=trackdsp-gui
+Icon=trackdsp
+Terminal=false
+Categories=AudioVideo;Audio;Mixer;
+Keywords=DSP;Matrix;t.racks;Thomann;Audio;
