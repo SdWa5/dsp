@@ -1,0 +1,132 @@
+<?php
+
+namespace App\Tests\Command;
+
+use App\Command\RouteCommand;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Tester\CommandTester;
+
+/**
+ * The CLI against the simulated device (TRACKDSP_TARGET=demo in .env.test).
+ */
+final class CliTest extends KernelTestCase
+{
+    /**
+     * @param array<string, mixed> $input
+     */
+    private function runCommand(string $name, array $input = []): CommandTester
+    {
+        $tester = new CommandTester((new Application(self::bootKernel()))->find($name));
+        $tester->execute($input);
+
+        return $tester;
+    }
+
+    public function testInfo(): void
+    {
+        $tester = $this->runCommand('trackdsp:info');
+
+        $tester->assertCommandIsSuccessful();
+        self::assertStringContainsString('8x8Matrix V010', $tester->getDisplay());
+        self::assertStringContainsString('U02 Bulgaria26', $tester->getDisplay());
+        self::assertStringContainsString('192.168.68.10', $tester->getDisplay());
+    }
+
+    public function testPresets(): void
+    {
+        $display = $this->runCommand('trackdsp:presets')->getDisplay();
+
+        self::assertMatchesRegularExpression('/U02\s+Bulgaria26\s+\*/', $display);
+        self::assertStringContainsString('F00', $display);
+    }
+
+    public function testStatus(): void
+    {
+        $display = $this->runCommand('trackdsp:status')->getDisplay();
+
+        self::assertStringContainsString('in1:MUTED in2:MUTED in3:on', $display);
+        self::assertStringContainsString('out8:MUTED', $display);
+    }
+
+    public function testWrites(): void
+    {
+        $this->runCommand('trackdsp:gain', ['channel' => 'in1', 'db' => '-6'])->assertCommandIsSuccessful();
+        $this->runCommand('trackdsp:mute', ['channel' => 'out1'])->assertCommandIsSuccessful();
+        $this->runCommand('trackdsp:unmute', ['channel' => 'in1'])->assertCommandIsSuccessful();
+        $this->runCommand('trackdsp:phase', ['channel' => 'out3', 'mode' => 'invert'])->assertCommandIsSuccessful();
+        $this->runCommand('trackdsp:route', ['output' => 'out3', 'inputs' => 'in1,2'])->assertCommandIsSuccessful();
+    }
+
+    public function testBoostNeedsFlag(): void
+    {
+        $tester = $this->runCommand('trackdsp:gain', ['channel' => 'in1', 'db' => '3']);
+
+        self::assertSame(Command::INVALID, $tester->getStatusCode());
+        self::assertStringContainsString('--allow-boost', $tester->getDisplay());
+        $this->runCommand('trackdsp:gain', ['channel' => 'in1', 'db' => '3', '--allow-boost' => true])->assertCommandIsSuccessful();
+    }
+
+    /**
+     * @return iterable<string, array{string, array<string, string>}>
+     */
+    public static function invalidInput(): iterable
+    {
+        yield 'unknown channel' => ['trackdsp:mute', ['channel' => 'out9']];
+        yield 'gain not a number' => ['trackdsp:gain', ['channel' => 'in1', 'db' => 'loud']];
+        yield 'gain out of range' => ['trackdsp:gain', ['channel' => 'in1', 'db' => '-70']];
+        yield 'phase mode' => ['trackdsp:phase', ['channel' => 'in1', 'mode' => 'flip']];
+        yield 'route output' => ['trackdsp:route', ['output' => 'out9', 'inputs' => '1']];
+        yield 'route inputs' => ['trackdsp:route', ['output' => '3', 'inputs' => '1,9']];
+    }
+
+    /**
+     * @param array<string, string> $input
+     */
+    #[DataProvider('invalidInput')]
+    public function testInvalidInputFails(string $name, array $input): void
+    {
+        $tester = $this->runCommand($name, $input);
+
+        self::assertNotSame(Command::SUCCESS, $tester->getStatusCode());
+        self::assertStringContainsString('[ERROR]', $tester->getDisplay());
+    }
+
+    public function testUnreachableTarget(): void
+    {
+        $tester = $this->runCommand('trackdsp:info', ['--target' => '127.0.0.1:1']);
+
+        self::assertSame(Command::FAILURE, $tester->getStatusCode());
+        self::assertStringContainsString('Cannot connect', $tester->getDisplay());
+    }
+
+    public function testDumpToFileAndHex(): void
+    {
+        $file = sys_get_temp_dir().'/trackdsp-dump-'.bin2hex(random_bytes(4)).'.bin';
+        try {
+            $this->runCommand('trackdsp:dump', ['file' => $file])->assertCommandIsSuccessful();
+            self::assertSame(1277, filesize($file));
+        } finally {
+            @unlink($file);
+        }
+
+        $lines = explode("\n", trim($this->runCommand('trackdsp:dump')->getDisplay()));
+        self::assertCount(26, $lines);
+        self::assertStringStartsWith('00  ff ff 42 75', $lines[0]);
+    }
+
+    public function testMeters(): void
+    {
+        self::assertStringContainsString('Aux', $this->runCommand('trackdsp:meters')->getDisplay());
+        self::assertMatchesRegularExpression('/^([0-9a-f]{2} ){54}[0-9a-f]{2}$/', trim($this->runCommand('trackdsp:meters', ['--raw' => true])->getDisplay()));
+    }
+
+    public function testRouteInputParser(): void
+    {
+        self::assertSame([], RouteCommand::inputs('none'));
+        self::assertSame([1, 2, 8], RouteCommand::inputs('in1, 2,IN8'));
+        self::assertNull(RouteCommand::inputs('1,x'));
+    }
+}

@@ -1,0 +1,26 @@
+# This file is the entry point to configure your own services.
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    trackdsp.demo_config: '%kernel.project_dir%/resources/demo_config.bin'
+    trackdsp.timeout: 1.0
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Kernel.php'
+            - '../src/Model/'
+            - '../src/Protocol/'
+            - '../src/Client/'
+            - '../src/Transport/{DemoTransport,HidrawTransport,TcpTransport,TransportException}.php'
+
+    App\Transport\HidrawLocator: ~
+
+    App\Transport\TransportFactory:
+        arguments:
+            $demoConfigPath: '%trackdsp.demo_config%'
+            $timeout: '%trackdsp.timeout%'

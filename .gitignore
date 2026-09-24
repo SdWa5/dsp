@@ -1,3 +1,4 @@
+# Legacy Python implementation
 .venv/
 .v2/
 __pycache__/
@@ -7,10 +8,30 @@ build/
 dist/
 *.log
 
-# Laufzeit-Steuerdateien des Aufnahmedienstes
+# Runtime control files of the capture service
 captures/ctl/
-# Thomann-Handbuchtext (urheberrechtlich geschützt) – Link in captures/README.md
+# Vendor manual text (copyrighted, linked in captures/README.md)
 captures/manual.txt
-# Vollbild-Screenshots mit anderen Fenstern (Desktop, Chat)
+# Full-screen screenshots showing other windows
 tools/shots/screen.png
 tools/shots/screen_now.png
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+###> friendsofphp/php-cs-fixer ###
+/.php-cs-fixer.php
+/.php-cs-fixer.cache
+###< friendsofphp/php-cs-fixer ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###

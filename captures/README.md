@@ -1,42 +1,44 @@
-# Mitschnitte und Testdaten
+# Captures and test data
 
-Rohdaten aus der Entschlüsselung des Protokolls (24.09.2026, Gerät „8x8Matrix V010“, Preset U02 „Bulgaria26“).
-Auswertung der Mitschnitte:
+Raw data from decoding the protocol (2026-09-24, device "8x8Matrix V010", preset U02 "Bulgaria26").
+
+The PHP test suite reads every capture directly (`tests/Support/UsbPcapReader.php`,
+`tests/Protocol/CaptureReplayTest.php`). The Python tools of the first implementation still work too:
 
 ```bash
-python analyze_capture.py captures/<name>.pcap      # alle HID-Reports
-python tools/cap.py show <name>                     # nur Befehle (ohne Pegelabfrage/ACK)
+python legacy/python/analyze_capture.py captures/<name>.pcap      # all HID reports
+python legacy/python/tools/cap.py show <name>                     # commands only (no meter polling, no ACK)
 ```
 
-## USB-Mitschnitte (`*.pcap`, USBPcap)
+## USB captures (`*.pcap`, USBPcap)
 
-| Präfix | Inhalt |
+| Prefix | Content |
 |---|---|
-| `dsp_session1` | erster manueller Mitschnitt: Verbinden, Gain In1, Mute, Routing Out3 (+ Testton `39 02 00`) |
-| `t00`, `t99`, `t50`–`t62` | Verbindungsaufbau / komplettes Auslesen, Seitenrundgang, Leerlauf |
-| `t01`–`t04`, `a*` | Out1: Mute, Gain-Skala, Phase, PEQ, HPF/LPF |
-| `b*`, `c*` | Gain-Seite: Phase, Line/Mic + Empfindlichkeit, +48V |
-| `d*` | In1-Seite: FBQ, Eingangs-PEQ, Eingangsfilter |
-| `e*`, `l*`, `m*` | Aux: AutoMix, Effekt (Echo/Hall), Kamera, Quellenwahl, Kompressor, Dialoge |
-| `f*`, `g*` | Gate, Kompressor, Delay + Einheit, EQ-Bypass, PEQ-Typen |
-| `h*`, `i*`, `j*`, `k*` | Menüdialoge: Testton, Kanalname, Sub/Group Control, Link, ID/IP, Working Status, Presets |
-| `n*`, `o*` | Zuordnung Zustand → Konfigurationsbyte (mit TCP-Auslesen vorher/nachher) |
-| `p*` | Kanalkopplung Out7+Out8 (`2A`, `3B`, `12`) |
-| `fix_*` | Rücksetzungen nach Tests |
+| `dsp_session1` | first manual capture: connect, gain In1, mute, routing Out3 (+ test tone `39 02 00`) |
+| `t00`, `t99`, `t50`–`t62` | connection setup / full readout, page tour, idle |
+| `t01`–`t04`, `a*` | Out1: mute, gain scale, phase, PEQ, HPF/LPF |
+| `b*`, `c*` | Gain page: phase, Line/Mic + sensitivity, +48V |
+| `d*` | In1 page: FBQ, input PEQ, input filters |
+| `e*`, `l*`, `m*` | Aux: AutoMix, effect (echo/reverb), camera, source selection, compressor, dialogs |
+| `f*`, `g*` | Gate, compressor, delay + unit, EQ bypass, PEQ types |
+| `h*`, `i*`, `j*`, `k*` | Menu dialogs: test tone, channel name, sub/group control, link, ID/IP, working status, presets |
+| `n*`, `o*` | Mapping state → configuration byte (with a TCP readout before and after) |
+| `p*` | Channel link Out7+Out8 (`2A`, `3B`, `12`) |
+| `fix_*` | Resets after tests |
 
-## Weitere Dateien
+## Other files
 
-| Datei | Inhalt |
+| File | Content |
 |---|---|
-| `config_tcp.bin`, `config_usb.bin` | komplette Konfiguration (1277 Byte) per TCP bzw. USB – Referenzstand |
-| `results.jsonl` | je Test: gesendete Befehle (aus `tools/runner.py`) |
-| `probes.jsonl`, `state_map.json` | Tests mit Konfigurationsvergleich: welches Byte sich ändert, ob wiederhergestellt |
-| `session1_decoded.txt` | lesbarer Hexdump von `dsp_session1` |
-| `page_tour.json` | sichtbare Control-Werte aller Editor-Reiter |
-| `dialogs.json`, `dialogs_open.json`, `aux_dialogs.json`, `editor_hidden_windows.txt` | Aufbau der Editor-Dialoge (Controls, Auswahllisten) |
+| `config_tcp.bin`, `config_usb.bin` | complete configuration (1277 bytes) over TCP and USB, reference state |
+| `results.jsonl` | per test: the commands sent (from `legacy/python/tools/runner.py`) |
+| `probes.jsonl`, `state_map.json` | tests with a configuration diff: which byte changes, whether it was restored |
+| `session1_decoded.txt` | readable hex dump of `dsp_session1` |
+| `page_tour.json` | visible control values of every editor tab |
+| `dialogs.json`, `dialogs_open.json`, `aux_dialogs.json`, `editor_hidden_windows.txt` | structure of the editor dialogs (controls, choice lists) |
 
-Screenshots des Original-Editors und der neuen App liegen in `tools/shots/` (`page_*` = Editor-Reiter,
-`dlg_*` = Editor-Dialoge, `app/` = neue App, `app/linux_*` = unter Linux).
+Screenshots of the vendor editor and of the Python app are in `tools/shots/` (`page_*` = editor tabs,
+`dlg_*` = editor dialogs, `app/` = Python app, `app/linux_*` = on Linux).
 
-Das Handbuch ist nicht enthalten (urheberrechtlich geschützt):
+The manual is not included (copyrighted):
 <https://images.thomann.de/pics/atg/atgdata/document/manual/490507_c_490507_r1_en_online.pdf>
