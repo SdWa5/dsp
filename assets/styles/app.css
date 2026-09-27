@@ -182,7 +182,6 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .strip__title { margin: 0; padding: 2px 4px; text-align: center; font-size: 13px; background: var(--title); border-radius: 3px; min-width: 0; }
 .strip__row { display: flex; gap: 6px; align-items: flex-start; justify-content: center; }
 .strip__stack { display: flex; flex-direction: column; gap: 4px; }
-.strip__buttons { display: flex; gap: 4px; justify-content: center; }
 .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 8px; }
 .toolbar .page__note { margin: 0; }
 
@@ -229,7 +228,6 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .toggle--phantom.is-on { background: var(--phantom); color: #111; }
 .toggle--bypass.is-on { background: var(--mute); color: #fff; }
 .toggle--rider.is-on { background: var(--rider); color: #111; }
-.toggle--preset { font-weight: 700; }
 .toggle--route { text-align: left; }
 .toggle--route .ch { gap: 4px; }
 .toggle.is-unknown { border-style: dashed; }

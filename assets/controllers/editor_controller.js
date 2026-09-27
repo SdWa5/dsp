@@ -362,7 +362,25 @@ export default class extends Controller {
         }
     }
 
-    saveFile() {
-        window.location.assign('/api/download');
+    /** Downloads the live state as a preset file. Errors stay in the error line instead of replacing the page. */
+    async saveFile() {
+        if (!this.requireState()) {
+            return;
+        }
+        try {
+            const response = await fetch('/api/download');
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}));
+                throw new Error(body.error ?? `Download failed (${response.status}).`);
+            }
+            const disposition = response.headers.get('Content-Disposition') ?? '';
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(await response.blob());
+            link.download = /filename="([^"]+)"/.exec(disposition)?.[1] ?? 'preset.json';
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+        } catch (error) {
+            this.showError(error.message);
+        }
     }
 }

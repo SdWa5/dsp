@@ -2,6 +2,7 @@
 
 namespace App\Tests\Controller;
 
+use App\Model\Device;
 use App\Tests\Support\BridgeProcess;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -95,13 +96,30 @@ final class ApiControllerTest extends WebTestCase
         self::assertStringContainsString('attachment; filename="Bulgaria26.json"', (string) $browser->getResponse()->headers->get('Content-Disposition'));
         self::assertSame('trackdsp-8x8', json_decode($file, true)['format']);
 
-        self::json($browser, 'POST', '/api/write', ['command' => 'delay', 'args' => ['channel' => 12, 'samples' => 0]]);
+        $before = self::json($browser, 'GET', '/api/state');
+        self::json($browser, 'POST', '/api/write', ['commands' => [
+            ['command' => 'delay', 'args' => ['channel' => 12, 'samples' => 0]],
+            ['command' => 'eqBypass', 'args' => ['channel' => 15, 'on' => !$before['outputs'][7]['eq_bypass']]],
+            ['command' => 'channelName', 'args' => ['channel' => 0x12, 'name' => 'Probe']],
+            ['command' => 'delayUnit', 'args' => ['unit' => (1 + $before['delay_unit']) % 3]],
+        ]]);
         $browser->request('POST', '/api/upload', server: ['HTTP_X_TRACKDSP' => '1'], content: $file);
         self::assertSame(200, $browser->getResponse()->getStatusCode(), (string) $browser->getResponse()->getContent());
-        self::assertSame(480, self::json($browser, 'GET', '/api/state')['outputs'][4]['delay']);
+        $after = self::json($browser, 'GET', '/api/state');
+        self::assertSame(480, $after['outputs'][4]['delay']);
+        self::assertSame($before['outputs'][7]['eq_bypass'], $after['outputs'][7]['eq_bypass']);
+        self::assertSame($before['aux']['name'], $after['aux']['name']);
+        self::assertSame($before['delay_unit'], $after['delay_unit']);
 
         $browser->request('POST', '/api/upload', server: ['HTTP_X_TRACKDSP' => '1'], content: '{"format":"other"}');
         self::assertSame(400, $browser->getResponse()->getStatusCode());
+
+        // A gain above the device's range in the raw configuration
+        $data = json_decode($file, true);
+        $data['device']['raw'] = substr_replace($data['device']['raw'], 'ffff', 2 * (Device::INPUT_BASE + 56), 4);
+        $browser->request('POST', '/api/upload', server: ['HTTP_X_TRACKDSP' => '1'], content: (string) json_encode($data));
+        self::assertSame(400, $browser->getResponse()->getStatusCode());
+        self::assertStringContainsString('Gain raw value', (string) $browser->getResponse()->getContent());
     }
 
     public function testConnectDisconnectRefresh(): void

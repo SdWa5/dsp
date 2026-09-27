@@ -4,8 +4,11 @@ namespace App\Tests\Model;
 
 use App\Model\Device;
 use App\Model\DeviceState;
+use App\Model\InputChannel;
+use App\Model\OutputChannel;
 use App\Protocol\Channel;
 use App\Protocol\Commands;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class DeviceStateTest extends TestCase
@@ -17,24 +20,112 @@ final class DeviceStateTest extends TestCase
         return (string) file_get_contents(self::FIXTURE);
     }
 
+    private const FACTORY = __DIR__.'/../../resources/factory_config.bin';
+
     /**
-     * Uploading a preset (every write of allFrames) into an empty configuration must give the same
-     * channels as parsing the original: apply() writes each value where Device::parse() reads it.
+     * The bits an upload writes: every byte except the ones no command reaches, and in the footer bit masks
+     * only the bits of existing channels and bands.
      */
-    public function testUploadFramesRebuildTheParsedConfiguration(): void
+    private static function writable(): string
     {
-        $original = Device::parse(self::fixture());
-        $state = new DeviceState(str_repeat("\x00", Device::CONFIG_SIZE));
+        $mask = str_repeat("\xFF", Device::CONFIG_SIZE);
+        $clear = static function (int $offset, int $keep = 0) use (&$mask): void {
+            $mask[$offset] = \chr($keep);
+        };
+        // Header (FF FF and the preset name, written only by storing a preset)
+        foreach (range(0, 15) as $o) {
+            $clear($o);
+        }
+        for ($i = 0; $i < 8; ++$i) {
+            foreach ([8, 11, 59, 61] as $o) {
+                $clear(Device::INPUT_BASE + InputChannel::SIZE * $i + $o);
+            }
+            foreach ([71, 75] as $o) {
+                $clear(Device::OUTPUT_BASE + OutputChannel::SIZE * $i + $o);
+            }
+        }
+        foreach ([13, 14, 15, 17] as $o) {
+            $clear(Device::AUX_BASE + $o);
+        }
+        $f = Device::FOOTER_BASE;
+        // Mute: inputs, Aux, outputs. EQ bypass: inputs, outputs, Aux
+        foreach ([0 => 0xFF, 2 => 0x01, 4 => 0xFF, 56 => 0xFF, 58 => 0xFF, 60 => 0x01] as $o => $bits) {
+            $clear($f + $o, $bits);
+            $clear($f + $o + 1);
+        }
+        // PEQ band bypass: 5 bands per input, 5 for the Aux, 7 per output
+        for ($i = 0; $i < 8; ++$i) {
+            $clear($f + 6 + 2 * $i, 0x1F);
+            $clear($f + 7 + 2 * $i);
+            $clear($f + 24 + 2 * $i, 0x7F);
+            $clear($f + 25 + 2 * $i);
+        }
+        $clear($f + 22, 0x1F);
+        $clear($f + 23);
+        // Test tone (left out on purpose) and bytes without a known command
+        foreach ([48, 49, 50, 51, 53, 54, 55, 62] as $o) {
+            $clear($f + $o);
+        }
+
+        return $mask;
+    }
+
+    private static function config(string $name): string
+    {
+        return match ($name) {
+            'backup' => self::fixture(),
+            'factory' => (string) file_get_contents(self::FACTORY),
+            'zeros' => str_repeat("\x00", Device::CONFIG_SIZE),
+            'FF' => str_repeat("\xFF", Device::CONFIG_SIZE),
+            default => throw new \InvalidArgumentException($name),
+        };
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function uploads(): iterable
+    {
+        yield 'backup onto a factory reset' => ['backup', 'factory'];
+        yield 'factory onto a configured unit' => ['factory', 'backup'];
+        yield 'backup onto zeros' => ['backup', 'zeros'];
+        yield 'backup onto FF' => ['backup', 'FF'];
+        yield 'factory onto FF' => ['factory', 'FF'];
+    }
+
+    /**
+     * Uploading a preset (every write of allFrames) must rebuild every writable bit of the configuration,
+     * whatever the device held before.
+     */
+    #[DataProvider('uploads')]
+    public function testUploadRebuildsEveryWritableBit(string $sourceName, string $baseName): void
+    {
+        $source = self::config($sourceName);
+        $base = self::config($baseName);
+        $original = Device::parse($source);
+        [$original->groups[2]->gain, $original->groups[2]->mute, $original->groups[2]->mask] = [80, true, 0x05];
+        $original->inputs[1]->phantom = true;
+        $state = new DeviceState($base);
         foreach ($original->allFrames() as $frame) {
             $state->apply($frame);
         }
-        $rebuilt = $state->toDevice();
 
-        foreach (['inputs', 'outputs'] as $key) {
-            self::assertEquals($original->toArray()[$key], $rebuilt->toArray()[$key], $key);
+        $mask = self::writable();
+        $diff = [];
+        for ($i = 0; $i < Device::CONFIG_SIZE; ++$i) {
+            if ((\ord($state->config()[$i]) & \ord($mask[$i])) !== (\ord($source[$i]) & \ord($mask[$i]))) {
+                $diff[] = $i;
+            }
         }
-        // The upload leaves out the Aux name, like the Python editor
-        self::assertEquals(['name' => ''] + $original->aux->toArray(), $rebuilt->aux->toArray());
+        self::assertSame([], $diff, 'Offsets the upload does not rebuild');
+        self::assertEquals($original->toArray()['groups'], $state->toDevice()->toArray()['groups']);
+        self::assertTrue($state->toDevice()->inputs[1]->phantom);
+        self::assertNull($state->toDevice()->inputs[0]->phantom);
+    }
+
+    public function testFactoryReadOutIsAFactoryReset(): void
+    {
+        self::assertSame('Default Preset', Device::parse((string) file_get_contents(self::FACTORY))->presetName);
     }
 
     public function testRemembersValuesTheConfigurationDoesNotCarry(): void

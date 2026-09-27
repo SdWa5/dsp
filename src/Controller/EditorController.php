@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Automation\RiderSettings;
-use App\Command\CompressorCommand;
 use App\Protocol\Labels;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,7 +21,6 @@ final class EditorController extends AbstractController
         return $this->render('editor/index.html.twig', [
             'labels' => (new \ReflectionClass(Labels::class))->getConstants(),
             'device_ids' => array_combine(range(1, 254), range(1, 254)),
-            'dj_compressor' => CompressorCommand::raw(CompressorCommand::DJ_DEFAULT),
             'rider_defaults' => (new RiderSettings(0))->toArray(),
         ]);
     }

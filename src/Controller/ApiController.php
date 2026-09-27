@@ -150,12 +150,13 @@ final class ApiController
     {
         return $this->call(function () use ($request): mixed {
             try {
-                $device = Device::fromJson($request->getContent());
-            } catch (\JsonException|\InvalidArgumentException|\LengthException $e) {
+                $frames = Device::fromJson($request->getContent())->allFrames();
+            } catch (\JsonException|\InvalidArgumentException|\LengthException|\OutOfRangeException $e) {
+                // Out of range: a value in the file that no command can carry, e.g. a gain above +12 dB
                 throw new BridgeException('Not a valid preset file: '.$e->getMessage(), 400, $e);
             }
 
-            return $this->bridge->request('write', ['frames' => array_map(self::hex(...), $device->allFrames())]);
+            return $this->bridge->request('write', ['frames' => array_map(self::hex(...), $frames)]);
         });
     }
 

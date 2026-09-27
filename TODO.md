@@ -3,19 +3,16 @@
 ## Rewrite
 
 - Browser editor: check every page and dialog against the device, with a harmless round trip per control
-- DJ and 1:1 compressor buttons: write to the linked outputs too, like the gain and mute controls
 - Browser editor: mark every setting that differs from the factory default visibly, in a different colour and
   with a mark that works without colour, on the control and on its channel tab, so a changed preset is readable
-  at a glance. The defaults come from a factory reset read-out (the device was reset on 2026-09-25)
+  at a glance. The defaults come from the factory reset read-out `resources/factory_config.bin`
 - PHPUnit group `device` with read-only checks and reversible writes over LAN and USB
 - Packaging: `trackdsp:serve`, FrankenPHP static binary, installer, desktop entry
-- Preset upload (`Device::allFrames()`) leaves out Sub control, Group control, the delay unit and the Aux name, like the Python editor
 - Offline mode like the vendor editor: check whether a preset can be set up in the browser editor without a
   device and handed to the real device later. The bridge target `demo` simulates a device, but the editor
   offers no obvious way to start from it
-- Preset files like the vendor editor: check that saving the settings as a file (File menu, `/api/download`)
-  and opening one (`/api/upload`) work in the browser editor, also offline, and that the files open in the
-  vendor editor or the Python editor
+- Vendor preset files: the file format of the vendor editor is unknown. Capture a file saved by the vendor
+  editor in the win11 VM, then decide whether trackdsp reads and writes it
 - Remove `legacy/python/` once the rewrite has reached parity
 
 ## Several devices
@@ -28,7 +25,7 @@
 
 ## Automation
 
-- Verify the gain riders, the DJ compressor and the auto EQ on the device with the UMC1820 and the
+- Verify the gain riders and the auto EQ on the device with the UMC1820 and the
   measurement mic, on the command line and in the browser editor
 - Measure the 8x8's PEQ shape against the RBJ peaking filter the fitter assumes
 - `arecord` in the ddev web container (alsa-utils and the sound device), so a measurement runs inside ddev and

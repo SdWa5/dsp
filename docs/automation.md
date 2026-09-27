@@ -1,4 +1,4 @@
-# Gain rider, DJ compressor and auto EQ
+# Gain rider, compressor and auto EQ
 
 Three tools take routine level and EQ work off the operator. Each of them works from the browser editor and
 from the command line. The gain riders run inside the bridge (`trackdsp:bridge`). The auto EQ writes through
@@ -43,21 +43,18 @@ A gain change that did not come from the rider (browser editor, vendor editor, a
 manual override. The rider adopts the new gain and pauses for the hold time. The device meters show the level
 after the gain, and the rider compensates its average for every step it writes.
 
-## DJ compressor: `trackdsp:compressor`
+## Compressor: `trackdsp:compressor`
 
 ```bash
-bin/console trackdsp:compressor out1,out2 --dj                   # 1:4 from -6 dB, 10 ms, 200 ms, hard knee
-bin/console trackdsp:compressor out1,out2 --dj --threshold=-10
+bin/console trackdsp:compressor out1,out2 --ratio=4 --threshold=-6 --attack=10 --release=200 --knee=0
+bin/console trackdsp:compressor out1,out2 --threshold=-10
 bin/console trackdsp:compressor aux --ratio=limit --threshold=-3
 ```
 
-The 8x8 has compressors on the outputs and the Aux only. `--dj` sets a default that catches peaks of a DJ
-mix without pumping. Every value can be given on its own and overrides the default: `--ratio` (`4`, `1:4` or
-`limit`), `--threshold` (-90..20 dB), `--attack` and `--release` in ms, `--knee` (0..255).
-
-In the browser, every compressor on the Comp page and in the Aux compressor dialog has a **DJ** and a **1:1**
-button. DJ sets the same default, 1:1 switches the compression off. A button is lit while the compressor holds
-exactly its values. The buttons change only the compressor they belong to, not its linked outputs.
+The 8x8 has compressors on the outputs and the Aux only. The command sets one or more values on several
+compressors at once: `--ratio` (`4`, `1:4` or `limit`), `--threshold` (-90..20 dB), `--attack` and `--release`
+in ms, `--knee` (0..255). At least one value must be given. Every value left out keeps what the device holds
+for that compressor, so `--threshold=-10` changes only the threshold.
 
 ## Auto EQ
 

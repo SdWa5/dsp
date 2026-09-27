@@ -126,6 +126,28 @@ but no TCP connect. It is listed as `busy` when the ARP table shows a host with 
 Errors are `{"error": "..."}` with status 400 (bad request), 409 (device not connected), 503 (bridge not
 running) or 504 (no answer from the bridge in time).
 
+### Preset files
+
+`/api/download` returns the live state as a preset file, `{"format": "trackdsp-8x8", "version": 1, "device":
+{...}}`, where `device.raw` is the 1277 byte configuration in hex and `device.groups` the group control.
+`/api/upload` turns a preset file into write frames (`Device::allFrames()`) and queues them like any write. An
+upload writes every setting a command can write:
+
+- per input: name, gain, mute, phase, gate, HPF, LPF, PEQ bands with their bypass, link, input mode, FBQ,
+  EQ bypass and +48V, the last four when the file knows them
+- per output: name, routing, gain, mute, phase, delay, HPF, LPF, compressor, PEQ bands with their bypass, link
+  and EQ bypass
+- the Aux: name, source, gain, mute, compressor, PEQ bands, AutoMix with its slope, Camera, echo, reverb, effect
+  and EQ bypass
+- Sub control, Group control (only when the file has `groups`) and the delay unit
+- one final activate
+
+An upload leaves out the test tone, because it can start noise, the working status and the device ID, which
+belong to the unit rather than the preset, and the preset name in the header, which only storing a preset
+writes. The bytes no command writes are listed in [protocol.md](protocol.md#configuration-1277-bytes-via-27). A same-state
+upload over USB is about 300 frames and settles in about 7 s. A file with a value outside the device's range
+(for example a crafted `raw`) is refused with 400 before anything is written.
+
 `/api/events` starts with `retry: 1000` and sends a `: ping` comment when nothing happened for 15 seconds.
 A stream ends after 300 seconds (`trackdsp.events_lifetime`), and `EventSource` reconnects by itself.
 Without a bridge it sends one `status` event with `"bridge": false` and ends. The events are relayed from

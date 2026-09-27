@@ -1,8 +1,6 @@
 {% import 'editor/_widgets.html.twig' as w %}
 {% set c = p ~ '.comp' %}
 {% set send = [{command: 'compressor', args: {channel: channel, ratio: '@' ~ c ~ '.ratio', knee: '@' ~ c ~ '.knee', attack: '@' ~ c ~ '.attack', release: '@' ~ c ~ '.release', threshold: '@' ~ c ~ '.threshold'}}] %}
-{% set dj = {} %}
-{% for key, value in dj_compressor %}{% set dj = dj|merge({(c ~ '.' ~ key): value}) %}{% endfor %}
 <div class="strip__row">
     {{ w.fader('Threshold', c ~ '.threshold', send, 0, 220, 'threshold') }}
     <div class="strip__stack">
@@ -14,8 +12,4 @@
         {{ w.fader('Release', c ~ '.release', send, 9, 2999, 'ms', null, {class: 'fader--short'}) }}
     </div>
     {% if meter is not null %}{{ w.meter(meter) }}{% endif %}
-</div>
-<div class="strip__buttons">
-    {{ w.preset('DJ', dj, send, 'DJ default: 1:4 from -6 dB, 10 ms attack, 200 ms release') }}
-    {{ w.preset('1:1', {(c ~ '.ratio'): 0}, send, 'Ratio 1:1, no compression') }}
 </div>
