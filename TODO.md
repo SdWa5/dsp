@@ -8,6 +8,21 @@
 - Preset upload (`Device::allFrames()`) leaves out Sub control, Group control, the delay unit and the Aux name, like the Python editor
 - Remove `legacy/python/` once the rewrite has reached parity
 
+## Several devices
+
+- Control at least two 8x8 at once. With two connected, the editor shows both control sets side by side, so
+  both are controlled at the same time without switching between them. Needs a multi-device bridge (or one
+  bridge per device with its own socket) and a device key in the API and the event stream
+- Stable USB names per physical port through a udev symlink on `ENV{ID_PATH}` (e.g. `/dev/trackdsp-rack1`),
+  since the units share VID/PID and `hidrawN` follows the plug order
+
+## Automation
+
+- Verify `trackdsp:ride`, `trackdsp:compressor` and `trackdsp:autoeq` on the device with the UMC1820 and the
+  measurement mic
+- Measure the 8x8's PEQ shape against the RBJ peaking filter the fitter assumes
+- `arecord` in the ddev web container (alsa-utils and the sound device), so a measurement runs inside ddev
+
 ## Protocol
 
 - Confirm the hidraw report framing (report number on write and read) on the device

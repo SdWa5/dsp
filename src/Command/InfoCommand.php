@@ -16,7 +16,7 @@ final class InfoCommand extends DeviceCommand
     {
         $number = $dsp->activePreset();
         // The device answers the IP query over USB only
-        $ip = $dsp->transport() instanceof TcpTransport ? preg_replace('/:\d+$/', '', $this->target($input)) : $dsp->ipAddress();
+        $ip = $dsp->transport() instanceof TcpTransport ? preg_replace('#^tcp://(.*):\d+$#', '$1', $dsp->transport()->describe()) : $dsp->ipAddress();
         $io->definitionList(
             ['Device' => $dsp->info()],
             ['Connection' => $dsp->transport()->describe()],

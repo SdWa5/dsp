@@ -33,7 +33,7 @@ final class BridgeCommand extends Command implements SignalableCommandInterface
     protected function configure(): void
     {
         $this
-            ->addOption('target', 't', InputOption::VALUE_REQUIRED, 'usb, usb:/dev/hidrawN, demo or host[:port] (default: $TRACKDSP_TARGET)')
+            ->addOption('target', 't', InputOption::VALUE_REQUIRED, 'auto, usb, usb:/dev/hidrawN, demo or host[:port] (default: $TRACKDSP_TARGET)')
             ->addOption('socket', 's', InputOption::VALUE_REQUIRED, 'Unix socket path (default: $TRACKDSP_BRIDGE_SOCKET or var/bridge.sock)')
             ->addOption('meter-interval', null, InputOption::VALUE_REQUIRED, 'Seconds between meter polls while a client listens', '0.3')
             ->addOption('resync-interval', null, InputOption::VALUE_REQUIRED, 'Seconds between full re-reads of the device', '60');

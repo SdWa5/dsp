@@ -3,10 +3,11 @@
 namespace App\Transport;
 
 use App\Client\Matrix;
+use App\Discovery\Discovery;
 
 /**
  * Opens a transport from a target string: "usb" (first hidraw device), "usb:/dev/hidrawN",
- * "demo", or "host" / "host:port" for TCP.
+ * "demo", "host" / "host:port" for TCP, or "auto" for the first device that discovery finds.
  */
 final readonly class TransportFactory
 {
@@ -14,6 +15,7 @@ final readonly class TransportFactory
         private HidrawLocator $locator,
         private string $demoConfigPath,
         private float $timeout = 1.0,
+        private ?Discovery $discovery = null,
     ) {
     }
 
@@ -25,6 +27,7 @@ final readonly class TransportFactory
             '' === $target, 'usb' === $target => new HidrawTransport($this->locator->first()),
             str_starts_with($target, 'usb:') => new HidrawTransport(substr($target, 4)),
             'demo' === $target => DemoTransport::fromFile($this->demoConfigPath),
+            'auto' === $target => $this->open($this->discover()),
             default => $this->tcp($target),
         };
     }
@@ -38,6 +41,24 @@ final readonly class TransportFactory
         $matrix->handshake();
 
         return $matrix;
+    }
+
+    /**
+     * The target of the first device found: USB before the network.
+     */
+    public function discover(): string
+    {
+        if (null === $this->discovery) {
+            throw new TransportException('Discovery is not available.');
+        }
+        $found = $this->discovery->scan()[0] ?? null;
+        if (null === $found) {
+            $networks = implode(', ', array_map(strval(...), $this->discovery->subnets())) ?: 'no network';
+
+            throw new TransportException(\sprintf('No DSP found on USB or on %s.', $networks));
+        }
+
+        return $found['target'];
     }
 
     private function tcp(string $target): TcpTransport

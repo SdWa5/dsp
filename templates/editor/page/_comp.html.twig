@@ -1,0 +1,9 @@
+{% import 'editor/_widgets.html.twig' as w %}
+<div class="strips">
+    {% for i in 0..7 %}
+        <div class="strip">
+            <h3 class="strip__title">{{ w.value('outputs.' ~ i ~ '.name') }}</h3>
+            {{ include('editor/page/_compressor.html.twig', {p: 'outputs.' ~ i, channel: 8 + i, meter: 8 + i}) }}
+        </div>
+    {% endfor %}
+</div>

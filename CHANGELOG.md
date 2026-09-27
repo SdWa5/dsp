@@ -5,6 +5,26 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-09-27
+
+### Added
+
+- Browser editor at `/` with the Gain, Gate, Comp, Delay, Matrix and Aux pages, a page per input and output with the EQ curve, live meters and dialogs, built on AssetMapper and Stimulus without a build step
+- Browser code tests with `node --test`, run by `composer ci` and a GitHub Actions job
+- `trackdsp:discover` and `POST /api/discover`: device search on USB and on TCP 9761 of the local networks or `TRACKDSP_DISCOVERY_NETWORKS`, with devices whose connections are all in use listed as busy by their MAC prefix
+- Target `auto`: the first device found, USB before the network. It is the new default of `TRACKDSP_TARGET`
+- API writes need the header `X-Trackdsp`, and `TRACKDSP_TRUSTED_HOSTS` limits the host names the app answers to
+- `trackdsp:ride`: gain rider that keeps an input at a target level through the bridge, with slew limit, deadband, gain window, silence freeze and a pause after manual changes
+- `trackdsp:compressor`: sets the output or Aux compressor, `--dj` for a DJ default of 1:4 from -6 dB, 10 ms attack, 200 ms release
+- `trackdsp:autoeq`: supervised auto EQ with pink noise, `arecord` measurement at several mic positions, mic calibration, target curves, a PEQ fit in raw device steps, backup, confirmation before writing and `--revert`
+- FFT, WAV reader, Welch spectrum in fractional-octave bands and calibration file reader in `App\Measurement`
+- `docs/automation.md`
+
+### Changed
+
+- A TCP connect timeout explains that the device accepts no new connection while all of them are in use
+- `trackdsp:info` and the bridge report the address actually connected to, also for the target `auto`
+
 ## [0.4.0] - 2026-09-25
 
 ### Added
@@ -50,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.4.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/36cccde...feature/symfony-rewrite
+[0.5.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/287c410...main
+[0.4.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/36cccde...287c410
 [0.3.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/10b4636...36cccde
 [0.2.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/commit/10b4636

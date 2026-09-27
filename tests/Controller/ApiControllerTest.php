@@ -40,7 +40,7 @@ final class ApiControllerTest extends WebTestCase
      */
     private static function json(KernelBrowser $browser, string $method, string $uri, ?array $body = null, int $status = 200): array
     {
-        $browser->request($method, $uri, content: null === $body ? '' : (string) json_encode($body));
+        $browser->request($method, $uri, server: ['HTTP_X_TRACKDSP' => '1'], content: null === $body ? '' : (string) json_encode($body));
         $response = $browser->getResponse();
         self::assertSame($status, $response->getStatusCode(), (string) $response->getContent());
         $data = json_decode((string) $response->getContent(), true);
@@ -78,7 +78,7 @@ final class ApiControllerTest extends WebTestCase
         self::assertStringContainsString('Unknown command', self::json($browser, 'POST', '/api/write', ['command' => 'setPin', 'args' => ['pin' => '1']], 400)['error']);
         self::assertStringContainsString('needs a "command"', self::json($browser, 'POST', '/api/write', ['args' => []], 400)['error']);
         self::assertStringContainsString('needs a "command"', self::json($browser, 'POST', '/api/write', null, 400)['error']);
-        $browser->request('POST', '/api/write', content: '{broken');
+        $browser->request('POST', '/api/write', server: ['HTTP_X_TRACKDSP' => '1'], content: '{broken');
         self::assertSame(400, $browser->getResponse()->getStatusCode());
         self::assertStringContainsString('JSON object', (string) $browser->getResponse()->getContent());
         $browser->request('GET', '/api/write');
@@ -96,11 +96,11 @@ final class ApiControllerTest extends WebTestCase
         self::assertSame('trackdsp-8x8', json_decode($file, true)['format']);
 
         self::json($browser, 'POST', '/api/write', ['command' => 'delay', 'args' => ['channel' => 12, 'samples' => 0]]);
-        $browser->request('POST', '/api/upload', content: $file);
+        $browser->request('POST', '/api/upload', server: ['HTTP_X_TRACKDSP' => '1'], content: $file);
         self::assertSame(200, $browser->getResponse()->getStatusCode(), (string) $browser->getResponse()->getContent());
         self::assertSame(480, self::json($browser, 'GET', '/api/state')['outputs'][4]['delay']);
 
-        $browser->request('POST', '/api/upload', content: '{"format":"other"}');
+        $browser->request('POST', '/api/upload', server: ['HTTP_X_TRACKDSP' => '1'], content: '{"format":"other"}');
         self::assertSame(400, $browser->getResponse()->getStatusCode());
     }
 
@@ -129,6 +129,23 @@ final class ApiControllerTest extends WebTestCase
         self::assertStringContainsString('event: meters', $response->getContent());
     }
 
+    public function testWritesNeedTheHeader(): void
+    {
+        $browser = self::browser();
+        $browser->request('POST', '/api/write', content: '{"command":"mute","args":{"channel":8,"on":true}}');
+
+        self::assertSame(403, $browser->getResponse()->getStatusCode());
+        self::assertStringContainsString('X-Trackdsp', (string) $browser->getResponse()->getContent());
+    }
+
+    public function testUnknownHostIsRejected(): void
+    {
+        $browser = self::browser();
+        $browser->request('GET', '/api/status', server: ['HTTP_HOST' => 'attacker.example']);
+
+        self::assertSame(400, $browser->getResponse()->getStatusCode());
+    }
+
     public function testWithoutBridge(): void
     {
         $browser = self::browser(sys_get_temp_dir().'/trackdsp-missing.sock');
@@ -136,5 +153,22 @@ final class ApiControllerTest extends WebTestCase
         self::assertStringContainsString('not running', self::json($browser, 'GET', '/api/status', status: 503)['error']);
         $browser->request('GET', '/api/events');
         self::assertStringContainsString('"bridge":false', $browser->getInternalResponse()->getContent());
+    }
+
+    public function testDiscoverListsWhatTheScanFinds(): void
+    {
+        $client = self::browser();
+        $client->request('POST', '/api/discover', server: ['HTTP_X_TRACKDSP' => '1']);
+        self::assertResponseIsSuccessful();
+        $body = json_decode((string) $client->getResponse()->getContent(), true);
+        // TRACKDSP_DISCOVERY_NETWORKS in .env.test, where nothing listens on port 9761
+        self::assertSame(['networks' => ['127.0.0.1/32'], 'devices' => []], $body);
+    }
+
+    public function testDiscoverNeedsTheHeader(): void
+    {
+        $client = self::browser();
+        $client->request('POST', '/api/discover');
+        self::assertResponseStatusCodeSame(403);
     }
 }

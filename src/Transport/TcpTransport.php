@@ -28,7 +28,10 @@ final class TcpTransport implements TransportInterface
         $address = \sprintf('tcp://%s:%d', $host, $port);
         $stream = @stream_socket_client($address, $errno, $error, $connectTimeout);
         if (false === $stream) {
-            throw new TransportException(\sprintf('Cannot connect to %s: %s (%d).', $address, $error, $errno));
+            // The device ignores new connections while all of its connections are in use
+            $hint = 110 === $errno ? ' The device does not accept a new connection while all of them are in use, for example by the vendor editor. Close it and try again.' : '';
+
+            throw new TransportException(\sprintf('Cannot connect to %s: %s (%d).%s', $address, $error, $errno, $hint));
         }
 
         return new self($stream, $address);

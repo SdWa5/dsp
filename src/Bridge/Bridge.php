@@ -222,8 +222,10 @@ final class Bridge
     private function ipAddress(): string
     {
         \assert(null !== $this->dsp);
-        if ($this->dsp->transport() instanceof TcpTransport) {
-            return preg_replace('/:\d+$/', '', $this->target) ?? $this->target;
+        $transport = $this->dsp->transport();
+        if ($transport instanceof TcpTransport) {
+            // The address actually connected to, also when the target was "auto"
+            return preg_replace('#^tcp://(.*):\d+$#', '$1', $transport->describe()) ?? $transport->describe();
         }
 
         return $this->dsp->ipAddress();

@@ -1,0 +1,13 @@
+{% import 'editor/_widgets.html.twig' as w %}
+<div class="strips">
+    {% for o in 0..7 %}
+        {% set p = 'outputs.' ~ o %}
+        {% set send = [{command: 'routing', args: {channel: 8 + o, mask: '@' ~ p ~ '.route'}}] %}
+        <div class="strip strip--matrix">
+            <h3 class="strip__title">{{ w.value(p ~ '.name') }}</h3>
+            {% for i in 0..8 %}
+                {{ w.toggle(i < 8 ? 'In' ~ (i + 1) : 'Aux', p ~ '.route', send, null, {bit: i, class: 'toggle--route'}) }}
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>

@@ -85,6 +85,7 @@ it gets the current status and state. `meters` data is `{"levels": [17 × dB], "
 | POST | `/api/upload` | a preset file | `{"queued": n}` |
 | GET | `/api/download` | – | the live state as a preset file |
 | GET | `/api/events` | – | server-sent events `status`, `state`, `meters` |
+| POST | `/api/discover` | – | `{"networks": [...], "devices": [{"target", "kind", "info", "busy", "connected"}]}` |
 
 `command` is the name of a builder in `App\Protocol\Commands` and `args` are its parameters by name, for
 example `gainDb {channel, db}` or `peq {channel, band, gainRaw, freqIndex, qIndex, type, bypass}`.
@@ -92,6 +93,16 @@ The allowed builders are listed in `App\Bridge\CommandMap::COMMANDS`. Reads, the
 PIN commands (`unlock`, `setPin`) are not among them. Integers must fit their field. A value that the
 builder would cut to one byte, or anything outside 0..65535, is rejected. Channel arguments must be a
 channel index (`00`–`0F`, `12`, `13`).
+
+Every write (any method except GET, HEAD and OPTIONS) needs the header `X-Trackdsp` with any value, or it
+is refused with 403. A custom header forces a CORS preflight, which the app never allows, so another website
+open in the same browser cannot write to the device. `TRACKDSP_TRUSTED_HOSTS` limits the host names the app
+answers to, which guards against DNS rebinding.
+
+`/api/discover` searches USB and the networks in `TRACKDSP_DISCOVERY_NETWORKS` (empty: the networks of the
+local interfaces) for devices on TCP 9761. The device the bridge is connected to is listed without being
+contacted again. A device whose connections are all in use, for example by the vendor editor, answers ping
+but no TCP connect. It is listed as `busy` when the ARP table shows a host with its MAC prefix `00:04:a3`.
 
 Errors are `{"error": "..."}` with status 400 (bad request), 409 (device not connected), 503 (bridge not
 running) or 504 (no answer from the bridge in time).

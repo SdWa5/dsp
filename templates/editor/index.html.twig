@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    {% import 'editor/_widgets.html.twig' as w %}
+    <script type="application/json" id="trackdsp-labels">{{ labels|json_encode|raw }}</script>
+    <div class="editor" data-controller="editor">
+        <header class="editor__head">
+            <nav class="menu" aria-label="Menu">
+                <div class="menu__item">
+                    <button type="button" class="menu__title">File</button>
+                    <div class="menu__list">
+                        <button type="button" data-action="editor#openFile">Open preset file…</button>
+                        <button type="button" data-action="editor#saveFile">Save preset file</button>
+                        <button type="button" data-action="editor#refresh">Read from device</button>
+                        <button type="button" data-action="editor#factory">Factory default (F00)</button>
+                    </div>
+                </div>
+                <button type="button" class="menu__title" data-action="editor#open" data-editor-dialog-param="link">Link</button>
+                <button type="button" class="menu__title" data-action="editor#open" data-editor-dialog-param="copy">Copy</button>
+                <button type="button" class="menu__title" data-action="editor#open" data-editor-dialog-param="lock">Lock</button>
+                <button type="button" class="menu__title" data-action="editor#open" data-editor-dialog-param="working">Working Status</button>
+                <button type="button" class="menu__title" data-action="editor#open" data-editor-dialog-param="idip">Setting ID/IP</button>
+                <button type="button" class="menu__title" data-action="editor#open" data-editor-dialog-param="tone">Test Tone</button>
+                <button type="button" class="menu__title" data-action="editor#open" data-editor-dialog-param="names">Channel Name</button>
+                <button type="button" class="menu__title" data-action="editor#open" data-editor-dialog-param="sub">Sub Control</button>
+                <button type="button" class="menu__title" data-action="editor#open" data-editor-dialog-param="groups">Group Control</button>
+                <button type="button" class="menu__title" data-action="editor#open" data-editor-dialog-param="help">Help</button>
+                <button type="button" class="menu__title" data-action="editor#open" data-editor-dialog-param="about">About</button>
+                <input type="file" accept=".json,application/json" hidden data-editor-target="file" data-action="change->editor#upload">
+            </nav>
+            <div class="tabs" role="tablist">
+                {% for page in ['Gain', 'Gate', 'Comp', 'Delay', 'Matrix', 'Aux'] %}
+                    <button type="button" role="tab" class="tab" data-editor-target="tab" data-page="{{ page|lower }}"
+                            data-action="editor#tab" data-editor-page-param="{{ page|lower }}">{{ page }}</button>
+                {% endfor %}
+                {% for side, prefix in {inputs: 'In', outputs: 'Out'} %}
+                    {% for i in 0..7 %}
+                        <button type="button" role="tab" class="tab" data-editor-target="tab" data-page="{{ side }}{{ i }}"
+                                data-side="{{ side }}" data-index="{{ i }}" data-label="{{ prefix }}{{ i + 1 }}"
+                                data-action="editor#tab" data-editor-page-param="{{ side }}{{ i }}">{{ prefix }}{{ i + 1 }}</button>
+                    {% endfor %}
+                {% endfor %}
+                <span class="tabs__id">ID : {{ w.value('device_id') }}</span>
+                <button type="button" class="online" data-editor-target="online" data-action="editor#open" data-editor-dialog-param="connect">Offline</button>
+            </div>
+        </header>
+
+        <main class="editor__main">
+            <p class="banner" data-editor-target="banner" hidden></p>
+            <section class="page" data-editor-target="page" data-page="gain">{{ include('editor/page/_gain.html.twig') }}</section>
+            <section class="page" data-editor-target="page" data-page="gate" hidden>{{ include('editor/page/_gate.html.twig') }}</section>
+            <section class="page" data-editor-target="page" data-page="comp" hidden>{{ include('editor/page/_comp.html.twig') }}</section>
+            <section class="page" data-editor-target="page" data-page="delay" hidden>{{ include('editor/page/_delay.html.twig') }}</section>
+            <section class="page" data-editor-target="page" data-page="matrix" hidden>{{ include('editor/page/_matrix.html.twig') }}</section>
+            <section class="page" data-editor-target="page" data-page="aux" hidden>{{ include('editor/page/_aux.html.twig') }}</section>
+            {% for side in ['inputs', 'outputs'] %}
+                {% for i in 0..7 %}
+                    <section class="page" data-editor-target="page" data-page="{{ side }}{{ i }}" hidden>
+                        {{ include('editor/page/_channel.html.twig', {side: side, i: i}) }}
+                    </section>
+                {% endfor %}
+            {% endfor %}
+        </main>
+
+        <footer class="editor__foot">
+            <span class="pill"><b>Number</b> <span data-editor-target="number">–</span></span>
+            <span class="pill"><b>Name</b> {{ w.value('preset_name') }}</span>
+            <button type="button" class="big" data-action="editor#open" data-editor-dialog-param="store">Store</button>
+            <button type="button" class="big" data-action="editor#open" data-editor-dialog-param="recall">Recall</button>
+            <span class="editor__error" data-editor-target="error" role="status"></span>
+        </footer>
+
+        {{ include('editor/_dialogs.html.twig') }}
+    </div>
+{% endblock %}
+

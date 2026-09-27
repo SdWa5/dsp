@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Bridge\BridgeClient;
 use App\Bridge\BridgeException;
 use App\Bridge\CommandMap;
+use App\Discovery\Discovery;
 use App\Model\Device;
 use App\Protocol\Frame;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,8 +22,10 @@ use Symfony\Component\Routing\Attribute\Route;
 #[AsController]
 final class ApiController
 {
-    public function __construct(private readonly BridgeClient $bridge)
-    {
+    public function __construct(
+        private readonly BridgeClient $bridge,
+        private readonly Discovery $discovery,
+    ) {
     }
 
     #[Route('/status', methods: ['GET'])]
@@ -86,6 +89,37 @@ final class ApiController
     public function refresh(): JsonResponse
     {
         return $this->call(fn (): mixed => $this->bridge->request('refresh'));
+    }
+
+    /**
+     * Searches USB and the local networks. The device the bridge is connected to is not contacted
+     * again, it is listed as it is.
+     */
+    #[Route('/discover', methods: ['POST'])]
+    public function discover(): JsonResponse
+    {
+        try {
+            $status = $this->bridge->request('status');
+        } catch (BridgeException) {
+            $status = null;
+        }
+        $current = null;
+        $transport = \is_array($status) && true === ($status['connected'] ?? false) && \is_string($status['transport'] ?? null) ? $status['transport'] : '';
+        if (preg_match('#^tcp://(.+):(\d+)$#', $transport, $m)) {
+            $current = ['target' => '9761' === $m[2] ? $m[1] : $m[1].':'.$m[2], 'kind' => 'tcp', 'info' => (string) ($status['info'] ?? ''), 'busy' => false, 'connected' => true];
+        }
+        try {
+            $networks = array_map(strval(...), $this->discovery->subnets());
+            $devices = null === $current ? $this->discovery->scan() : [$current, ...$this->discovery->scan([$current['target']])];
+        } catch (\InvalidArgumentException $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 400);
+        }
+        if (null !== $current) {
+            // USB first as in the scan, the connected network device ahead of the other network devices
+            usort($devices, static fn (array $a, array $b): int => ('usb' === $b['kind']) <=> ('usb' === $a['kind']));
+        }
+
+        return new JsonResponse(['networks' => $networks, 'devices' => $devices]);
     }
 
     /**

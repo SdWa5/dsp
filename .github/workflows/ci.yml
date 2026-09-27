@@ -20,3 +20,13 @@ jobs:
         run: composer stan
       - name: Tests
         run: composer test
+
+  js:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Browser code tests
+        run: node --test assets/tests/*.test.js

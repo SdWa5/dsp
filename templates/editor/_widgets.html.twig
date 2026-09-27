@@ -1,0 +1,51 @@
+{#
+ # Widget macros. Every widget binds to a state path ("inputs.0.gain") and sends commands built from
+ # templates in which "@path" arguments are read from the state. link = "inputs:0" also writes to the
+ # channels linked with In1.
+ #}
+
+{% macro fader(title, bind, send, min, max, fmt, link = null, options = {}) %}
+    <div class="fader{{ options.class is defined ? ' ' ~ options.class }}" data-controller="fader"
+         data-fader-bind-value="{{ bind }}" data-fader-send-value="{{ send|json_encode }}"
+         data-fader-fmt-value="{{ fmt }}"{% if link %} data-fader-link-value="{{ link }}"{% endif %}
+         {% if options.enabled is defined %} data-fader-enabled-value="{{ options.enabled }}"{% endif %}>
+        {% if title %}<span class="fader__title">{{ title }}</span>{% endif %}
+        <input type="range" min="{{ min }}" max="{{ max }}" step="1" aria-label="{{ options.label|default(title ?: bind) }}"
+               data-fader-target="input" data-action="input->fader#input wheel->fader#wheel">
+        <output class="fader__value" data-fader-target="label">–</output>
+    </div>
+{% endmacro %}
+
+{% macro toggle(label, bind, send, link = null, options = {}) %}
+    <button type="button" class="toggle{{ options.class is defined ? ' ' ~ options.class }}" data-controller="toggle"
+            data-action="toggle#click" data-toggle-bind-value="{{ bind }}" data-toggle-send-value="{{ send|json_encode }}"
+            {% if link %} data-toggle-link-value="{{ link }}"{% endif %}
+            {% if options.bit is defined %} data-toggle-bit-value="{{ options.bit }}"{% endif %}
+            {% if options.on is defined %} data-toggle-text-on-value="{{ options.on }}" data-toggle-text-off-value="{{ label }}"{% endif %}
+            {% if options.enabled is defined %} data-toggle-enabled-value="{{ options.enabled }}"{% endif %}>{{ label }}</button>
+{% endmacro %}
+
+{% macro choice(label, bind, send, items, link = null, options = {}) %}
+    <select class="choice" aria-label="{{ label }}" data-controller="choice" data-action="choice#change"
+            data-choice-bind-value="{{ bind }}" data-choice-send-value="{{ send|json_encode }}"
+            {% if link %} data-choice-link-value="{{ link }}"{% endif %}
+            {% if options.enabled is defined %} data-choice-enabled-value="{{ options.enabled }}"{% endif %}>
+        {% for value, text in items %}<option value="{{ value }}">{{ text }}</option>{% endfor %}
+    </select>
+{% endmacro %}
+
+{% macro text(label, bind, send, maxlength, link = null) %}
+    <input type="text" class="text" aria-label="{{ label }}" maxlength="{{ maxlength }}" data-controller="text"
+           data-action="change->text#change" data-text-bind-value="{{ bind }}" data-text-send-value="{{ send|json_encode }}"
+           {% if link %} data-text-link-value="{{ link }}"{% endif %}>
+{% endmacro %}
+
+{% macro value(bind, fmt = 'raw') %}
+    <span class="value" data-controller="value" data-value-bind-value="{{ bind }}" data-value-fmt-value="{{ fmt }}">–</span>
+{% endmacro %}
+
+{% macro meter(index, label = null) %}
+    <div class="meter" data-controller="meter" data-meter-index-value="{{ index }}" role="meter" aria-label="{{ label ?? 'Level' }}">
+        <span class="meter__bar"></span>
+    </div>
+{% endmacro %}

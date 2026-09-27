@@ -20,6 +20,7 @@ services:
             - '../src/Model/'
             - '../src/Protocol/'
             - '../src/Client/'
+            - '../src/Discovery/Subnet.php'
             - '../src/Transport/{DemoTransport,HidrawTransport,TcpTransport,TransportException}.php'
             - '../src/Bridge/{Bridge,BridgeException,CommandMap,WriteQueue}.php'
 
@@ -29,6 +30,10 @@ services:
         arguments:
             $demoConfigPath: '%trackdsp.demo_config%'
             $timeout: '%trackdsp.timeout%'
+
+    App\Discovery\Discovery:
+        arguments:
+            $networks: '%env(TRACKDSP_DISCOVERY_NETWORKS)%'
 
     App\Bridge\BridgeClient:
         arguments:

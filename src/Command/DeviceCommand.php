@@ -21,14 +21,14 @@ abstract class DeviceCommand extends Command
     public function __construct(
         protected readonly TransportFactory $transports,
         #[Autowire('%env(TRACKDSP_TARGET)%')]
-        private readonly string $defaultTarget = 'usb',
+        private readonly string $defaultTarget = 'auto',
     ) {
         parent::__construct();
     }
 
     protected function configure(): void
     {
-        $this->addOption('target', 't', InputOption::VALUE_REQUIRED, 'usb, usb:/dev/hidrawN, demo or host[:port] (default: $TRACKDSP_TARGET)');
+        $this->addOption('target', 't', InputOption::VALUE_REQUIRED, 'auto, usb, usb:/dev/hidrawN, demo or host[:port] (default: $TRACKDSP_TARGET)');
     }
 
     /**
