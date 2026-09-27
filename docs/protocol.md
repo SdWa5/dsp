@@ -21,7 +21,9 @@ documentation, not captured on the 8x8 · ? unknown
 
 - **USB:** HID, VID `0x0168` / PID `0x0821` ("Musicrown / Dsp Process"), 64-byte reports, no report IDs.
   On Linux the device is a hidraw node. A write is the report number `00` followed by the 64-byte report,
-  a read returns the 64-byte report.
+  a read returns the 64-byte report. Replies come within about 10 ms. About one request per 0.2 to 0.3 s
+  of continuous traffic gets no reply at all, neither late nor garbled, with or without an init before it.
+  Sending it again works (✓, VIM3, 2026-09-28).
 - **LAN:** TCP port **9761**, identical frames without the 64-byte padding (✓). The session must start
   with `10` (init), otherwise the device does not answer (✓). `B0` (IP) is answered over USB only.
 

@@ -26,6 +26,9 @@ use Psr\Log\NullLogger;
  * Writes change the cached state at once and go to the device from a queue that merges repeated
  * writes to the same target, so a fast fader drag does not pile up behind a slow device.
  *
+ * The device is read again in steps of one request, which run between client requests while the queue is
+ * empty (see Resync). Only the first read after a connect reads everything at once.
+ *
  * Gain riders run inside the bridge, so they keep working without a browser. They read the meters, which are
  * polled while a client listens or a rider runs, and write the input gain like any other client. Their
  * settings are kept in $ridersFile and come back after a restart.
@@ -51,6 +54,7 @@ final class Bridge
     private bool $stateDirty = false;
     private bool $statusDirty = false;
     private bool $resyncPending = false;
+    private ?Resync $resync = null;
     private int $failures = 0;
     private float $nextConnect = 0.0;
     private float $nextPublish = 0.0;
@@ -139,7 +143,8 @@ final class Bridge
     {
         $this->deviceWork();
         $this->publish();
-        $this->io($maxWait);
+        // A running re-read goes on at once when no client has anything to say
+        $this->io(null === $this->resync ? $maxWait : 0.0);
     }
 
     /**
@@ -154,6 +159,7 @@ final class Bridge
             'info' => $this->info,
             'error' => $this->error,
             'queued' => $this->queue->count(),
+            'resync' => null === $this->resync ? null : round($this->resync->progress(), 2),
             'clients' => \count($this->clients),
             'riders' => array_values(array_map(static fn (GainRider $r): array => $r->settings()->toArray(), $this->riders)),
         ];
@@ -175,12 +181,16 @@ final class Bridge
             while (self::now() < $deadline && null !== $frame = $this->queue->shift()) {
                 $dsp->write($frame);
                 if (\in_array($frame->opcode(), [Opcode::LoadPreset, Opcode::StorePreset], true)) {
+                    // The whole configuration changed, a running re-read starts over
+                    $this->resync = null;
                     $this->resyncPending = true;
+                } else {
+                    $this->resync?->written($frame);
                 }
                 $this->statusDirty = true;
             }
-            if (0 === $this->queue->count() && ($this->resyncPending || $now >= $this->nextResync)) {
-                $this->read();
+            if (0 === $this->queue->count()) {
+                $this->resyncStep($dsp, $now);
             }
             if ($now >= $this->nextMeter && ($this->subscribers() > 0 || [] !== $this->riders)) {
                 $this->nextMeter = $now + $this->meterInterval;
@@ -201,7 +211,11 @@ final class Bridge
         try {
             $this->dsp = $this->transports->connect($this->target);
             $this->info = $this->dsp->info();
-            $this->read();
+            $this->resyncPending = false;
+            $this->resync = new Resync();
+            while (!$this->resync->step($this->dsp)) {
+            }
+            $this->finishResync();
             $this->failures = 0;
             $this->error = '';
             $this->logger->info('Connected to {target}: {info}.', ['target' => $this->target, 'info' => $this->info]);
@@ -212,25 +226,32 @@ final class Bridge
     }
 
     /**
-     * Reads the whole device into the cached state. Values the device does not report are kept.
+     * Starts a re-read when one is due and sends its next request. Values the device does not report are kept.
      */
-    private function read(): void
+    private function resyncStep(Matrix $dsp, float $now): void
     {
-        \assert(null !== $this->dsp);
-        $config = $this->dsp->config();
-        $groups = $this->dsp->groupsRaw();
-        $names = $this->dsp->presetNames();
-        $active = $this->dsp->activePreset();
-        if (null === $this->state) {
-            $this->state = new DeviceState($config, $groups, $names, $active, $this->ipAddress());
-        } else {
-            $this->state->replaceConfig($config, $groups);
-            $this->state->replacePresetNames($names);
-            $this->state->activePreset = $active;
+        if (null === $this->resync) {
+            if (!$this->resyncPending && $now < $this->nextResync) {
+                return;
+            }
+            // Cleared at the start, so a refresh asked for while this one runs gets one of its own afterwards
+            $this->resyncPending = false;
+            $this->resync = new Resync();
+            $this->statusDirty = true;
         }
-        $this->resyncPending = false;
+        if ($this->resync->step($dsp)) {
+            $this->finishResync();
+        }
+    }
+
+    private function finishResync(): void
+    {
+        \assert(null !== $this->resync);
+        $this->state = $this->resync->applyTo($this->state, null === $this->state ? $this->ipAddress() : '');
+        $this->resync = null;
         $this->nextResync = self::now() + $this->resyncInterval;
         $this->stateDirty = true;
+        $this->statusDirty = true;
     }
 
     /**
@@ -267,6 +288,7 @@ final class Bridge
         }
         $this->dsp = null;
         $this->state = null;
+        $this->resync = null;
         $this->info = '';
         $this->queue->clear();
         $this->statusDirty = true;

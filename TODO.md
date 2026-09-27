@@ -7,9 +7,6 @@
 - Browser editor: mark every setting that differs from the factory default visibly, in a different colour and
   with a mark that works without colour, on the control and on its channel tab, so a changed preset is readable
   at a glance. The defaults come from a factory reset read-out (the device was reset on 2026-09-25)
-- Bridge: the full re-read (`--resync-interval`) blocks every request for about 3.3 s over USB, so a fader
-  move waits that long. Read in small chunks between requests instead. The VIM3 runs with
-  `--resync-interval=600` as a stopgap
 - PHPUnit group `device` with read-only checks and reversible writes over LAN and USB
 - Packaging: `trackdsp:serve`, FrankenPHP static binary, installer, desktop entry
 - Preset upload (`Device::allFrames()`) leaves out Sub control, Group control, the delay unit and the Aux name, like the Python editor

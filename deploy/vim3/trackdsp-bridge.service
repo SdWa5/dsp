@@ -7,7 +7,7 @@ StartLimitIntervalSec=0
 User=trackdsp
 Group=trackdsp
 WorkingDirectory=/srv/trackdsp
-ExecStart=/usr/bin/php /srv/trackdsp/bin/console trackdsp:bridge --target=usb --resync-interval=600
+ExecStart=/usr/bin/php /srv/trackdsp/bin/console trackdsp:bridge --target=usb --resync-interval=60
 Restart=always
 RestartSec=3
 NoNewPrivileges=yes

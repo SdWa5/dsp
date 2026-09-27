@@ -107,6 +107,20 @@ final class BridgeTest extends TestCase
         return $state['result'];
     }
 
+    /**
+     * Runs the loop until no re-read is left.
+     */
+    private function settle(): void
+    {
+        for ($i = 0; $i < 10; ++$i) {
+            iterator_to_array($this->messages(60), false);
+            if (null === $this->request('status')['result']['resync']) {
+                return;
+            }
+        }
+        self::fail('The re-read does not finish.');
+    }
+
     private static function hex(Frame $frame): string
     {
         return bin2hex(\chr($frame->cmd).$frame->data);
@@ -140,7 +154,7 @@ final class BridgeTest extends TestCase
 
         // The device has it too: a re-read keeps the values
         $this->request('refresh');
-        iterator_to_array($this->messages(5), false);
+        $this->settle();
         self::assertSame(250, $this->state()['outputs'][0]['gain']);
     }
 
@@ -151,12 +165,62 @@ final class BridgeTest extends TestCase
         self::assertSame(222, $this->state()['outputs'][0]['gain']);
 
         $this->request('write', ['frames' => [self::hex(Commands::loadPreset(5))]]);
-        iterator_to_array($this->messages(5), false);
+        $this->settle();
         $state = $this->state();
         self::assertSame(111, $state['outputs'][0]['gain']);
         self::assertSame('Probe', $state['preset_name']);
         self::assertSame(5, $state['active_preset']);
         self::assertSame('Probe', $state['preset_names'][4]);
+    }
+
+    public function testServesRequestsWhileItReadsTheDeviceAgain(): void
+    {
+        $this->settle();
+        $this->request('refresh');
+        $progress = [];
+        for ($i = 0; $i < 10; ++$i) {
+            self::assertSame('pong', $this->request('ping')['result']);
+            $progress[] = $this->request('status')['result']['resync'];
+        }
+        self::assertNotContains(null, $progress);
+        self::assertGreaterThan($progress[0], $progress[9]);
+        self::assertLessThan(1.0, $progress[9]);
+
+        $this->settle();
+        self::assertSame('Bulgaria26', $this->state()['preset_name']);
+    }
+
+    public function testWritesDuringAReReadSurviveIt(): void
+    {
+        $this->settle();
+        $this->request('refresh');
+        // Wait until the configuration pages are read, so they hold the old gain
+        while (($this->request('status')['result']['resync'] ?? 1.0) < 27 / 49) {
+            iterator_to_array($this->messages(1), false);
+        }
+        $this->request('write', ['frames' => [self::hex(Commands::gain(8, 123))]]);
+        $this->settle();
+        self::assertSame(123, $this->state()['outputs'][0]['gain']);
+
+        $this->request('refresh');
+        $this->settle();
+        self::assertSame(123, $this->state()['outputs'][0]['gain']);
+    }
+
+    public function testARecallDuringAReReadStartsItOver(): void
+    {
+        $this->request('write', ['frames' => array_map(self::hex(...), [Commands::gain(8, 111), Commands::presetName('Probe'), Commands::storePreset(5), Commands::gain(8, 222)])]);
+        $this->settle();
+        $this->request('refresh');
+        iterator_to_array($this->messages(20), false);
+        self::assertGreaterThan(0.2, $this->request('status')['result']['resync']);
+
+        $this->request('write', ['frames' => [self::hex(Commands::loadPreset(5))]]);
+        iterator_to_array($this->messages(2), false);
+        self::assertLessThan(0.2, $this->request('status')['result']['resync']);
+        $this->settle();
+        self::assertSame(111, $this->state()['outputs'][0]['gain']);
+        self::assertSame(5, $this->state()['active_preset']);
     }
 
     public function testRejectsBadRequests(): void

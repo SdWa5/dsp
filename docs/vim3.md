@@ -17,7 +17,7 @@ laptop or phone on the crew network opens the editor in a browser. The files in
 
 | Unit | Job |
 |---|---|
-| `trackdsp-bridge.service` | `bin/console trackdsp:bridge --target=usb --resync-interval=600` as `trackdsp`, socket `var/bridge.sock`, restarts 3 s after every exit, also while the 8x8 is unplugged. The full re-read blocks requests for about 3.3 s over USB, hence 10 minutes instead of the default 60 s |
+| `trackdsp-bridge.service` | `bin/console trackdsp:bridge --target=usb --resync-interval=60` as `trackdsp`, socket `var/bridge.sock`, restarts 3 s after every exit, also while the 8x8 is unplugged |
 | `php8.4-fpm.service` | pool `trackdsp` on `/run/php/trackdsp.sock`, 16 workers. Every open editor tab holds one worker for its event stream |
 | `caddy.service` | port 80, serves `public/`, passes PHP to the pool, leaves `/api/events` uncompressed |
 

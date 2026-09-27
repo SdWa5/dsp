@@ -11,6 +11,14 @@ use App\Discovery\Discovery;
  */
 final readonly class TransportFactory
 {
+    /**
+     * USB replies come within about 10 ms, but the 8x8 loses one request every 0.2 to 0.3 s of continuous
+     * traffic (measured on the VIM3, 2026-09-28). The next attempt always got its reply, so a short wait with
+     * more attempts costs about 0.15 s per lost request instead of the full timeout.
+     */
+    public const USB_TIMEOUT = 0.15;
+    public const USB_RETRIES = 4;
+
     public function __construct(
         private HidrawLocator $locator,
         private string $demoConfigPath,
@@ -37,7 +45,10 @@ final readonly class TransportFactory
      */
     public function connect(string $target): Matrix
     {
-        $matrix = new Matrix($this->open($target), $this->timeout);
+        $transport = $this->open($target);
+        $matrix = $transport instanceof HidrawTransport
+            ? new Matrix($transport, min($this->timeout, self::USB_TIMEOUT), self::USB_RETRIES)
+            : new Matrix($transport, $this->timeout);
         $matrix->handshake();
 
         return $matrix;
