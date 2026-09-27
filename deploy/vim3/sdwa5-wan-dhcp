@@ -1,0 +1,66 @@
+#!/bin/sh
+# Ethernet role switch of the VIM3 appliance.
+#
+# end0 is a DHCP client (netplan) by default. When the cable has a link but no lease arrives within $WAIT
+# seconds, no DHCP server is on this cable, which is the case on the WAN port of the Deco. Then the board
+# serves DHCP itself as $ADDRESS, so the Deco gets a lease and bridges its LAN port without an uplink.
+# Whenever the link drops (cable pulled, Deco without power) it returns to client mode and decides again, so
+# it never serves DHCP on a network that already has a router.
+IF=${IF:-end0}
+WAIT=${WAIT:-10}
+ADDRESS=${ADDRESS:-10.42.0.1/24}
+NETWORK=/run/systemd/network/05-sdwa5-wan-dhcp.network
+
+log() { echo "$*"; }
+
+serve() {
+	cat > "$NETWORK" <<NET
+[Match]
+Name=$IF
+
+[Link]
+RequiredForOnline=no
+
+[Network]
+Address=$ADDRESS
+DHCPServer=yes
+LinkLocalAddressing=no
+IPv6AcceptRA=no
+
+[DHCPServer]
+PoolOffset=10
+PoolSize=40
+EmitRouter=yes
+EmitDNS=yes
+DNS=${ADDRESS%/*}
+DefaultLeaseTimeSec=3600
+NET
+	networkctl reload
+	log "no DHCP server on $IF after ${WAIT}s, serving DHCP as $ADDRESS"
+}
+
+client() {
+	rm -f "$NETWORK"
+	networkctl reload
+	log "link on $IF lost, back to DHCP client"
+}
+
+rm -f "$NETWORK"
+networkctl reload
+mode=client
+since=
+while :; do
+	if [ "$(cat /sys/class/net/"$IF"/carrier 2>/dev/null)" != 1 ]; then
+		[ "$mode" = server ] && { client; mode=client; }
+		since=
+	elif [ "$mode" = client ]; then
+		if ip -4 addr show dev "$IF" scope global | grep -q inet; then
+			since=
+		else
+			now=$(date +%s)
+			[ -n "$since" ] || since=$now
+			[ $((now - since)) -ge "$WAIT" ] && { serve; mode=server; }
+		fi
+	fi
+	sleep 2
+done
