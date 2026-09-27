@@ -1,0 +1,41 @@
+{% import 'editor/_widgets.html.twig' as w %}
+{% embed 'editor/_peq.html.twig' with {p: 'aux', channel: 18, filters: false, bands: 5} %}
+    {% block side %}
+        {% import 'editor/_widgets.html.twig' as w %}
+        {% set comp = [{command: 'compressor', args: {channel: 18, ratio: '@aux.comp.ratio', knee: '@aux.comp.knee', attack: '@aux.comp.attack', release: '@aux.comp.release', threshold: '@aux.comp.threshold'}}] %}
+        <fieldset class="group">
+            <legend>Comp</legend>
+            {{ w.fader(null, 'aux.comp.threshold', comp, 0, 220, 'threshold', null, {label: 'Aux compressor threshold'}) }}
+            <button type="button" class="toggle" data-action="editor#open" data-editor-dialog-param="auxcomp">Set</button>
+        </fieldset>
+        <div class="group-stack">
+            {% for key, spec in {automix: ['AutoMix', 18], effect: ['Effect', null], camera: ['Camera', 19]} %}
+                <fieldset class="group">
+                    <legend>{{ spec[0] }}</legend>
+                    {% if spec[1] is null %}
+                        {% set send = [{command: 'effect', args: {on: '@aux.effect.on', gain: '@aux.effect.gain'}}] %}
+                    {% else %}
+                        {% set m = 'aux.' ~ key %}
+                        {% set send = [{command: 'mixFunction', args: {channel: spec[1], attack: '@' ~ m ~ '.attack', release: '@' ~ m ~ '.release', threshold: '@' ~ m ~ '.threshold', select: '@' ~ m ~ '.select', on: '@' ~ m ~ '.on'}}] %}
+                    {% endif %}
+                    {{ w.toggle('Off', 'aux.' ~ key ~ '.on', send, null, {on: 'On', class: 'toggle--on'}) }}
+                    <button type="button" class="toggle" data-action="editor#open" data-editor-dialog-param="{{ key }}">Set</button>
+                </fieldset>
+            {% endfor %}
+        </div>
+        <fieldset class="group">
+            <legend>Select</legend>
+            {% for i in 0..7 %}
+                {{ w.toggle('In' ~ (i + 1), 'aux.select', [{command: 'routing', args: {channel: 18, mask: '@aux.select'}}], null, {bit: i, class: 'toggle--route'}) }}
+            {% endfor %}
+        </fieldset>
+        <fieldset class="group">
+            <legend>Gain</legend>
+            <div class="strip__row">
+                {{ w.fader('Aux', 'aux.gain', [{command: 'gain', args: {channel: 18, raw: '@aux.gain'}}], 0, 400, 'gain') }}
+                {{ w.meter(16) }}
+            </div>
+            {{ w.toggle('Mute', 'aux.mute', [{command: 'mute', args: {channel: 18, on: '@aux.mute'}}], null, {class: 'toggle--mute'}) }}
+        </fieldset>
+    {% endblock %}
+{% endembed %}

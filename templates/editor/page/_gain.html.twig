@@ -1,0 +1,33 @@
+{% import 'editor/_widgets.html.twig' as w %}
+<div class="strips">
+    <h2 class="strips__title">Input</h2>
+    {% for i in 0..7 %}
+        {% set p = 'inputs.' ~ i %}
+        <div class="strip">
+            <h3 class="strip__title">{{ w.value(p ~ '.name') }}</h3>
+            <div class="strip__row">
+                {{ w.fader('', p ~ '.gain', [{command: 'gain', args: {channel: i, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', null, {label: 'In' ~ (i + 1) ~ ' gain'}) }}
+                {{ w.meter(i) }}
+            </div>
+            {{ w.toggle('Normal', p ~ '.phase', [{command: 'phase', args: {channel: i, inverted: '@' ~ p ~ '.phase'}}], 'inputs:' ~ i, {on: 'Inverse'}) }}
+            {{ w.choice('Mode', p ~ '.mode', [{command: 'inputMode', args: {channel: i, mode: '@' ~ p ~ '.mode'}}], labels.INPUT_MODES, 'inputs:' ~ i) }}
+            {{ w.toggle('Mute', p ~ '.mute', [{command: 'mute', args: {channel: i, on: '@' ~ p ~ '.mute'}}], 'inputs:' ~ i, {class: 'toggle--mute'}) }}
+            {{ w.toggle('+48V', p ~ '.phantom', [{command: 'phantom', args: {channel: i, on: '@' ~ p ~ '.phantom'}}], 'inputs:' ~ i, {class: 'toggle--phantom', enabled: p ~ '.mode'}) }}
+        </div>
+    {% endfor %}
+</div>
+<div class="strips">
+    <h2 class="strips__title">Output</h2>
+    {% for i in 0..7 %}
+        {% set p = 'outputs.' ~ i %}
+        <div class="strip">
+            <h3 class="strip__title">{{ w.value(p ~ '.name') }}</h3>
+            <div class="strip__row">
+                {{ w.fader('', p ~ '.gain', [{command: 'gain', args: {channel: 8 + i, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', null, {label: 'Out' ~ (i + 1) ~ ' gain'}) }}
+                {{ w.meter(8 + i) }}
+            </div>
+            {{ w.toggle('Normal', p ~ '.phase', [{command: 'phase', args: {channel: 8 + i, inverted: '@' ~ p ~ '.phase'}}], 'outputs:' ~ i, {on: 'Inverse'}) }}
+            {{ w.toggle('Mute', p ~ '.mute', [{command: 'mute', args: {channel: 8 + i, on: '@' ~ p ~ '.mute'}}], 'outputs:' ~ i, {class: 'toggle--mute'}) }}
+        </div>
+    {% endfor %}
+</div>

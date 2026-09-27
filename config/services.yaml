@@ -1,0 +1,48 @@
+# This file is the entry point to configure your own services.
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    trackdsp.demo_config: '%kernel.project_dir%/resources/demo_config.bin'
+    trackdsp.timeout: 1.0
+    trackdsp.bridge_socket_default: '%kernel.project_dir%/var/bridge.sock'
+    trackdsp.bridge_socket: '%env(default:trackdsp.bridge_socket_default:TRACKDSP_BRIDGE_SOCKET)%'
+    # Longest lifetime of one /api/events stream in seconds, the browser reconnects after it
+    trackdsp.events_lifetime: 300
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Kernel.php'
+            - '../src/Model/'
+            - '../src/Protocol/'
+            - '../src/Client/'
+            - '../src/Discovery/Subnet.php'
+            - '../src/Transport/{DemoTransport,HidrawTransport,TcpTransport,TransportException}.php'
+            - '../src/Bridge/{Bridge,BridgeException,CommandMap,WriteQueue}.php'
+
+    App\Transport\HidrawLocator: ~
+
+    App\Transport\TransportFactory:
+        arguments:
+            $demoConfigPath: '%trackdsp.demo_config%'
+            $timeout: '%trackdsp.timeout%'
+
+    App\Discovery\Discovery:
+        arguments:
+            $networks: '%env(TRACKDSP_DISCOVERY_NETWORKS)%'
+
+    App\Bridge\BridgeClient:
+        arguments:
+            $socketPath: '%trackdsp.bridge_socket%'
+
+when@test:
+    parameters:
+        trackdsp.events_lifetime: 1
+    services:
+        # The default logger writes expected errors (404, 405) of the web tests to stderr
+        logger:
+            class: Psr\Log\NullLogger

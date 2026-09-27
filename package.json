@@ -1,0 +1,9 @@
+{
+    "name": "trackdsp-assets",
+    "private": true,
+    "type": "module",
+    "description": "Browser code of the trackdsp editor. No build step and no dependencies, AssetMapper serves assets/ as is.",
+    "scripts": {
+        "test": "node --test assets/tests/*.test.js"
+    }
+}

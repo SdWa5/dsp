@@ -1,0 +1,15 @@
+{% import 'editor/_widgets.html.twig' as w %}
+{% set c = p ~ '.comp' %}
+{% set send = [{command: 'compressor', args: {channel: channel, ratio: '@' ~ c ~ '.ratio', knee: '@' ~ c ~ '.knee', attack: '@' ~ c ~ '.attack', release: '@' ~ c ~ '.release', threshold: '@' ~ c ~ '.threshold'}}] %}
+<div class="strip__row">
+    {{ w.fader('Threshold', c ~ '.threshold', send, 0, 220, 'threshold') }}
+    <div class="strip__stack">
+        {{ w.fader('Ratio', c ~ '.ratio', send, 0, 15, 'ratio', null, {class: 'fader--short'}) }}
+        {{ w.fader('Knee', c ~ '.knee', send, 0, 12, 'knee', null, {class: 'fader--short'}) }}
+    </div>
+    <div class="strip__stack">
+        {{ w.fader('Attack', c ~ '.attack', send, 0, 998, 'ms', null, {class: 'fader--short'}) }}
+        {{ w.fader('Release', c ~ '.release', send, 9, 2999, 'ms', null, {class: 'fader--short'}) }}
+    </div>
+    {% if meter is not null %}{{ w.meter(meter) }}{% endif %}
+</div>

@@ -1,0 +1,63 @@
+{#
+ # PEQ editor of one channel. p = state path, channel = channel index, filters = with HPF/LPF.
+ #}
+<div class="peq" data-controller="peq" data-peq-path-value="{{ p }}" data-peq-channel-value="{{ channel }}">
+    <div class="peq__bar">
+        <label><input type="radio" name="view-{{ channel }}" checked data-action="peq#togglePhase"> Mag</label>
+        <label><input type="radio" name="view-{{ channel }}" data-peq-target="phase" data-action="peq#togglePhase"> Phase</label>
+        <span class="peq__hint">Drag a point: frequency and gain. Wheel on a point: Q.</span>
+        <button type="button" class="toggle" data-peq-target="eqBypass" data-action="peq#eqBypass">EQ Bypass</button>
+        <button type="button" class="toggle" data-action="peq#reset">EQ Reset</button>
+    </div>
+    <canvas class="peq__curve" data-peq-target="canvas"
+            data-action="pointerdown->peq#pointerdown pointermove->peq#pointermove pointerup->peq#pointerup pointercancel->peq#pointerup wheel->peq#wheel"></canvas>
+    <div class="peq__panel">
+        <table class="peq__table">
+            <thead><tr><th>PEQ</th><th>Frequency</th><th>Q</th><th>Gain</th><th>Type</th><th>Bypass</th></tr></thead>
+            <tbody>
+            {% for b in 0..(bands - 1) %}
+                <tr data-peq-target="row">
+                    <td><button type="button" class="band" data-peq-target="select" data-action="peq#select" data-peq-band-param="{{ b }}">{{ b + 1 }}</button></td>
+                    {% for field in ['freq', 'q', 'gain'] %}
+                        <td><input type="text" inputmode="decimal" aria-label="Band {{ b + 1 }} {{ field }}" data-peq-target="{{ field }}"
+                                   data-action="change->peq#edit keydown->peq#step" data-peq-band-param="{{ b }}" data-peq-field-param="{{ field }}"></td>
+                    {% endfor %}
+                    <td><select aria-label="Band {{ b + 1 }} type" data-peq-target="type" data-action="peq#edit" data-peq-band-param="{{ b }}" data-peq-field-param="type">
+                        {% for value, text in labels.PEQ_TYPES %}<option value="{{ value }}">{{ text }}</option>{% endfor %}
+                    </select></td>
+                    <td><button type="button" class="toggle toggle--bypass" data-peq-target="bypass" data-action="peq#toggleBypass" data-peq-band-param="{{ b }}">Bypass</button></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <fieldset class="group">
+            <legend>PEQ Parameter</legend>
+            {% for name, spec in {Freq: ['freq', 300], Q: ['q', 100], Gain: ['gain', 240]} %}
+                <div class="fader">
+                    <span class="fader__title">{{ name }}</span>
+                    <input type="range" min="0" max="{{ spec[1] }}" aria-label="Selected band {{ name }}" data-peq-target="param{{ name }}"
+                           data-action="input->peq#param" data-peq-field-param="{{ spec[0] }}">
+                    <output class="fader__value" data-peq-target="param{{ name }}Label">–</output>
+                </div>
+            {% endfor %}
+        </fieldset>
+        {% if filters %}
+            {% for kind, title in {hpf: 'HighPass', lpf: 'LowPass'} %}
+                <fieldset class="group">
+                    <legend>{{ title }}</legend>
+                    <div class="fader">
+                        <input type="range" min="0" max="300" aria-label="{{ title }} frequency" data-kind="{{ kind }}" data-peq-target="filterFreq"
+                               data-action="input->peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="freq">
+                        <output class="fader__value" data-peq-target="filterFreqLabel">–</output>
+                    </div>
+                    <span class="group__caption">Slope</span>
+                    <select aria-label="{{ title }} slope" data-peq-target="filterSlope" data-action="peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="slope">
+                        {% for value, text in labels.SLOPES|slice(1, null, true) %}<option value="{{ value }}">{{ text }}</option>{% endfor %}
+                    </select>
+                    <button type="button" class="toggle toggle--bypass" data-peq-target="filterBypass" data-action="peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="bypass">Bypass</button>
+                </fieldset>
+            {% endfor %}
+        {% endif %}
+        {% block side %}{% endblock %}
+    </div>
+</div>
