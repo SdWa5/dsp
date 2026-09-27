@@ -2,7 +2,8 @@
 
 ## Rewrite
 
-- Browser editor: Gain, Gate, Comp, Delay, Matrix, Aux and In1–8 / Out1–8 pages, menus and dialogs, EQ curve with draggable points, live meters
+- Browser editor: check every page and dialog against the device, with a harmless round trip per control
+- DJ and 1:1 compressor buttons: write to the linked outputs too, like the gain and mute controls
 - PHPUnit group `device` with read-only checks and reversible writes over LAN and USB
 - Packaging: `trackdsp:serve`, FrankenPHP static binary, installer, desktop entry
 - Preset upload (`Device::allFrames()`) leaves out Sub control, Group control, the delay unit and the Aux name, like the Python editor
@@ -18,10 +19,11 @@
 
 ## Automation
 
-- Verify `trackdsp:ride`, `trackdsp:compressor` and `trackdsp:autoeq` on the device with the UMC1820 and the
-  measurement mic
+- Verify the gain riders, the DJ compressor and the auto EQ on the device with the UMC1820 and the
+  measurement mic, on the command line and in the browser editor
 - Measure the 8x8's PEQ shape against the RBJ peaking filter the fitter assumes
-- `arecord` in the ddev web container (alsa-utils and the sound device), so a measurement runs inside ddev
+- `arecord` in the ddev web container (alsa-utils and the sound device), so a measurement runs inside ddev and
+  the Auto EQ page can record there
 
 ## Protocol
 

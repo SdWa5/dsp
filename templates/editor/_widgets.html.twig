@@ -8,11 +8,14 @@
     <div class="fader{{ options.class is defined ? ' ' ~ options.class }}" data-controller="fader"
          data-fader-bind-value="{{ bind }}" data-fader-send-value="{{ send|json_encode }}"
          data-fader-fmt-value="{{ fmt }}"{% if link %} data-fader-link-value="{{ link }}"{% endif %}
-         {% if options.enabled is defined %} data-fader-enabled-value="{{ options.enabled }}"{% endif %}>
+         {% if options.enabled is defined %} data-fader-enabled-value="{{ options.enabled }}"{% endif %}
+         {% if options.default is defined %} data-fader-default-value="{{ options.default }}"{% endif %}>
         {% if title %}<span class="fader__title">{{ title }}</span>{% endif %}
         <input type="range" min="{{ min }}" max="{{ max }}" step="1" aria-label="{{ options.label|default(title ?: bind) }}"
-               data-fader-target="input" data-action="input->fader#input wheel->fader#wheel">
-        <output class="fader__value" data-fader-target="label">–</output>
+               {% if options.default is defined %} title="Double-click: back to the default"{% endif %}
+               data-fader-target="input" data-action="input->fader#input wheel->fader#wheel dblclick->fader#reset">
+        <input type="text" class="fader__value" inputmode="decimal" aria-label="{{ options.label|default(title ?: bind) }} value"
+               data-fader-target="label" data-action="change->fader#typed keydown->fader#key focus->fader#focus blur->fader#blur">
     </div>
 {% endmacro %}
 
@@ -22,7 +25,14 @@
             {% if link %} data-toggle-link-value="{{ link }}"{% endif %}
             {% if options.bit is defined %} data-toggle-bit-value="{{ options.bit }}"{% endif %}
             {% if options.on is defined %} data-toggle-text-on-value="{{ options.on }}" data-toggle-text-off-value="{{ label }}"{% endif %}
-            {% if options.enabled is defined %} data-toggle-enabled-value="{{ options.enabled }}"{% endif %}>{{ label }}</button>
+            {% if options.enabled is defined %} data-toggle-enabled-value="{{ options.enabled }}"{% endif %}
+            {% if options.aria is defined %} aria-label="{{ options.aria }}"{% endif %}>{{ label }}</button>
+{% endmacro %}
+
+{# A button that sets several values at once: set = {path: raw value}. #}
+{% macro preset(label, set, send, hint) %}
+    <button type="button" class="toggle toggle--preset" data-controller="preset" data-action="preset#apply"
+            data-preset-set-value="{{ set|json_encode }}" data-preset-send-value="{{ send|json_encode }}" title="{{ hint }}">{{ label }}</button>
 {% endmacro %}
 
 {% macro choice(label, bind, send, items, link = null, options = {}) %}
@@ -46,6 +56,18 @@
 
 {% macro meter(index, label = null) %}
     <div class="meter" data-controller="meter" data-meter-index-value="{{ index }}" role="meter" aria-label="{{ label ?? 'Level' }}">
-        <span class="meter__bar"></span>
+        <span class="meter__bar"></span><span class="meter__peak"></span>
     </div>
 {% endmacro %}
+
+{# Channel ID with the channel's name next to it: 0..7 In1..In8, 8..15 Out1..Out8, 18 Aux. #}
+{% macro ch(index, options = {}) -%}
+    {%- set id = index < 8 ? 'In' ~ (index + 1) : (index < 16 ? 'Out' ~ (index - 7) : 'Aux') -%}
+    <span class="ch{{ options.class is defined ? ' ' ~ options.class }}" data-controller="channel" data-channel-index-value="{{ index }}"><b class="ch__id">{{ id }}</b><span class="ch__name"></span></span>
+{%- endmacro %}
+
+{# An <option> with the channel ID and name, value defaults to the channel index. #}
+{% macro ch_option(index, value = null) -%}
+    {%- set id = index < 8 ? 'In' ~ (index + 1) : (index < 16 ? 'Out' ~ (index - 7) : 'Aux') -%}
+    <option value="{{ value ?? index }}" data-controller="channel" data-channel-index-value="{{ index }}">{{ id }}</option>
+{%- endmacro %}

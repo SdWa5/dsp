@@ -6,9 +6,10 @@ import { Store } from './store.js';
 export const HEADER = 'X-Trackdsp';
 
 export const store = new Store();
-export const status = { connected: false, bridge: false, error: '', target: '' };
-const listeners = { status: new Set(), meters: new Set(), error: new Set() };
+export const status = { connected: false, bridge: false, error: '', target: '', riders: [] };
+const listeners = { status: new Set(), meters: new Set(), riders: new Set(), error: new Set() };
 
+/** Listens to status, meters (levels), riders (what the gain riders do right now) or error. */
 export function on(event, listener) {
     listeners[event].add(listener);
     return () => listeners[event].delete(listener);
@@ -20,13 +21,28 @@ function emit(event, data) {
     }
 }
 
+/** Shows a message in the editor's error line. */
+export function reportError(message) {
+    emit('error', message);
+}
+
+/** Takes a bridge status from an API answer, e.g. after starting a gain rider. */
+export function updateStatus(data) {
+    Object.assign(status, data);
+    emit('status', status);
+}
+
 export class ApiError extends Error {}
 
+/**
+ * Calls the API. body: an object (sent as JSON), a string or a Blob/File (sent as it is).
+ */
 export async function api(path, body = undefined, method = 'POST') {
     const options = { method, headers: { [HEADER]: '1', Accept: 'application/json' } };
     if (undefined !== body) {
-        options.body = 'string' === typeof body ? body : JSON.stringify(body);
-        options.headers['Content-Type'] = 'application/json';
+        const raw = 'string' === typeof body || body instanceof Blob;
+        options.body = raw ? body : JSON.stringify(body);
+        options.headers['Content-Type'] = raw && body instanceof Blob ? 'application/octet-stream' : 'application/json';
     }
     const response = await fetch(`/api/${path}`, options);
     const data = await response.json().catch(() => ({}));
@@ -67,7 +83,11 @@ export function listen() {
         emit('status', status);
     });
     source.addEventListener('state', (e) => store.replace(JSON.parse(e.data)));
-    source.addEventListener('meters', (e) => emit('meters', JSON.parse(e.data).levels));
+    source.addEventListener('meters', (e) => {
+        const data = JSON.parse(e.data);
+        emit('meters', data.levels);
+        emit('riders', data.riders ?? []);
+    });
     source.addEventListener('error', () => {
         status.bridge = false;
         emit('status', status);

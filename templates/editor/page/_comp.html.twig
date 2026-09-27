@@ -1,8 +1,10 @@
 {% import 'editor/_widgets.html.twig' as w %}
+<p class="page__note">DJ sets the DJ default: 1:4 from −6 dB, 10 ms attack, 200 ms release, hard knee. The threshold is on the
+    device's own scale, so check it against the real levels. 1:1 switches the compression off.</p>
 <div class="strips">
     {% for i in 0..7 %}
         <div class="strip">
-            <h3 class="strip__title">{{ w.value('outputs.' ~ i ~ '.name') }}</h3>
+            <h3 class="strip__title">{{ w.ch(8 + i) }}</h3>
             {{ include('editor/page/_compressor.html.twig', {p: 'outputs.' ~ i, channel: 8 + i, meter: 8 + i}) }}
         </div>
     {% endfor %}

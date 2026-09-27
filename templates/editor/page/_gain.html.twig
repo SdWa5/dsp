@@ -1,29 +1,56 @@
 {% import 'editor/_widgets.html.twig' as w %}
-<div class="strips">
-    <h2 class="strips__title">Input</h2>
-    {% for i in 0..7 %}
-        {% set p = 'inputs.' ~ i %}
-        <div class="strip">
-            <h3 class="strip__title">{{ w.value(p ~ '.name') }}</h3>
-            <div class="strip__row">
-                {{ w.fader('', p ~ '.gain', [{command: 'gain', args: {channel: i, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', null, {label: 'In' ~ (i + 1) ~ ' gain'}) }}
-                {{ w.meter(i) }}
+<div data-controller="riders" data-riders-defaults-value="{{ rider_defaults|json_encode }}">
+    <div class="strips">
+        <h2 class="strips__title">Input</h2>
+        {% for i in 0..7 %}
+            {% set p = 'inputs.' ~ i %}
+            <div class="strip">
+                <h3 class="strip__title">{{ w.ch(i) }}</h3>
+                <div class="strip__row">
+                    {{ w.fader('', p ~ '.gain', [{command: 'gain', args: {channel: i, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', null, {label: 'In' ~ (i + 1) ~ ' gain', default: 280}) }}
+                    {{ w.meter(i) }}
+                </div>
+                <button type="button" class="toggle toggle--rider" data-riders-target="button" data-channel="{{ i }}"
+                        data-action="riders#open" data-riders-channel-param="{{ i }}" title="Gain rider: keeps the input at a target level">Rider</button>
+                <span class="rider-info" data-riders-target="info" data-channel="{{ i }}"></span>
+                {{ w.toggle('Normal', p ~ '.phase', [{command: 'phase', args: {channel: i, inverted: '@' ~ p ~ '.phase'}}], 'inputs:' ~ i, {on: 'Inverse'}) }}
+                {{ w.choice('Mode', p ~ '.mode', [{command: 'inputMode', args: {channel: i, mode: '@' ~ p ~ '.mode'}}], labels.INPUT_MODES, 'inputs:' ~ i) }}
+                {{ w.toggle('Mute', p ~ '.mute', [{command: 'mute', args: {channel: i, on: '@' ~ p ~ '.mute'}}], 'inputs:' ~ i, {class: 'toggle--mute'}) }}
+                {{ w.toggle('+48V', p ~ '.phantom', [{command: 'phantom', args: {channel: i, on: '@' ~ p ~ '.phantom'}}], 'inputs:' ~ i, {class: 'toggle--phantom', enabled: p ~ '.mode'}) }}
             </div>
-            {{ w.toggle('Normal', p ~ '.phase', [{command: 'phase', args: {channel: i, inverted: '@' ~ p ~ '.phase'}}], 'inputs:' ~ i, {on: 'Inverse'}) }}
-            {{ w.choice('Mode', p ~ '.mode', [{command: 'inputMode', args: {channel: i, mode: '@' ~ p ~ '.mode'}}], labels.INPUT_MODES, 'inputs:' ~ i) }}
-            {{ w.toggle('Mute', p ~ '.mute', [{command: 'mute', args: {channel: i, on: '@' ~ p ~ '.mute'}}], 'inputs:' ~ i, {class: 'toggle--mute'}) }}
-            {{ w.toggle('+48V', p ~ '.phantom', [{command: 'phantom', args: {channel: i, on: '@' ~ p ~ '.phantom'}}], 'inputs:' ~ i, {class: 'toggle--phantom', enabled: p ~ '.mode'}) }}
-        </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
+
+    <dialog class="dialog" data-riders-target="dialog">
+        <header class="dialog__head"><h2 data-riders-target="title">Gain rider</h2><button type="button" class="dialog__close" data-action="riders#close" aria-label="Close">×</button></header>
+        <form class="dialog__form" data-riders-target="form" data-action="riders#save">
+            <p class="dialog__note">The rider moves the input gain slowly towards a target meter level. It runs in the bridge, so it keeps
+                working without this page and after a restart. When somebody moves the gain, it pauses for the hold time.</p>
+            <div class="form-grid">
+                {% for key, spec in {target: ['Target level', 'dB', -60, 0, 0.5], min: ['Lowest gain', 'dB', -60, 12, 0.5], max: ['Highest gain', 'dB', -60, 12, 0.5],
+                    slew: ['Fastest change', 'dB/s', 0.1, 10, 0.1], average: ['Averaging time', 's', 0.1, 60, 0.1], silence: ['Hold below', 'dB', -90, 0, 1],
+                    deadband: ['Leave alone within', 'dB', 0, 6, 0.1], hold: ['Pause after a manual change', 's', 0, 600, 1]} %}
+                    <label>{{ spec[0] }} <span class="unit-input"><input type="number" name="{{ key }}" min="{{ spec[2] }}" max="{{ spec[3] }}" step="{{ spec[4] }}" required>{{ spec[1] }}</span></label>
+                {% endfor %}
+                <label class="check"><input type="checkbox" name="boost"> Allow a highest gain above 0 dB</label>
+            </div>
+            <p class="dialog__note">Levels are on the device's approximated meter scale.</p>
+            <p class="dialog__error" data-riders-target="error" role="alert"></p>
+            <div class="dialog__buttons">
+                <button type="button" class="big big--danger" data-riders-target="stop" data-action="riders#stop">Stop rider</button>
+                <button type="submit" class="big" data-riders-target="submit">Start rider</button>
+            </div>
+        </form>
+    </dialog>
 </div>
 <div class="strips">
     <h2 class="strips__title">Output</h2>
     {% for i in 0..7 %}
         {% set p = 'outputs.' ~ i %}
         <div class="strip">
-            <h3 class="strip__title">{{ w.value(p ~ '.name') }}</h3>
+            <h3 class="strip__title">{{ w.ch(8 + i) }}</h3>
             <div class="strip__row">
-                {{ w.fader('', p ~ '.gain', [{command: 'gain', args: {channel: 8 + i, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', null, {label: 'Out' ~ (i + 1) ~ ' gain'}) }}
+                {{ w.fader('', p ~ '.gain', [{command: 'gain', args: {channel: 8 + i, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', null, {label: 'Out' ~ (i + 1) ~ ' gain', default: 280}) }}
                 {{ w.meter(8 + i) }}
             </div>
             {{ w.toggle('Normal', p ~ '.phase', [{command: 'phase', args: {channel: 8 + i, inverted: '@' ~ p ~ '.phase'}}], 'outputs:' ~ i, {on: 'Inverse'}) }}

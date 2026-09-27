@@ -37,9 +37,9 @@ final class BridgeTest extends TestCase
         $this->bridge->close();
     }
 
-    private function bridge(string $target): Bridge
+    private function bridge(string $target, ?string $ridersFile = null): Bridge
     {
-        $bridge = new Bridge(new TransportFactory(new HidrawLocator('/nonexistent'), self::DEMO, 0.01), $this->socket, $target, meterInterval: 0.01, publishInterval: 0.0);
+        $bridge = new Bridge(new TransportFactory(new HidrawLocator('/nonexistent'), self::DEMO, 0.01), $this->socket, $target, meterInterval: 0.01, publishInterval: 0.0, ridersFile: $ridersFile);
         $bridge->listen();
 
         return $bridge;
@@ -184,6 +184,64 @@ final class BridgeTest extends TestCase
         self::assertArrayHasKey('state', $events);
         self::assertArrayHasKey('meters', $events);
         self::assertCount(17, $events['meters']['levels']);
+        self::assertSame([], $events['meters']['riders']);
+    }
+
+    public function testRidersRideTheGainAndSurviveARestart(): void
+    {
+        $file = sys_get_temp_dir().'/trackdsp-test-'.bin2hex(random_bytes(4)).'.riders.json';
+        $this->restart($file);
+        try {
+            $before = $this->state()['inputs'][0]['gain'];
+            $answer = $this->request('ride', ['channel' => 0, 'settings' => ['target' => -80, 'silence' => -90, 'min' => -40, 'slew' => 50, 'average' => 0.05, 'deadband' => 0]]);
+            self::assertTrue($answer['ok'], (string) json_encode($answer));
+            self::assertSame([0], array_column($answer['result']['riders'], 'channel'));
+            self::assertEquals(-80, $answer['result']['riders'][0]['target']);
+
+            // The rider works without any subscriber, the bridge polls the meters for it
+            $deadline = microtime(true) + 5;
+            while ($this->state()['inputs'][0]['gain'] >= $before && microtime(true) < $deadline) {
+                iterator_to_array($this->messages(10), false);
+            }
+            self::assertLessThan($before, $this->state()['inputs'][0]['gain']);
+
+            fwrite($this->client, '{"id":99,"op":"subscribe"}'."\n");
+            $riders = null;
+            foreach ($this->messages(30) as $message) {
+                if ('meters' === ($message['event'] ?? null)) {
+                    $riders = $message['data']['riders'];
+                }
+            }
+            self::assertIsArray($riders);
+            self::assertSame(0, $riders[0]['channel']);
+            self::assertContains($riders[0]['status'], ['riding', 'limit', 'steady']);
+
+            $this->restart($file);
+            self::assertSame([0], array_column($this->request('status')['result']['riders'], 'channel'));
+
+            self::assertSame([], $this->request('unride', ['channel' => 0])['result']['riders']);
+            self::assertSame([], json_decode((string) file_get_contents($file), true));
+        } finally {
+            @unlink($file);
+        }
+    }
+
+    public function testRejectsBadRiders(): void
+    {
+        self::assertSame('invalid', $this->request('ride', ['channel' => 8, 'settings' => []])['code']);
+        self::assertSame('invalid', $this->request('ride', ['channel' => 0, 'settings' => 'fast'])['code']);
+        self::assertSame('invalid', $this->request('ride', ['channel' => 0, 'settings' => ['max' => 6]])['code']);
+        self::assertSame('invalid', $this->request('unride', [])['code']);
+        self::assertSame([], $this->request('status')['result']['riders']);
+    }
+
+    private function restart(?string $ridersFile): void
+    {
+        @fclose($this->client);
+        $this->bridge->close();
+        $this->bridge = $this->bridge('demo', $ridersFile);
+        $this->client = $this->connectClient();
+        $this->buffer = '';
     }
 
     public function testOfflineDeviceAndReconnect(): void

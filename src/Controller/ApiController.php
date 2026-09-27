@@ -69,6 +69,26 @@ final class ApiController
         });
     }
 
+    /**
+     * Starts or changes the gain rider of an input: {"channel": 0, "settings": {"target": -18, ...}}, see
+     * RiderSettings::fromArray() for the keys. The rider runs in the bridge.
+     */
+    #[Route('/ride', methods: ['POST'])]
+    public function ride(Request $request): JsonResponse
+    {
+        return $this->call(function () use ($request): mixed {
+            $body = self::body($request);
+
+            return $this->bridge->request('ride', ['channel' => $body['channel'] ?? null, 'settings' => $body['settings'] ?? []]);
+        });
+    }
+
+    #[Route('/unride', methods: ['POST'])]
+    public function unride(Request $request): JsonResponse
+    {
+        return $this->call(fn (): mixed => $this->bridge->request('unride', ['channel' => self::body($request)['channel'] ?? null]));
+    }
+
     #[Route('/connect', methods: ['POST'])]
     public function connect(Request $request): JsonResponse
     {

@@ -1,37 +1,47 @@
 # Gain rider, DJ compressor and auto EQ
 
-Three console commands take routine level and EQ work off the operator. The gain rider and the auto EQ work
-through a running bridge (`trackdsp:bridge`), so the browser editor stays usable at the same time. The
-compressor preset talks to the device directly.
+Three tools take routine level and EQ work off the operator. Each of them works from the browser editor and
+from the command line. The gain riders run inside the bridge (`trackdsp:bridge`). The auto EQ writes through
+the bridge, so the browser editor stays usable at the same time. The compressor command talks to the device
+directly.
 
-## Gain rider: `trackdsp:ride`
+## Gain rider
+
+In the browser, the Gain page has a **Rider** button under every input. It opens the settings, and **Start
+rider** hands them to the bridge. A line under the button shows what the rider does right now, for example
+"Riding -3.4 dB", "At its limit", "Silent, holding" or "Paused after a manual change". **Stop rider** leaves the
+gain where it is.
 
 ```bash
 bin/console trackdsp:ride in1                              # ride In1 towards -18 dB
-bin/console trackdsp:ride in1 --level=-20 --min=-12 --max=0
-bin/console trackdsp:ride in1 --dry-run --duration=60      # only print what it would do
+bin/console trackdsp:ride in1 --level=-20 --min=-12 --max=0   # a second call changes the settings
+bin/console trackdsp:ride --list                           # running riders with gain, level and status
+bin/console trackdsp:ride in1 --stop
 ```
 
-The rider listens to the bridge's `meters` events and adjusts the input gain of one channel so that its long
-term level stays at the target. It is meant for a DJ input whose level changes from track to track, not for
-fast dynamics. That is the compressor's job.
+The rider reads the meters and adjusts the input gain of one channel so that its long term level stays at the
+target. It is meant for a DJ input whose level changes from track to track, not for fast dynamics. That is the
+compressor's job.
 
-| Option | Default | Meaning |
-|---|---|---|
-| `--level` | -18 | target level in meter dB |
-| `--min`, `--max` | -20, 0 | gain window in dB. It never leaves the window, and a gain outside it only moves back in |
-| `--allow-boost` | off | needed for `--max` above 0 dB |
-| `--slew` | 0.5 | largest change in dB per second |
-| `--average` | 5 | averaging time in seconds (power average) |
-| `--deadband` | 1 | no change while the average is this close to the target |
-| `--silence` | -45 | below this level the gain is frozen, so a pause between tracks does not pull it up |
-| `--hold` | 30 | seconds the rider pauses after somebody else changed the gain |
-| `--duration` | 0 | stop after this many seconds, 0 runs until Ctrl+C |
-| `--dry-run` | off | print the changes, write nothing |
+The riders run in the bridge, so they keep working without a browser and after the command has ended. The
+bridge polls the meters while a rider runs, also without a client. It keeps the settings in
+`<socket>.riders.json` (`var/bridge.riders.json` by default, `--riders-file` changes it) and starts the riders
+again after a restart. The auto EQ pauses the riders while it records and starts them again afterwards.
+
+| Option | Browser field | Default | Meaning |
+|---|---|---|---|
+| `--level` | Target level | -18 | target level in meter dB |
+| `--min`, `--max` | Lowest gain, Highest gain | -20, 0 | gain window in dB. It never leaves the window, and a gain outside it only moves back in |
+| `--allow-boost` | Allow a highest gain above 0 dB | off | needed for `--max` above 0 dB |
+| `--slew` | Fastest change | 0.5 | largest change in dB per second |
+| `--average` | Averaging time | 5 | averaging time in seconds (power average) |
+| `--deadband` | Leave alone within | 1 | no change while the average is this close to the target |
+| `--silence` | Hold below | -45 | below this level the gain is frozen, so a pause between tracks does not pull it up |
+| `--hold` | Pause after a manual change | 30 | seconds the rider pauses after somebody else changed the gain |
 
 A gain change that did not come from the rider (browser editor, vendor editor, another command) counts as a
-manual override. The rider adopts the new gain and pauses for `--hold` seconds. The device meters show the
-level after the gain, and the rider compensates its average for every step it writes.
+manual override. The rider adopts the new gain and pauses for the hold time. The device meters show the level
+after the gain, and the rider compensates its average for every step it writes.
 
 ## DJ compressor: `trackdsp:compressor`
 
@@ -45,7 +55,53 @@ The 8x8 has compressors on the outputs and the Aux only. `--dj` sets a default t
 mix without pumping. Every value can be given on its own and overrides the default: `--ratio` (`4`, `1:4` or
 `limit`), `--threshold` (-90..20 dB), `--attack` and `--release` in ms, `--knee` (0..255).
 
-## Auto EQ: `trackdsp:autoeq`
+In the browser, every compressor on the Comp page and in the Aux compressor dialog has a **DJ** and a **1:1**
+button. DJ sets the same default, 1:1 switches the compression off. A button is lit while the compressor holds
+exactly its values. The buttons change only the compressor they belong to, not its linked outputs.
+
+## Auto EQ
+
+The auto EQ runs from the **Auto EQ** page of the browser editor or from `trackdsp:autoeq`. Both do the same
+measurement and the same fit, described below.
+
+### In the browser
+
+The page leads through four steps. Every step is one request to `/api/autoeq`, and the session lives in
+`var/autoeq/session.json`, so a reload of the page loses nothing.
+
+1. **Setup.** Choose the outputs, the capture device, the mic input, the seconds per position, the noise
+   before each recording and the bands to use. Starting saves a backup of the device.
+2. **Measure.** **Record position** plays the pink noise, records and analyses one position. The recording
+   runs on the server, so `arecord`, the interface and the mic belong to the machine the web server runs on.
+   **Upload WAV** takes a recording made elsewhere instead. **Load** reads a mic calibration file.
+3. **Fit.** Set the target (flat or a tilt) and the limits, then **Fit**. The plot shows the measurement,
+   the target, the EQ and the predicted result, the table the bands. Fitting again with other limits needs no
+   new measurement.
+4. **Apply and verify.** **Apply** writes the bands. **Record verify position** then measures with the bands
+   on, and the next fit shows it as the verified curve next to the prediction. **Revert to backup** restores
+   the PEQ of the outputs, **End session** deletes the recordings. Backups stay and are listed at the end of
+   the page with a Revert button each.
+
+A target file (`file:`) is available on the command line only, so the web page cannot read files of the
+server.
+
+| Method | Path | Body | Does |
+|---|---|---|---|
+| GET | `/api/autoeq` | – | `{session, recorder, devices, backups}`: `recorder` is false without `arecord` |
+| POST | `/api/autoeq/start` | `{"outputs": [8, 9], "bands": 7, "device": "default", "mic_channel": 1, "seconds": 8, "settle": 2}` | backup, new session |
+| POST | `/api/autoeq/record` | `{"verify": false}` | records one position, blocks until done, 409 while another recording runs |
+| POST | `/api/autoeq/upload?name=&verify=1` | a WAV file of up to 64 MB | adds it as a position, as a verify position with `verify=1` |
+| POST | `/api/autoeq/remove` | `{"index": 0}` | removes one recording |
+| POST | `/api/autoeq/calibration` | "frequency dB" lines, empty to remove | sets the mic calibration |
+| POST | `/api/autoeq/fit` | `{"target": "flat", "low": 60, "high": 16000, "max_boost": 3, "max_cut": 9, "max_q": 5, "tolerance": 1}` | fits, the result has the bands and the curves |
+| POST | `/api/autoeq/apply` | – | writes the bands of the last fit |
+| POST | `/api/autoeq/revert` | `{"backup": "backup-<time>.json"}`, the session's backup without it | restores the PEQ |
+| POST | `/api/autoeq/discard` | – | ends the session and deletes its recordings |
+
+Every answer except `GET` carries the session as `{"session": ...}`. Errors are `{"error": "..."}` with 400,
+409 (no device, or a recording running), 500 (the recording failed), 503 or 504 as in the rest of the API.
+
+### On the command line: `trackdsp:autoeq`
 
 ```bash
 bin/console trackdsp:autoeq out1,out2 --device=plughw:CARD=UMC1820 --mic-channel=1 --positions=3
@@ -59,9 +115,10 @@ The auto EQ is supervised and runs before the show, not during it. One run does 
 1. Saves the device state as a preset file `backup-<time>.json` in `--dir` (default `var/autoeq`).
 2. Bypasses the PEQ bands it owns on the chosen outputs (bands 1 to `--bands`).
 3. Starts the device's pink noise on every routed output. Keep the level safe before starting.
-4. Records the measurement mic with `arecord` for `--seconds` at each of `--positions` positions. With more
-   than one position it asks before each recording.
-5. Switches the test tone back, analyses the recordings and averages them.
+4. Pauses the gain riders, lets the noise settle for `--settle` seconds (default 2) and records the
+   measurement mic with `arecord` for `--seconds` at each of `--positions` positions. With more than one
+   position it asks before each recording.
+5. Switches the test tone back, starts the riders again, analyses the recordings and averages them.
 6. Fits peaking bands to the target and prints them with the deviation before and after.
 7. Writes the bands only with `--apply` or after a confirmation, whose default is no. Unused owned bands are
    set flat and bypassed. Without a write, the original bands are restored.
@@ -80,7 +137,7 @@ untouched until the write.
   1/6-octave bands on a 24-points-per-octave grid from 20 Hz to 20 kHz. Pink noise reads flat.
 - Several positions are averaged in the power domain, which evens out room modes at single spots.
 - `arecord` is not in the ddev container. Run a real measurement on the host or on the machine next to the
-  device.
+  device. In ddev the Auto EQ page therefore says it cannot record, and only uploads work.
 
 ### Fit
 

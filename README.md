@@ -9,9 +9,10 @@ Windows vendor software "the t.racks 8x8 Matrix Digital Processor Editor". The p
 
 This branch rewrites the first implementation (Python and PySide6, kept in [legacy/python/](legacy/python/)) on
 Symfony. The protocol library, the device model, the command line, the device bridge and the JSON API are done and
-tested against the vendor editor captures and the live device over LAN. The browser editor has its pages and live
-meters but is not finished yet. The gain rider, the DJ compressor preset and the auto EQ are tested against the
-simulated device and synthetic recordings only. Packaging follows, see [TODO.md](TODO.md).
+tested against the vendor editor captures and the live device over LAN. The browser editor has every page and
+dialog, and the gain rider, the DJ compressor and the auto EQ in it. It is tested against the simulated device,
+synthetic recordings and a mocked event stream, not yet page by page on the device. Packaging follows, see
+[TODO.md](TODO.md).
 
 ## Requirements
 
@@ -66,9 +67,19 @@ although the device answers ping. Close the vendor editor first.
 
 ### Browser editor
 
-`https://trackdsp.ddev.site` in ddev. It has the Gain, Gate, Comp, Delay, Matrix and Aux pages, a page per input
-and output with the EQ curve, live meters, and a Scan button that runs the discovery. The editor talks to the
-bridge through the JSON API below.
+`https://trackdsp.ddev.site` in ddev. It has the Gain, Gate, Comp, Delay, Matrix, Aux and Auto EQ pages, a tab
+per input and output with the EQ curve, live meters and the File, Device, Channels, Tools and Help menus. The
+editor talks to the bridge through the JSON API below.
+
+- A named channel shows its name next to its ID wherever the ID appears, for example "Out1 Main L" or
+  "Out1 (Main L)" in lists. A name that only repeats the ID is left out.
+- The channel tabs show a dot for a muted channel and the link group (L1, L2, ...).
+- A fader value can be typed, with or without its unit ("-6", "2k", "200ms", "1:4"). A double click on a gain
+  or delay fader sets it back to 0 dB or no delay.
+- The meters hold their peak for 1.5 s and light a red top for 2 s after reaching 0 dB.
+- The Gain page starts and shows the gain riders, the Comp page has the DJ and 1:1 buttons, and the Auto EQ
+  page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
+- The theme button switches between auto, light and dark. The choice is kept in the browser.
 
 ### Bridge and JSON API
 
@@ -89,14 +100,16 @@ The socket protocol and every endpoint are described in [docs/bridge.md](docs/br
 ### Gain rider, DJ compressor and auto EQ
 
 ```bash
-bin/console trackdsp:ride in1 --level=-18                          # keeps the DJ input at -18 dB, needs the bridge
+bin/console trackdsp:ride in1 --level=-18                          # the bridge keeps the DJ input at -18 dB
+bin/console trackdsp:ride --list                                   # and in1 --stop ends it
 bin/console trackdsp:compressor out1,out2 --dj                     # 1:4 from -6 dB, 10 ms attack, 200 ms release
 bin/console trackdsp:autoeq out1,out2 --device=plughw:CARD=UMC1820 --positions=3   # needs the bridge
 bin/console trackdsp:autoeq out1,out2 --revert=var/autoeq/backup-<time>.json
 ```
 
-The auto EQ plays the device's pink noise, records the measurement mic, fits up to 7 PEQ bands to a target and
-writes them only after confirmation. Every option and the fitting rules are in
+The gain riders run inside the bridge and come back after a restart. The auto EQ plays the device's pink noise,
+records the measurement mic, fits up to 7 PEQ bands to a target and writes them only after confirmation. All three
+are also in the browser editor. Every option and the fitting rules are in
 [docs/automation.md](docs/automation.md).
 
 ### Library
@@ -123,9 +136,9 @@ file_put_contents('preset.json', $device->toJson());    // same file format as t
 | `App\Discovery` | device search on USB and on the local networks |
 | `App\Automation` | the gain rider |
 | `App\Measurement` | FFT, WAV reader, spectrum analysis, responses, calibration files, `arecord` recorder |
-| `App\AutoEq` | target curves and the PEQ fitter |
+| `App\AutoEq` | target curves, the PEQ fitter, and the measure, backup, apply and revert steps shared by the command and the browser session |
 | `App\Command` | the `trackdsp:*` console commands |
-| `App\Controller` | the browser editor, the JSON API and the event stream |
+| `App\Controller` | the browser editor, the JSON API, the auto EQ API and the event stream |
 | `App\EventListener` | the header check for API writes |
 
 ## Development
@@ -138,7 +151,8 @@ ddev exec composer cs-fix      # apply the Symfony coding standard
 The tests need no device. They replay all 143 USB captures in [captures/](captures/) against the command builders,
 check the model against the editor display and run the command line, the bridge (in the test process and as a
 subprocess) and the JSON API against the simulated device. The measurement and fitting tests use synthetic pink noise through
-known filters.
+known filters, and in the test environment a fake recorder stands in for `arecord`. The page test checks that every
+binding, command template, preset button, controller and action of the browser editor exists.
 Tests in the PHPUnit group `device` talk to real hardware and are excluded by default.
 
 ## Authors

@@ -117,3 +117,54 @@ export class Plot {
         return 18 - ((y - this.top) / this.height) * 36;
     }
 }
+
+const GRID_HZ = [20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000,
+    5000, 6000, 7000, 8000, 9000, 10000, 20000];
+
+/** Clears a canvas and draws the frequency and dB grid of a plot with its labels. */
+export function drawGrid(g, plot, width, height) {
+    g.fillStyle = '#0d0f0d';
+    g.fillRect(0, 0, width, height);
+    g.strokeStyle = '#1f6f1f';
+    g.lineWidth = 1;
+    g.font = '11px sans-serif';
+    g.fillStyle = '#cfcfcf';
+    for (const f of GRID_HZ) {
+        const x = Math.round(plot.x(f)) + 0.5;
+        g.beginPath();
+        g.moveTo(x, plot.top);
+        g.lineTo(x, plot.top + plot.height);
+        g.stroke();
+    }
+    g.textAlign = 'right';
+    g.textBaseline = 'middle';
+    for (let db = -18; db <= 18; db += 6) {
+        const y = Math.round(plot.y(db)) + 0.5;
+        g.strokeStyle = 0 === db ? '#3a8f3a' : '#1f6f1f';
+        g.beginPath();
+        g.moveTo(plot.left, y);
+        g.lineTo(plot.left + plot.width, y);
+        g.stroke();
+        g.fillText(db > 0 ? `+${db}dB` : `${db}dB`, plot.left - 4, y);
+    }
+    g.textAlign = 'center';
+    g.textBaseline = 'top';
+    for (const [f, t] of [[20, '20Hz'], [100, '100Hz'], [1000, '1KHz'], [10000, '10KHz'], [20000, '20KHz']]) {
+        g.fillText(t, plot.x(f), plot.top + plot.height + 4);
+    }
+}
+
+/** Sizes a canvas for the device pixel ratio and returns its 2D context, null while it is hidden. */
+export function prepare(canvas) {
+    const ratio = window.devicePixelRatio || 1;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    if (0 === width || 0 === height) {
+        return null;
+    }
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    const g = canvas.getContext('2d');
+    g.setTransform(ratio, 0, 0, ratio, 0, 0);
+    return { g, width, height };
+}

@@ -2,16 +2,12 @@
 
 namespace App\Command;
 
-use App\Automation\GainRider;
 use App\Automation\RiderSettings;
 use App\Bridge\BridgeClient;
 use App\Bridge\BridgeException;
 use App\Protocol\Channel;
-use App\Protocol\Commands;
-use App\Protocol\Scale;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Command\SignalableCommandInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -20,14 +16,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
- * Runs the gain rider on one input through a running bridge: meters and state come from its events,
- * the gain goes back as a write. The bridge keeps owning the device connection.
+ * Starts, changes, stops and lists the gain riders of a running bridge. The riders run inside the bridge,
+ * so they keep working after this command and without a browser, and they come back after a restart.
  */
-#[AsCommand('trackdsp:ride', 'Ride the gain of an input towards a target meter level (needs a running bridge)')]
-final class RideCommand extends Command implements SignalableCommandInterface
+#[AsCommand('trackdsp:ride', 'Start, stop or list the gain riders of the bridge, which keep inputs at a target meter level')]
+final class RideCommand extends Command
 {
-    private bool $stopped = false;
-
     public function __construct(
         #[Autowire('%trackdsp.bridge_socket%')]
         private readonly string $defaultSocket,
@@ -38,7 +32,7 @@ final class RideCommand extends Command implements SignalableCommandInterface
     protected function configure(): void
     {
         $this
-            ->addArgument('channel', InputArgument::REQUIRED, 'in1..in8')
+            ->addArgument('channel', InputArgument::OPTIONAL, 'in1..in8')
             ->addOption('level', 'l', InputOption::VALUE_REQUIRED, 'Target meter level in dB (approximated meter scale)', '-18')
             ->addOption('min', null, InputOption::VALUE_REQUIRED, 'Lowest gain in dB', '-20')
             ->addOption('max', null, InputOption::VALUE_REQUIRED, 'Highest gain in dB', '0')
@@ -48,95 +42,109 @@ final class RideCommand extends Command implements SignalableCommandInterface
             ->addOption('deadband', null, InputOption::VALUE_REQUIRED, 'Leave deviations up to this size alone, in dB', '1')
             ->addOption('hold', null, InputOption::VALUE_REQUIRED, 'Pause in seconds after someone else changed the gain', '30')
             ->addOption('allow-boost', null, InputOption::VALUE_NONE, 'Allow a maximum above 0 dB')
-            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Only show what the rider would do')
-            ->addOption('duration', null, InputOption::VALUE_REQUIRED, 'Stop after this many seconds, 0 = until Ctrl+C', '0')
+            ->addOption('stop', null, InputOption::VALUE_NONE, 'Stop the rider of the channel')
+            ->addOption('list', null, InputOption::VALUE_NONE, 'List the running riders with what they do right now')
             ->addOption('socket', 's', InputOption::VALUE_REQUIRED, 'Bridge socket (default: $TRACKDSP_BRIDGE_SOCKET or var/bridge.sock)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+        $socket = $input->getOption('socket');
+        $bridge = new BridgeClient(\is_string($socket) && '' !== $socket ? $socket : $this->defaultSocket);
         try {
+            if ($input->getOption('list')) {
+                return $this->list($bridge, $io);
+            }
             $settings = $this->settings($input);
         } catch (\InvalidArgumentException|\OutOfRangeException $e) {
             $io->error($e->getMessage());
 
             return Command::INVALID;
-        }
-        $socket = $input->getOption('socket');
-        $bridge = new BridgeClient(\is_string($socket) && '' !== $socket ? $socket : $this->defaultSocket);
-        $rider = new GainRider($settings);
-        $dryRun = (bool) $input->getOption('dry-run');
-        $duration = (float) self::number($input, 'duration');
-        $channel = $settings->channel;
-        $label = Channel::label($channel);
-
-        $io->writeln(\sprintf(
-            'Riding <info>%s</info> towards <info>%.1f dB</info>, gain %+.1f..%+.1f dB at %.1f dB/s%s. Stop with Ctrl+C.',
-            $label, $settings->targetDb, $settings->minGainDb, $settings->maxGainDb, $settings->slewDbPerSecond, $dryRun ? ' (dry run)' : '',
-        ));
-        $start = microtime(true);
-        try {
-            foreach ($bridge->events(1.0) as $event) {
-                $now = microtime(true);
-                if ($this->stopped || ($duration > 0 && $now - $start >= $duration)) {
-                    break;
-                }
-                if (null === $event) {
-                    continue;
-                }
-                if ('state' === $event['event']) {
-                    $gain = self::inputGain($event['data'], $channel);
-                    if (null !== $gain && $rider->observeGain($gain, $now)) {
-                        $io->writeln(\sprintf('%s %s changed to %+.1f dB by someone else, pausing for %d s.', date('H:i:s'), $label, Scale::gainToDb($gain), $settings->overrideHoldSeconds));
-                    }
-                } elseif ('meters' === $event['event']) {
-                    $level = self::level($event['data'], $channel);
-                    if (null === $level || null === $raw = $rider->meter($level, $now)) {
-                        continue;
-                    }
-                    if (!$dryRun) {
-                        $bridge->request('write', ['frames' => [str_replace(' ', '', Commands::gain($channel, $raw)->shortHex())]]);
-                    }
-                    if ($output->isVerbose()) {
-                        $io->writeln(\sprintf('%s level %.1f dB, average %.1f dB, gain %+.1f dB', date('H:i:s'), $level, $rider->averageDb() ?? $level, Scale::gainToDb($raw)));
-                    }
-                }
-            }
         } catch (BridgeException $e) {
             $io->error($e->getMessage());
 
             return Command::FAILURE;
-        } finally {
-            $this->stopped = false;
         }
-        $gainDb = $rider->gainDb();
-        $io->writeln(null === $gainDb ? 'Stopped before the first state.' : \sprintf('Stopped, %s gain %+.1f dB.', $label, $gainDb));
+        $label = Channel::label($settings->channel);
+        try {
+            if ($input->getOption('stop')) {
+                $bridge->request('unride', ['channel' => $settings->channel]);
+                $io->writeln(\sprintf('Gain rider on <info>%s</info> stopped. The gain stays where it is.', $label));
+
+                return Command::SUCCESS;
+            }
+            $bridge->request('ride', ['channel' => $settings->channel, 'settings' => $settings->toArray()]);
+        } catch (BridgeException $e) {
+            $io->error($e->getMessage());
+
+            return Command::FAILURE;
+        }
+        $io->writeln(\sprintf(
+            'Gain rider on <info>%s</info> towards <info>%.1f dB</info>, gain %+.1f..%+.1f dB at %.1f dB/s. It runs in the bridge, stop it with --stop.',
+            $label, $settings->targetDb, $settings->minGainDb, $settings->maxGainDb, $settings->slewDbPerSecond,
+        ));
 
         return Command::SUCCESS;
     }
 
     /**
-     * @return list<int>
+     * The riders from the bridge status, with the live values of the first meters event if one arrives soon.
      */
-    public function getSubscribedSignals(): array
+    private function list(BridgeClient $bridge, SymfonyStyle $io): int
     {
-        return \defined('SIGINT') ? [\SIGINT, \SIGTERM] : [];
-    }
+        $status = $bridge->request('status');
+        $riders = \is_array($status) && \is_array($status['riders'] ?? null) ? $status['riders'] : [];
+        if ([] === $riders) {
+            $io->writeln('No gain rider is running.');
 
-    public function handleSignal(int $signal, int|false $previousExitCode = 0): int|false
-    {
-        $this->stopped = true;
+            return Command::SUCCESS;
+        }
+        $live = [];
+        $deadline = microtime(true) + 2.0;
+        foreach ($bridge->events(0.5) as $event) {
+            if (null !== $event && 'meters' === $event['event'] && \is_array($event['data']) && \is_array($event['data']['riders'] ?? null)) {
+                foreach ($event['data']['riders'] as $rider) {
+                    if (\is_array($rider) && \is_int($rider['channel'] ?? null)) {
+                        $live[$rider['channel']] = $rider;
+                    }
+                }
+                break;
+            }
+            if (microtime(true) >= $deadline) {
+                break;
+            }
+        }
+        $rows = [];
+        foreach ($riders as $rider) {
+            if (!\is_array($rider) || !\is_int($rider['channel'] ?? null)) {
+                continue;
+            }
+            $now = $live[$rider['channel']] ?? [];
+            $rows[] = [
+                Channel::label($rider['channel']),
+                \sprintf('%.1f dB', self::float($rider['target'] ?? null)),
+                \sprintf('%+.1f..%+.1f dB', self::float($rider['min'] ?? null), self::float($rider['max'] ?? null)),
+                \sprintf('%.1f dB/s', self::float($rider['slew'] ?? null)),
+                is_numeric($now['gain'] ?? null) ? \sprintf('%+.1f dB', $now['gain']) : '–',
+                is_numeric($now['average'] ?? null) ? \sprintf('%.1f dB', $now['average']) : '–',
+                \is_string($now['status'] ?? null) ? $now['status'] : '–',
+            ];
+        }
+        $io->table(['Input', 'Target', 'Window', 'Slew', 'Gain', 'Level', 'Status'], $rows);
 
-        return false;
+        return Command::SUCCESS;
     }
 
     private function settings(InputInterface $input): RiderSettings
     {
         $channel = $input->getArgument('channel');
+        if (!\is_string($channel) || '' === $channel) {
+            throw new \InvalidArgumentException('Name the input, e.g. in1, or use --list.');
+        }
 
         return new RiderSettings(
-            Channel::parse(\is_string($channel) ? $channel : ''),
+            Channel::parse($channel),
             (float) self::number($input, 'level'),
             (float) self::number($input, 'min'),
             (float) self::number($input, 'max'),
@@ -159,17 +167,8 @@ final class RideCommand extends Command implements SignalableCommandInterface
         return $value;
     }
 
-    private static function inputGain(mixed $state, int $channel): ?int
+    private static function float(mixed $value): float
     {
-        $gain = \is_array($state) && \is_array($state['inputs'] ?? null) && \is_array($state['inputs'][$channel] ?? null) ? ($state['inputs'][$channel]['gain'] ?? null) : null;
-
-        return \is_int($gain) ? $gain : null;
-    }
-
-    private static function level(mixed $meters, int $channel): ?float
-    {
-        $level = \is_array($meters) && \is_array($meters['levels'] ?? null) ? ($meters['levels'][$channel] ?? null) : null;
-
-        return \is_int($level) || \is_float($level) ? (float) $level : null;
+        return is_numeric($value) ? (float) $value : 0.0;
     }
 }

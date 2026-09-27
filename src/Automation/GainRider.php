@@ -24,11 +24,25 @@ final class GainRider
     /** How long a written value is expected to come back in a state event */
     private const ECHO_WINDOW = 3.0;
 
+    /** No gain known yet */
+    public const WAITING = 'waiting';
+    /** Someone else changed the gain, the rider holds off */
+    public const PAUSED = 'paused';
+    /** The input is below the silence level, the gain is frozen */
+    public const SILENT = 'silent';
+    /** The average is inside the deadband */
+    public const STEADY = 'steady';
+    /** The gain is moving towards the target */
+    public const RIDING = 'riding';
+    /** The target needs a gain outside the window */
+    public const LIMIT = 'limit';
+
     private ?float $power = null;
     private ?float $gainDb = null;
     private ?int $lastRaw = null;
     private ?float $lastMeter = null;
     private float $pausedUntil = -\INF;
+    private string $status = self::WAITING;
     /** @var array<int, float> raw value => time written */
     private array $written = [];
 
@@ -69,13 +83,20 @@ final class GainRider
     {
         $dt = null === $this->lastMeter ? 0.0 : min(self::MAX_GAP, max(0.0, $now - $this->lastMeter));
         $this->lastMeter = $now;
-        if (null === $this->gainDb || $this->isPaused($now) || $levelDb < $this->settings->silenceDb) {
+        if (null === $this->gainDb || $this->isPaused($now)) {
+            return null;
+        }
+        if ($levelDb < $this->settings->silenceDb) {
+            $this->status = self::SILENT;
+
             return null;
         }
         $power = 10 ** ($levelDb / 10);
         $this->power = null === $this->power ? $power : $this->power + (1 - exp(-$dt / $this->settings->averageSeconds)) * ($power - $this->power);
         $error = $this->settings->targetDb - $this->averageDb();
         if (abs($error) <= $this->settings->deadbandDb) {
+            $this->status = self::STEADY;
+
             return null;
         }
         $step = min(abs($error), $this->settings->slewDbPerSecond * $dt) * ($error <=> 0);
@@ -84,6 +105,7 @@ final class GainRider
         $high = max($this->settings->maxGainDb, $this->gainDb);
         $gainDb = max($low, min($high, $this->gainDb + $step));
         $applied = $gainDb - $this->gainDb;
+        $this->status = 0.0 === $applied && 0.0 !== $step ? self::LIMIT : self::RIDING;
         if (0.0 === $applied) {
             return null;
         }
@@ -113,6 +135,18 @@ final class GainRider
     public function gainDb(): ?float
     {
         return $this->gainDb;
+    }
+
+    /**
+     * What the rider is doing: one of the constants WAITING, PAUSED, SILENT, STEADY, RIDING or LIMIT.
+     */
+    public function status(float $now): string
+    {
+        if (null === $this->gainDb) {
+            return self::WAITING;
+        }
+
+        return $this->isPaused($now) ? self::PAUSED : $this->status;
     }
 
     public function isPaused(float $now): bool

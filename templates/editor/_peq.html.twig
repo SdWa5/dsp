@@ -12,6 +12,7 @@
     <canvas class="peq__curve" data-peq-target="canvas"
             data-action="pointerdown->peq#pointerdown pointermove->peq#pointermove pointerup->peq#pointerup pointercancel->peq#pointerup wheel->peq#wheel"></canvas>
     <div class="peq__panel">
+        <div class="peq__table-wrap">
         <table class="peq__table">
             <thead><tr><th>PEQ</th><th>Frequency</th><th>Q</th><th>Gain</th><th>Type</th><th>Bypass</th></tr></thead>
             <tbody>
@@ -30,10 +31,12 @@
             {% endfor %}
             </tbody>
         </table>
-        <fieldset class="group">
-            <legend>PEQ Parameter</legend>
+        </div>
+        <div class="group-stack">
+        <fieldset class="group group--params">
+            <legend>Selected band</legend>
             {% for name, spec in {Freq: ['freq', 300], Q: ['q', 100], Gain: ['gain', 240]} %}
-                <div class="fader">
+                <div class="fader fader--h">
                     <span class="fader__title">{{ name }}</span>
                     <input type="range" min="0" max="{{ spec[1] }}" aria-label="Selected band {{ name }}" data-peq-target="param{{ name }}"
                            data-action="input->peq#param" data-peq-field-param="{{ spec[0] }}">
@@ -43,21 +46,25 @@
         </fieldset>
         {% if filters %}
             {% for kind, title in {hpf: 'HighPass', lpf: 'LowPass'} %}
-                <fieldset class="group">
+                <fieldset class="group group--filter">
                     <legend>{{ title }}</legend>
-                    <div class="fader">
+                    <div class="fader fader--h">
                         <input type="range" min="0" max="300" aria-label="{{ title }} frequency" data-kind="{{ kind }}" data-peq-target="filterFreq"
                                data-action="input->peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="freq">
                         <output class="fader__value" data-peq-target="filterFreqLabel">–</output>
                     </div>
-                    <span class="group__caption">Slope</span>
-                    <select aria-label="{{ title }} slope" data-peq-target="filterSlope" data-action="peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="slope">
-                        {% for value, text in labels.SLOPES|slice(1, null, true) %}<option value="{{ value }}">{{ text }}</option>{% endfor %}
-                    </select>
-                    <button type="button" class="toggle toggle--bypass" data-peq-target="filterBypass" data-action="peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="bypass">Bypass</button>
+                    <div class="group__row">
+                        <label>Slope
+                            <select aria-label="{{ title }} slope" data-peq-target="filterSlope" data-action="peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="slope">
+                                {% for value, text in labels.SLOPES|slice(1, null, true) %}<option value="{{ value }}">{{ text }}</option>{% endfor %}
+                            </select>
+                        </label>
+                        <button type="button" class="toggle toggle--bypass" data-peq-target="filterBypass" data-action="peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="bypass">Bypass</button>
+                    </div>
                 </fieldset>
             {% endfor %}
         {% endif %}
+        </div>
         {% block side %}{% endblock %}
     </div>
 </div>

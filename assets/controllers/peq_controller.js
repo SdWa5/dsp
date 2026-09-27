@@ -1,13 +1,11 @@
 import { Controller } from '@hotwired/stimulus';
 import { getLabels, send, store } from '../lib/device.js';
-import { Plot, response } from '../lib/eq.js';
+import { drawGrid, Plot, prepare, response } from '../lib/eq.js';
 import * as S from '../lib/scale.js';
 
 const COLORS = ['#ff5252', '#ffd740', '#e040fb', '#40c4ff', '#69f0ae', '#448aff', '#b0bec5', '#ffab40'];
 const DEFAULT_SLOPE = 20; // LK -48, the editor's default
 const DEFAULT_FREQS = { 5: [49, 101, 148, 200, 255], 7: [31, 71, 118, 161, 200, 240, 270] };
-const GRID_HZ = [20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 3000, 4000,
-    5000, 6000, 7000, 8000, 9000, 10000, 20000];
 
 /**
  * PEQ editor of one channel: response curve with draggable band points and filter handles, band table,
@@ -268,47 +266,13 @@ export default class extends Controller {
     }
 
     draw() {
-        const canvas = this.canvasTarget;
-        const ratio = window.devicePixelRatio || 1;
-        const width = canvas.clientWidth;
-        const height = canvas.clientHeight;
-        if (0 === width || 0 === height) {
+        const canvas = prepare(this.canvasTarget);
+        if (null === canvas) {
             return;
         }
-        canvas.width = width * ratio;
-        canvas.height = height * ratio;
-        const g = canvas.getContext('2d');
-        g.setTransform(ratio, 0, 0, ratio, 0, 0);
+        const { g } = canvas;
         const plot = this.plot();
-        g.fillStyle = '#0d0f0d';
-        g.fillRect(0, 0, width, height);
-        g.strokeStyle = '#1f6f1f';
-        g.lineWidth = 1;
-        g.font = '11px sans-serif';
-        g.fillStyle = '#cfcfcf';
-        for (const f of GRID_HZ) {
-            const x = Math.round(plot.x(f)) + 0.5;
-            g.beginPath();
-            g.moveTo(x, plot.top);
-            g.lineTo(x, plot.top + plot.height);
-            g.stroke();
-        }
-        g.textAlign = 'right';
-        g.textBaseline = 'middle';
-        for (let db = -18; db <= 18; db += 6) {
-            const y = Math.round(plot.y(db)) + 0.5;
-            g.strokeStyle = 0 === db ? '#3a8f3a' : '#1f6f1f';
-            g.beginPath();
-            g.moveTo(plot.left, y);
-            g.lineTo(plot.left + plot.width, y);
-            g.stroke();
-            g.fillText(db > 0 ? `+${db}dB` : `${db}dB`, plot.left - 4, y);
-        }
-        g.textAlign = 'center';
-        g.textBaseline = 'top';
-        for (const [f, t] of [[20, '20Hz'], [100, '100Hz'], [1000, '1KHz'], [10000, '10KHz'], [20000, '20KHz']]) {
-            g.fillText(t, plot.x(f), plot.top + plot.height + 4);
-        }
+        drawGrid(g, plot, canvas.width, canvas.height);
         const channel = this.channel;
         if (!channel) {
             return;

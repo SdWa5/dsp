@@ -36,7 +36,8 @@ final class BridgeCommand extends Command implements SignalableCommandInterface
             ->addOption('target', 't', InputOption::VALUE_REQUIRED, 'auto, usb, usb:/dev/hidrawN, demo or host[:port] (default: $TRACKDSP_TARGET)')
             ->addOption('socket', 's', InputOption::VALUE_REQUIRED, 'Unix socket path (default: $TRACKDSP_BRIDGE_SOCKET or var/bridge.sock)')
             ->addOption('meter-interval', null, InputOption::VALUE_REQUIRED, 'Seconds between meter polls while a client listens', '0.3')
-            ->addOption('resync-interval', null, InputOption::VALUE_REQUIRED, 'Seconds between full re-reads of the device', '60');
+            ->addOption('resync-interval', null, InputOption::VALUE_REQUIRED, 'Seconds between full re-reads of the device', '60')
+            ->addOption('riders-file', null, InputOption::VALUE_REQUIRED, 'Where the gain riders are kept across restarts (default: the socket path with .riders.json)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -51,6 +52,7 @@ final class BridgeCommand extends Command implements SignalableCommandInterface
             new ConsoleLogger($output),
             max(0.05, (float) self::option($input, 'meter-interval', '0.3')),
             resyncInterval: max(1.0, (float) self::option($input, 'resync-interval', '60')),
+            ridersFile: self::option($input, 'riders-file', (preg_replace('/\.sock$/', '', $socket) ?? $socket).'.riders.json'),
         );
         try {
             $this->bridge->listen();

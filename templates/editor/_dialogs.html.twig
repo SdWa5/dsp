@@ -46,7 +46,7 @@
         {% for side, prefix in {inputs: 'In', outputs: 'Out'} %}
             <div class="link-grid">
                 {% for i in 0..7 %}
-                    <label>{{ prefix }}{{ i + 1 }}
+                    <label>{{ w.ch('inputs' == side ? i : 8 + i) }}
                         <select name="{{ side }}-{{ i }}" data-editor-target="linkGroup" data-side="{{ side }}" data-index="{{ i }}">
                             <option value="0">–</option>
                             {% for g in 1..4 %}<option value="{{ g }}">{{ g }}</option>{% endfor %}
@@ -62,9 +62,8 @@
 <dialog class="dialog" id="dialog-copy" data-editor-target="dialog">
     {{ _self.dialog('copy', 'Copy channel') }}
     <form class="dialog__form" data-action="editor#copy">
-        {% set channels = (1..8)|map(n => 'In' ~ n)|merge((1..8)|map(n => 'Out' ~ n)) %}
-        <label>From <select name="source">{% for value, text in channels %}<option value="{{ value }}">{{ text }}</option>{% endfor %}</select></label>
-        <label>To <select name="target">{% for value, text in channels %}<option value="{{ value }}">{{ text }}</option>{% endfor %}</select></label>
+        <label>From <select name="source">{% for c in 0..15 %}{{ w.ch_option(c) }}{% endfor %}</select></label>
+        <label>To <select name="target">{% for c in 0..15 %}{{ w.ch_option(c) }}{% endfor %}</select></label>
         <p class="dialog__note">Copies every setting of an input to an input, or of an output to an output.</p>
         <div class="dialog__buttons"><button type="submit" class="big">Copy</button></div>
     </form>
@@ -128,7 +127,7 @@
                     {{ w.fader('', p ~ '.gain', send, 0, 100, 'percent', null, {label: title ~ ' gain'}) }}
                     {{ w.toggle('Mute', p ~ '.mute', send, null, {class: 'toggle--mute'}) }}
                     {% for b in 0..7 %}
-                        {{ w.toggle((outputs ? 'Out' : 'In') ~ (b + 1), p ~ '.mask', send, null, {bit: b, class: 'toggle--route'}) }}
+                        {{ w.toggle(w.ch(outputs ? 8 + b : b), p ~ '.mask', send, null, {bit: b, class: 'toggle--route'}) }}
                     {% endfor %}
                 </div>
             {% endfor %}
@@ -156,7 +155,7 @@
             <fieldset class="group">
                 <legend>Select</legend>
                 {% for i in 0..7 %}
-                    {{ w.toggle('In' ~ (i + 1), m ~ '.select', send, null, {bit: i, class: 'toggle--route'}) }}
+                    {{ w.toggle(w.ch(i), m ~ '.select', send, null, {bit: i, class: 'toggle--route'}) }}
                 {% endfor %}
             </fieldset>
         </div>

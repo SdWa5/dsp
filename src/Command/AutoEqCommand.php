@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\AutoEq\AutoEq;
 use App\AutoEq\FitResult;
 use App\AutoEq\FitSettings;
 use App\AutoEq\FittedBand;
@@ -10,14 +11,8 @@ use App\AutoEq\TargetCurve;
 use App\Bridge\BridgeClient;
 use App\Bridge\BridgeException;
 use App\Measurement\Calibration;
-use App\Measurement\Recorder;
-use App\Measurement\Response;
-use App\Measurement\Spectrum;
-use App\Measurement\WavReader;
-use App\Model\Device;
+use App\Measurement\RecorderFactory;
 use App\Protocol\Channel;
-use App\Protocol\Commands;
-use App\Protocol\Frame;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\SignalableCommandInterface;
@@ -31,21 +26,21 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 /**
  * Supervised automatic EQ through a running bridge.
  *
- * Backs up the device, bypasses the bands it owns on the chosen outputs, plays the device's pink noise,
- * records the measurement mic at one or more positions, fits peaking bands to the target and writes
- * them only after confirmation. Whatever goes wrong, the test tone is switched back and unwritten bands
- * are restored. --wav analyses existing recordings instead of measuring, --revert restores a backup.
+ * Backs up the device, then records the measurement mic at one or more positions. Every recording bypasses
+ * the bands the auto EQ owns on the chosen outputs, pauses the gain riders, plays the device's pink noise and
+ * restores all of it afterwards, see AutoEq::record(). Then it fits peaking bands to the target and writes
+ * them only after confirmation. --wav analyses existing recordings instead of measuring, --revert restores
+ * a backup.
  */
 #[AsCommand('trackdsp:autoeq', 'Measure with pink noise and a measurement mic and fit the output PEQ to a target (needs a running bridge)')]
 final class AutoEqCommand extends Command implements SignalableCommandInterface
 {
-    private const PINK_NOISE = 1;
-
     public function __construct(
         #[Autowire('%trackdsp.bridge_socket%')]
         private readonly string $defaultSocket,
-        #[Autowire('%kernel.project_dir%/var/autoeq')]
+        #[Autowire('%trackdsp.autoeq_dir%')]
         private readonly string $defaultDirectory,
+        private readonly RecorderFactory $recorders = new RecorderFactory(),
     ) {
         parent::__construct();
     }
@@ -58,7 +53,7 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
             ->addOption('mic-channel', 'm', InputOption::VALUE_REQUIRED, 'Input of the interface the mic is on (1-based)', '1')
             ->addOption('seconds', null, InputOption::VALUE_REQUIRED, 'Recording length per position', '8')
             ->addOption('positions', 'p', InputOption::VALUE_REQUIRED, 'Mic positions to average', '1')
-            ->addOption('settle', null, InputOption::VALUE_REQUIRED, 'Seconds of noise before the first recording', '2')
+            ->addOption('settle', null, InputOption::VALUE_REQUIRED, 'Seconds of noise before each recording', '2')
             ->addOption('wav', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Analyse this recording instead of measuring (repeatable)')
             ->addOption('cal', null, InputOption::VALUE_REQUIRED, 'Mic calibration file ("frequency dB" lines)')
             ->addOption('target', null, InputOption::VALUE_REQUIRED, 'flat, tilt:<dB per octave> or file:<path>', 'flat')
@@ -81,9 +76,9 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
         try {
             $outputs = self::outputs($input);
             $socket = self::optional($input, 'socket') ?? $this->defaultSocket;
-            $bridge = new BridgeClient($socket);
+            $autoEq = new AutoEq(new BridgeClient($socket), self::optional($input, 'dir') ?? $this->defaultDirectory, $this->recorders);
             if (null !== $revert = self::optional($input, 'revert')) {
-                return $this->revert($bridge, $outputs, $revert, $io);
+                return $this->revert($autoEq, $outputs, $revert, $io);
             }
             $settings = new FitSettings(
                 self::integer($input, 'bands'), self::number($input, 'low'), self::number($input, 'high'),
@@ -101,18 +96,10 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
             return Command::INVALID;
         }
 
-        $directory = self::optional($input, 'dir') ?? $this->defaultDirectory;
         $stamp = date('Ymd-His');
         try {
-            $state = $bridge->request('state');
-            if (!\is_array($state)) {
-                throw new BridgeException('The bridge sent no device state.', 409);
-            }
-            if (!is_dir($directory) && !@mkdir($directory, 0o775, true) && !is_dir($directory)) {
-                throw new \RuntimeException(\sprintf('Cannot create "%s".', $directory));
-            }
-            $backup = $directory.'/backup-'.$stamp.'.json';
-            file_put_contents($backup, json_encode(['format' => Device::FILE_FORMAT, 'version' => Device::FILE_VERSION, 'device' => $state], \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR));
+            $state = $autoEq->state();
+            $backup = $autoEq->backup($state, $outputs, $stamp);
             $io->writeln(\sprintf('Backup of the device in <info>%s</info>.', $backup));
         } catch (BridgeException|\RuntimeException|\JsonException $e) {
             $io->error($e->getMessage());
@@ -120,17 +107,15 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
             return Command::FAILURE;
         }
 
-        $measuring = [] === $wavs;
-        $written = false;
         try {
-            if ($measuring) {
-                $wavs = $this->measure($bridge, $state, $outputs, $settings->bands, $micChannel, $directory.'/measure-'.$stamp, $input, $io);
+            if ([] === $wavs) {
+                $wavs = $this->measure($autoEq, $state, $outputs, $settings->bands, $micChannel, $stamp, $input, $io);
             }
             $io->writeln(\sprintf('Analysing %d recording%s…', \count($wavs), 1 === \count($wavs) ? '' : 's'));
-            $measured = $this->analyse($wavs, $micChannel, $calibration);
+            $measured = AutoEq::average(array_map(static fn (string $wav) => AutoEq::spectrum($wav, $micChannel), $wavs), $calibration);
             $result = (new PeqFitter())->fit($measured, $target, $settings);
             $this->report($result, $target, $outputs, $io);
-            file_put_contents($directory.'/result-'.$stamp.'.json', json_encode([
+            file_put_contents($autoEq->path('result-'.$stamp.'.json'), json_encode([
                 'outputs' => array_map(Channel::label(...), $outputs),
                 'target' => $target->describe(),
                 'bands' => array_map(static fn (FittedBand $b): array => $b->toArray(), $result->bands),
@@ -141,8 +126,7 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
 
             $labels = implode(', ', array_map(Channel::label(...), $outputs));
             if ([] !== $result->bands && ($input->getOption('apply') || ($input->isInteractive() && $io->confirm(\sprintf('Write these bands to %s?', $labels), false)))) {
-                $bridge->request('write', ['frames' => $this->bandFrames($state, $outputs, $settings->bands, $result)]);
-                $written = true;
+                $autoEq->apply($state, $outputs, $settings->bands, $result->bands);
                 $io->success(\sprintf('Written to %s. Measure again to verify. Undo with --revert=%s', $labels, $backup));
             } else {
                 $io->writeln('Nothing written.');
@@ -151,14 +135,6 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
             $io->error($e->getMessage());
 
             return Command::FAILURE;
-        } finally {
-            if ($measuring && !$written) {
-                try {
-                    $bridge->request('write', ['frames' => self::restoreFrames($state, $outputs, $settings->bands)]);
-                } catch (BridgeException $e) {
-                    $io->error('Could not restore the bands: '.$e->getMessage().' Restore them with --revert='.$backup);
-                }
-            }
         }
 
         return Command::SUCCESS;
@@ -173,7 +149,7 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
     }
 
     /**
-     * arecord gets the signal too and fails, and the finally blocks switch the tone off and restore the bands.
+     * arecord gets the signal too and fails, and AutoEq::record() switches the tone off and restores the bands.
      */
     public function handleSignal(int $signal, int|false $previousExitCode = 0): int|false
     {
@@ -186,57 +162,23 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
      *
      * @return list<string> recorded files
      */
-    private function measure(BridgeClient $bridge, array $state, array $outputs, int $bands, int $micChannel, string $prefix, InputInterface $input, SymfonyStyle $io): array
+    private function measure(AutoEq $autoEq, array $state, array $outputs, int $bands, int $micChannel, string $stamp, InputInterface $input, SymfonyStyle $io): array
     {
         $seconds = self::integer($input, 'seconds');
+        $settle = self::number($input, 'settle');
         $positions = max(1, self::integer($input, 'positions'));
-        $recorder = new Recorder((string) self::optional($input, 'device'), $micChannel);
-        $bypass = [];
-        foreach ($outputs as $channel) {
-            foreach (array_slice(self::bands($state, $channel), 0, $bands) as $n => $band) {
-                $bypass[] = self::hex(Commands::peq($channel, $n, $band['gain'], $band['freq'], $band['q'], $band['type'], true));
-            }
-        }
-        $bridge->request('write', ['frames' => $bypass]);
-        $toneMode = \is_int($state['tone_mode'] ?? null) ? $state['tone_mode'] : 0;
-        $toneFreq = \is_int($state['tone_freq'] ?? null) ? $state['tone_freq'] : 0;
+        $device = (string) self::optional($input, 'device');
         $io->warning('Pink noise starts now on every routed output. Keep the level safe.');
-        $bridge->request('write', ['frames' => [self::hex(Commands::testTone(self::PINK_NOISE, $toneFreq))]]);
         $files = [];
-        try {
-            usleep((int) (1e6 * max(0.0, self::number($input, 'settle'))));
-            for ($p = 1; $p <= $positions; ++$p) {
-                if ($positions > 1 && $input->isInteractive()) {
-                    $io->ask(\sprintf('Put the mic at position %d of %d and press Enter', $p, $positions), '');
-                }
-                $io->writeln(\sprintf('Recording position %d for %d s…', $p, $seconds));
-                $files[] = $recorder->record($seconds, \sprintf('%s-%d.wav', $prefix, $p));
+        for ($p = 1; $p <= $positions; ++$p) {
+            if ($positions > 1 && $input->isInteractive()) {
+                $io->ask(\sprintf('Put the mic at position %d of %d and press Enter', $p, $positions), '');
             }
-        } finally {
-            $bridge->request('write', ['frames' => [self::hex(Commands::testTone($toneMode, $toneFreq))]]);
+            $io->writeln(\sprintf('Recording position %d for %d s…', $p, $seconds));
+            $files[] = $autoEq->record($state, $outputs, $bands, $device, $micChannel, $seconds, $settle, $autoEq->path(\sprintf('measure-%s-%d.wav', $stamp, $p)));
         }
 
         return $files;
-    }
-
-    /**
-     * @param list<string> $wavs
-     */
-    private function analyse(array $wavs, int $micChannel, ?Response $calibration): Response
-    {
-        $spectrum = new Spectrum();
-        $grid = Response::grid();
-        $responses = [];
-        foreach ($wavs as $wav) {
-            $recording = WavReader::read($wav, $micChannel);
-            $response = $spectrum->analyse($recording['samples'], $recording['rate'], $grid);
-            $responses[] = null === $calibration ? $response : $response->minus($calibration);
-        }
-        if ([] === $responses) {
-            throw new \InvalidArgumentException('Nothing to analyse.');
-        }
-
-        return Response::average($responses);
     }
 
     /**
@@ -260,39 +202,12 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
     }
 
     /**
-     * Fitted bands from band 1 up, the remaining owned bands flat and bypassed.
-     *
-     * @param array<mixed> $state
-     * @param list<int>    $outputs
-     *
-     * @return list<string>
-     */
-    private function bandFrames(array $state, array $outputs, int $bands, FitResult $result): array
-    {
-        $frames = [];
-        foreach ($outputs as $channel) {
-            foreach (array_slice(self::bands($state, $channel), 0, $bands) as $n => $band) {
-                $fitted = $result->bands[$n] ?? null;
-                $frames[] = self::hex(null === $fitted
-                    ? Commands::peq($channel, $n, 120, $band['freq'], $band['q'], $band['type'], true)
-                    : Commands::peq($channel, $n, $fitted->gain, $fitted->freq, $fitted->q, 0, false));
-            }
-        }
-
-        return $frames;
-    }
-
-    /**
      * @param list<int> $outputs
      */
-    private function revert(BridgeClient $bridge, array $outputs, string $path, SymfonyStyle $io): int
+    private function revert(AutoEq $autoEq, array $outputs, string $path, SymfonyStyle $io): int
     {
         try {
-            $data = json_decode((string) @file_get_contents($path), true, 64, \JSON_THROW_ON_ERROR);
-            if (!\is_array($data) || Device::FILE_FORMAT !== ($data['format'] ?? null) || !\is_array($data['device'] ?? null)) {
-                throw new \InvalidArgumentException(\sprintf('"%s" is not a trackdsp backup.', $path));
-            }
-            $bridge->request('write', ['frames' => self::restoreFrames($data['device'], $outputs, 7)]);
+            $autoEq->revert($path, $outputs);
         } catch (\JsonException|\InvalidArgumentException|BridgeException $e) {
             $io->error($e->getMessage());
 
@@ -301,54 +216,6 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
         $io->success(\sprintf('PEQ of %s restored from %s.', implode(', ', array_map(Channel::label(...), $outputs)), $path));
 
         return Command::SUCCESS;
-    }
-
-    /**
-     * @param array<mixed> $state
-     * @param list<int>    $outputs
-     *
-     * @return list<string>
-     */
-    private static function restoreFrames(array $state, array $outputs, int $bands): array
-    {
-        $frames = [];
-        foreach ($outputs as $channel) {
-            foreach (array_slice(self::bands($state, $channel), 0, $bands) as $n => $band) {
-                $frames[] = self::hex(Commands::peq($channel, $n, $band['gain'], $band['freq'], $band['q'], $band['type'], $band['bypass']));
-            }
-        }
-
-        return $frames;
-    }
-
-    /**
-     * The PEQ bands of an output from a device state.
-     *
-     * @param array<mixed> $state
-     *
-     * @return list<array{gain: int, freq: int, q: int, type: int, bypass: bool}>
-     */
-    private static function bands(array $state, int $channel): array
-    {
-        $peq = \is_array($state['outputs'] ?? null) && \is_array($state['outputs'][$channel - 8] ?? null) ? ($state['outputs'][$channel - 8]['peq'] ?? null) : null;
-        if (!\is_array($peq)) {
-            throw new \InvalidArgumentException(\sprintf('The device state has no PEQ for %s.', Channel::label($channel)));
-        }
-        $bands = [];
-        foreach ($peq as $band) {
-            if (!\is_array($band)) {
-                continue;
-            }
-            $bands[] = [
-                'gain' => \is_int($band['gain'] ?? null) ? $band['gain'] : 120,
-                'freq' => \is_int($band['freq'] ?? null) ? $band['freq'] : 100,
-                'q' => \is_int($band['q'] ?? null) ? $band['q'] : 25,
-                'type' => \is_int($band['type'] ?? null) ? $band['type'] : 0,
-                'bypass' => true === ($band['bypass'] ?? false),
-            ];
-        }
-
-        return $bands;
     }
 
     /**
@@ -367,11 +234,6 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
         }
 
         return array_values(array_unique($outputs));
-    }
-
-    private static function hex(Frame $frame): string
-    {
-        return str_replace(' ', '', $frame->shortHex());
     }
 
     private static function optional(InputInterface $input, string $option): ?string

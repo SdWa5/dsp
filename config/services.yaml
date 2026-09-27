@@ -7,6 +7,8 @@ parameters:
     trackdsp.bridge_socket: '%env(default:trackdsp.bridge_socket_default:TRACKDSP_BRIDGE_SOCKET)%'
     # Longest lifetime of one /api/events stream in seconds, the browser reconnects after it
     trackdsp.events_lifetime: 300
+    # Backups, recordings and the session of the auto EQ
+    trackdsp.autoeq_dir: '%kernel.project_dir%/var/autoeq'
 
 services:
     _defaults:
@@ -42,7 +44,11 @@ services:
 when@test:
     parameters:
         trackdsp.events_lifetime: 1
+        trackdsp.autoeq_dir: '%kernel.project_dir%/var/autoeq-test'
     services:
         # The default logger writes expected errors (404, 405) of the web tests to stderr
         logger:
             class: Psr\Log\NullLogger
+        # arecord and a sound card are missing in CI, the fake writes a synthetic recording
+        App\Measurement\RecorderFactory:
+            class: App\Tests\Support\FakeRecorderFactory

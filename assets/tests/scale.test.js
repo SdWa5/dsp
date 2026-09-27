@@ -42,3 +42,28 @@ test('times, thresholds, delay and presets', () => {
     assert.equal(S.presetLabel(0), 'F00');
     assert.equal(S.presetLabel(7), 'U07');
 });
+
+test('typed values parse back to raw values', () => {
+    const labels = { COMP_RATIOS: { 0: '1:1.0', 5: '1:2.0', 9: '1:4.0', 15: 'Limit' } };
+    assert.equal(S.parse('gain', '0'), 280);
+    assert.equal(S.parse('gain', '-6 dB'), 220);
+    assert.equal(S.parse('gain', '-6,0dB'), 220);
+    assert.equal(S.parse('gain', 'loud'), null);
+    assert.equal(S.parse('threshold', '-6'), 168);
+    assert.equal(S.parse('ms', '200ms'), 199);
+    assert.equal(S.parse('ratio', '1:4', null, labels), 9);
+    assert.equal(S.parse('ratio', '4', null, labels), 9);
+    assert.equal(S.parse('ratio', 'limit', null, labels), 15);
+    assert.equal(S.parse('ratio', '7', null, labels), null);
+    assert.equal(S.parse('hz', '2k'), S.hzToIndex(2000));
+    assert.equal(S.parse('peq', '+3'), 150);
+    assert.equal(S.parse('delay', '10'), 480);
+    assert.equal(S.parse('delay', '3.430', { delay_unit: 1 }), 480);
+    assert.equal(S.parse('delay', '10ms', { delay_unit: 1 }), 480);
+    assert.equal(S.parse('delay', '11.253', { delay_unit: 2 }), 480);
+    assert.equal(S.parse('percent', '50%'), 50);
+    assert.equal(S.parse('reverbTime', '1.96s'), 139);
+    for (const [fmt, raw] of [['gain', 190], ['threshold', 150], ['ms', 500], ['delay', 960], ['knee', 6]]) {
+        assert.equal(S.parse(fmt, S.format(fmt, raw)), raw, fmt);
+    }
+});
