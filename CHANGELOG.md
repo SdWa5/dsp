@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-09-27
+
+### Added
+
+- Khadas VIM3 appliance setup in `deploy/vim3/` (bridge unit, PHP-FPM pool, Caddyfile, login banner, env template), the Ethernet role switch `sdwa5-wan-dhcp` for the Deco WAN port, and `docs/vim3.md` with the off-grid network and power cut measurements
+
 ## [0.6.0] - 2026-09-27
 
 ### Added
@@ -98,7 +104,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.6.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/eac219d...main
+[0.7.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/60ef138...main
+[0.6.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/eac219d...60ef138
 [0.5.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/287c410...eac219d
 [0.4.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/36cccde...287c410
 [0.3.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/10b4636...36cccde

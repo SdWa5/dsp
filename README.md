@@ -17,7 +17,8 @@ synthetic recordings and a mocked event stream, not yet page by page on the devi
 ## Requirements
 
 - Development: [ddev](https://ddev.com/) (PHP 8.4 in a container, no PHP on the host needed)
-- Runtime (planned): the FrankenPHP static binary, no system PHP
+- Runtime: PHP 8.4 with PHP-FPM and Caddy, as on the Khadas VIM3 ([docs/vim3.md](docs/vim3.md)). Planned: the
+  FrankenPHP static binary, no system PHP
 - USB access without root: the udev rule in [udev/99-trackdsp.rules](udev/99-trackdsp.rules)
 - Auto EQ: `arecord` (alsa-utils), a measurement mic and an audio interface
 
@@ -36,6 +37,9 @@ For USB, install the udev rule once:
 sudo cp udev/99-trackdsp.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
+
+The appliance setup on a Khadas VIM3 (bridge, PHP-FPM, Caddy, systemd units) is described in
+[docs/vim3.md](docs/vim3.md), the configuration files are in [deploy/vim3/](deploy/vim3/).
 
 ## Usage
 

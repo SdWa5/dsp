@@ -1,0 +1,8 @@
+#!/bin/sh
+# SdWa5 trackdsp: editor addresses and service state for the login banner
+state() { systemctl is-active "$1" 2>/dev/null; }
+printf '\n SdWa5 trackdsp   bridge %s · web %s\n' "$(state trackdsp-bridge)" "$(state caddy)"
+for ip in $(hostname -I); do
+	case "$ip" in *:*) ;; *) printf ' Editor           http://%s/\n' "$ip" ;; esac
+done
+printf ' Editor           http://%s.local/\n' "$(hostname)"

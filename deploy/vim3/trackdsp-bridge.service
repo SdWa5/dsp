@@ -1,0 +1,20 @@
+[Unit]
+Description=trackdsp bridge for the t.racks 8x8 on USB
+Documentation=file:///srv/trackdsp/docs/bridge.md
+StartLimitIntervalSec=0
+
+[Service]
+User=trackdsp
+Group=trackdsp
+WorkingDirectory=/srv/trackdsp
+ExecStart=/usr/bin/php /srv/trackdsp/bin/console trackdsp:bridge --target=usb --resync-interval=600
+Restart=always
+RestartSec=3
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/srv/trackdsp/var
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target
