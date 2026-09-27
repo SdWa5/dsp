@@ -46,4 +46,57 @@ final readonly class RiderSettings
             throw new \InvalidArgumentException('Slew and average time must be positive, deadband and hold time must not be negative.');
         }
     }
+
+    /**
+     * Settings from the short keys of toArray(). Missing keys keep their defaults.
+     *
+     * @param array<mixed> $values
+     */
+    public static function fromArray(int $channel, array $values): self
+    {
+        $number = static function (string $key) use ($values): ?float {
+            $value = $values[$key] ?? null;
+            if (null === $value) {
+                return null;
+            }
+            if (!is_numeric($value)) {
+                throw new \InvalidArgumentException(\sprintf('"%s" must be a number.', $key));
+            }
+
+            return (float) $value;
+        };
+        $defaults = new self($channel);
+
+        return new self(
+            $channel,
+            $number('target') ?? $defaults->targetDb,
+            $number('min') ?? $defaults->minGainDb,
+            $number('max') ?? $defaults->maxGainDb,
+            $number('slew') ?? $defaults->slewDbPerSecond,
+            $number('average') ?? $defaults->averageSeconds,
+            $number('silence') ?? $defaults->silenceDb,
+            $number('deadband') ?? $defaults->deadbandDb,
+            $number('hold') ?? $defaults->overrideHoldSeconds,
+            true === ($values['boost'] ?? false),
+        );
+    }
+
+    /**
+     * @return array{channel: int, target: float, min: float, max: float, slew: float, average: float, silence: float, deadband: float, hold: float, boost: bool}
+     */
+    public function toArray(): array
+    {
+        return [
+            'channel' => $this->channel,
+            'target' => $this->targetDb,
+            'min' => $this->minGainDb,
+            'max' => $this->maxGainDb,
+            'slew' => $this->slewDbPerSecond,
+            'average' => $this->averageSeconds,
+            'silence' => $this->silenceDb,
+            'deadband' => $this->deadbandDb,
+            'hold' => $this->overrideHoldSeconds,
+            'boost' => $this->allowBoost,
+        ];
+    }
 }

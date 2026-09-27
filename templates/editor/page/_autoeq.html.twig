@@ -1,0 +1,106 @@
+{% import 'editor/_widgets.html.twig' as w %}
+{#
+ # The auto EQ, step by step: start a session (backup), record or upload mic positions, fit, apply,
+ # verify, revert. Everything lives on the server, so a reload of the page loses nothing.
+ #}
+<div class="autoeq" data-controller="autoeq">
+    <p class="autoeq__status" data-autoeq-target="status" role="status" hidden></p>
+
+    <section class="card" data-autoeq-target="setup">
+        <h2 class="card__title"><span class="step">1</span> Setup</h2>
+        <form class="card__body" data-action="autoeq#start">
+            <fieldset class="group">
+                <legend>Outputs to correct</legend>
+                <div class="checks">
+                    {% for o in 0..7 %}
+                        <label class="check"><input type="checkbox" name="outputs" value="{{ 8 + o }}"{{ o < 2 ? ' checked' }}> {{ w.ch(8 + o) }}</label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+            <div class="form-grid">
+                <label>Capture device <select name="device" data-autoeq-target="devices"><option value="default">Default device</option></select></label>
+                <label>Mic on input <input type="number" name="mic_channel" min="1" max="32" value="1" required></label>
+                <label>Seconds per position <input type="number" name="seconds" min="2" max="60" value="8" required></label>
+                <label>Noise before recording <span class="unit-input"><input type="number" name="settle" min="0" max="10" step="0.5" value="2" required>s</span></label>
+                <label>Bands to use <select name="bands">{% for b in 1..7 %}<option value="{{ b }}"{{ 7 == b ? ' selected' }}>{{ b == 7 ? 'Band 1 to 7 (all)' : 'Band 1 to ' ~ b }}</option>{% endfor %}</select></label>
+            </div>
+            <p class="dialog__note" data-autoeq-target="recorderNote" hidden>arecord is missing on the server, so this page cannot record.
+                Record the pink noise yourself and upload the WAV files in step 2.</p>
+            <p class="dialog__note">Starting takes a backup of the device. A recording plays the device's pink noise on every routed output,
+                with the chosen bands bypassed and the gain riders paused. Keep the level safe.</p>
+            <div class="dialog__buttons"><button type="submit" class="big">Start session</button></div>
+        </form>
+    </section>
+
+    <section class="card" data-autoeq-target="measure" hidden>
+        <h2 class="card__title"><span class="step">2</span> Measure <small data-autoeq-target="summary"></small></h2>
+        <div class="card__body">
+            <p class="dialog__note">Put the mic where the audience listens and record one position after the other. Three to five positions
+                around the listening area give a correction that holds for the whole room.</p>
+            <ol class="recordings" data-autoeq-target="recordings"></ol>
+            <div class="dialog__buttons dialog__buttons--start">
+                <button type="button" class="big" data-autoeq-target="record" data-action="autoeq#record">Record position</button>
+                <button type="button" class="toggle" data-action="autoeq#chooseWav">Upload WAV…</button>
+                <input type="file" accept=".wav,audio/wav,audio/x-wav" multiple hidden data-autoeq-target="wav" data-action="change->autoeq#uploadWav">
+                <span class="calibration">Mic calibration <b data-autoeq-target="calibration">none</b>
+                    <button type="button" class="toggle" data-action="autoeq#chooseCalibration">Load…</button>
+                    <button type="button" class="toggle" data-autoeq-target="calibrationRemove" data-action="autoeq#removeCalibration">Remove</button>
+                </span>
+                <input type="file" accept=".txt,.cal,.frd,text/plain" hidden data-autoeq-target="calibrationFile" data-action="change->autoeq#uploadCalibration">
+            </div>
+        </div>
+    </section>
+
+    <section class="card" data-autoeq-target="fitCard" hidden>
+        <h2 class="card__title"><span class="step">3</span> Fit</h2>
+        <form class="card__body" data-autoeq-target="fitForm" data-action="autoeq#fit">
+            <div class="form-grid">
+                <label>Target <select name="target">
+                    <option value="flat">Flat</option>
+                    {% for tilt in ['-0.5', '-1', '-1.5', '-2'] %}<option value="tilt:{{ tilt }}">Tilt {{ tilt }} dB per octave</option>{% endfor %}
+                </select></label>
+                <label>From <span class="unit-input"><input type="number" name="low" min="20" max="20000" value="60" required>Hz</span></label>
+                <label>To <span class="unit-input"><input type="number" name="high" min="20" max="20000" value="16000" required>Hz</span></label>
+                <label>Largest boost <span class="unit-input"><input type="number" name="max_boost" min="0" max="12" step="0.5" value="3" required>dB</span></label>
+                <label>Deepest cut <span class="unit-input"><input type="number" name="max_cut" min="0" max="12" step="0.5" value="9" required>dB</span></label>
+                <label>Narrowest Q <input type="number" name="max_q" min="0.5" max="20" step="0.5" value="5" required></label>
+                <label>Leave alone within <span class="unit-input"><input type="number" name="tolerance" min="0.1" max="6" step="0.1" value="1" required>dB</span></label>
+            </div>
+            <div class="dialog__buttons dialog__buttons--start"><button type="submit" class="big" data-autoeq-target="fitButton">Fit</button>
+                <span class="dialog__note">Fitting again with other limits needs no new measurement.</span></div>
+            <div class="autoeq__result" data-autoeq-target="result" hidden>
+                <canvas class="autoeq__plot" data-autoeq-target="plot"></canvas>
+                <ul class="legend">
+                    <li class="legend__measured">Measured</li><li class="legend__goal">Target</li><li class="legend__eq">EQ</li>
+                    <li class="legend__after">Predicted</li><li class="legend__verified" data-autoeq-target="verifiedLegend" hidden>Verified</li>
+                </ul>
+                <p class="autoeq__stats" data-autoeq-target="stats"></p>
+                <table class="table autoeq__bands">
+                    <thead><tr><th>Band</th><th>Frequency</th><th>Gain</th><th>Q</th></tr></thead>
+                    <tbody data-autoeq-target="bands"></tbody>
+                </table>
+            </div>
+        </form>
+    </section>
+
+    <section class="card" data-autoeq-target="applyCard" hidden>
+        <h2 class="card__title"><span class="step">4</span> Apply and verify</h2>
+        <div class="card__body">
+            <p class="dialog__note" data-autoeq-target="applyNote"></p>
+            <div class="dialog__buttons dialog__buttons--start">
+                <button type="button" class="big" data-autoeq-target="apply" data-action="autoeq#apply">Apply</button>
+                <button type="button" class="big" data-autoeq-target="verify" data-action="autoeq#verify">Record verify position</button>
+                <button type="button" class="big" data-autoeq-target="revert" data-action="autoeq#revert">Revert to backup</button>
+                <button type="button" class="toggle" data-action="autoeq#discard">End session</button>
+            </div>
+        </div>
+    </section>
+
+    <details class="card card--plain" data-autoeq-target="backupsCard">
+        <summary class="card__title">Backups</summary>
+        <div class="card__body">
+            <p class="dialog__note">Every session starts with a backup. Revert restores all PEQ bands of the outputs the backup names.</p>
+            <ul class="backups" data-autoeq-target="backups"></ul>
+        </div>
+    </details>
+</div>

@@ -1,17 +1,28 @@
 import { Controller } from '@hotwired/stimulus';
 import { api, listen, on, send, status, store } from '../lib/device.js';
+import { channelId, channelLabel, channelParts } from '../lib/channels.js';
 import { linkCommands, linkGroups, linkedMembers } from '../lib/link.js';
 import { presetLabel } from '../lib/scale.js';
+
+const THEMES = ['auto', 'light', 'dark'];
+const THEME_KEY = 'trackdsp-theme';
 
 /**
  * The editor frame: tabs, connection state, menus and the dialogs that do more than set one value
  * (connect, presets, link, copy, preset files).
  */
 export default class extends Controller {
-    static targets = ['tab', 'page', 'online', 'banner', 'number', 'error', 'dialog', 'status', 'target', 'slots',
-        'storeName', 'linkGroup', 'file', 'scanButton', 'scanStatus', 'found'];
+    static targets = ['tab', 'page', 'online', 'banner', 'bannerText', 'number', 'error', 'dialog', 'status', 'target', 'slots',
+        'storeName', 'linkGroup', 'file', 'scanButton', 'scanStatus', 'found', 'theme'];
 
     connect() {
+        let theme = 'auto';
+        try {
+            theme = window.localStorage.getItem(THEME_KEY) ?? 'auto';
+        } catch {
+            // Storage may be blocked, the theme then follows the system
+        }
+        this.applyTheme(THEMES.includes(theme) ? theme : 'auto');
         this.offs = [
             on('status', () => this.showStatus()),
             on('error', (message) => this.showError(message)),
@@ -31,8 +42,16 @@ export default class extends Controller {
     // --- display --------------------------------------------------------------------------------
 
     tab(event) {
+        this.closeMenu();
         this.show(event.params.page);
         window.history.replaceState(null, '', `#${event.params.page}`);
+    }
+
+    /** A menu stays open while it holds the focus. */
+    closeMenu() {
+        if (document.activeElement?.closest('.menu')) {
+            document.activeElement.blur();
+        }
     }
 
     show(page) {
@@ -58,7 +77,7 @@ export default class extends Controller {
         } else if (!status.connected) {
             banner = `Not connected${status.target ? ` to ${status.target}` : ''}.${status.error ? ` ${status.error}` : ''}`;
         }
-        this.bannerTarget.textContent = banner;
+        this.bannerTextTarget.textContent = banner;
         this.bannerTarget.hidden = '' === banner;
         if (this.hasStatusTarget) {
             const info = status.info ? ` (${status.info})` : '';
@@ -68,15 +87,65 @@ export default class extends Controller {
 
     showState() {
         const state = store.state;
-        this.numberTarget.textContent = presetLabel(state?.active_preset);
+        for (const number of this.numberTargets) {
+            number.textContent = presetLabel(state?.active_preset);
+        }
         for (const tab of this.tabTargets) {
-            if (!tab.dataset.side) {
-                continue;
+            if (tab.dataset.side) {
+                this.showChannelTab(tab, state);
             }
-            const index = Number(tab.dataset.index);
-            const members = state ? linkedMembers(state[tab.dataset.side], index) : [index];
-            // A linked channel shows its group's first channel, as in the vendor editor: "2=1"
-            tab.textContent = members[0] !== index ? `${index + 1}=${members[0] + 1}` : tab.dataset.label;
+        }
+    }
+
+    /** A channel tab: ID, name, a dot while muted and the link group. */
+    showChannelTab(tab, state) {
+        const side = tab.dataset.side;
+        const index = Number(tab.dataset.index);
+        const channel = ('outputs' === side ? 8 : 0) + index;
+        const { name } = channelParts(channel, state);
+        tab.querySelector('.chtab__name').textContent = name;
+        const marks = [];
+        const titles = [channelLabel(channel, state)];
+        if (state?.[side]?.[index]?.mute) {
+            marks.push('<span class="chtab__mute" aria-hidden="true"></span>');
+            titles.push('muted');
+        }
+        if (state) {
+            const group = linkGroups(state[side])[index];
+            const members = linkedMembers(state[side], index);
+            if (group > 0) {
+                marks.push(`<span class="chtab__link">L${group}</span>`);
+                titles.push(`linked with ${members.filter((m) => m !== index).map((m) => channelId(('outputs' === side ? 8 : 0) + m)).join(', ')}`);
+            }
+        }
+        const html = marks.join('');
+        const box = tab.querySelector('.chtab__marks');
+        if (box.innerHTML !== html) {
+            box.innerHTML = html;
+        }
+        tab.title = titles.join(', ');
+    }
+
+    theme() {
+        const next = THEMES[(THEMES.indexOf(this.currentTheme) + 1) % THEMES.length];
+        this.applyTheme(next);
+        try {
+            window.localStorage.setItem(THEME_KEY, next);
+        } catch {
+            // Only this visit then
+        }
+    }
+
+    applyTheme(theme) {
+        this.currentTheme = theme;
+        if ('auto' === theme) {
+            delete document.documentElement.dataset.theme;
+        } else {
+            document.documentElement.dataset.theme = theme;
+        }
+        if (this.hasThemeTarget) {
+            this.themeTarget.textContent = { auto: 'Auto', light: 'Light', dark: 'Dark' }[theme];
+            this.themeTarget.title = `Colour theme: ${theme}. Click to change.`;
         }
     }
 
@@ -89,6 +158,7 @@ export default class extends Controller {
     // --- dialogs --------------------------------------------------------------------------------
 
     open(event) {
+        this.closeMenu();
         const dialog = this.dialogTargets.find((d) => d.id === `dialog-${event.params.dialog}`);
         const state = store.state;
         if ('connect' === event.params.dialog && status.target) {
@@ -261,7 +331,7 @@ export default class extends Controller {
         event.preventDefault();
         const source = Number(event.target.elements.source.value);
         const target = Number(event.target.elements.target.value);
-        const name = (c) => (c < 8 ? `In${c + 1}` : `Out${c - 7}`);
+        const name = (c) => channelLabel(c, store.state);
         if (source === target || (source < 8) !== (target < 8)) {
             this.showError('Copy an input to another input, or an output to another output.');
             return;

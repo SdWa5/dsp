@@ -29,7 +29,7 @@ final class RideCommandTest extends KernelTestCase
     private function ride(array $input): CommandTester
     {
         $tester = new CommandTester((new Application(self::bootKernel()))->find('trackdsp:ride'));
-        $tester->execute($input);
+        $tester->execute($input + ['--socket' => $this->bridge?->socket]);
 
         return $tester;
     }
@@ -44,40 +44,51 @@ final class RideCommandTest extends KernelTestCase
         return $state['inputs'][0]['gain'];
     }
 
-    public function testRidesTheGainDownThroughTheBridge(): void
+    public function testStartsARiderThatKeepsRidingInTheBridge(): void
     {
         $this->bridge = new BridgeProcess();
         $client = new BridgeClient($this->bridge->socket);
         $before = $this->in1Gain($client);
 
         $tester = $this->ride([
-            'channel' => 'in1', '--socket' => $this->bridge->socket, '--level' => '-80', '--silence' => '-90',
-            '--min' => '-40', '--slew' => '20', '--average' => '0.1', '--deadband' => '0', '--duration' => '2',
+            'channel' => 'in1', '--level' => '-80', '--silence' => '-90', '--min' => '-40', '--slew' => '20',
+            '--average' => '0.1', '--deadband' => '0',
         ]);
 
         $tester->assertCommandIsSuccessful();
-        self::assertStringContainsString('Riding In1 towards -80.0 dB', $tester->getDisplay());
+        self::assertStringContainsString('Gain rider on In1 towards -80.0 dB', $tester->getDisplay());
+        $deadline = microtime(true) + 5;
+        while ($this->in1Gain($client) >= $before && microtime(true) < $deadline) {
+            usleep(100_000);
+        }
         self::assertLessThan($before, $this->in1Gain($client));
     }
 
-    public function testDryRunWritesNothing(): void
+    public function testListsAndStopsTheRiders(): void
     {
         $this->bridge = new BridgeProcess();
         $client = new BridgeClient($this->bridge->socket);
-        $before = $this->in1Gain($client);
+        self::assertStringContainsString('No gain rider is running.', $this->ride(['--list' => true])->getDisplay());
+        $this->ride(['channel' => 'in2', '--level' => '-24'])->assertCommandIsSuccessful();
 
-        $tester = $this->ride([
-            'channel' => 'in1', '--socket' => $this->bridge->socket, '--level' => '-80', '--silence' => '-90',
-            '--min' => '-40', '--slew' => '20', '--average' => '0.1', '--deadband' => '0', '--duration' => '1', '--dry-run' => true,
-        ]);
+        $tester = $this->ride(['--list' => true]);
 
         $tester->assertCommandIsSuccessful();
-        self::assertStringContainsString('(dry run)', $tester->getDisplay());
-        self::assertSame($before, $this->in1Gain($client));
+        self::assertMatchesRegularExpression('/In2\s+-24\.0 dB\s+-20\.0\.\.\+0\.0 dB\s+0\.5 dB\/s/', $tester->getDisplay());
+
+        $tester = $this->ride(['channel' => 'in2', '--stop' => true]);
+
+        $tester->assertCommandIsSuccessful();
+        self::assertStringContainsString('Gain rider on In2 stopped', $tester->getDisplay());
+        $status = $client->request('status');
+        self::assertIsArray($status);
+        self::assertSame([], $status['riders']);
     }
 
     public function testRejectsInvalidSettings(): void
     {
+        $this->bridge = new BridgeProcess();
+
         $tester = $this->ride(['channel' => 'out1']);
         self::assertSame(Command::INVALID, $tester->getStatusCode());
         self::assertStringContainsString('inputs only', $tester->getDisplay());
@@ -85,11 +96,15 @@ final class RideCommandTest extends KernelTestCase
         $tester = $this->ride(['channel' => 'in1', '--max' => '3']);
         self::assertSame(Command::INVALID, $tester->getStatusCode());
         self::assertStringContainsString('boost', $tester->getDisplay());
+
+        $tester = $this->ride([]);
+        self::assertSame(Command::INVALID, $tester->getStatusCode());
+        self::assertStringContainsString('--list', $tester->getDisplay());
     }
 
     public function testFailsWithoutBridge(): void
     {
-        $tester = $this->ride(['channel' => 'in1', '--socket' => sys_get_temp_dir().'/trackdsp-none.sock', '--duration' => '1']);
+        $tester = $this->ride(['channel' => 'in1', '--socket' => sys_get_temp_dir().'/trackdsp-none.sock']);
 
         self::assertSame(Command::FAILURE, $tester->getStatusCode());
         self::assertStringContainsString('not running', $tester->getDisplay());

@@ -1,13 +1,14 @@
 {% import 'editor/_widgets.html.twig' as w %}
 <div class="toolbar">
     <label>Unit {{ w.choice('Delay unit', 'delay_unit', [{command: 'delayUnit', args: {unit: '@delay_unit'}}], labels.DELAY_UNITS) }}</label>
+    <span class="page__note">Type a value into a field in the chosen unit, or add ms, m or ft.</span>
 </div>
 <div class="strips">
     {% for i in 0..7 %}
         {% set p = 'outputs.' ~ i %}
         <div class="strip">
-            <h3 class="strip__title">{{ w.value(p ~ '.name') }}</h3>
-            {{ w.fader('', p ~ '.delay', [{command: 'delay', args: {channel: 8 + i, samples: '@' ~ p ~ '.delay'}}], 0, 32640, 'delay', null, {class: 'fader--tall', label: 'Out' ~ (i + 1) ~ ' delay'}) }}
+            <h3 class="strip__title">{{ w.ch(8 + i) }}</h3>
+            {{ w.fader('', p ~ '.delay', [{command: 'delay', args: {channel: 8 + i, samples: '@' ~ p ~ '.delay'}}], 0, 32640, 'delay', null, {class: 'fader--tall', label: 'Out' ~ (i + 1) ~ ' delay', default: 0}) }}
         </div>
     {% endfor %}
 </div>

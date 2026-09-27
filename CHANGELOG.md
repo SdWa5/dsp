@@ -5,6 +5,34 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-09-27
+
+### Added
+
+- Auto EQ page in the browser editor: setup, recordings per position or WAV upload, mic calibration, fit with a plot of the measurement, target, EQ and prediction, apply, verify positions with the bands on, revert and a list of backups
+- `/api/autoeq` endpoints for the auto EQ steps, with the session kept in `var/autoeq/session.json`
+- Gain riders run inside the bridge: socket ops `ride` and `unride`, `POST /api/ride` and `/api/unride`, the settings in the bridge status and the live values in the `meters` event
+- The bridge keeps the gain riders in `<socket>.riders.json` (`--riders-file`) and starts them again after a restart
+- Rider button, status line and settings dialog per input on the Gain page
+- DJ and 1:1 buttons on every output compressor and the Aux compressor
+- Channel names next to the channel ID wherever the ID appears in the browser editor
+- Channel tabs with the mute state and the link group, a Tools menu and a theme switch for auto, light and dark
+- Typed fader values with units, a double click resets gain and delay faders
+- Peak hold and a clip mark on the meters
+- `trackdsp:ride --list` and `--stop`
+
+### Changed
+
+- `trackdsp:ride` starts or changes a rider in the bridge and returns, instead of riding while it runs
+- The auto EQ pauses the gain riders while it records, and waits the settle time before every recording instead of only the first one
+- `trackdsp:autoeq` and the browser session share the measure, backup, apply and revert steps in `App\AutoEq\AutoEq`
+- The Matrix page is a grid table with the channel names as headers
+- Strips fill the page width and wrap on narrow screens, and the PEQ panel keeps the gain beside the filters
+
+### Removed
+
+- `trackdsp:ride --dry-run` and `--duration`
+
 ## [0.5.0] - 2026-09-27
 
 ### Added
@@ -70,7 +98,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.5.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/287c410...main
+[0.6.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/eac219d...main
+[0.5.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/287c410...eac219d
 [0.4.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/36cccde...287c410
 [0.3.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/10b4636...36cccde
 [0.2.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/commit/10b4636

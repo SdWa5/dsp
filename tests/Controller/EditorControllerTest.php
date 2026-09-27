@@ -68,9 +68,10 @@ final class EditorControllerTest extends WebTestCase
     {
         $page = self::page();
         self::assertSame('t.racks 8x8 Matrix Editor', $page->filter('title')->text());
-        self::assertCount(22, $page->filter('section.page'));
-        self::assertCount(22, $page->filter('.tab'));
-        self::assertCount(18, $page->filter('dialog'));
+        self::assertCount(23, $page->filter('section.page'));
+        self::assertCount(7, $page->filter('.tab'));
+        self::assertCount(16, $page->filter('.chtab'));
+        self::assertCount(19, $page->filter('dialog'));
         foreach ($page->filter('[data-editor-dialog-param]')->each(static fn (Crawler $n): string => (string) $n->attr('data-editor-dialog-param')) as $dialog) {
             self::assertCount(1, $page->filter('dialog#dialog-'.$dialog), \sprintf('No dialog "%s".', $dialog));
         }
@@ -101,6 +102,24 @@ final class EditorControllerTest extends WebTestCase
         foreach (array_keys($paths) as $path) {
             self::assertTrue(self::has((string) $path), \sprintf('"%s" is not a state path.', $path));
         }
+    }
+
+    public function testEveryPresetSetsStatePaths(): void
+    {
+        $presets = self::page()->filter('[data-preset-set-value]')->each(static fn (Crawler $n): string => (string) $n->attr('data-preset-set-value'));
+        // DJ and 1:1 on every compressor: 8 outputs and the aux
+        self::assertCount(18, $presets);
+        foreach ($presets as $json) {
+            $set = json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
+            self::assertIsArray($set);
+            self::assertNotSame([], $set);
+            foreach ($set as $path => $value) {
+                self::assertTrue(self::has((string) $path), \sprintf('"%s" is not a state path.', $path));
+                self::assertIsInt($value);
+            }
+        }
+        $dj = json_decode($presets[0], true, flags: \JSON_THROW_ON_ERROR);
+        self::assertSame(['outputs.0.comp.ratio' => 9, 'outputs.0.comp.knee' => 0, 'outputs.0.comp.attack' => 9, 'outputs.0.comp.release' => 199, 'outputs.0.comp.threshold' => 168], $dj);
     }
 
     public function testEveryCommandTemplateBuildsAFrame(): void

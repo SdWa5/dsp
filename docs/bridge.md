@@ -24,6 +24,7 @@ bin/console trackdsp:bridge -t 192.168.68.10     # or usb, usb:/dev/hidrawN, dem
 | `-s`, `--socket` | `$TRACKDSP_BRIDGE_SOCKET`, else `var/bridge.sock` | unix socket |
 | `--meter-interval` | `0.3` | seconds between meter polls while a client listens |
 | `--resync-interval` | `60` | seconds between full re-reads of the device |
+| `--riders-file` | the socket path with `.riders.json` | where the gain riders are kept across restarts |
 
 In ddev the bridge runs as a daemon of the web container (`.ddev/config.bridge.yaml`) on the simulated
 device. `POST /api/connect` switches it to the real one. Its log is in `ddev logs -s web`, and `-v` shows
@@ -43,7 +44,10 @@ answers on the same socket. A socket file without a bridge behind it is removed.
 - **Re-read:** after a preset recall or store, on `refresh` and every resync interval, once the queue
   is empty. The re-read keeps the values the configuration does not carry (+48V, working status, test
   tone frequency, device ID). They are taken from the writes the bridge has seen.
-- **Meters** are polled only while at least one client is subscribed.
+- **Meters** are polled only while at least one client is subscribed or a gain rider runs.
+- **Gain riders** run in the bridge loop. Each meter reading goes to every rider, and the gains they change
+  are queued like any other write. Their settings are saved on every change and loaded at start, so the
+  riders survive a restart. See [automation.md](automation.md) for what a rider does.
 - **Errors:** a device error drops the connection and clears the queue. The bridge reconnects after
   1, 2, 4, 8 and then every 15 seconds. `disconnect` stops that until the next `connect`.
 
@@ -60,17 +64,21 @@ One JSON object per line in each direction.
 | op | Parameters | Result |
 |---|---|---|
 | `ping` | – | `"pong"` |
-| `status` | – | `connected`, `target`, `transport`, `info`, `error`, `queued`, `clients` |
+| `status` | – | `connected`, `target`, `transport`, `info`, `error`, `queued`, `clients`, `riders` (list of rider settings) |
 | `state` | – | the device as `Device::toArray()`, the `device` object of a preset file |
 | `write` | `frames`: list of hex strings, command byte followed by the data | `{"queued": n}` |
 | `connect` | `target` (optional, the current one otherwise) | status |
 | `disconnect` | – | status |
 | `refresh` | – | status |
 | `subscribe` | – | `true`, then events |
+| `ride` | `channel` (input 0..7), `settings` (`target`, `min`, `max`, `slew`, `average`, `silence`, `deadband`, `hold`, `boost`, missing keys take the defaults) | status. Starts the rider, or replaces the settings of a running one |
+| `unride` | `channel` | status. The gain stays where it is |
 
 Error codes are `invalid` (bad request) and `offline` (no device connection).
 A subscribed client receives `{"event": "status"|"state"|"meters", "data": ...}`. Right after `subscribe`
-it gets the current status and state. `meters` data is `{"levels": [17 × dB], "raw": "hex"}`.
+it gets the current status and state. `meters` data is `{"levels": [17 × dB], "raw": "hex", "riders": [...]}`,
+where every rider reports `{"channel", "gain", "average", "status"}`. The status is `waiting`, `silent`,
+`steady`, `riding`, `limit` or `paused`.
 
 ## HTTP API
 
@@ -86,6 +94,9 @@ it gets the current status and state. `meters` data is `{"levels": [17 × dB], "
 | GET | `/api/download` | – | the live state as a preset file |
 | GET | `/api/events` | – | server-sent events `status`, `state`, `meters` |
 | POST | `/api/discover` | – | `{"networks": [...], "devices": [{"target", "kind", "info", "busy", "connected"}]}` |
+| POST | `/api/ride` | `{"channel": 0, "settings": {"target": -18, "min": -20, "max": 0}}` | status |
+| POST | `/api/unride` | `{"channel": 0}` | status |
+| | `/api/autoeq/*` | | the auto EQ steps, listed in [automation.md](automation.md#in-the-browser) |
 
 `command` is the name of a builder in `App\Protocol\Commands` and `args` are its parameters by name, for
 example `gainDb {channel, db}` or `peq {channel, band, gainRaw, freqIndex, qIndex, type, bypass}`.

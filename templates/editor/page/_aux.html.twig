@@ -1,4 +1,5 @@
 {% import 'editor/_widgets.html.twig' as w %}
+<h2 class="page__title">{{ w.ch(18, {class: 'ch--big'}) }} {{ w.text('Aux name', 'aux.name', [{command: 'channelName', args: {channel: 18, name: '@aux.name'}}], 8) }}</h2>
 {% embed 'editor/_peq.html.twig' with {p: 'aux', channel: 18, filters: false, bands: 5} %}
     {% block side %}
         {% import 'editor/_widgets.html.twig' as w %}
@@ -26,13 +27,13 @@
         <fieldset class="group">
             <legend>Select</legend>
             {% for i in 0..7 %}
-                {{ w.toggle('In' ~ (i + 1), 'aux.select', [{command: 'routing', args: {channel: 18, mask: '@aux.select'}}], null, {bit: i, class: 'toggle--route'}) }}
+                {{ w.toggle(w.ch(i), 'aux.select', [{command: 'routing', args: {channel: 18, mask: '@aux.select'}}], null, {bit: i, class: 'toggle--route'}) }}
             {% endfor %}
         </fieldset>
         <fieldset class="group">
             <legend>Gain</legend>
             <div class="strip__row">
-                {{ w.fader('Aux', 'aux.gain', [{command: 'gain', args: {channel: 18, raw: '@aux.gain'}}], 0, 400, 'gain') }}
+                {{ w.fader(null, 'aux.gain', [{command: 'gain', args: {channel: 18, raw: '@aux.gain'}}], 0, 400, 'gain', null, {label: 'Aux gain', default: 280}) }}
                 {{ w.meter(16) }}
             </div>
             {{ w.toggle('Mute', 'aux.mute', [{command: 'mute', args: {channel: 18, on: '@aux.mute'}}], null, {class: 'toggle--mute'}) }}

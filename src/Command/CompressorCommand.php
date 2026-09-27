@@ -99,6 +99,18 @@ final class CompressorCommand extends DeviceCommand
             throw new \InvalidArgumentException(\sprintf('Missing --%s. Pass all values or start from --dj.', implode(', --', $missing)));
         }
 
+        return self::raw($options);
+    }
+
+    /**
+     * Raw device values of a compressor setting given as in DJ_DEFAULT, e.g. for the DJ button of the editor.
+     *
+     * @param array<string, string> $options ratio, knee, attack, release, threshold
+     *
+     * @return array{ratio: int, knee: int, attack: int, release: int, threshold: int}
+     */
+    public static function raw(array $options): array
+    {
         return [
             'ratio' => self::ratio($options['ratio'] ?? ''),
             'knee' => self::integer($options['knee'] ?? '', 'knee', 0, 255),

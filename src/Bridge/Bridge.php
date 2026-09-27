@@ -2,9 +2,12 @@
 
 namespace App\Bridge;
 
+use App\Automation\GainRider;
+use App\Automation\RiderSettings;
 use App\Client\DspException;
 use App\Client\Matrix;
 use App\Model\DeviceState;
+use App\Protocol\Commands;
 use App\Protocol\Frame;
 use App\Protocol\Opcode;
 use App\Transport\TcpTransport;
@@ -23,7 +26,12 @@ use Psr\Log\NullLogger;
  * Writes change the cached state at once and go to the device from a queue that merges repeated
  * writes to the same target, so a fast fader drag does not pile up behind a slow device.
  *
- * Ops: ping, status, state, write {frames: [hex]}, connect {target?}, disconnect, refresh, subscribe
+ * Gain riders run inside the bridge, so they keep working without a browser. They read the meters, which are
+ * polled while a client listens or a rider runs, and write the input gain like any other client. Their
+ * settings are kept in $ridersFile and come back after a restart.
+ *
+ * Ops: ping, status, state, write {frames: [hex]}, connect {target?}, disconnect, refresh, subscribe,
+ * ride {channel, settings}, unride {channel}
  */
 final class Bridge
 {
@@ -51,6 +59,8 @@ final class Bridge
     private float $nextResync = 0.0;
     private string $info = '';
     private string $error = '';
+    /** @var array<int, GainRider> input channel => rider */
+    private array $riders = [];
 
     public function __construct(
         private readonly TransportFactory $transports,
@@ -60,6 +70,7 @@ final class Bridge
         private readonly float $meterInterval = 0.3,
         private readonly float $publishInterval = 0.2,
         private readonly float $resyncInterval = 60.0,
+        private readonly ?string $ridersFile = null,
     ) {
         $this->queue = new WriteQueue();
     }
@@ -87,6 +98,7 @@ final class Bridge
         }
         stream_set_blocking($server, false);
         $this->server = $server;
+        $this->loadRiders();
         $this->logger->info('Bridge listening on {socket}, target {target}.', ['socket' => $this->socketPath, 'target' => $this->target]);
     }
 
@@ -143,6 +155,7 @@ final class Bridge
             'error' => $this->error,
             'queued' => $this->queue->count(),
             'clients' => \count($this->clients),
+            'riders' => array_values(array_map(static fn (GainRider $r): array => $r->settings()->toArray(), $this->riders)),
         ];
     }
 
@@ -169,10 +182,14 @@ final class Bridge
             if (0 === $this->queue->count() && ($this->resyncPending || $now >= $this->nextResync)) {
                 $this->read();
             }
-            if ($now >= $this->nextMeter && $this->subscribers() > 0) {
+            if ($now >= $this->nextMeter && ($this->subscribers() > 0 || [] !== $this->riders)) {
                 $this->nextMeter = $now + $this->meterInterval;
                 $raw = $dsp->metersRaw();
-                $this->broadcast('meters', ['levels' => Matrix::parseMeters($raw), 'raw' => bin2hex($raw)]);
+                $levels = Matrix::parseMeters($raw);
+                $this->ride($levels, self::now());
+                if ($this->subscribers() > 0) {
+                    $this->broadcast('meters', ['levels' => $levels, 'raw' => bin2hex($raw), 'riders' => $this->riderStatus(self::now())]);
+                }
             }
         } catch (DspException|TransportException $e) {
             $this->fail($e->getMessage());
@@ -401,6 +418,29 @@ final class Bridge
                 $this->resyncPending = true;
 
                 return $this->status();
+            case 'ride':
+                $channel = self::riderChannel($request);
+                $settings = $request['settings'] ?? [];
+                if (!\is_array($settings)) {
+                    throw new BridgeException('"settings" must be an object.', 400);
+                }
+                try {
+                    $this->riders[$channel] = new GainRider(RiderSettings::fromArray($channel, $settings));
+                } catch (\InvalidArgumentException $e) {
+                    throw new BridgeException($e->getMessage(), 400, $e);
+                }
+                ksort($this->riders);
+                $this->saveRiders();
+                $this->statusDirty = true;
+                $this->logger->info('Gain rider on {channel}: {settings}', ['channel' => $channel, 'settings' => json_encode($this->riders[$channel]->settings()->toArray())]);
+
+                return $this->status();
+            case 'unride':
+                unset($this->riders[self::riderChannel($request)]);
+                $this->saveRiders();
+                $this->statusDirty = true;
+
+                return $this->status();
             case 'subscribe':
                 $this->clients[$client]['subscribed'] = true;
                 $this->event($client, 'status', $this->status());
@@ -440,6 +480,99 @@ final class Bridge
         $this->statusDirty = true;
 
         return ['queued' => $this->queue->count()];
+    }
+
+    /**
+     * Feeds one meter reading to every rider and queues the gains they change.
+     *
+     * @param list<float> $levels
+     */
+    private function ride(array $levels, float $now): void
+    {
+        if ([] === $this->riders || null === $this->state) {
+            return;
+        }
+        $inputs = $this->state->toDevice()->inputs;
+        $frames = [];
+        foreach ($this->riders as $channel => $rider) {
+            $rider->observeGain($inputs[$channel]->gain, $now);
+            if (null !== $raw = $rider->meter($levels[$channel] ?? -90.0, $now)) {
+                $frames[] = Commands::gain($channel, $raw);
+            }
+        }
+        foreach ($frames as $frame) {
+            $this->state->apply($frame);
+            $this->queue->push($frame);
+        }
+        if ([] !== $frames) {
+            $this->stateDirty = true;
+        }
+    }
+
+    /**
+     * @return list<array{channel: int, gain: float|null, average: float|null, status: string}>
+     */
+    private function riderStatus(float $now): array
+    {
+        $status = [];
+        foreach ($this->riders as $channel => $rider) {
+            $gain = $rider->gainDb();
+            $average = $rider->averageDb();
+            $status[] = [
+                'channel' => $channel,
+                'gain' => null === $gain ? null : round($gain, 1),
+                'average' => null === $average ? null : round($average, 1),
+                'status' => $rider->status($now),
+            ];
+        }
+
+        return $status;
+    }
+
+    /**
+     * @param array<mixed> $request
+     */
+    private static function riderChannel(array $request): int
+    {
+        $channel = $request['channel'] ?? null;
+        if (!\is_int($channel) || $channel < 0 || $channel > 7) {
+            throw new BridgeException('"channel" must be an input index 0..7.', 400);
+        }
+
+        return $channel;
+    }
+
+    private function loadRiders(): void
+    {
+        if (null === $this->ridersFile || !is_file($this->ridersFile)) {
+            return;
+        }
+        $saved = json_decode((string) file_get_contents($this->ridersFile), true);
+        foreach (\is_array($saved) ? $saved : [] as $settings) {
+            try {
+                if (!\is_array($settings) || !\is_int($settings['channel'] ?? null)) {
+                    throw new \InvalidArgumentException('no channel');
+                }
+                $this->riders[$settings['channel']] = new GainRider(RiderSettings::fromArray($settings['channel'], $settings));
+            } catch (\InvalidArgumentException $e) {
+                $this->logger->warning('Skipped a saved gain rider in {file}: {message}', ['file' => $this->ridersFile, 'message' => $e->getMessage()]);
+            }
+        }
+        ksort($this->riders);
+        if ([] !== $this->riders) {
+            $this->logger->info('Restored {count} gain rider(s) from {file}.', ['count' => \count($this->riders), 'file' => $this->ridersFile]);
+        }
+    }
+
+    private function saveRiders(): void
+    {
+        if (null === $this->ridersFile) {
+            return;
+        }
+        $settings = array_values(array_map(static fn (GainRider $r): array => $r->settings()->toArray(), $this->riders));
+        if (false === @file_put_contents($this->ridersFile, json_encode($settings, \JSON_PRETTY_PRINT | \JSON_THROW_ON_ERROR))) {
+            $this->logger->warning('Cannot save the gain riders to {file}.', ['file' => $this->ridersFile]);
+        }
     }
 
     private function state(): DeviceState

@@ -163,6 +163,52 @@ final class GainRiderTest extends TestCase
         self::assertNull($rider->gainDb());
     }
 
+    public function testReportsWhatItIsDoing(): void
+    {
+        $rider = new GainRider(new RiderSettings(Channel::input(1), targetDb: -18.0, averageSeconds: 0.3));
+        self::assertSame(GainRider::WAITING, $rider->status($this->now));
+
+        $raw = Scale::GAIN_UNITY;
+        $rider->observeGain($raw, $this->now);
+        $this->feed($rider, -60.0, 3.0, $raw);
+        self::assertSame(GainRider::SILENT, $rider->status($this->now));
+
+        $this->feed($rider, -10.0, 1.0, $raw);
+        self::assertSame(GainRider::RIDING, $rider->status($this->now));
+
+        $this->feed($rider, -10.0, 40.0, $raw);
+        self::assertSame(GainRider::STEADY, $rider->status($this->now));
+
+        $rider->observeGain($raw - 20, $this->now);
+        self::assertSame(GainRider::PAUSED, $rider->status($this->now));
+    }
+
+    public function testStopsAtTheLimit(): void
+    {
+        $raw = Scale::dbToGain(-19.9);
+        $rider = $this->rider($raw, targetDb: -18.0, minGainDb: -20.0);
+
+        $this->feed($rider, 10.0, 5.0, $raw);
+
+        self::assertSame(GainRider::LIMIT, $rider->status($this->now));
+        self::assertEqualsWithDelta(-20.0, Scale::gainToDb($raw), 0.1);
+    }
+
+    public function testSettingsRoundTripThroughAnArray(): void
+    {
+        $settings = new RiderSettings(Channel::input(3), -20.0, -12.0, 3.0, 1.5, 2.0, -50.0, 0.5, 10.0, true);
+
+        self::assertEquals($settings, RiderSettings::fromArray(2, $settings->toArray()));
+        self::assertEquals(new RiderSettings(2, targetDb: -24.0), RiderSettings::fromArray(2, ['target' => '-24']));
+    }
+
+    public function testSettingsFromAnArrayRejectNonNumbers(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        RiderSettings::fromArray(0, ['slew' => 'fast']);
+    }
+
     /**
      * @return iterable<string, array{array<string, mixed>}>
      */
