@@ -2,6 +2,7 @@
 
 namespace App\Tests\Transport;
 
+use App\Client\DspException;
 use App\Model\Device;
 use App\Protocol\Commands;
 use App\Protocol\Frame;
@@ -9,6 +10,7 @@ use App\Protocol\Opcode;
 use App\Protocol\Scale;
 use App\Transport\DemoTransport;
 use App\Transport\HidrawLocator;
+use App\Transport\HidrawTransport;
 use App\Transport\TcpTransport;
 use App\Transport\TransportException;
 use App\Transport\TransportFactory;
@@ -83,6 +85,26 @@ final class TransportTest extends TestCase
 
         self::assertSame('8x8Matrix V010', $dsp->info());
         self::assertSame('demo', $dsp->transport()->describe());
+    }
+
+    public function testFactoryWaitsBrieflyAndRetriesMoreOverUsb(): void
+    {
+        // A regular file stands in for a hidraw node that never answers
+        $node = tempnam(sys_get_temp_dir(), 'trackdsp-hidraw-');
+        self::assertIsString($node);
+        $start = microtime(true);
+        try {
+            (new TransportFactory(new HidrawLocator('/nonexistent'), self::DEMO))->connect('usb:'.$node);
+            self::fail('A silent device must not connect.');
+        } catch (DspException) {
+            $elapsed = microtime(true) - $start;
+            $attempts = TransportFactory::USB_RETRIES + 1;
+            self::assertSame($attempts * (HidrawTransport::REPORT_SIZE + 1), filesize($node));
+            self::assertGreaterThanOrEqual($attempts * TransportFactory::USB_TIMEOUT * 0.9, $elapsed);
+            self::assertLessThan($attempts * TransportFactory::USB_TIMEOUT + 0.5, $elapsed);
+        } finally {
+            @unlink($node);
+        }
     }
 
     public function testFactoryRejectsInvalidTarget(): void

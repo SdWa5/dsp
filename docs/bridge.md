@@ -41,13 +41,21 @@ answers on the same socket. A socket file without a bridge behind it is removed.
   same target (command plus channel, plus band for PEQ, and command alone for device-wide settings).
   Copy, link, preset and PIN commands are barriers: they are never merged, and no later write merges
   past them. The queue is flushed for at most 50 ms per loop pass, so the socket stays responsive.
-- **Re-read:** after a preset recall or store, on `refresh` and every resync interval, once the queue
-  is empty. The re-read keeps the values the configuration does not carry (+48V, working status, test
-  tone frequency, device ID). They are taken from the writes the bridge has seen.
+- **Re-read:** after a preset recall or store, on `refresh` and every resync interval. It runs in 49
+  steps of one request each (the 26 pages, group control, the 21 preset names, the active preset), one
+  step per loop pass while the queue is empty, so client requests and writes go on in between. It takes
+  about 1 s over USB. Writes that reach the device during the re-read are applied again to the result, so
+  a page read before a write cannot undo it. A preset recall or store starts it over, and a `refresh`
+  during a re-read gets one of its own afterwards. `resync` in the status shows the progress. The re-read
+  keeps the values the configuration does not carry (+48V, working status, test tone frequency, device
+  ID). They are taken from the writes the bridge has seen. Only the read after a connect is done in one go.
 - **Meters** are polled only while at least one client is subscribed or a gain rider runs.
 - **Gain riders** run in the bridge loop. Each meter reading goes to every rider, and the gains they change
   are queued like any other write. Their settings are saved on every change and loaded at start, so the
   riders survive a restart. See [automation.md](automation.md) for what a rider does.
+- **USB timing:** the 8x8 answers within about 10 ms, but it loses about one request per 0.2 to 0.3 s of
+  continuous traffic. Over USB every attempt therefore waits 0.15 s and a request is tried up to 5 times
+  (`TransportFactory::USB_TIMEOUT`, `USB_RETRIES`). Over TCP an attempt waits 1 s, with 3 attempts.
 - **Errors:** a device error drops the connection and clears the queue. The bridge reconnects after
   1, 2, 4, 8 and then every 15 seconds. `disconnect` stops that until the next `connect`.
 
@@ -64,7 +72,7 @@ One JSON object per line in each direction.
 | op | Parameters | Result |
 |---|---|---|
 | `ping` | – | `"pong"` |
-| `status` | – | `connected`, `target`, `transport`, `info`, `error`, `queued`, `clients`, `riders` (list of rider settings) |
+| `status` | – | `connected`, `target`, `transport`, `info`, `error`, `queued`, `resync` (progress 0..1 of a running re-read, else `null`), `clients`, `riders` (list of rider settings) |
 | `state` | – | the device as `Device::toArray()`, the `device` object of a preset file |
 | `write` | `frames`: list of hex strings, command byte followed by the data | `{"queued": n}` |
 | `connect` | `target` (optional, the current one otherwise) | status |

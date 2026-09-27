@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-09-28
+
+### Added
+
+- `resync` in the bridge status, the progress of a running re-read
+
+### Changed
+
+- The bridge re-reads the device one request per loop pass and answers clients in between, instead of blocking every request for about 3.3 s over USB. Writes during the re-read are applied again to its result
+- Over USB a request waits 0.15 s per attempt and is tried up to 5 times instead of 1 s and 3 times, since the 8x8 loses about one request per 0.2 to 0.3 s of continuous traffic
+- The VIM3 bridge unit re-reads every 60 s again instead of every 600 s
+
 ## [0.7.0] - 2026-09-27
 
 ### Added
@@ -104,7 +116,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.7.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/60ef138...main
+[0.8.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d94e3e1...main
+[0.7.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/60ef138...d94e3e1
 [0.6.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/eac219d...60ef138
 [0.5.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/287c410...eac219d
 [0.4.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/36cccde...287c410
