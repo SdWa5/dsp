@@ -5,6 +5,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-09-28
+
+### Added
+
+- `resources/factory_config.bin`, the configuration read after a factory reset
+
+### Changed
+
+- `trackdsp:compressor` takes every value not given from the compressor on the device and needs at least one value
+
+### Fixed
+
+- A preset file upload also writes the EQ bypass of the inputs, outputs and Aux, the Aux name, Sub control, Group control, the delay unit and +48V when the file knows it, and ends with an activate. A file without groups leaves the groups of the device alone
+- An uploaded preset file with a value outside the device's range gets a 400 instead of a 500
+- Save preset file in the browser editor shows an error in the error line instead of opening a JSON page when no device is connected
+
+### Removed
+
+- The DJ and 1:1 buttons on the output and Aux compressors
+- `--dj` of `trackdsp:compressor`
+
 ## [0.8.0] - 2026-09-28
 
 ### Added
@@ -116,7 +137,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.8.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d94e3e1...main
+[0.9.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/de8a921...main
+[0.8.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d94e3e1...de8a921
 [0.7.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/60ef138...d94e3e1
 [0.6.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/eac219d...60ef138
 [0.5.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/287c410...eac219d

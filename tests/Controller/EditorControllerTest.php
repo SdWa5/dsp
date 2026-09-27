@@ -104,24 +104,6 @@ final class EditorControllerTest extends WebTestCase
         }
     }
 
-    public function testEveryPresetSetsStatePaths(): void
-    {
-        $presets = self::page()->filter('[data-preset-set-value]')->each(static fn (Crawler $n): string => (string) $n->attr('data-preset-set-value'));
-        // DJ and 1:1 on every compressor: 8 outputs and the aux
-        self::assertCount(18, $presets);
-        foreach ($presets as $json) {
-            $set = json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
-            self::assertIsArray($set);
-            self::assertNotSame([], $set);
-            foreach ($set as $path => $value) {
-                self::assertTrue(self::has((string) $path), \sprintf('"%s" is not a state path.', $path));
-                self::assertIsInt($value);
-            }
-        }
-        $dj = json_decode($presets[0], true, flags: \JSON_THROW_ON_ERROR);
-        self::assertSame(['outputs.0.comp.ratio' => 9, 'outputs.0.comp.knee' => 0, 'outputs.0.comp.attack' => 9, 'outputs.0.comp.release' => 199, 'outputs.0.comp.threshold' => 168], $dj);
-    }
-
     public function testEveryCommandTemplateBuildsAFrame(): void
     {
         $count = 0;

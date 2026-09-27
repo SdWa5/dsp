@@ -191,16 +191,19 @@ final class Device
         if ([] !== ($dd['sub'] ?? [])) {
             $d->sub = array_map(Group::fromArray(...), array_values((array) $dd['sub']));
         }
-        if ([] !== ($dd['groups'] ?? [])) {
-            $d->groups = array_map(Group::fromArray(...), array_values((array) $dd['groups']));
-        }
+        // Without groups in the file an upload leaves the groups of the device alone
+        $d->groups = array_map(Group::fromArray(...), array_values((array) ($dd['groups'] ?? [])));
 
         return $d;
     }
 
     /**
      * Every setting as write commands, for uploading a preset file to the device.
-     * Values the model does not know (null) are skipped.
+     * Values the model does not know (null) are skipped, and so is an empty group list.
+     *
+     * Left out on purpose: the test tone (it can start noise), the working status and the device ID (settings of
+     * the unit, not of a preset) and the preset name in the header, which only storing a preset writes.
+     * An activate follows the last frame, like after a link change in the vendor editor.
      *
      * @return list<Frame>
      */
@@ -226,6 +229,12 @@ final class Device
             if (null !== $c->fbq) {
                 $frames[] = Commands::fbq($ch, $c->fbq);
             }
+            if (null !== $c->eqBypass) {
+                $frames[] = Commands::eqBypass($ch, $c->eqBypass);
+            }
+            if (null !== $c->phantom) {
+                $frames[] = Commands::phantom($ch, $c->phantom);
+            }
         }
         foreach ($this->outputs as $k => $c) {
             $ch = Channel::output($k + 1);
@@ -243,10 +252,14 @@ final class Device
                 ...self::peqFrames($ch, $c->peq),
             );
             $frames[] = Commands::link($ch, $c->link);
+            if (null !== $c->eqBypass) {
+                $frames[] = Commands::eqBypass($ch, $c->eqBypass);
+            }
         }
         $a = $this->aux;
         array_push(
             $frames,
+            Commands::channelName(Channel::AUX, $a->name),
             Commands::routing(Channel::AUX, $a->select),
             Commands::gain(Channel::AUX, $a->gain),
             Commands::compressor(Channel::AUX, $a->comp->ratio, $a->comp->knee, $a->comp->attack, $a->comp->release, $a->comp->threshold),
@@ -267,6 +280,17 @@ final class Device
         if (null !== $a->mute) {
             $frames[] = Commands::mute(Channel::AUX, $a->mute);
         }
+        if (null !== $a->eqBypass) {
+            $frames[] = Commands::eqBypass(Channel::AUX, $a->eqBypass);
+        }
+        foreach ($this->sub as $io => $g) {
+            $frames[] = Commands::subControl($io, $g->gain, $g->mute, $g->mask, $this->subExtra[$io] ?? 0);
+        }
+        foreach ($this->groups as $index => $g) {
+            $frames[] = Commands::group($index, $g->gain, $g->mute, $g->mask);
+        }
+        $frames[] = Commands::delayUnit($this->delayUnit);
+        $frames[] = Commands::activate();
 
         return $frames;
     }

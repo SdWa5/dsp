@@ -29,12 +29,6 @@
             {% if options.aria is defined %} aria-label="{{ options.aria }}"{% endif %}>{{ label }}</button>
 {% endmacro %}
 
-{# A button that sets several values at once: set = {path: raw value}. #}
-{% macro preset(label, set, send, hint) %}
-    <button type="button" class="toggle toggle--preset" data-controller="preset" data-action="preset#apply"
-            data-preset-set-value="{{ set|json_encode }}" data-preset-send-value="{{ send|json_encode }}" title="{{ hint }}">{{ label }}</button>
-{% endmacro %}
-
 {% macro choice(label, bind, send, items, link = null, options = {}) %}
     <select class="choice" aria-label="{{ label }}" data-controller="choice" data-action="choice#change"
             data-choice-bind-value="{{ bind }}" data-choice-send-value="{{ send|json_encode }}"

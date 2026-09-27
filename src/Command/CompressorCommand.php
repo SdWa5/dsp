@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Client\Matrix;
+use App\Model\Device;
 use App\Protocol\Channel;
 use App\Protocol\Commands;
 use App\Protocol\Labels;
@@ -14,21 +15,19 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand('trackdsp:compressor', 'Set the compressor of outputs or the Aux, or apply the DJ default')]
+/**
+ * Values that are not given keep what the compressor of each channel holds on the device.
+ */
+#[AsCommand('trackdsp:compressor', 'Set the compressor of outputs or the Aux')]
 final class CompressorCommand extends DeviceCommand
 {
-    /**
-     * DJ default: 1:4 from -6 dB, 10 ms attack, 200 ms release. The threshold is on the device's own scale,
-     * so check it against the real levels on site.
-     */
-    public const DJ_DEFAULT = ['ratio' => '4', 'knee' => '0', 'attack' => '10', 'release' => '200', 'threshold' => '-6'];
+    private const VALUES = ['ratio', 'knee', 'attack', 'release', 'threshold'];
 
     protected function configure(): void
     {
         parent::configure();
         $this
             ->addArgument('channels', InputArgument::REQUIRED, 'Comma-separated outputs or aux, e.g. out1,out2')
-            ->addOption('dj', null, InputOption::VALUE_NONE, 'Start from the DJ default (1:4, -6 dB, 10 ms, 200 ms)')
             ->addOption('ratio', null, InputOption::VALUE_REQUIRED, 'Ratio as 1:N with N = 1, 1.1, 1.3, 1.5, 1.7, 2, 2.5, 3, 3.5, 4, 5, 6, 8, 10, 20, or "limit"')
             ->addOption('knee', null, InputOption::VALUE_REQUIRED, 'Knee, raw value 0..255')
             ->addOption('attack', null, InputOption::VALUE_REQUIRED, 'Attack in ms (1..65536)')
@@ -50,9 +49,12 @@ final class CompressorCommand extends DeviceCommand
 
     protected function handle(Matrix $dsp, InputInterface $input, SymfonyStyle $io): int
     {
-        $values = self::values($input);
+        $given = self::values($input);
+        $device = Device::parse($dsp->config());
         foreach (self::channels($input) as $channel) {
-            $dsp->write(Commands::compressor($channel, ...$values));
+            $current = Channel::AUX === $channel ? $device->aux->comp : $device->outputs[$channel - Channel::output(1)]->comp;
+            $values = $given + ['ratio' => $current->ratio, 'knee' => $current->knee, 'attack' => $current->attack, 'release' => $current->release, 'threshold' => $current->threshold];
+            $dsp->write(Commands::compressor($channel, $values['ratio'], $values['knee'], $values['attack'], $values['release'], $values['threshold']));
             $io->writeln(\sprintf(
                 '%s: %s from %+.1f dB, attack %d ms, release %d ms, knee %d',
                 Channel::label($channel), Labels::COMP_RATIOS[$values['ratio']], Scale::thresholdToDb($values['threshold']),
@@ -81,43 +83,30 @@ final class CompressorCommand extends DeviceCommand
     }
 
     /**
-     * @return array{ratio: int, knee: int, attack: int, release: int, threshold: int}
+     * Raw device values of the options given, at least one.
+     *
+     * @return array{ratio?: int, knee?: int, attack?: int, release?: int, threshold?: int}
      */
     private static function values(InputInterface $input): array
     {
-        $options = [];
-        foreach (array_keys(self::DJ_DEFAULT) as $name) {
+        $values = [];
+        foreach (self::VALUES as $name) {
             $value = $input->getOption($name);
-            if (\is_string($value) && '' !== $value) {
-                $options[$name] = $value;
+            if (!\is_string($value) || '' === $value) {
+                continue;
             }
+            $values[$name] = match ($name) {
+                'ratio' => self::ratio($value),
+                'knee' => self::integer($value, 'knee', 0, 255),
+                'attack', 'release' => Scale::msToRaw(self::integer($value, $name, 1, 0x10000)),
+                'threshold' => Scale::dbToThreshold(self::decimal($value, 'threshold', -90, 20)),
+            };
         }
-        if ($input->getOption('dj')) {
-            $options += self::DJ_DEFAULT;
-        }
-        if ([] !== $missing = array_diff(array_keys(self::DJ_DEFAULT), array_keys($options))) {
-            throw new \InvalidArgumentException(\sprintf('Missing --%s. Pass all values or start from --dj.', implode(', --', $missing)));
+        if ([] === $values) {
+            throw new \InvalidArgumentException('Give at least one of --ratio, --knee, --attack, --release, --threshold.');
         }
 
-        return self::raw($options);
-    }
-
-    /**
-     * Raw device values of a compressor setting given as in DJ_DEFAULT, e.g. for the DJ button of the editor.
-     *
-     * @param array<string, string> $options ratio, knee, attack, release, threshold
-     *
-     * @return array{ratio: int, knee: int, attack: int, release: int, threshold: int}
-     */
-    public static function raw(array $options): array
-    {
-        return [
-            'ratio' => self::ratio($options['ratio'] ?? ''),
-            'knee' => self::integer($options['knee'] ?? '', 'knee', 0, 255),
-            'attack' => Scale::msToRaw(self::integer($options['attack'] ?? '', 'attack', 1, 0x10000)),
-            'release' => Scale::msToRaw(self::integer($options['release'] ?? '', 'release', 1, 0x10000)),
-            'threshold' => Scale::dbToThreshold(self::decimal($options['threshold'] ?? '', 'threshold', -90, 20)),
-        ];
+        return $values;
     }
 
     private static function ratio(string $value): int

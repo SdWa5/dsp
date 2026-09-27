@@ -9,6 +9,7 @@ use App\Protocol\Channel;
 use App\Protocol\Commands;
 use App\Protocol\Frame;
 use App\Protocol\Labels;
+use App\Protocol\Opcode;
 use App\Protocol\Scale;
 use PHPUnit\Framework\TestCase;
 
@@ -132,6 +133,20 @@ final class DeviceTest extends TestCase
         self::assertSame(['name', 'gate', 'peq', 'hpf', 'lpf', 'gain', 'phase', 'link', 'mute', 'mode', 'phantom', 'fbq', 'eq_bypass'], array_keys($data['device']['inputs'][0]));
         self::assertArrayHasKey('rev_predelay', $data['device']['aux']['effect']);
         self::assertCount(63, $data['device']['footer']);
+    }
+
+    public function testUploadEndsWithActivateAndSkipsMissingGroups(): void
+    {
+        $frames = $this->dev->allFrames();
+        $last = end($frames);
+        self::assertInstanceOf(Frame::class, $last);
+        self::assertSame(Commands::activate()->hex(), $last->hex());
+        $groupFrames = static fn (Device $d): int => \count(array_filter($d->allFrames(), static fn (Frame $f): bool => Opcode::Group === $f->opcode()));
+        self::assertSame(8, $groupFrames(Device::fromJson($this->dev->toJson())));
+
+        $data = json_decode($this->dev->toJson(), true);
+        unset($data['device']['groups']);
+        self::assertSame(0, $groupFrames(Device::fromJson((string) json_encode($data))));
     }
 
     public function testRejectsForeignJson(): void

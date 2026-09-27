@@ -10,7 +10,7 @@ Windows vendor software "the t.racks 8x8 Matrix Digital Processor Editor". The p
 This branch rewrites the first implementation (Python and PySide6, kept in [legacy/python/](legacy/python/)) on
 Symfony. The protocol library, the device model, the command line, the device bridge and the JSON API are done and
 tested against the vendor editor captures and the live device over LAN. The browser editor has every page and
-dialog, and the gain rider, the DJ compressor and the auto EQ in it. It is tested against the simulated device,
+dialog, and the gain rider, the compressor command and the auto EQ in it. It is tested against the simulated device,
 synthetic recordings and a mocked event stream, not yet page by page on the device. Packaging follows, see
 [TODO.md](TODO.md).
 
@@ -81,8 +81,7 @@ editor talks to the bridge through the JSON API below.
 - A fader value can be typed, with or without its unit ("-6", "2k", "200ms", "1:4"). A double click on a gain
   or delay fader sets it back to 0 dB or no delay.
 - The meters hold their peak for 1.5 s and light a red top for 2 s after reaching 0 dB.
-- The Gain page starts and shows the gain riders, the Comp page has the DJ and 1:1 buttons, and the Auto EQ
-  page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
+- The Gain page starts and shows the gain riders, and the Auto EQ page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
 - The theme button switches between auto, light and dark. The choice is kept in the browser.
 
 ### Bridge and JSON API
@@ -101,12 +100,12 @@ curl -sN localhost/api/events                                 # server-sent even
 Writes need the header `X-Trackdsp`, and `TRACKDSP_TRUSTED_HOSTS` lists the host names the app answers to.
 The socket protocol and every endpoint are described in [docs/bridge.md](docs/bridge.md).
 
-### Gain rider, DJ compressor and auto EQ
+### Gain rider, compressor and auto EQ
 
 ```bash
 bin/console trackdsp:ride in1 --level=-18                          # the bridge keeps the DJ input at -18 dB
 bin/console trackdsp:ride --list                                   # and in1 --stop ends it
-bin/console trackdsp:compressor out1,out2 --dj                     # 1:4 from -6 dB, 10 ms attack, 200 ms release
+bin/console trackdsp:compressor out1,out2 --ratio=4 --threshold=-6 # the other values stay as they are
 bin/console trackdsp:autoeq out1,out2 --device=plughw:CARD=UMC1820 --positions=3   # needs the bridge
 bin/console trackdsp:autoeq out1,out2 --revert=var/autoeq/backup-<time>.json
 ```

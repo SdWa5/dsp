@@ -24,29 +24,32 @@ final class CompressorCommandTest extends KernelTestCase
         return $tester;
     }
 
-    public function testDjDefaultOnSeveralOutputs(): void
+    public function testAllValuesOnSeveralOutputs(): void
     {
-        $tester = $this->runCommand(['channels' => 'out1,out2', '--dj' => true]);
+        $tester = $this->runCommand(['channels' => 'out1,out2', '--ratio' => '4', '--knee' => '0', '--attack' => '10', '--release' => '200', '--threshold' => '-6']);
 
         $tester->assertCommandIsSuccessful();
         self::assertStringContainsString('Out1: 1:4.0 from -6.0 dB, attack 10 ms, release 200 ms, knee 0', $tester->getDisplay());
         self::assertStringContainsString('Out2: 1:4.0 from -6.0 dB', $tester->getDisplay());
     }
 
-    public function testOptionsOverrideTheDjDefault(): void
+    public function testMissingValuesKeepTheDeviceValues(): void
     {
-        $tester = $this->runCommand(['channels' => 'aux', '--dj' => true, '--ratio' => 'limit', '--threshold' => '-3']);
+        // The demo holds Out8 at 1:1 from +20 dB, 50 ms attack, 200 ms release, knee 0
+        $tester = $this->runCommand(['channels' => 'out8,aux', '--threshold' => '-3']);
 
         $tester->assertCommandIsSuccessful();
-        self::assertStringContainsString('Aux: Limit from -3.0 dB, attack 10 ms', $tester->getDisplay());
+        self::assertStringContainsString('Out8: 1:1.0 from -3.0 dB, attack 50 ms, release 200 ms, knee 0', $tester->getDisplay());
+        self::assertStringContainsString('Aux: ', $tester->getDisplay());
+        self::assertStringContainsString('from -3.0 dB', explode('Aux: ', $tester->getDisplay())[1]);
     }
 
-    public function testAllValuesWithoutDefault(): void
+    public function testRatioLimit(): void
     {
-        $tester = $this->runCommand(['channels' => 'out8', '--ratio' => '1:2', '--knee' => '2', '--attack' => '5', '--release' => '500', '--threshold' => '0']);
+        $tester = $this->runCommand(['channels' => 'aux', '--ratio' => 'limit']);
 
         $tester->assertCommandIsSuccessful();
-        self::assertStringContainsString('Out8: 1:2.0 from +0.0 dB, attack 5 ms, release 500 ms, knee 2', $tester->getDisplay());
+        self::assertStringContainsString('Aux: Limit from', $tester->getDisplay());
     }
 
     /**
@@ -54,11 +57,11 @@ final class CompressorCommandTest extends KernelTestCase
      */
     public static function invalidInput(): iterable
     {
-        yield 'input has no compressor' => [['channels' => 'in1', '--dj' => true], 'only the outputs'];
-        yield 'missing values' => [['channels' => 'out1', '--ratio' => '4'], 'Missing'];
-        yield 'unknown ratio' => [['channels' => 'out1', '--dj' => true, '--ratio' => '7'], 'Unknown ratio'];
-        yield 'threshold out of range' => [['channels' => 'out1', '--dj' => true, '--threshold' => '30'], '--threshold'];
-        yield 'attack not a number' => [['channels' => 'out1', '--dj' => true, '--attack' => 'fast'], '--attack'];
+        yield 'input has no compressor' => [['channels' => 'in1', '--ratio' => '4'], 'only the outputs'];
+        yield 'no value' => [['channels' => 'out1'], 'at least one'];
+        yield 'unknown ratio' => [['channels' => 'out1', '--ratio' => '7'], 'Unknown ratio'];
+        yield 'threshold out of range' => [['channels' => 'out1', '--threshold' => '30'], '--threshold'];
+        yield 'attack not a number' => [['channels' => 'out1', '--attack' => 'fast'], '--attack'];
     }
 
     /**
