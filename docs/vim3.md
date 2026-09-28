@@ -101,7 +101,7 @@ its WAN port holds a DHCP lease. The board covers both, so the editor needs neit
 
 ```
 t.racks 8x8 ──USB──► VIM3 ──Ethernet──► Deco WAN port   (B: the VIM3 serves the Deco a lease)
-                      ))) wifi SdWa5 ))) Deco           (A: fallback, fixed address)
+                      ))) wifi SdWa5 ))) Deco           (A: fixed address, works without the cable)
 ```
 
 The 8x8 needs no Ethernet cable. The bridge talks to it over USB only (`--target=usb`), and the Deco LAN port
@@ -139,16 +139,26 @@ A laptop that stands in for the board on the Deco WAN port needs a NetworkManage
 `ipv4.method shared` on its Ethernet port. Delete that profile after the test. While it exists, NetworkManager
 creates no automatic DHCP profile for the port, and the laptop gets no address on a normal LAN.
 
-Power cuts, measured 2026-09-27 with the Deco offline, until the editor and both paths answer again:
+Power cuts with the Deco offline, until the editor answers again. Each cut was measured once.
 
-| Cut | Back after |
-|---|---|
-| Deco only | about 95 s |
-| Deco and VIM3 on one power strip | about 100 s |
-| VIM3 only | about 70 s |
+| Cut | Ethernet in, both paths (2026-09-27) | Wifi only, path A (2026-09-28) |
+|---|---|---|
+| VIM3 only | about 70 s | about 50 s |
+| Deco only | about 95 s | about 100 s |
+| Deco and VIM3 on one power strip | about 100 s | – |
+| VIM3, Deco and 8x8 together | – | about 80 s |
 
-The editor on `192.168.68.11` comes first, path B follows about 10 s later. The Deco's boot
-sets the pace, the board is ready after about 25 s.
+With the Ethernet in, the editor on `192.168.68.11` comes first and path B follows about 10 s later. Without it
+the board does not wait for a lease on `end0`, so a VIM3 cut is over sooner. The Deco's boot sets the pace, the
+board is ready after about 25 s. After every cut the board rejoins `SdWa5` by itself, and the bridge finds the
+8x8 on USB again and has finished its resync by the time the editor answers.
+
+A laptop or phone that knows other wifi networks may join one of them while the Deco boots and stay there.
+Switch it back to `SdWa5` by hand, or turn off autoconnect for the other networks on devices used at the rack.
+
+The board takes its power over USB-C only and has no battery. A worn or loose cable switches it off without a
+trace, which happened on 2026-09-28. Use a cable known to be good and seat it firmly. A charger shared with a
+phone is fine; plugging the phone in did not reset the board.
 
 The board has an RTC (`rtc-hym8563`) without a backup battery. Off grid its clock resumes from the last saved
 time (fake-hwclock) and runs late, which shows in log times and auto EQ file names. A 3 V cell on the RTC
