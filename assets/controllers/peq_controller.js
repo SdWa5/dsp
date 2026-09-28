@@ -1,5 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
-import { getLabels, send, store } from '../lib/device.js';
+import { isChanged } from '../lib/defaults.js';
+import { getDefaults, getLabels, send, store } from '../lib/device.js';
+import { getPath } from '../lib/store.js';
 import { drawGrid, Plot, prepare, response } from '../lib/eq.js';
 import * as S from '../lib/scale.js';
 
@@ -10,6 +12,7 @@ const DEFAULT_FREQS = { 5: [49, 101, 148, 200, 255], 7: [31, 71, 118, 161, 200, 
 /**
  * PEQ editor of one channel: response curve with draggable band points and filter handles, band table,
  * parameter faders of the selected band, high and low pass. Values: path ("outputs.0"), channel (index).
+ * Every field that differs from the factory default gets the class is-changed.
  */
 export default class extends Controller {
     static values = { path: String, channel: Number };
@@ -226,6 +229,8 @@ export default class extends Controller {
             return;
         }
         this.selected = Math.min(this.selected, channel.peq.length - 1);
+        const factory = getPath(getDefaults(), this.pathValue);
+        const mark = (node, path) => node?.classList.toggle('is-changed', isChanged(channel, factory, path));
         const active = document.activeElement;
         channel.peq.forEach((b, i) => {
             const set = (targets, value) => {
@@ -238,6 +243,9 @@ export default class extends Controller {
             set(this.gainTargets, S.format('peq', b.gain));
             set(this.typeTargets, String(b.type));
             this.bypassTargets[i]?.classList.toggle('is-on', b.bypass);
+            for (const field of ['freq', 'q', 'gain', 'type', 'bypass']) {
+                mark(this[`${field}Targets`][i], `peq.${i}.${field}`);
+            }
             this.selectTargets[i]?.classList.toggle('is-on', i === this.selected);
         });
         const band = channel.peq[this.selected];
@@ -258,9 +266,12 @@ export default class extends Controller {
             }
             this.filterSlopeTargets[k].value = String(filter.slope || this.slopes[kind] || DEFAULT_SLOPE);
             this.filterBypassTargets[k].classList.toggle('is-on', 0 === filter.slope);
+            mark(this.filterFreqLabelTargets[k], `${kind}.freq`);
+            mark(this.filterSlopeTargets[k], `${kind}.slope`);
         });
         if (this.hasEqBypassTarget) {
             this.eqBypassTarget.classList.toggle('is-on', Boolean(channel.eq_bypass));
+            mark(this.eqBypassTarget, 'eq_bypass');
         }
         this.draw();
     }

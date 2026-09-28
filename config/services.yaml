@@ -2,6 +2,8 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     trackdsp.demo_config: '%kernel.project_dir%/resources/demo_config.bin'
+    # Read after a factory reset, the editor marks every setting that differs from it
+    trackdsp.factory_config: '%kernel.project_dir%/resources/factory_config.bin'
     trackdsp.timeout: 1.0
     trackdsp.bridge_socket_default: '%kernel.project_dir%/var/bridge.sock'
     trackdsp.bridge_socket: '%env(default:trackdsp.bridge_socket_default:TRACKDSP_BRIDGE_SOCKET)%'

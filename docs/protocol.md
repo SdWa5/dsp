@@ -59,10 +59,10 @@ Gain, EQ, filters and the rest go to the operated channel only (✓).
 | `13` | – | Device string `8x8Matrix V010` | ✓ |
 | `14` | – | Active preset (editor number, `02` = U02) | ✓ |
 | `15` | unit | Delay display 0 ms, 1 m, 2 ft | ✓ |
-| `20` / `21` | number | Load / store preset (0 = F00) | ≈ |
-| `22` | – | Preset occupancy. The editor sends it on connect. Reply with all 20 user slots in use: 20 × `FF` + `00` | ✓ format, ≈ meaning |
+| `20` / `21` | number | Load / store preset (0 = F00). The ACK comes after the flash work, about 1.2 s for a load and 0.7 s for a store over USB. A store also makes the slot the active preset and writes its name into the live header | ✓ U20 |
+| `22` | – | Preset occupancy. The editor sends it on connect. Reply one byte per user slot U01..U20, `FF` stored, `00` empty, plus `00`. After a factory reset all 20 are empty | ✓ |
 | `2A` | source, target | Copy a channel inside the device (all parameters including gain and mute) | ✓ |
-| `26` | 14 chars | Preset name (before `21`) | ≈ |
+| `26` | 14 chars | Preset name (before `21`) | ✓ |
 | `27` → `24` | page 00–19 | Read the configuration (1277 bytes) | ✓ |
 | `29` | slot 00–14 | Read a preset name (00 = U01 … 13 = U20, 14 = F00) | ✓ |
 | `2C` | – | Device status. The editor sends it on connect. Reply `00 27 0F 00 00 00`, byte 6 lock (≈) | ✓ format, ≈ meaning |
@@ -120,7 +120,7 @@ Every frame the editor sent in the 143 captures (4830 frames) is rebuilt byte fo
 
 | Offset | Size | Content |
 |---|---|---|
-| 0 | 16 | `FF FF` + preset name (14) |
+| 0 | 16 | `00 00` after a factory reset, `FF FF` once a stored preset was loaded, + preset name (14) |
 | 16 | 8 × 62 | Inputs |
 | 512 | 94 | Aux |
 | 606 | 8 × 76 | Outputs |
@@ -160,8 +160,9 @@ Group control is read with `6C 00` (8 × gain %, mute, mask).
 ### Still open
 
 - +48V (probably input block byte 8) and working status: the location is not confirmed, the app remembers the value it set.
-- `20`/`21`/`26` (presets) and `2D`/`2F` (PIN) were not captured on the 8x8 (≈ 4x4). They are next in line for a live test
-  with backups and a known recovery path, see `TODO.md`.
+- `2D`/`2F` (PIN) were not captured on the 8x8 (≈ 4x4). They need a live test with backups and a known recovery path,
+  see `TODO.md`.
+- Deleting a stored preset: no command is known, a slot can only be overwritten.
 - Changing the IP address: the command is unknown (the editor sends it only on a real change).
 - Meters: the format is known, the dB scale is approximated.
 

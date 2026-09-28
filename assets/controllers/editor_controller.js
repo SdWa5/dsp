@@ -1,10 +1,12 @@
 import { Controller } from '@hotwired/stimulus';
-import { api, listen, on, send, status, store } from '../lib/device.js';
+import { api, getDefaults, listen, on, send, status, store } from '../lib/device.js';
+import { changedPaths } from '../lib/defaults.js';
 import { channelId, channelLabel, channelParts } from '../lib/channels.js';
 import { linkCommands, linkGroups, linkedMembers } from '../lib/link.js';
-import { presetLabel } from '../lib/scale.js';
+import { presetLabel, presetSlotInfo } from '../lib/scale.js';
 
 const THEMES = ['auto', 'light', 'dark'];
+const changedText = (count) => `${count} ${1 === count ? 'setting differs' : 'settings differ'} from the factory default`;
 const THEME_KEY = 'trackdsp-theme';
 
 /**
@@ -93,11 +95,15 @@ export default class extends Controller {
         for (const tab of this.tabTargets) {
             if (tab.dataset.side) {
                 this.showChannelTab(tab, state);
+            } else if ('aux' === tab.dataset.page) {
+                const count = state ? changedPaths(state.aux, getDefaults().aux).length : 0;
+                tab.classList.toggle('is-changed', count > 0);
+                tab.title = count > 0 ? changedText(count) : '';
             }
         }
     }
 
-    /** A channel tab: ID, name, a dot while muted and the link group. */
+    /** A channel tab: ID, name, a dot while muted, the link group and a mark when it differs from the factory. */
     showChannelTab(tab, state) {
         const side = tab.dataset.side;
         const index = Number(tab.dataset.index);
@@ -116,6 +122,11 @@ export default class extends Controller {
             if (group > 0) {
                 marks.push(`<span class="chtab__link">L${group}</span>`);
                 titles.push(`linked with ${members.filter((m) => m !== index).map((m) => channelId(('outputs' === side ? 8 : 0) + m)).join(', ')}`);
+            }
+            const count = changedPaths(state[side]?.[index], getDefaults()[side]?.[index]).length;
+            if (count > 0) {
+                marks.push('<span class="chtab__changed" aria-hidden="true"></span>');
+                titles.push(changedText(count));
             }
         }
         const html = marks.join('');
@@ -185,14 +196,20 @@ export default class extends Controller {
 
     fillSlots(select, state) {
         const first = Number(select.dataset.first);
-        const names = state?.preset_names ?? [];
+        // Only the recall dialog starts at F00, and an empty slot cannot be recalled
+        const recall = 0 === first;
         const selected = select.value || String(Math.max(first, state?.active_preset ?? first));
         select.replaceChildren(...Array.from({ length: 21 - first }, (_v, k) => {
             const number = first + k;
-            const name = (names[number] ?? '').trim();
-            return new Option(`${presetLabel(number)}  ${name || '(empty)'}`, String(number));
+            const info = presetSlotInfo(state, number);
+            const option = new Option(info.text, String(number));
+            option.disabled = recall && false === info.stored;
+            return option;
         }));
         select.value = selected;
+        if (select.selectedOptions[0]?.disabled) {
+            select.value = String(first);
+        }
     }
 
     // --- actions --------------------------------------------------------------------------------
@@ -279,8 +296,8 @@ export default class extends Controller {
         const form = event.target;
         const number = Number(form.elements.number.value);
         const name = form.elements.name.value.trim();
-        const current = (store.state?.preset_names?.[number] ?? '').trim();
-        const warning = current ? ` It replaces "${current}".` : '';
+        const info = presetSlotInfo(store.state, number);
+        const warning = false !== info.stored && info.name ? ` It replaces "${info.name}".` : '';
         if (!this.requireState() || !window.confirm(`Store the live settings as ${presetLabel(number)} "${name}"?${warning}`)) {
             return;
         }

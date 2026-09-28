@@ -50,7 +50,7 @@ The appliance setup on a Khadas VIM3 (bridge, PHP-FPM, Caddy, systemd units) is 
 ```bash
 bin/trackdsp discover                  # devices on USB and the local networks
 bin/trackdsp info -t 192.168.68.10     # device, IP, active preset
-bin/trackdsp presets                   # preset names U01..U20, F00
+bin/trackdsp presets                   # preset names U01..U20, F00, and which slots are stored
 bin/trackdsp status                    # mute state of all channels
 bin/trackdsp gain in1 -6               # boosts above 0 dB only with --allow-boost
 bin/trackdsp mute out1                 # and unmute out1
@@ -78,6 +78,9 @@ editor talks to the bridge through the JSON API below.
 - A named channel shows its name next to its ID wherever the ID appears, for example "Out1 Main L" or
   "Out1 (Main L)" in lists. A name that only repeats the ID is left out.
 - The channel tabs show a dot for a muted channel and the link group (L1, L2, ...).
+- Every setting that differs from the factory default (`resources/factory_config.bin`) has a bar on its left
+  edge, and its channel tab or the Aux tab a corner triangle. Both are shapes, so they read without colour.
+- The store and recall dialogs show which user slots are empty. An empty slot cannot be recalled.
 - A fader value can be typed, with or without its unit ("-6", "2k", "200ms", "1:4"). A double click on a gain
   or delay fader sets it back to 0 dB or no delay.
 - The meters hold their peak for 1.5 s and light a red top for 2 s after reaching 0 dB.

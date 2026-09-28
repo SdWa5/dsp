@@ -171,6 +171,7 @@ final class BridgeTest extends TestCase
         self::assertSame('Probe', $state['preset_name']);
         self::assertSame(5, $state['active_preset']);
         self::assertSame('Probe', $state['preset_names'][4]);
+        self::assertSame([1, 4], array_keys(array_filter($state['preset_stored'])));
     }
 
     public function testServesRequestsWhileItReadsTheDeviceAgain(): void

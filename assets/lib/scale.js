@@ -118,6 +118,26 @@ export function presetLabel(number) {
     return 0 === number ? 'F00' : `U${String(number).padStart(2, '0')}`;
 }
 
+/**
+ * Index of a preset number in preset_names and preset_stored: U01..U20 = 0..19, F00 = 20.
+ */
+export function presetSlot(number) {
+    return 0 === number ? 20 : number - 1;
+}
+
+/**
+ * Name, occupancy and option text of a preset number. stored is null while the occupancy is unknown,
+ * and F00 always counts as stored.
+ */
+export function presetSlotInfo(state, number) {
+    const slot = presetSlot(number);
+    const name = (state?.preset_names?.[slot] ?? '').trim();
+    const stored = 0 === number ? true : (state?.preset_stored?.[slot] ?? null);
+    const shown = false === stored ? '(empty)' : name || '(no name)';
+
+    return { name, stored, text: `${presetLabel(number)}  ${shown}` };
+}
+
 const number = (text) => {
     const value = parseFloat(String(text).trim().replace(',', '.'));
     return Number.isFinite(value) ? value : null;

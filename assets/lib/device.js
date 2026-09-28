@@ -95,6 +95,7 @@ export function listen() {
 }
 
 let labels = null;
+let defaults = null;
 
 /** Value lists from App\Protocol\Labels, rendered into the page. */
 export function getLabels() {
@@ -103,4 +104,13 @@ export function getLabels() {
         labels = node ? JSON.parse(node.textContent) : {};
     }
     return labels;
+}
+
+/** Factory defaults in the shape of the state (App\Model\FactoryDefaults), rendered into the page. */
+export function getDefaults() {
+    if (null === defaults) {
+        const node = document.getElementById('trackdsp-defaults');
+        defaults = node ? JSON.parse(node.textContent) : {};
+    }
+    return defaults;
 }

@@ -7,6 +7,7 @@
 {% block body %}
     {% import 'editor/_widgets.html.twig' as w %}
     <script type="application/json" id="trackdsp-labels">{{ labels|json_encode|raw }}</script>
+    <script type="application/json" id="trackdsp-defaults">{{ defaults|json_encode|raw }}</script>
     <div class="editor" data-controller="editor">
         <header class="editor__head">
             <div class="bar">

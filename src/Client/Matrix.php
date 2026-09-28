@@ -24,6 +24,13 @@ final class Matrix
     /** Name slots 0x00–0x13 = U01–U20, 0x14 = F00 (factory default). */
     public const PRESET_SLOTS = 21;
     public const METER_CHANNELS = 17;
+    /** User preset slots U01–U20 in the occupancy reply. */
+    public const USER_PRESETS = 20;
+    /**
+     * A preset recall or store answers only once the device has read or written its flash, measured at 0.7 to
+     * 1.3 s over USB (VIM3, 2026-09-28). Sending it again before that restarts the work.
+     */
+    public const PRESET_TIMEOUT = 3.0;
     /** Mute masks live on config page 0x18, bytes 14–15 (inputs) and 18–19 (outputs). */
     private const MUTE_PAGE = 0x18;
     private const MUTE_INPUT_OFFSET = 14;
@@ -64,7 +71,7 @@ final class Matrix
      * @param Opcode|int|null $reply expected reply command, the request command by default
      * @param string          $match required prefix of the reply data
      */
-    public function request(Opcode|int $cmd, string $data = '', Opcode|int|null $reply = null, string $match = '', bool $reinit = true): Frame
+    public function request(Opcode|int $cmd, string $data = '', Opcode|int|null $reply = null, string $match = '', bool $reinit = true, ?float $timeout = null): Frame
     {
         $cmd = $cmd instanceof Opcode ? $cmd->value : $cmd;
         $reply = null === $reply ? $cmd : ($reply instanceof Opcode ? $reply->value : $reply);
@@ -74,7 +81,7 @@ final class Matrix
                 $this->sendInitQuietly();
             }
             $this->transport->send(Frame::request($cmd, $data));
-            $frame = $this->await(static fn (Frame $f): bool => $f->cmd === $reply && str_starts_with($f->data, $match));
+            $frame = $this->await(static fn (Frame $f): bool => $f->cmd === $reply && str_starts_with($f->data, $match), $timeout ?? $this->timeout);
             if (null !== $frame) {
                 return $frame;
             }
@@ -84,11 +91,12 @@ final class Matrix
     }
 
     /**
-     * Sends a write command and waits for the ACK.
+     * Sends a write command and waits for the ACK, longer for a preset recall or store.
      */
     public function write(Frame $frame): void
     {
-        $this->request($frame->cmd, $frame->data, Opcode::Ack);
+        $slow = \in_array($frame->opcode(), [Opcode::LoadPreset, Opcode::StorePreset], true);
+        $this->request($frame->cmd, $frame->data, Opcode::Ack, timeout: $slow ? max($this->timeout, self::PRESET_TIMEOUT) : null);
     }
 
     public function info(): string
@@ -122,6 +130,25 @@ final class Matrix
         $frame = $this->request(Opcode::PresetName, \chr($slot), match: \chr($slot));
 
         return rtrim(substr($frame->data, 1), " \x00");
+    }
+
+    /**
+     * Which of U01..U20 hold a stored preset. The reply has one byte per slot, `FF` stored and `00` empty,
+     * plus a trailing `00`. After a factory reset every slot is empty (checked on the device, 2026-09-28).
+     *
+     * @return list<bool>
+     */
+    public function presetOccupancy(): array
+    {
+        return self::parseOccupancy($this->request(Opcode::PresetOccupancy)->data);
+    }
+
+    /**
+     * @return list<bool>
+     */
+    public static function parseOccupancy(string $data): array
+    {
+        return array_map(static fn (int $n): bool => "\x00" !== ($data[$n] ?? "\x00"), range(0, self::USER_PRESETS - 1));
     }
 
     /**
@@ -236,15 +263,15 @@ final class Matrix
     private function sendInitQuietly(): void
     {
         $this->transport->send(Commands::init());
-        $this->await(static fn (Frame $f): bool => Opcode::Init->value === $f->cmd);
+        $this->await(static fn (Frame $f): bool => Opcode::Init->value === $f->cmd, $this->timeout);
     }
 
     /**
      * @param callable(Frame): bool $matches
      */
-    private function await(callable $matches): ?Frame
+    private function await(callable $matches, float $timeout): ?Frame
     {
-        $deadline = hrtime(true) + (int) ($this->timeout * 1e9);
+        $deadline = hrtime(true) + (int) ($timeout * 1e9);
         while (($left = $deadline - hrtime(true)) > 0) {
             $frame = $this->transport->receive($left / 1e9);
             if (null === $frame) {

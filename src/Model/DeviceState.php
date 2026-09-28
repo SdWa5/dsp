@@ -23,6 +23,8 @@ final class DeviceState
     /** @var array<int, string> name slots 0..20 */
     private array $presetNames;
     private string $pendingPresetName = '';
+    /** @var list<bool>|null which of U01..U20 hold a stored preset, null until read */
+    public ?array $presetStored = null;
     /** @var array<int, bool> input index => +48V, only once set */
     private array $phantom = [];
     private ?int $workingStatus = null;
@@ -93,6 +95,7 @@ final class DeviceState
         $device->deviceId = $this->deviceId ?? $device->deviceId;
         $device->activePreset = $this->activePreset;
         $device->presetNames = array_values($this->presetNames);
+        $device->presetStored = $this->presetStored;
         $device->ip = $this->ip;
 
         return $device;
@@ -163,10 +166,24 @@ final class DeviceState
             Opcode::WorkingStatus => $this->workingStatus = $byte(0),
             Opcode::DeviceId => $this->deviceId = $byte(0),
             Opcode::StorePresetName => $this->pendingPresetName = rtrim(substr($d, 0, 14)),
-            Opcode::StorePreset => $ch >= 1 && $ch <= 20 ? $this->presetNames[$ch - 1] = $this->pendingPresetName : null,
+            Opcode::StorePreset => $ch >= 1 && $ch <= 20 ? $this->storePreset($ch) : null,
             Opcode::LoadPreset => $this->activePreset = $ch,
             default => null,
         };
+    }
+
+    /**
+     * The device names the slot, marks it stored, makes it the active preset and puts the name into the
+     * header of the live configuration (checked on the device, 2026-09-28).
+     */
+    private function storePreset(int $number): void
+    {
+        $this->presetNames[$number - 1] = $this->pendingPresetName;
+        if (null !== $this->presetStored) {
+            $this->presetStored = array_values(array_replace($this->presetStored, [$number - 1 => true]));
+        }
+        $this->activePreset = $number;
+        $this->put(2, str_pad(substr($this->pendingPresetName, 0, 14), 14));
     }
 
     private function put(?int $offset, string $bytes): void

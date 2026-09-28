@@ -40,9 +40,12 @@ answers on the same socket. A socket file without a bridge behind it is removed.
 - **Writes** change the cached state at once and wait in a queue. A write replaces a queued write to the
   same target (command plus channel, plus band for PEQ, and command alone for device-wide settings).
   Copy, link, preset and PIN commands are barriers: they are never merged, and no later write merges
-  past them. The queue is flushed for at most 50 ms per loop pass, so the socket stays responsive.
-- **Re-read:** after a preset recall or store, on `refresh` and every resync interval. It runs in 49
-  steps of one request each (the 26 pages, group control, the 21 preset names, the active preset), one
+  past them. The queue is flushed for at most 50 ms per loop pass, so the socket stays responsive. A preset
+  recall or store waits up to 3 s for its ACK, since the device answers only after its flash work (0.7 to
+  1.3 s over USB).
+- **Re-read:** after a preset recall or store, on `refresh` and every resync interval. It runs in 50
+  steps of one request each (the 26 pages, group control, the 21 preset names, the active preset, the
+  preset occupancy), one
   step per loop pass while the queue is empty, so client requests and writes go on in between. It takes
   about 1 s over USB. Writes that reach the device during the re-read are applied again to the result, so
   a page read before a write cannot undo it. A preset recall or store starts it over, and a `refresh`
@@ -73,7 +76,7 @@ One JSON object per line in each direction.
 |---|---|---|
 | `ping` | – | `"pong"` |
 | `status` | – | `connected`, `target`, `transport`, `info`, `error`, `queued`, `resync` (progress 0..1 of a running re-read, else `null`), `clients`, `riders` (list of rider settings) |
-| `state` | – | the device as `Device::toArray()`, the `device` object of a preset file |
+| `state` | – | the device as `Device::toArray()`, the `device` object of a preset file plus `preset_stored` (20 × bool, which user slots hold a stored preset, `null` before the first read) |
 | `write` | `frames`: list of hex strings, command byte followed by the data | `{"queued": n}` |
 | `connect` | `target` (optional, the current one otherwise) | status |
 | `disconnect` | – | status |

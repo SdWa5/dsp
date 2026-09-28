@@ -3,9 +3,6 @@
 ## Rewrite
 
 - Browser editor: check every page and dialog against the device, with a harmless round trip per control
-- Browser editor: mark every setting that differs from the factory default visibly, in a different colour and
-  with a mark that works without colour, on the control and on its channel tab, so a changed preset is readable
-  at a glance. The defaults come from the factory reset read-out `resources/factory_config.bin`
 - PHPUnit group `device` with read-only checks and reversible writes over LAN and USB
 - Packaging: `trackdsp:serve`, FrankenPHP static binary, installer, desktop entry
 - Offline mode like the vendor editor: check whether a preset can be set up in the browser editor without a
@@ -42,9 +39,8 @@
 
 ## Protocol
 
-- Confirm the hidraw report framing (report number on write and read) on the device
 - Locate +48V (probably input byte 8) and the working status in the configuration
-- Presets: store (`26` name + `21`), recall (`20`) and occupancy (`22`). Back up the live config first and store only into a slot the user names. The device was factory reset on 2026-09-25, so the occupancy reply should now differ from 20 × `FF`
+- Presets: recall F00 (`20 00`) on the device, and find a command that deletes a stored slot. Store, recall and occupancy are confirmed on U20
 - PIN: set (`2F`), unlock (`2D`), change and unset, with the lock state from `2C` after every step. Find the recovery path first (manual chapter 6, the 4x4 projects)
 - Command for changing the IP address
 - Meter dB scale calibration

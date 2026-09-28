@@ -40,9 +40,12 @@ final class EditorControllerTest extends WebTestCase
         return self::$state ??= DemoTransport::fromFile(self::ROOT.'/resources/demo_config.bin')->state()->toDevice()->toArray();
     }
 
-    private static function has(string $path): bool
+    /**
+     * @param array<mixed>|null $root the device state by default
+     */
+    private static function has(string $path, ?array $root = null): bool
     {
-        $node = self::state();
+        $node = $root ?? self::state();
         foreach (explode('.', $path) as $key) {
             if (!\is_array($node) || !\array_key_exists($key, $node)) {
                 return false;
@@ -99,8 +102,13 @@ final class EditorControllerTest extends WebTestCase
             }
         }
         self::assertGreaterThan(100, \count($paths));
+        $defaults = json_decode(self::page()->filter('#trackdsp-defaults')->text(), true, flags: \JSON_THROW_ON_ERROR);
+        self::assertIsArray($defaults);
+        // Not preset content, or not in the configuration: these have no factory value
+        $none = '/^(preset_name|working_status|device_id|ip|tone_mode|tone_freq|inputs\.\d\.phantom)$/';
         foreach (array_keys($paths) as $path) {
             self::assertTrue(self::has((string) $path), \sprintf('"%s" is not a state path.', $path));
+            self::assertSame(!preg_match($none, (string) $path), self::has((string) $path, $defaults), \sprintf('Factory default of "%s".', $path));
         }
     }
 
