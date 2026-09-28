@@ -94,9 +94,11 @@ final class AutoEqControllerTest extends WebTestCase
         self::assertNull($index['session']);
         self::assertTrue($index['recorder']);
         self::assertSame('default', $index['devices'][0]['id']);
+        self::assertSame('default', $index['device']);
 
         $session = $this->call('POST', '/api/autoeq/start', ['outputs' => [8], 'bands' => 5, 'seconds' => 2, 'settle' => 0])['session'];
         self::assertSame(['Out1'], $session['labels']);
+        self::assertSame('default', $session['device']);
         self::assertMatchesRegularExpression('/^backup-\d{8}-\d{6}\.json$/', $session['backup']);
 
         $session = $this->call('POST', '/api/autoeq/record')['session'];

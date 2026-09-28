@@ -5,6 +5,35 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2026-09-29
+
+### Added
+
+- `trackdsp:measure` plays the device's test tone (pink or white noise, a sine or none) on some outputs alone or on every output as set, while a reference output keeps playing for the loopback. It records inputs of the interface and prints RMS, peak, crest factor, clipped samples and third-octave bands, absolute or relative to one input, with warnings about what can mislead a recording. The recording and a JSON file of the results stay in `var/measure/`, and `--wav` analyses an existing recording without the bridge
+- `App\Measurement\Playback`, `Solo`, `TestTone` and `Levels`, `App\Model\Links`, and `Spectrum::bands()` for third-octave levels in dBFS
+- `trackdsp.measure_dir` parameter
+
+### Changed
+
+- The auto EQ plays and restores through `Playback`, which `trackdsp:autoeq`, the Auto EQ page and `trackdsp:measure` share. The lock `<socket>.measure.lock` replaces the page's `record.lock` in the auto EQ directory
+
+### Fixed
+
+- The auto EQ started the settle and the recording before the device had taken the bypass and the test tone, since the bridge answers a write once it is queued. It now waits until the bridge has sent every write
+- `trackdsp:autoeq` and the Auto EQ page could record at the same time, because only the page took a lock
+
+## [0.12.0] - 2026-09-28
+
+### Added
+
+- ALSA in ddev: `.ddev/config.alsa.yaml` installs alsa-utils and `.ddev/docker-compose.alsa.yaml` binds the host's `/dev/snd` and allows the ALSA devices only, so the auto EQ records inside ddev, also after replugging the interface
+- `TRACKDSP_CAPTURE_DEVICE`, the capture device of `trackdsp:autoeq`, the auto EQ API and the Auto EQ page when none is given. The page lists it also when `arecord` does not see it
+- `RecorderDeviceTest` in the PHPUnit group `device`, a one-second recording from `TRACKDSP_TEST_CAPTURE`
+
+### Fixed
+
+- A one-channel recording through plughw averaged every input of a multichannel interface, so the auto EQ with the mic on input 1 of a UMC1820 recorded all ten inputs at -20 dB each. arecord now captures two channels at least
+
 ## [0.11.0] - 2026-09-28
 
 ### Added
@@ -171,7 +200,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.11.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c378966...main
+[0.12.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/1bb70a3...main
+[0.11.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c378966...1bb70a3
 [0.10.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c432438...c378966
 [0.9.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/de8a921...c432438
 [0.8.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d94e3e1...de8a921

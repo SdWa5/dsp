@@ -11,6 +11,8 @@ parameters:
     trackdsp.events_lifetime: 300
     # Backups, recordings and the session of the auto EQ
     trackdsp.autoeq_dir: '%kernel.project_dir%/var/autoeq'
+    # Recordings and results of trackdsp:measure
+    trackdsp.measure_dir: '%kernel.project_dir%/var/measure'
 
 services:
     _defaults:
@@ -50,6 +52,7 @@ when@test:
     parameters:
         trackdsp.events_lifetime: 1
         trackdsp.autoeq_dir: '%kernel.project_dir%/var/autoeq-test'
+        trackdsp.measure_dir: '%kernel.project_dir%/var/measure-test'
     services:
         # The default logger writes expected errors (404, 405) of the web tests to stderr
         logger:

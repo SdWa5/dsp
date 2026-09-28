@@ -49,7 +49,7 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
     {
         $this
             ->addArgument('outputs', InputArgument::REQUIRED, 'Comma-separated outputs to correct, e.g. out1,out2')
-            ->addOption('device', 'd', InputOption::VALUE_REQUIRED, 'ALSA capture device, e.g. plughw:CARD=UMC1820', 'default')
+            ->addOption('device', 'd', InputOption::VALUE_REQUIRED, 'ALSA capture device, e.g. plughw:CARD=UMC1820,DEV=0', $this->recorders->defaultDevice())
             ->addOption('mic-channel', 'm', InputOption::VALUE_REQUIRED, 'Input of the interface the mic is on (1-based)', '1')
             ->addOption('seconds', null, InputOption::VALUE_REQUIRED, 'Recording length per position', '8')
             ->addOption('positions', 'p', InputOption::VALUE_REQUIRED, 'Mic positions to average', '1')

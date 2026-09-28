@@ -2,6 +2,7 @@
 
 namespace App\Measurement;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\Process;
 
@@ -11,9 +12,26 @@ use Symfony\Component\Process\Process;
  */
 class RecorderFactory
 {
+    /**
+     * @param string $defaultDevice capture device when none is given (TRACKDSP_CAPTURE_DEVICE)
+     */
+    public function __construct(
+        #[Autowire('%env(TRACKDSP_CAPTURE_DEVICE)%')]
+        private readonly string $defaultDevice = 'default',
+    ) {
+    }
+
     public function create(string $device, int $channels): Recorder
     {
         return new Recorder($device, $channels);
+    }
+
+    /**
+     * The capture device of the auto EQ and the measurement when none is given.
+     */
+    public function defaultDevice(): string
+    {
+        return $this->defaultDevice;
     }
 
     public function available(): bool
@@ -22,7 +40,7 @@ class RecorderFactory
     }
 
     /**
-     * The capture devices from "arecord -l" as plughw names, "default" first. Empty when arecord is missing.
+     * The capture devices from "arecord -l", see listing(). Empty when arecord is missing.
      *
      * @return list<array{id: string, name: string}>
      */
@@ -35,7 +53,23 @@ class RecorderFactory
         $process->setTimeout(10);
         $process->run();
 
-        return [['id' => 'default', 'name' => 'Default device'], ...self::parse($process->getOutput())];
+        return self::listing($process->getOutput(), $this->defaultDevice);
+    }
+
+    /**
+     * "default" first, then the devices of an "arecord -l" listing as plughw names. A configured default device
+     * the listing does not name comes last, so a missing interface shows instead of another card being chosen.
+     *
+     * @return list<array{id: string, name: string}>
+     */
+    public static function listing(string $listing, string $defaultDevice = 'default'): array
+    {
+        $devices = [['id' => 'default', 'name' => 'Default device'], ...self::parse($listing)];
+        if (!\in_array($defaultDevice, array_column($devices, 'id'), true)) {
+            $devices[] = ['id' => $defaultDevice, 'name' => 'Configured device, not listed by arecord'];
+        }
+
+        return $devices;
     }
 
     /**

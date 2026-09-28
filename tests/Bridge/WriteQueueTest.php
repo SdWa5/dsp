@@ -3,8 +3,12 @@
 namespace App\Tests\Bridge;
 
 use App\Bridge\WriteQueue;
+use App\Measurement\Solo;
+use App\Measurement\TestTone;
+use App\Protocol\Channel;
 use App\Protocol\Commands;
 use App\Protocol\Frame;
+use App\Transport\DemoTransport;
 use PHPUnit\Framework\TestCase;
 
 final class WriteQueueTest extends TestCase
@@ -83,6 +87,38 @@ final class WriteQueueTest extends TestCase
             self::assertNull(WriteQueue::key($frame));
         }
         self::assertFalse(WriteQueue::isBarrier(Commands::mute(0, true)));
+    }
+
+    /**
+     * A measurement that fails before the device took its setup queues the restore behind it. Whatever part
+     * of the setup was sent already, the device ends as it was.
+     */
+    public function testARestoreQueuedBeforeTheFlushLeavesTheOriginalValues(): void
+    {
+        $demo = __DIR__.'/../../resources/demo_config.bin';
+        $before = DemoTransport::fromFile($demo)->state()->toDevice()->toArray();
+        $solo = Solo::plan($before, [Channel::output(3)], -20.0, Channel::output(8));
+        $setup = [...$solo->setup, (new TestTone(TestTone::PINK, 17))->frame()];
+        $restore = [$solo->original->frame(), ...$solo->restore];
+
+        foreach (range(0, \count($setup)) as $sent) {
+            $device = DemoTransport::fromFile($demo)->state();
+            $queue = new WriteQueue();
+            foreach ($setup as $frame) {
+                $queue->push($frame);
+            }
+            for ($i = 0; $i < $sent; ++$i) {
+                $device->apply($queue->shift() ?? throw new \LogicException('The queue ran dry.'));
+            }
+            foreach ($restore as $frame) {
+                $queue->push($frame);
+            }
+            while (null !== $frame = $queue->shift()) {
+                $device->apply($frame);
+            }
+
+            self::assertSame($before, $device->toDevice()->toArray(), \sprintf('%d of %d setup writes sent', $sent, \count($setup)));
+        }
     }
 
     public function testClear(): void

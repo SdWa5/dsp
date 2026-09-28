@@ -33,7 +33,7 @@ final class AutoEqController
     }
 
     /**
-     * The session, the capture devices and the backups.
+     * The session, the capture devices with the configured one and the backups.
      */
     #[Route('', methods: ['GET'])]
     public function index(): JsonResponse
@@ -44,6 +44,7 @@ final class AutoEqController
             'session' => $this->autoEq->session()?->toPublic(),
             'recorder' => $recorders->available(),
             'devices' => $recorders->devices(),
+            'device' => $recorders->defaultDevice(),
             'backups' => $this->autoEq->backups(),
         ]);
     }
@@ -61,7 +62,7 @@ final class AutoEqController
             $outputs = array_values(array_unique(array_filter((array) ($body['outputs'] ?? []), 'is_int')));
             $stamp = date('Ymd-His');
             $session = new Session(
-                $stamp, $outputs, self::int($body, 'bands', 7), self::string($body, 'device', 'default'),
+                $stamp, $outputs, self::int($body, 'bands', 7), self::string($body, 'device', $this->autoEq->recorders()->defaultDevice()),
                 self::int($body, 'mic_channel', 1), self::int($body, 'seconds', 8), self::float($body, 'settle', 2.0),
                 $this->autoEq->path('backup-'.$stamp.'.json'),
             );
@@ -74,7 +75,8 @@ final class AutoEqController
     }
 
     /**
-     * Records one position with pink noise, {"verify": true} with the bands on. Blocks for the recording.
+     * Records one position with pink noise, {"verify": true} with the bands on. Blocks for the recording, and
+     * answers 409 while another measurement runs on the bridge (see Playback).
      */
     #[Route('/record', methods: ['POST'])]
     public function record(Request $request): JsonResponse
@@ -82,19 +84,10 @@ final class AutoEqController
         return $this->call(function () use ($request): array {
             $session = $this->session();
             $verify = true === (self::body($request)['verify'] ?? false);
-            $lock = fopen($this->autoEq->path('record.lock'), 'c');
-            if (false === $lock || !flock($lock, \LOCK_EX | \LOCK_NB)) {
-                throw new BridgeException('Another recording is running.', 409);
-            }
-            try {
-                set_time_limit($session->seconds + (int) ceil($session->settle) + 60);
-                $n = \count($session->recordings) + 1;
-                $path = $this->autoEq->path(\sprintf('measure-%s-%d.wav', $session->id, $n));
-                $this->autoEq->record($this->autoEq->state(), $session->outputs, $verify ? 0 : $session->bands, $session->device, $session->micChannel, $session->seconds, $session->settle, $path);
-            } finally {
-                flock($lock, \LOCK_UN);
-                fclose($lock);
-            }
+            set_time_limit($session->seconds + (int) ceil($session->settle) + 60);
+            $n = \count($session->recordings) + 1;
+            $path = $this->autoEq->path(\sprintf('measure-%s-%d.wav', $session->id, $n));
+            $this->autoEq->record($this->autoEq->state(), $session->outputs, $verify ? 0 : $session->bands, $session->device, $session->micChannel, $session->seconds, $session->settle, $path);
 
             return $this->add($session, $path, ($verify ? 'Verify ' : 'Position ').$n, $verify);
         });
