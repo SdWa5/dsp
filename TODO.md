@@ -19,6 +19,22 @@
   bridge per device with its own socket) and a device key in the API and the event stream
 - Stable USB names per physical port through a udev symlink on `ENV{ID_PATH}` (e.g. `/dev/trackdsp-rack1`),
   since the units share VID/PID and `hidrawN` follows the plug order
+- VIM3: the second 8x8 goes on the second USB port of the board, a third device on the Deco LAN port over TCP
+  (port plan in `docs/vim3.md`). One bridge unit per device as a template (`trackdsp-bridge@rack1.service`)
+  with its own socket and target, `usb:/dev/trackdsp-rack1` for USB and the fixed address for the network device
+
+## VIM3
+
+- Late start of the board: with the Deco on, keep the VIM3 off (or its Ethernet unplugged) for 10 minutes, then
+  switch it on and time how long until `http://10.42.0.1/` answers from the crew wifi. The measured power cuts
+  cover a gap of about a minute only, and a DHCP client may wait longer between retries after a long gap.
+  Silent, about 15 minutes. Add the result to the power cut table in `docs/vim3.md`
+- Vendor editor fallback without the board and the Deco: a cable straight from the laptop to the 8x8, laptop
+  profile `nmcli connection add type ethernet con-name 8x8-direct ifname enp0s31f6 ipv4.method manual
+  ipv4.addresses 192.168.68.20/22 ipv6.method disabled connection.autoconnect no`. First find out whether
+  `192.168.68.10` is set on the 8x8 or is a lease from the Deco (`ping 192.168.68.10` over the direct cable),
+  and whether the vendor editor in the win11 VM finds the device through NAT or needs a macvtap adapter on
+  `enp0s31f6`. Then document it in `docs/vim3.md` next to the vendor editor session
 
 ## Automation
 
