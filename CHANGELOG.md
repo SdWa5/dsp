@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-09-28
+
+### Added
+
+- ALSA in ddev: `.ddev/config.alsa.yaml` installs alsa-utils and `.ddev/docker-compose.alsa.yaml` binds the host's `/dev/snd` and allows the ALSA devices only, so the auto EQ records inside ddev, also after replugging the interface
+- `TRACKDSP_CAPTURE_DEVICE`, the capture device of `trackdsp:autoeq`, the auto EQ API and the Auto EQ page when none is given. The page lists it also when `arecord` does not see it
+- `RecorderDeviceTest` in the PHPUnit group `device`, a one-second recording from `TRACKDSP_TEST_CAPTURE`
+
+### Fixed
+
+- A one-channel recording through plughw averaged every input of a multichannel interface, so the auto EQ with the mic on input 1 of a UMC1820 recorded all ten inputs at -20 dB each. arecord now captures two channels at least
+
 ## [0.11.0] - 2026-09-28
 
 ### Added
@@ -171,7 +183,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.11.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c378966...main
+[0.12.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/1bb70a3...main
+[0.11.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c378966...1bb70a3
 [0.10.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c432438...c378966
 [0.9.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/de8a921...c432438
 [0.8.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d94e3e1...de8a921

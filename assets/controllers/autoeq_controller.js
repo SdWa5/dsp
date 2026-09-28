@@ -47,6 +47,7 @@ export default class extends Controller {
             const data = await api('autoeq', undefined, 'GET');
             this.recorder = data.recorder;
             this.devices = data.devices;
+            this.defaultDevice = data.device;
             this.backupList = data.backups;
             this.show(data.session);
         });
@@ -267,7 +268,9 @@ export default class extends Controller {
         this.recorderNoteTarget.hidden = this.recorder;
         const devices = this.devices ?? [];
         if (devices.length > 0 && this.devicesTarget.options.length !== devices.length) {
-            const selected = this.devicesTarget.value;
+            // The first fill selects the configured device (TRACKDSP_CAPTURE_DEVICE), later ones keep the choice
+            const selected = this.devicesFilled ? this.devicesTarget.value : this.defaultDevice;
+            this.devicesFilled = true;
             this.devicesTarget.replaceChildren(...devices.map((d) => new Option(`${d.name} (${d.id})`, d.id)));
             if (devices.some((d) => d.id === selected)) {
                 this.devicesTarget.value = selected;

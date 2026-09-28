@@ -66,8 +66,9 @@ measurement and the same fit, described below.
 The page leads through four steps. Every step is one request to `/api/autoeq`, and the session lives in
 `var/autoeq/session.json`, so a reload of the page loses nothing.
 
-1. **Setup.** Choose the outputs, the capture device, the mic input, the seconds per position, the noise
-   before each recording and the bands to use. Starting saves a backup of the device.
+1. **Setup.** Choose the outputs, the capture device (preselected from `TRACKDSP_CAPTURE_DEVICE`), the mic
+   input, the seconds per position, the noise before each recording and the bands to use. Starting saves a
+   backup of the device.
 2. **Measure.** **Record position** plays the pink noise, records and analyses one position. The recording
    runs on the server, so `arecord`, the interface and the mic belong to the machine the web server runs on.
    **Upload WAV** takes a recording made elsewhere instead. **Load** reads a mic calibration file.
@@ -84,8 +85,8 @@ server.
 
 | Method | Path | Body | Does |
 |---|---|---|---|
-| GET | `/api/autoeq` | – | `{session, recorder, devices, backups}`: `recorder` is false without `arecord` |
-| POST | `/api/autoeq/start` | `{"outputs": [8, 9], "bands": 7, "device": "default", "mic_channel": 1, "seconds": 8, "settle": 2}` | backup, new session |
+| GET | `/api/autoeq` | – | `{session, recorder, devices, device, backups}`: `recorder` is false without `arecord`, `device` is `TRACKDSP_CAPTURE_DEVICE` |
+| POST | `/api/autoeq/start` | `{"outputs": [8, 9], "bands": 7, "device": "default", "mic_channel": 1, "seconds": 8, "settle": 2}` | backup, new session. Without `device` it records from `TRACKDSP_CAPTURE_DEVICE` |
 | POST | `/api/autoeq/record` | `{"verify": false}` | records one position, blocks until done, 409 while another recording runs |
 | POST | `/api/autoeq/upload?name=&verify=1` | a WAV file of up to 64 MB | adds it as a position, as a verify position with `verify=1` |
 | POST | `/api/autoeq/remove` | `{"index": 0}` | removes one recording |
@@ -101,7 +102,7 @@ Every answer except `GET` carries the session as `{"session": ...}`. Errors are 
 ### On the command line: `trackdsp:autoeq`
 
 ```bash
-bin/console trackdsp:autoeq out1,out2 --device=plughw:CARD=UMC1820 --mic-channel=1 --positions=3
+bin/console trackdsp:autoeq out1,out2 --device=plughw:CARD=UMC1820,DEV=0 --mic-channel=1 --positions=3
 bin/console trackdsp:autoeq out1,out2 --cal=ecm8000.txt --target=tilt:-1 --apply
 bin/console trackdsp:autoeq out1,out2 --wav=var/autoeq/measure-20260927-120000-1.wav
 bin/console trackdsp:autoeq out1,out2 --revert=var/autoeq/backup-20260927-120000.json
@@ -127,14 +128,17 @@ untouched until the write.
 ### Measurement
 
 - A mono measurement mic on an input of the interface, `--mic-channel` counts from 1. `--device` is the ALSA
-  capture device, `arecord -l` lists them. Recordings are 48 kHz, 32 bit.
+  capture device, by default `TRACKDSP_CAPTURE_DEVICE`, and `arecord -l` lists them. Recordings are 48 kHz,
+  32 bit, with two channels at least. Asked for a single channel, plughw averages every input of a multichannel
+  interface into it, while from two channels up it copies them one to one.
 - `--cal` reads a calibration file with "frequency dB" lines (the usual format of mic calibration files,
   header lines are skipped). Without it the mic is taken as flat.
 - The analysis is a Welch power spectrum (16384-point FFT, Hann window, 50 % overlap) summed into
   1/6-octave bands on a 24-points-per-octave grid from 20 Hz to 20 kHz. Pink noise reads flat.
 - Several positions are averaged in the power domain, which evens out room modes at single spots.
-- `arecord` is not in the ddev container. Run a real measurement on the host or on the machine next to the
-  device. In ddev the Auto EQ page therefore says it cannot record, and only uploads work.
+- ddev has `arecord` and the host's sound cards (`.ddev/docker-compose.alsa.yaml`). Inside ddev `default` is
+  the laptop's own codec, so `.env.local` names the interface in `TRACKDSP_CAPTURE_DEVICE`. PipeWire has to
+  let go of the card first, `pactl set-card-profile <card> off`.
 
 ### Fit
 

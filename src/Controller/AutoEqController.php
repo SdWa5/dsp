@@ -33,7 +33,7 @@ final class AutoEqController
     }
 
     /**
-     * The session, the capture devices and the backups.
+     * The session, the capture devices with the configured one and the backups.
      */
     #[Route('', methods: ['GET'])]
     public function index(): JsonResponse
@@ -44,6 +44,7 @@ final class AutoEqController
             'session' => $this->autoEq->session()?->toPublic(),
             'recorder' => $recorders->available(),
             'devices' => $recorders->devices(),
+            'device' => $recorders->defaultDevice(),
             'backups' => $this->autoEq->backups(),
         ]);
     }
@@ -61,7 +62,7 @@ final class AutoEqController
             $outputs = array_values(array_unique(array_filter((array) ($body['outputs'] ?? []), 'is_int')));
             $stamp = date('Ymd-His');
             $session = new Session(
-                $stamp, $outputs, self::int($body, 'bands', 7), self::string($body, 'device', 'default'),
+                $stamp, $outputs, self::int($body, 'bands', 7), self::string($body, 'device', $this->autoEq->recorders()->defaultDevice()),
                 self::int($body, 'mic_channel', 1), self::int($body, 'seconds', 8), self::float($body, 'settle', 2.0),
                 $this->autoEq->path('backup-'.$stamp.'.json'),
             );

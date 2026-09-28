@@ -1,0 +1,2 @@
+# arecord for the auto EQ and trackdsp:measure. The sound devices come from docker-compose.alsa.yaml.
+webimage_extra_packages: [alsa-utils]

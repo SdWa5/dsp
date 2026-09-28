@@ -20,7 +20,7 @@ synthetic recordings and a mocked event stream, not yet page by page on the devi
 - Runtime: PHP 8.4 with PHP-FPM and Caddy, as on the Khadas VIM3 ([docs/vim3.md](docs/vim3.md)). Planned: the
   FrankenPHP static binary, no system PHP
 - USB access without root: the udev rule in [udev/70-trackdsp.rules](udev/70-trackdsp.rules)
-- Auto EQ: `arecord` (alsa-utils), a measurement mic and an audio interface
+- Auto EQ: `arecord` (alsa-utils, ddev has it), a measurement mic and an audio interface
 
 ## Installation
 
@@ -46,6 +46,13 @@ It mounts the host's `/dev` at `/run/host-dev`, so a replugged device shows up w
 the hidraw devices only. The container runs as the desktop user, so the udev rule above is all it needs. The
 hidraw major number is assigned at boot. If `awk '$2=="hidraw"' /proc/devices` shows another value than 242,
 set it as `TRACKDSP_HIDRAW_MAJOR` in `.ddev/.env` and run `ddev restart`.
+
+ddev records from the laptop's sound cards through [.ddev/docker-compose.alsa.yaml](.ddev/docker-compose.alsa.yaml).
+It binds the host's `/dev/snd` and allows the ALSA devices only, so a replugged interface also shows up without a
+restart. Inside ddev `default` is the laptop's own codec, so name the interface in `.env.local`, for example
+`TRACKDSP_CAPTURE_DEVICE=plughw:CARD=UMC1820,DEV=0` (`arecord -l` lists the cards). PipeWire opens a card whenever a
+desktop stream uses it, so hand the interface to ALSA before measuring with `pactl set-card-profile <card> off`
+(`pactl list cards short` names the card) and switch its profile back on afterwards.
 
 The appliance setup on a Khadas VIM3 (bridge, PHP-FPM, Caddy, systemd units) is described in
 [docs/vim3.md](docs/vim3.md), the configuration files are in [deploy/vim3/](deploy/vim3/).
@@ -119,12 +126,13 @@ The socket protocol and every endpoint are described in [docs/bridge.md](docs/br
 bin/console trackdsp:ride in1 --level=-18                          # the bridge keeps the DJ input at -18 dB
 bin/console trackdsp:ride --list                                   # and in1 --stop ends it
 bin/console trackdsp:compressor out1,out2 --ratio=4 --threshold=-6 # the other values stay as they are
-bin/console trackdsp:autoeq out1,out2 --device=plughw:CARD=UMC1820 --positions=3   # needs the bridge
+bin/console trackdsp:autoeq out1,out2 --device=plughw:CARD=UMC1820,DEV=0 --positions=3   # needs the bridge
 bin/console trackdsp:autoeq out1,out2 --revert=var/autoeq/backup-<time>.json
 ```
 
 The gain riders run inside the bridge and come back after a restart. The auto EQ plays the device's pink noise,
-records the measurement mic, fits up to 7 PEQ bands to a target and writes them only after confirmation. All three
+records the measurement mic, fits up to 7 PEQ bands to a target and writes them only after confirmation. It records
+from `TRACKDSP_CAPTURE_DEVICE` unless `--device` names another ALSA capture device. All three
 are also in the browser editor. Every option and the fitting rules are in
 [docs/automation.md](docs/automation.md).
 
@@ -170,6 +178,8 @@ subprocess) and the JSON API against the simulated device. The measurement and f
 known filters, and in the test environment a fake recorder stands in for `arecord`. The page test checks that every
 binding, command template, preset button, controller and action of the browser editor exists.
 Tests in the PHPUnit group `device` talk to real hardware and are excluded by default.
+`ddev exec 'TRACKDSP_TEST_CAPTURE=plughw:CARD=UMC1820,DEV=0 vendor/bin/phpunit --group device'` records one second
+from that capture device and needs a live signal on input 1, a connected mic is enough.
 
 ## Authors
 

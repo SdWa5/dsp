@@ -48,8 +48,6 @@
   line and in the browser editor
 - Measure the 8x8's PEQ shapes against the RBJ filters the fitter assumes. Include the allpass types and the
   phase of the HPF and LPF types, because the phase step of the system tuning predicts with them
-- `arecord` in the ddev web container (alsa-utils and the sound device), so a measurement runs inside ddev and
-  the Auto EQ page can record there
 - Measure a transfer function instead of the plain pink noise spectrum, which the delay, polarity and phase
   steps of the system tuning need. Decided is a dual-channel FFT of the mic against the device's pink noise,
   looped back from the spare OUT8 into a second input of the UMC1820, rather than a log sweep with
