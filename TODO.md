@@ -25,6 +25,11 @@
 
 ## VIM3
 
+- Find out whether the Deco's WAN port is fixed. Its ports are marked 1 and 2 only, which suggests auto-sensing,
+  where the Deco takes the port that gets a DHCP lease as WAN. Check in the Deco app which port is the internet
+  connection, then plug the VIM3 into the other port and see whether path B (`http://10.42.0.1/`) still comes
+  up. If the WAN port is fixed, label it on the Deco. If it is not, drop the "WAN port only" warning in
+  `docs/vim3.md`, since then the board serves the Deco on either port
 - Late start of the board: with the Deco on, keep the VIM3 off (or its Ethernet unplugged) for 10 minutes, then
   switch it on and time how long until `http://10.42.0.1/` answers from the crew wifi. The measured power cuts
   cover a gap of about a minute only, and a DHCP client may wait longer between retries after a long gap.
