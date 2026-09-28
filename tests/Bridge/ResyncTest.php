@@ -36,7 +36,7 @@ final class ResyncTest extends TestCase
     {
         $resync = new Resync();
         self::assertSame(0.0, $resync->progress());
-        self::assertSame(49, $this->finish($resync));
+        self::assertSame(50, $this->finish($resync));
         self::assertTrue($resync->done());
         self::assertSame(1.0, $resync->progress());
 
@@ -45,6 +45,7 @@ final class ResyncTest extends TestCase
         self::assertSame($this->device->state()->groups(), $state->groups());
         self::assertSame(2, $state->activePreset);
         self::assertSame('10.0.0.1', $state->ip);
+        self::assertSame([1], array_keys(array_filter($state->presetStored ?? [])));
         for ($slot = 0; $slot < DeviceState::PRESET_SLOTS; ++$slot) {
             self::assertSame($this->device->state()->presetName($slot), $state->presetName($slot));
         }

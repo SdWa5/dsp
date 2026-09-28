@@ -25,6 +25,7 @@
     --field-text: #111;
     --warn-bg: #ffe08a;
     --warn-text: #3a2d00;
+    --changed: #c2185b;
     --fader-accent: #4b5563;
     --fader-height: 190px;
     color-scheme: light;
@@ -49,6 +50,7 @@
         --warn-text: #ffeebb;
         --rider-text: #40c4ff;
         --limit-text: #ffb74d;
+        --changed: #ff6ec7;
         --fader-accent: #7d8aa0;
         color-scheme: dark;
     }
@@ -72,6 +74,7 @@
     --warn-text: #ffeebb;
     --rider-text: #40c4ff;
     --limit-text: #ffb74d;
+    --changed: #ff6ec7;
     --fader-accent: #7d8aa0;
     color-scheme: dark;
 }
@@ -140,6 +143,12 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .chtab__marks { display: contents; }
 .chtab__mute { position: absolute; top: 4px; left: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--mute); }
 .chtab__link { position: absolute; top: 2px; right: 3px; font-size: 9px; font-weight: 700; padding: 0 3px; border-radius: 6px; background: #ffffff33; color: var(--head-text); }
+/* Differs from the factory default: a corner triangle bottom left, a shape that reads without colour */
+.chtab__changed, .tab.is-changed::after {
+    position: absolute; bottom: 0; left: 0; width: 0; height: 0; border-style: solid; border-width: 9px 0 0 9px;
+    border-color: transparent transparent transparent var(--changed); content: '';
+}
+.tab.is-changed { position: relative; }
 
 .banner {
     display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 0 0 10px; padding: 8px 12px; border-radius: 4px;
@@ -231,6 +240,9 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .toggle--route { text-align: left; }
 .toggle--route .ch { gap: 4px; }
 .toggle.is-unknown { border-style: dashed; }
+/* Differs from the factory default: a bar on the left edge, a shape that reads without colour */
+.is-changed:is(.toggle, .choice, .text, .value, input, select, output, button),
+.fader.is-changed .fader__value { box-shadow: inset 4px 0 0 var(--changed); }
 .toggle:disabled, .is-disabled .toggle { opacity: .45; cursor: default; }
 .choice, .text { min-width: 0; }
 .value { font-variant-numeric: tabular-nums; }

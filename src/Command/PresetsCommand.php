@@ -8,17 +8,22 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand('trackdsp:presets', 'List the preset names U01..U20 and F00')]
+#[AsCommand('trackdsp:presets', 'List the preset names U01..U20 and F00 and which user slots are stored')]
 final class PresetsCommand extends DeviceCommand
 {
     protected function handle(Matrix $dsp, InputInterface $input, SymfonyStyle $io): int
     {
         $active = $dsp->activePreset();
+        $stored = $dsp->presetOccupancy();
         $rows = [];
         foreach ($dsp->presetNames() as $slot => $name) {
-            $rows[] = [self::label($slot), $name, $slot === $active - 1 ? '*' : ''];
+            $rows[] = [self::label($slot), $name, match ($stored[$slot] ?? null) {
+                true => 'yes',
+                false => 'empty',
+                null => 'factory',
+            }, $slot === $active - 1 ? '*' : ''];
         }
-        $io->table(['Slot', 'Name', 'Active'], $rows);
+        $io->table(['Slot', 'Name', 'Stored', 'Active'], $rows);
 
         return Command::SUCCESS;
     }

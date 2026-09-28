@@ -39,8 +39,9 @@ final class CliTest extends KernelTestCase
     {
         $display = $this->runCommand('trackdsp:presets')->getDisplay();
 
-        self::assertMatchesRegularExpression('/U02\s+Bulgaria26\s+\*/', $display);
-        self::assertStringContainsString('F00', $display);
+        self::assertMatchesRegularExpression('/U02\s+Bulgaria26\s+yes\s+\*/', $display);
+        self::assertMatchesRegularExpression('/U03\s+empty/', $display);
+        self::assertMatchesRegularExpression('/F00\s+\S*\s*factory/', $display);
     }
 
     public function testStatus(): void

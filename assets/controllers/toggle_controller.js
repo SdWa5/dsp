@@ -1,4 +1,6 @@
 import BoundController from '../lib/bound_controller.js';
+import { isChanged } from '../lib/defaults.js';
+import { getDefaults } from '../lib/device.js';
 
 /**
  * A button for a boolean, or with bit >= 0 for one bit of a mask (matrix, source selection).
@@ -14,6 +16,10 @@ export default class extends BoundController {
         } else {
             this.commit(!current);
         }
+    }
+
+    changed(state) {
+        return isChanged(state, getDefaults(), this.bindValue, this.bitValue);
     }
 
     render(value) {

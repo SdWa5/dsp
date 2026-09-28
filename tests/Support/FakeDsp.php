@@ -14,6 +14,8 @@ final class FakeDsp implements TransportInterface
 {
     /** @var list<Frame> */
     public array $sent = [];
+    /** @var list<float> the wait of every receive() */
+    public array $timeouts = [];
     /** @var list<Frame> */
     private array $queue = [];
 
@@ -34,7 +36,8 @@ final class FakeDsp implements TransportInterface
             Opcode::ActivePreset => Frame::reply(Opcode::ActivePreset, "\x02"),
             Opcode::PresetName => Frame::reply(Opcode::PresetName, $frame->data[0].'Bulgaria26    '),
             Opcode::ReadConfigPage => Frame::reply(Opcode::ConfigPage, $frame->data[0].str_repeat($frame->data[0], 50)),
-            Opcode::Gain, Opcode::Mute, Opcode::Phase, Opcode::Routing => Frame::reply(Opcode::Ack),
+            Opcode::PresetOccupancy => Frame::reply(Opcode::PresetOccupancy, str_repeat("\x00", 19)."\xFF\x00"),
+            Opcode::Gain, Opcode::Mute, Opcode::Phase, Opcode::Routing, Opcode::LoadPreset, Opcode::StorePreset => Frame::reply(Opcode::Ack),
             default => null,
         };
         if (null !== $reply) {
@@ -44,6 +47,7 @@ final class FakeDsp implements TransportInterface
 
     public function receive(float $timeout): ?Frame
     {
+        $this->timeouts[] = $timeout;
         if ($this->chatty) {
             return Frame::reply(Opcode::Meters, str_repeat("\x00", 55));
         }

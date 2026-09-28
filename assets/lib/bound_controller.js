@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus';
-import { store, send, getLabels } from './device.js';
+import { store, send, getDefaults, getLabels } from './device.js';
+import { isChanged } from './defaults.js';
 import { linkedMembers } from './link.js';
 import { format } from './scale.js';
 
@@ -8,7 +9,8 @@ import { format } from './scale.js';
  *
  * Values: bind (state path), send (list of {command, args}, "@path" in args reads the state),
  * link ("inputs:3": the write also goes to the channels linked with In4), fmt (display format),
- * enabled (state path, the widget is disabled while it is falsy).
+ * enabled (state path, the widget is disabled while it is falsy). A value that differs from the factory
+ * default gets the class is-changed.
  */
 export default class extends Controller {
     static values = { bind: String, send: Array, link: String, fmt: String, enabled: String };
@@ -32,12 +34,17 @@ export default class extends Controller {
         const enabled = !offline && (!this.enabledValue || Boolean(store.get(this.enabledValue)));
         this.element.classList.toggle('is-disabled', !enabled);
         this.setDisabled(!enabled);
+        this.element.classList.toggle('is-changed', !offline && this.changed(state));
         if (!offline && !this.busy) {
             this.render(this.current, state);
         }
     }
 
     render() {}
+
+    changed(state) {
+        return isChanged(state, getDefaults(), this.bindValue);
+    }
 
     setDisabled(disabled) {
         for (const node of this.element.querySelectorAll('input, select, button')) {

@@ -5,6 +5,24 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-09-28
+
+### Added
+
+- The browser editor marks every setting that differs from the factory default, with a bar on the control and a corner triangle on its channel tab or the Aux tab
+- Preset occupancy: `Matrix::presetOccupancy()`, `preset_stored` in the device state, a "Stored" column in `trackdsp:presets`, and empty slots in the store and recall dialogs, which cannot be recalled
+- `trackdsp.factory_config` parameter and `App\Model\FactoryDefaults`
+
+### Changed
+
+- The bridge re-read also reads the preset occupancy (50 steps)
+- Storing a preset in the device state also makes it the active preset and puts its name into the header, like the device
+
+### Fixed
+
+- A preset recall or store waits up to 3 s for the ACK instead of 0.15 s per try over USB, since the device answers only after its flash work
+- The store and recall dialogs showed the name of the neighbouring slot
+
 ## [0.9.0] - 2026-09-28
 
 ### Added
@@ -137,7 +155,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.9.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/de8a921...main
+[0.10.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c432438...main
+[0.9.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/de8a921...c432438
 [0.8.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d94e3e1...de8a921
 [0.7.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/60ef138...d94e3e1
 [0.6.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/eac219d...60ef138

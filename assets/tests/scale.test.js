@@ -41,6 +41,13 @@ test('times, thresholds, delay and presets', () => {
     assert.equal(S.format('gain', null), '–');
     assert.equal(S.presetLabel(0), 'F00');
     assert.equal(S.presetLabel(7), 'U07');
+    assert.deepEqual([S.presetSlot(1), S.presetSlot(20), S.presetSlot(0)], [0, 19, 20]);
+    const state = { preset_names: ['', 'Bulgaria26', ...Array(18).fill(''), 'Default Preset'], preset_stored: [false, true, ...Array(18).fill(false)] };
+    assert.deepEqual(S.presetSlotInfo(state, 2), { name: 'Bulgaria26', stored: true, text: 'U02  Bulgaria26' });
+    assert.equal(S.presetSlotInfo(state, 1).text, 'U01  (empty)');
+    assert.equal(S.presetSlotInfo(state, 0).text, 'F00  Default Preset');
+    assert.equal(S.presetSlotInfo({ preset_names: ['Old'] }, 1).stored, null);
+    assert.equal(S.presetSlotInfo(null, 3).text, 'U03  (no name)');
 });
 
 test('typed values parse back to raw values', () => {

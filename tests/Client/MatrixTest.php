@@ -41,6 +41,29 @@ final class MatrixTest extends TestCase
         ], array_map(static fn (Frame $f): string => $f->hex(), $fake->sent));
     }
 
+    public function testPresetOccupancy(): void
+    {
+        $slots = (new Matrix(new FakeDsp(), 0.01))->presetOccupancy();
+
+        self::assertCount(20, $slots);
+        self::assertSame([19], array_keys(array_filter($slots)));
+        self::assertSame([0], array_keys(array_filter(Matrix::parseOccupancy("\x01"))));
+    }
+
+    public function testPresetRecallAndStoreWaitLongerForTheAck(): void
+    {
+        $fake = new FakeDsp();
+        $dsp = new Matrix($fake, 0.01);
+
+        $dsp->write(Commands::mute(8, true));
+        self::assertLessThanOrEqual(0.01, max([0.0, ...$fake->timeouts]));
+        foreach ([Commands::loadPreset(20), Commands::storePreset(20)] as $frame) {
+            $fake->timeouts = [];
+            $dsp->write($frame);
+            self::assertGreaterThan(2.9, max([0.0, ...$fake->timeouts]));
+        }
+    }
+
     public function testTimeoutRetriesWithReinit(): void
     {
         $silent = new FakeDsp(silent: true);

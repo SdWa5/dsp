@@ -47,6 +47,8 @@ final class Device
     public ?int $activePreset = null;
     /** @var list<string> */
     public array $presetNames = [];
+    /** @var list<bool>|null which of U01..U20 hold a stored preset, null when unknown */
+    public ?array $presetStored = null;
     /** Raw configuration as read from the device, empty for a default state. */
     public string $raw = '';
 
@@ -135,17 +137,22 @@ final class Device
             'ip' => $this->ip,
             'active_preset' => $this->activePreset,
             'preset_names' => $this->presetNames,
+            'preset_stored' => $this->presetStored,
             'raw' => bin2hex($this->raw),
         ];
     }
 
     /**
-     * Preset file, compatible with the files of the Python editor.
+     * Preset file, compatible with the files of the Python editor. The preset occupancy describes the flash of
+     * the unit rather than the preset, so the file leaves it out.
      */
     public function toJson(): string
     {
+        $device = $this->toArray();
+        unset($device['preset_stored']);
+
         return json_encode(
-            ['format' => self::FILE_FORMAT, 'version' => self::FILE_VERSION, 'device' => $this->toArray()],
+            ['format' => self::FILE_FORMAT, 'version' => self::FILE_VERSION, 'device' => $device],
             \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR,
         );
     }

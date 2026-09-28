@@ -194,6 +194,20 @@ final class DeviceStateTest extends TestCase
         self::assertSame(self::fixture(), $state->config());
     }
 
+    public function testStoringAPresetBehavesLikeTheDevice(): void
+    {
+        $state = new DeviceState(self::fixture());
+        $state->presetStored = array_fill(0, 20, false);
+        $state->apply(Commands::presetName('TEST'));
+        $state->apply(Commands::storePreset(20));
+
+        self::assertSame('TEST', $state->presetName(19));
+        self::assertSame([19], array_keys(array_filter($state->presetStored ?? [])));
+        self::assertSame(20, $state->activePreset);
+        self::assertSame('TEST', $state->toDevice()->presetName);
+        self::assertSame(substr(self::fixture(), 16), substr($state->config(), 16));
+    }
+
     public function testRejectsShortConfiguration(): void
     {
         $this->expectException(\LengthException::class);
