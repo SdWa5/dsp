@@ -33,7 +33,8 @@
 - Late start of the board: with the Deco on, keep the VIM3 off (or its Ethernet unplugged) for 10 minutes, then
   switch it on and time how long until `http://10.42.0.1/` answers from the crew wifi. The measured power cuts
   cover a gap of about a minute only, and a DHCP client may wait longer between retries after a long gap.
-  Silent, about 15 minutes. Add the result to the power cut table in `docs/vim3.md`
+  Silent, about 15 minutes. Add the result to the power cut table in `docs/vim3.md`. Path A does not depend on
+  it, the wifi power cuts of 2026-09-28 are measured
 - Vendor editor fallback without the board and the Deco: a cable straight from the laptop to the 8x8, laptop
   profile `nmcli connection add type ethernet con-name 8x8-direct ifname enp0s31f6 ipv4.method manual
   ipv4.addresses 192.168.68.20/22 ipv6.method disabled connection.autoconnect no`. First find out whether
