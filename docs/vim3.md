@@ -102,8 +102,21 @@ its WAN port holds a DHCP lease. The board covers both, so the editor needs neit
 ```
 t.racks 8x8 ──USB──► VIM3 ──Ethernet──► Deco WAN port   (B: the VIM3 serves the Deco a lease)
                       ))) wifi SdWa5 ))) Deco           (A: fallback, fixed address)
-t.racks 8x8 192.168.68.10 ──LAN──► Deco LAN port        (vendor editor, works once B has run)
 ```
+
+The 8x8 needs no Ethernet cable. The bridge talks to it over USB only (`--target=usb`), and the Deco LAN port
+comes up only after path B has run, so a cable there adds no path that works without the board. It would only
+serve the vendor editor, which writes past the bridge, so the editor shows stale values until the next resync.
+Plug it in for a vendor editor session only (the 8x8 answers on `192.168.68.10`).
+
+The ports are planned like this. Only the first 8x8 works today, see "Several devices" in [TODO.md](../TODO.md).
+
+| Port | Device |
+|---|---|
+| VIM3 USB, first port | 8x8 number 1 |
+| VIM3 USB, second port | 8x8 number 2 |
+| VIM3 Ethernet | Deco WAN port (path B) |
+| Deco LAN port | reserved for a third device over the network |
 
 | Path | Board address | Editor from the crew wifi |
 |---|---|---|
@@ -116,8 +129,15 @@ the link drops it returns to client mode. On a LAN with a router (at a venue, fo
 client and never serves DHCP there. Plug it into the Deco's WAN port only. On the LAN port it would find no
 router while the Deco waits for a lease and serve DHCP inside `SdWa5`.
 
+The Deco's WAN port is labelled on the Deco, and the Deco sits in a closed case that has to be unscrewed before
+any cable can be changed, so the board cannot end up on the LAN port by mistake.
+
 A laptop that also has another uplink needs a route for B, for example
 `nmcli dev modify wlp0s20f3 +ipv4.routes "10.42.0.0/24 192.168.68.1"`. Phones need none.
+
+A laptop that stands in for the board on the Deco WAN port needs a NetworkManager profile with
+`ipv4.method shared` on its Ethernet port. Delete that profile after the test. While it exists, NetworkManager
+creates no automatic DHCP profile for the port, and the laptop gets no address on a normal LAN.
 
 Power cuts, measured 2026-09-27 with the Deco offline, until the editor and both paths answer again:
 
@@ -127,7 +147,7 @@ Power cuts, measured 2026-09-27 with the Deco offline, until the editor and both
 | Deco and VIM3 on one power strip | about 100 s |
 | VIM3 only | about 70 s |
 
-The editor on `192.168.68.11` comes first, path B and the Deco LAN port follow about 10 s later. The Deco's boot
+The editor on `192.168.68.11` comes first, path B follows about 10 s later. The Deco's boot
 sets the pace, the board is ready after about 25 s.
 
 The board has an RTC (`rtc-hym8563`) without a backup battery. Off grid its clock resumes from the last saved
