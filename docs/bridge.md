@@ -27,8 +27,13 @@ bin/console trackdsp:bridge -t 192.168.68.10     # or usb, usb:/dev/hidrawN, dem
 | `--riders-file` | the socket path with `.riders.json` | where the gain riders are kept across restarts |
 
 In ddev the bridge runs as a daemon of the web container (`.ddev/config.bridge.yaml`) on the simulated
-device. `POST /api/connect` switches it to the real one. Its log is in `ddev logs -s web`, and `-v` shows
-the info messages.
+device. `POST /api/connect` switches it to the real one, over USB (see the README) or the network. It
+starts on the simulated device again after every `ddev restart`. Its log is in `ddev logs -s web`, and `-v`
+shows the info messages.
+
+The USB search reads the hidraw class in `TRACKDSP_HIDRAW_SYSFS` (default `/sys/class/hidraw`) and opens the
+nodes in `TRACKDSP_HIDRAW_DEV` (default `/dev`). ddev sets the second one to `/run/host-dev`, where the host's
+`/dev` is mounted. The tests set the first one to a missing directory, so they never find a real device.
 
 The bridge stops on SIGINT and SIGTERM and removes its socket. It refuses to start while another bridge
 answers on the same socket. A socket file without a bridge behind it is removed.

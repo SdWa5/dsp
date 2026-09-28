@@ -19,7 +19,7 @@ synthetic recordings and a mocked event stream, not yet page by page on the devi
 - Development: [ddev](https://ddev.com/) (PHP 8.4 in a container, no PHP on the host needed)
 - Runtime: PHP 8.4 with PHP-FPM and Caddy, as on the Khadas VIM3 ([docs/vim3.md](docs/vim3.md)). Planned: the
   FrankenPHP static binary, no system PHP
-- USB access without root: the udev rule in [udev/99-trackdsp.rules](udev/99-trackdsp.rules)
+- USB access without root: the udev rule in [udev/70-trackdsp.rules](udev/70-trackdsp.rules)
 - Auto EQ: `arecord` (alsa-utils), a measurement mic and an audio interface
 
 ## Installation
@@ -34,9 +34,18 @@ ddev composer install
 For USB, install the udev rule once:
 
 ```bash
-sudo cp udev/99-trackdsp.rules /etc/udev/rules.d/
+sudo cp udev/70-trackdsp.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
+
+Remove an older copy named `99-trackdsp.rules` first. Its number came after systemd's `73-seat-late.rules`, so
+the desktop user never got access, only the group `plugdev`.
+
+ddev reaches an 8x8 on the laptop's USB through [.ddev/docker-compose.hidraw.yaml](.ddev/docker-compose.hidraw.yaml).
+It mounts the host's `/dev` at `/run/host-dev`, so a replugged device shows up without a restart, and allows
+the hidraw devices only. The container runs as the desktop user, so the udev rule above is all it needs. The
+hidraw major number is assigned at boot. If `awk '$2=="hidraw"' /proc/devices` shows another value than 242,
+set it as `TRACKDSP_HIDRAW_MAJOR` in `.ddev/.env` and run `ddev restart`.
 
 The appliance setup on a Khadas VIM3 (bridge, PHP-FPM, Caddy, systemd units) is described in
 [docs/vim3.md](docs/vim3.md), the configuration files are in [deploy/vim3/](deploy/vim3/).
@@ -90,7 +99,8 @@ editor talks to the bridge through the JSON API below.
 ### Bridge and JSON API
 
 The web editor reaches the device through `trackdsp:bridge`, which owns the connection, merges fast writes and
-publishes state and meters. In ddev it runs by itself on the simulated device.
+publishes state and meters. In ddev it runs by itself on the simulated device. The connect dialog of the
+editor, or `POST /api/connect` with `{"target":"usb"}`, switches it to an 8x8 on the laptop's USB.
 
 ```bash
 bin/console trackdsp:bridge -t 192.168.68.10                  # outside ddev

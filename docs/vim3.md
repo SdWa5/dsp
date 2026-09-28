@@ -58,7 +58,8 @@ sudo -u trackdsp php bin/console asset-map:compile
 USB access and the services:
 
 ```bash
-sudo install -m 644 udev/99-trackdsp.rules /etc/udev/rules.d/
+sudo rm -f /etc/udev/rules.d/99-trackdsp.rules    # older name of the same rule
+sudo install -m 644 udev/70-trackdsp.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules && sudo udevadm trigger
 sudo -u trackdsp php bin/trackdsp info -t usb
 

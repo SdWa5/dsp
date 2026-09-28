@@ -1,7 +1,8 @@
 # t.racks 8x8 Matrix (Musicrown "Dsp Process"): access without root.
 # uaccess: the logged-in desktop user; GROUP plugdev: also without a desktop session (server, WSL).
+# The file number stays below 73, since systemd turns the uaccess tag into an ACL in 73-seat-late.rules.
 # Installation:
-#   sudo cp 99-trackdsp.rules /etc/udev/rules.d/
+#   sudo cp 70-trackdsp.rules /etc/udev/rules.d/
 #   sudo udevadm control --reload-rules && sudo udevadm trigger
 SUBSYSTEM=="hidraw", ATTRS{idVendor}=="0168", ATTRS{idProduct}=="0821", MODE="0660", GROUP="plugdev", TAG+="uaccess"
 SUBSYSTEM=="usb", ATTRS{idVendor}=="0168", ATTRS{idProduct}=="0821", MODE="0660", GROUP="plugdev", TAG+="uaccess"

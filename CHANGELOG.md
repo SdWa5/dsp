@@ -5,6 +5,22 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-09-28
+
+### Added
+
+- USB in ddev: `.ddev/docker-compose.hidraw.yaml` mounts the host's `/dev` at `/run/host-dev` and allows the hidraw devices, so the bridge and the command line in the web container reach an 8x8 on the laptop's USB, also after replugging
+- `TRACKDSP_HIDRAW_SYSFS` and `TRACKDSP_HIDRAW_DEV` set where the USB search looks
+
+### Changed
+
+- The udev rule is now `udev/70-trackdsp.rules`. Remove an installed `99-trackdsp.rules`
+
+### Fixed
+
+- The udev rule gave the desktop user no access, because its number came after systemd's `73-seat-late.rules`
+- The discover test found a real USB device on the machine running the tests
+
 ## [0.10.0] - 2026-09-28
 
 ### Added
@@ -155,7 +171,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.10.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c432438...main
+[0.11.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c378966...main
+[0.10.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c432438...c378966
 [0.9.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/de8a921...c432438
 [0.8.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d94e3e1...de8a921
 [0.7.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/60ef138...d94e3e1

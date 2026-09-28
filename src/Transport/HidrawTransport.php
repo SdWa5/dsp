@@ -5,7 +5,7 @@ namespace App\Transport;
 use App\Protocol\Frame;
 
 /**
- * USB-HID through the Linux hidraw driver (/dev/hidrawN). See udev/99-trackdsp.rules for access without root.
+ * USB-HID through the Linux hidraw driver (/dev/hidrawN). See udev/70-trackdsp.rules for access without root.
  *
  * The device uses no report IDs, so each write is a 0x00 report number followed by the 64-byte report,
  * and each read returns the 64-byte report. A leading report number on read is tolerated as well.

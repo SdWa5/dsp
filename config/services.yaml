@@ -28,7 +28,10 @@ services:
             - '../src/Transport/{DemoTransport,HidrawTransport,TcpTransport,TransportException}.php'
             - '../src/Bridge/{Bridge,BridgeException,CommandMap,WriteQueue}.php'
 
-    App\Transport\HidrawLocator: ~
+    App\Transport\HidrawLocator:
+        arguments:
+            $sysfsRoot: '%env(TRACKDSP_HIDRAW_SYSFS)%'
+            $devRoot: '%env(TRACKDSP_HIDRAW_DEV)%'
 
     App\Transport\TransportFactory:
         arguments:
