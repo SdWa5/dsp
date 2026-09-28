@@ -5,6 +5,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2026-09-29
+
+### Added
+
+- `trackdsp:measure` plays the device's test tone (pink or white noise, a sine or none) on some outputs alone or on every output as set, while a reference output keeps playing for the loopback. It records inputs of the interface and prints RMS, peak, crest factor, clipped samples and third-octave bands, absolute or relative to one input, with warnings about what can mislead a recording. The recording and a JSON file of the results stay in `var/measure/`, and `--wav` analyses an existing recording without the bridge
+- `App\Measurement\Playback`, `Solo`, `TestTone` and `Levels`, `App\Model\Links`, and `Spectrum::bands()` for third-octave levels in dBFS
+- `trackdsp.measure_dir` parameter
+
+### Changed
+
+- The auto EQ plays and restores through `Playback`, which `trackdsp:autoeq`, the Auto EQ page and `trackdsp:measure` share. The lock `<socket>.measure.lock` replaces the page's `record.lock` in the auto EQ directory
+
+### Fixed
+
+- The auto EQ started the settle and the recording before the device had taken the bypass and the test tone, since the bridge answers a write once it is queued. It now waits until the bridge has sent every write
+- `trackdsp:autoeq` and the Auto EQ page could record at the same time, because only the page took a lock
+
 ## [0.12.0] - 2026-09-28
 
 ### Added

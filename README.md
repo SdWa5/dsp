@@ -20,7 +20,7 @@ synthetic recordings and a mocked event stream, not yet page by page on the devi
 - Runtime: PHP 8.4 with PHP-FPM and Caddy, as on the Khadas VIM3 ([docs/vim3.md](docs/vim3.md)). Planned: the
   FrankenPHP static binary, no system PHP
 - USB access without root: the udev rule in [udev/70-trackdsp.rules](udev/70-trackdsp.rules)
-- Auto EQ: `arecord` (alsa-utils, ddev has it), a measurement mic and an audio interface
+- Auto EQ and measurements: `arecord` (alsa-utils, ddev has it), a measurement mic and an audio interface
 
 ## Installation
 
@@ -120,7 +120,7 @@ curl -sN localhost/api/events                                 # server-sent even
 Writes need the header `X-Trackdsp`, and `TRACKDSP_TRUSTED_HOSTS` lists the host names the app answers to.
 The socket protocol and every endpoint are described in [docs/bridge.md](docs/bridge.md).
 
-### Gain rider, compressor and auto EQ
+### Gain rider, compressor, auto EQ and measurements
 
 ```bash
 bin/console trackdsp:ride in1 --level=-18                          # the bridge keeps the DJ input at -18 dB
@@ -128,13 +128,17 @@ bin/console trackdsp:ride --list                                   # and in1 --s
 bin/console trackdsp:compressor out1,out2 --ratio=4 --threshold=-6 # the other values stay as they are
 bin/console trackdsp:autoeq out1,out2 --device=plughw:CARD=UMC1820,DEV=0 --positions=3   # needs the bridge
 bin/console trackdsp:autoeq out1,out2 --revert=var/autoeq/backup-<time>.json
+bin/console trackdsp:measure out3 -c 1,6 --trim=-20                # Out3 alone, mic on input 1, Out8's loopback on 6
+bin/console trackdsp:measure -c 1,6 --wav=var/measure/<name>.wav   # analyse a recording again, no bridge needed
 ```
 
 The gain riders run inside the bridge and come back after a restart. The auto EQ plays the device's pink noise,
 records the measurement mic, fits up to 7 PEQ bands to a target and writes them only after confirmation. It records
 from `TRACKDSP_CAPTURE_DEVICE` unless `--device` names another ALSA capture device. All three
-are also in the browser editor. Every option and the fitting rules are in
-[docs/automation.md](docs/automation.md).
+are also in the browser editor. `trackdsp:measure` plays the test tone on some outputs alone while the reference
+output keeps playing for the loopback, records the interface and prints levels and third-octave bands. It keeps
+the recording and a JSON file of the results in `var/measure/` and puts the tone, the gains and the mutes back
+afterwards. Every option, the fitting rules and the solo rules are in [docs/automation.md](docs/automation.md).
 
 ### Library
 
@@ -155,11 +159,11 @@ file_put_contents('preset.json', $device->toJson());    // same file format as t
 | `App\Protocol` | frame codec, opcodes, channel indices, scales, value labels, command builders |
 | `App\Transport` | TCP, hidraw and demo transports, hidraw discovery, target factory |
 | `App\Client` | `Matrix`: request/reply matching, retries with session re-init, reads and writes |
-| `App\Model` | the configuration as objects, JSON preset files, upload frames, `DeviceState` for applying writes |
+| `App\Model` | the configuration as objects, JSON preset files, upload frames, `DeviceState` for applying writes, link groups |
 | `App\Bridge` | the bridge loop, write queue, command allow-list and the socket client |
 | `App\Discovery` | device search on USB and on the local networks |
 | `App\Automation` | the gain rider |
-| `App\Measurement` | FFT, WAV reader, spectrum analysis, responses, calibration files, `arecord` recorder |
+| `App\Measurement` | FFT, WAV reader, spectrum and third-octave analysis, levels, responses, calibration files, `arecord` recorder, the test tone, the solo plan and the playback that puts the device back |
 | `App\AutoEq` | target curves, the PEQ fitter, and the measure, backup, apply and revert steps shared by the command and the browser session |
 | `App\Command` | the `trackdsp:*` console commands |
 | `App\Controller` | the browser editor, the JSON API, the auto EQ API and the event stream |

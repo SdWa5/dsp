@@ -4,9 +4,11 @@ namespace App\AutoEq;
 
 use App\Bridge\BridgeClient;
 use App\Bridge\BridgeException;
+use App\Measurement\Playback;
 use App\Measurement\RecorderFactory;
 use App\Measurement\Response;
 use App\Measurement\Spectrum;
+use App\Measurement\TestTone;
 use App\Measurement\WavReader;
 use App\Model\Device;
 use App\Protocol\Channel;
@@ -17,15 +19,17 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 /**
  * The steps of the supervised auto EQ, shared by trackdsp:autoeq and the browser editor.
  *
- * Every recording is self-contained: it bypasses the bands the auto EQ owns on the chosen outputs, pauses
- * the gain riders, plays the device's pink noise, records, and puts tone, bands and riders back whatever
- * happens. Between recordings the device is exactly as it was. Only apply() changes it for good, and
+ * Every recording is self-contained: it bypasses the bands the auto EQ owns on the chosen outputs and plays
+ * the device's pink noise through Playback, which pauses the gain riders and puts tone, bands and riders back
+ * whatever happens. Between recordings the device is exactly as it was. Only apply() changes it for good, and
  * revert() undoes that from the backup taken at the start.
  */
 final class AutoEq
 {
-    public const PINK_NOISE = 1;
+    public const PINK_NOISE = TestTone::PINK;
     private const SESSION = 'session.json';
+
+    private readonly Playback $playback;
 
     public function __construct(
         private readonly BridgeClient $bridge,
@@ -33,6 +37,7 @@ final class AutoEq
         private readonly string $directory,
         private readonly RecorderFactory $recorders = new RecorderFactory(),
     ) {
+        $this->playback = new Playback($bridge);
     }
 
     public function directory(): string
@@ -85,28 +90,15 @@ final class AutoEq
         $bypass = [];
         foreach ($outputs as $channel) {
             foreach (\array_slice(self::bands($state, $channel), 0, $bands) as $n => $band) {
-                $bypass[] = self::hex(Commands::peq($channel, $n, $band['gain'], $band['freq'], $band['q'], $band['type'], true));
+                $bypass[] = Commands::peq($channel, $n, $band['gain'], $band['freq'], $band['q'], $band['type'], true);
             }
         }
-        $toneMode = \is_int($state['tone_mode'] ?? null) ? $state['tone_mode'] : 0;
-        $toneFreq = \is_int($state['tone_freq'] ?? null) ? $state['tone_freq'] : 0;
-        $riders = $this->pauseRiders();
-        try {
-            $this->write($bypass);
-            try {
-                $this->write([self::hex(Commands::testTone(self::PINK_NOISE, $toneFreq))]);
-                usleep((int) (1e6 * max(0.0, $settle)));
+        $original = TestTone::fromState($state);
 
-                return $recorder->record($seconds, $path);
-            } finally {
-                $this->restore([
-                    fn () => $this->write([self::hex(Commands::testTone($toneMode, $toneFreq))]),
-                    fn () => $this->write(self::restoreFrames($state, $outputs, $bands)),
-                ]);
-            }
-        } finally {
-            $this->resumeRiders($riders);
-        }
+        return $this->playback->run(
+            $bypass, new TestTone(TestTone::PINK, $original->freq), $original, self::peqFrames($state, $outputs, $bands), $settle,
+            static fn (): string => $recorder->record($seconds, $path),
+        );
     }
 
     /**
@@ -322,62 +314,31 @@ final class AutoEq
      */
     public static function restoreFrames(array $state, array $outputs, int $bands): array
     {
-        $frames = [];
-        foreach ($outputs as $channel) {
-            foreach (\array_slice(self::bands($state, $channel), 0, $bands) as $n => $band) {
-                $frames[] = self::hex(Commands::peq($channel, $n, $band['gain'], $band['freq'], $band['q'], $band['type'], $band['bypass']));
-            }
-        }
-
-        return $frames;
+        return array_map(self::hex(...), self::peqFrames($state, $outputs, $bands));
     }
 
     public static function hex(Frame $frame): string
     {
-        return str_replace(' ', '', $frame->shortHex());
+        return Playback::hex($frame);
     }
 
     /**
-     * Stops the gain riders, which would otherwise ride the inputs on the pink noise, and returns their settings.
+     * The owned PEQ bands of the outputs as the state holds them.
      *
-     * @return list<array<mixed>>
-     */
-    private function pauseRiders(): array
-    {
-        $status = $this->bridge->request('status');
-        $riders = \is_array($status) && \is_array($status['riders'] ?? null) ? array_values(array_filter($status['riders'], 'is_array')) : [];
-        foreach ($riders as $rider) {
-            $this->bridge->request('unride', ['channel' => $rider['channel'] ?? -1]);
-        }
-
-        return $riders;
-    }
-
-    /**
-     * @param list<array<mixed>> $riders
-     */
-    private function resumeRiders(array $riders): void
-    {
-        $this->restore(array_map(fn (array $rider): \Closure => fn () => $this->bridge->request('ride', ['channel' => $rider['channel'] ?? -1, 'settings' => $rider]), $riders));
-    }
-
-    /**
-     * Runs every step even when one fails, then throws the first failure.
+     * @param array<mixed> $state
+     * @param list<int>    $outputs
      *
-     * @param list<\Closure(): mixed> $steps
+     * @return list<Frame>
      */
-    private function restore(array $steps): void
+    private static function peqFrames(array $state, array $outputs, int $bands): array
     {
-        $first = null;
-        foreach ($steps as $step) {
-            try {
-                $step();
-            } catch (BridgeException $e) {
-                $first ??= $e;
+        $frames = [];
+        foreach ($outputs as $channel) {
+            foreach (\array_slice(self::bands($state, $channel), 0, $bands) as $n => $band) {
+                $frames[] = Commands::peq($channel, $n, $band['gain'], $band['freq'], $band['q'], $band['type'], $band['bypass']);
             }
         }
-        if (null !== $first) {
-            throw $first;
-        }
+
+        return $frames;
     }
 }

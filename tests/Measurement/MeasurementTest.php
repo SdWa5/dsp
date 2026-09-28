@@ -5,15 +5,17 @@ namespace App\Tests\Measurement;
 use App\AutoEq\FittedBand;
 use App\Measurement\Calibration;
 use App\Measurement\Fft;
+use App\Measurement\Levels;
 use App\Measurement\Response;
 use App\Measurement\Spectrum;
+use App\Measurement\TestTone;
 use App\Measurement\WavReader;
 use App\Protocol\Scale;
 use App\Tests\Support\Signals;
 use PHPUnit\Framework\TestCase;
 
 /**
- * FFT, WAV reading, the fractional-octave spectrum and calibration files.
+ * FFT, WAV reading, the fractional-octave spectrum, the third-octave bands and calibration files.
  */
 final class MeasurementTest extends TestCase
 {
@@ -96,6 +98,55 @@ final class MeasurementTest extends TestCase
         $response = (new Spectrum())->analyse($samples, Scale::SAMPLE_RATE, Response::grid(100.0, 10000.0, 12));
 
         self::assertEqualsWithDelta(6.0, $response->at(1000) - $response->mean(100, 200), 1.5);
+    }
+
+    public function testAnalyseIsUnchanged(): void
+    {
+        // The values from before bands() shared the Welch loop, the auto EQ fits on them
+        $response = (new Spectrum())->analyse(Signals::pinkNoise(2 * Scale::SAMPLE_RATE, 7), Scale::SAMPLE_RATE, Response::grid());
+
+        self::assertSame(52.318629734665585, $response->db[0]);
+        self::assertSame(53.5046251296186, $response->db[57]);
+        self::assertSame(55.32100868190809, $response->db[120]);
+        self::assertSame(54.997776600180785, $response->db[239]);
+    }
+
+    public function testASineReadsItsLevelInItsBand(): void
+    {
+        $spectrum = new Spectrum(65536);
+        $bands = $spectrum->bands(Signals::sine(1000.0, 3 * Scale::SAMPLE_RATE, 0.5), Scale::SAMPLE_RATE);
+
+        self::assertCount(31, $bands);
+        self::assertSame('1kHz', $bands[17]['label']);
+        self::assertEqualsWithDelta(1000.0, $bands[17]['hz'], 1e-9);
+        // Amplitude 0.5 is 0.354 RMS
+        self::assertEqualsWithDelta(-9.03, $bands[17]['db'], 0.01);
+        self::assertLessThan(-40.0, $bands[16]['db']);
+        self::assertLessThan(-40.0, $bands[18]['db']);
+        self::assertEqualsWithDelta(-9.03, $spectrum->bands(Signals::sine(20.0, 3 * Scale::SAMPLE_RATE, 0.5), Scale::SAMPLE_RATE)[0]['db'], 0.01);
+    }
+
+    public function testWhiteNoiseBandsAddUpToItsLevel(): void
+    {
+        mt_srand(3);
+        $white = [];
+        for ($i = 0; $i < 4 * Scale::SAMPLE_RATE; ++$i) {
+            $white[] = (mt_rand() / mt_getrandmax() * 2 - 1) * 0.3;
+        }
+        $bands = (new Spectrum(65536))->bands($white, Scale::SAMPLE_RATE);
+        $sum = 10 * log10(array_sum(array_map(static fn (array $band): float => 10 ** ($band['db'] / 10), $bands)));
+        // The bands cover 17.8 Hz to 22.4 kHz, the white noise between there and 24 kHz is missing
+        $covered = (TestTone::frequency(30) * 10 ** (1 / 20) - TestTone::frequency(0) / 10 ** (1 / 20)) / (Scale::SAMPLE_RATE / 2);
+
+        self::assertEqualsWithDelta(Levels::of($white)->rms + 10 * log10($covered), $sum, 0.05);
+    }
+
+    public function testSilentBandsReadTheFloor(): void
+    {
+        $bands = (new Spectrum(65536))->bands(array_fill(0, 65536, 0.0), Scale::SAMPLE_RATE);
+
+        self::assertSame(Levels::FLOOR, $bands[0]['db']);
+        self::assertSame(Levels::FLOOR, $bands[30]['db']);
     }
 
     public function testSpectrumNeedsOneSegment(): void
