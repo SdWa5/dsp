@@ -129,8 +129,8 @@ the link drops it returns to client mode. On a LAN with a router (at a venue, fo
 client and never serves DHCP there. Plug it into the Deco's WAN port only. On the LAN port it would find no
 router while the Deco waits for a lease and serve DHCP inside `SdWa5`.
 
-The Deco's WAN port is labelled on the Deco, and the Deco sits in a closed case that has to be unscrewed before
-any cable can be changed, so the board cannot end up on the LAN port by mistake.
+The Deco sits in a closed case that has to be unscrewed before any cable can be changed, so the board cannot
+end up on the LAN port by mistake.
 
 A laptop that also has another uplink needs a route for B, for example
 `nmcli dev modify wlp0s20f3 +ipv4.routes "10.42.0.0/24 192.168.68.1"`. Phones need none.
