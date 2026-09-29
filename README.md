@@ -139,6 +139,8 @@ are also in the browser editor. `trackdsp:measure` plays the test tone on some o
 output keeps playing for the loopback, records the interface and prints levels and third-octave bands. It keeps
 the recording and a JSON file of the results in `var/measure/` and puts the tone, the gains and the mutes back
 afterwards. Every option, the fitting rules and the solo rules are in [docs/automation.md](docs/automation.md).
+The first measurements of the chain and of the 8x8 itself, with their commands and results, are in
+[docs/measurements.md](docs/measurements.md).
 
 ### Library
 

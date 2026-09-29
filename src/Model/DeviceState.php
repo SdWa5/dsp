@@ -8,7 +8,7 @@ use App\Protocol\Opcode;
 
 /**
  * Mutable device state as raw bytes: the configuration, the group control block and the preset names,
- * plus the values the configuration does not carry (+48V, working status, test tone frequency, device ID).
+ * plus the values the configuration does not carry (+48V, working status, device ID).
  *
  * apply() takes a write command and changes the bytes the way the device does, so a cached state stays
  * current without reading the configuration again. The simulated device and the bridge both build on it.
@@ -28,7 +28,6 @@ final class DeviceState
     /** @var array<int, bool> input index => +48V, only once set */
     private array $phantom = [];
     private ?int $workingStatus = null;
-    private int $toneFreq = 17;
     private ?int $deviceId = null;
 
     /**
@@ -91,7 +90,6 @@ final class DeviceState
             $device->inputs[$input]->phantom = $on;
         }
         $device->workingStatus = $this->workingStatus;
-        $device->toneFreq = $this->toneFreq;
         $device->deviceId = $this->deviceId ?? $device->deviceId;
         $device->activePreset = $this->activePreset;
         $device->presetNames = array_values($this->presetNames);
@@ -217,10 +215,13 @@ final class DeviceState
         }
     }
 
+    /**
+     * The device keeps the mode at footer +48 and the sine frequency at +50 (checked on the device, 2026-09-29).
+     */
     private function testTone(int $mode, int $freq): void
     {
         $this->put(self::F + 48, \chr($mode));
-        $this->toneFreq = $freq;
+        $this->put(self::F + 50, \chr($freq));
     }
 
     /**

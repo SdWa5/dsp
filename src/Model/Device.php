@@ -5,6 +5,7 @@ namespace App\Model;
 use App\Protocol\Channel;
 use App\Protocol\Commands;
 use App\Protocol\Frame;
+use App\Protocol\Labels;
 
 /**
  * Device state: the 1277-byte configuration read with command 0x27, plus values the
@@ -13,7 +14,7 @@ use App\Protocol\Frame;
  * Layout: 0 header (FF FF + preset name, 14) · 16 8 × input (62) · 512 Aux (94) · 606 8 × output (76) ·
  * 1214 footer (63): 0 mute inputs · 2 mute Aux · 4 mute outputs · 6+2k band bypass input k ·
  * 22 band bypass Aux · 24+2k band bypass output k · 40 sub in (gain %, mute, mask, x) · 44 sub out ·
- * 48 test tone mode · 52 delay unit · 56 EQ bypass inputs · 58 EQ bypass outputs · 60 EQ bypass Aux
+ * 48 test tone mode · 50 test tone frequency · 52 delay unit · 56 EQ bypass inputs · 58 EQ bypass outputs · 60 EQ bypass Aux
  */
 final class Device
 {
@@ -97,6 +98,8 @@ final class Device
         $d->subExtra = [Bytes::u8($b, $f + 43), Bytes::u8($b, $f + 47)];
         $tone = Bytes::u8($b, $f + 48);
         $d->toneMode = $tone < 4 ? $tone : null;
+        $freq = Bytes::u8($b, $f + 50);
+        $d->toneFreq = isset(Labels::TONE_FREQUENCIES[$freq]) ? $freq : $d->toneFreq;
         $unit = Bytes::u8($b, $f + 52);
         $d->delayUnit = $unit < 3 ? $unit : 0;
 

@@ -18,13 +18,24 @@ use App\Protocol\Scale;
  * output always plays, unmuted and untrimmed, so that every recording also holds the generator's loopback.
  * The trim moves the gain of every other played output from its own value, clamped to -60..+12 dB.
  *
- * The setup mutes the other outputs first, then trims, then unmutes, so nothing plays before its trim. The
- * restore mutes the played outputs that were muted first, then puts the gains back, then unmutes the others.
- * Every target appears once in each list, so a restore that the write queue merges into a setup not yet sent
- * still ends in the snapshot. The test tone is not part of either list, see Playback.
+ * At compressor ratio 1:1.0, the factory setting, the 8x8 exaggerates every output gain but 0 dB (-6 dB acts
+ * as -8.2 dB, +6 dB as +9.7 dB) and adds the spectrum mirrored at 24 kHz, about 10 dB down at -6 dB. At any
+ * other ratio the gain is exact as long as the compressor does not work (measured on Out7, 2026-09-29). So a
+ * trimmed output at 1:1.0 runs at 1:1.1 from +20 dB for the recording, above the output ceiling of about
+ * +12.5 dB. Played outputs at 1:1.0 with their own gain off 0 dB are reported.
+ *
+ * The setup mutes the other outputs first, then sets the compressors, then trims, then unmutes, so nothing
+ * plays before its trim. The restore mutes the played outputs that were muted first, then puts the gains and
+ * then the compressors back, then unmutes the others. Every target appears once in each list, so a restore
+ * that the write queue merges into a setup not yet sent still ends in the snapshot. The test tone is not part
+ * of either list, see Playback.
  */
 final readonly class Solo
 {
+    /** Ratio 1:1.1 from +20 dB: the compressor never works below the output ceiling, and the gain is exact. */
+    private const EXACT_RATIO = 1;
+    private const EXACT_THRESHOLD = 220;
+
     /**
      * @param list<int>                                 $played   output channels that play, the reference included
      * @param array<int, array{from: float, to: float}> $gains    trimmed outputs, their gain before and during the recording in dB
@@ -86,7 +97,7 @@ final readonly class Solo
         $played = null === $reference ? $asked : [...$asked, $reference];
         sort($played);
 
-        $mute = $unmuteOthers = $trims = $gainsBack = $unmute = $remute = $gains = [];
+        $mute = $unmuteOthers = $trims = $gainsBack = $exact = $compressorsBack = $unmute = $remute = $gains = $exactGain = [];
         if (null !== $outputs) {
             foreach ($channels as $channel => $output) {
                 if (!\in_array($channel, $played, true) && !self::muted($output)) {
@@ -104,8 +115,18 @@ final readonly class Solo
                 if ($trimmed !== $raw) {
                     $trims[] = Commands::gain($channel, $trimmed);
                     $gainsBack[] = Commands::gain($channel, $raw);
+                    $comp = $channels[$channel]['comp'] ?? null;
+                    if (\is_array($comp) && 0 === ($comp['ratio'] ?? null)) {
+                        [$knee, $attack, $release] = [self::int($comp, 'knee'), self::int($comp, 'attack'), self::int($comp, 'release')];
+                        $exact[] = Commands::compressor($channel, self::EXACT_RATIO, $knee, $attack, $release, self::EXACT_THRESHOLD);
+                        $compressorsBack[] = Commands::compressor($channel, 0, $knee, $attack, $release, self::int($comp, 'threshold', 180));
+                        $exactGain[] = $channel;
+                    }
                 }
             }
+        }
+        if ([] !== $exactGain) {
+            $notes[] = \sprintf('The recording runs the compressor of %s at 1:1.1 from +20 dB. At 1:1.0 the 8x8 exaggerates a trim and adds the spectrum mirrored at 24 kHz.', self::labels($exactGain));
         }
         foreach ($played as $channel) {
             if (self::muted($channels[$channel])) {
@@ -119,8 +140,8 @@ final readonly class Solo
 
         return new self(
             $played, $reference, null !== $outputs, $original, $gains,
-            [...$mute, ...$trims, ...$unmute], [...$remute, ...$gainsBack, ...$unmuteOthers],
-            array_values(array_unique($notes)), self::warnings($state, $channels, $asked, $played, $reference, $original),
+            [...$mute, ...$exact, ...$trims, ...$unmute], [...$remute, ...$gainsBack, ...$compressorsBack, ...$unmuteOthers],
+            array_values(array_unique($notes)), self::warnings($state, $channels, $asked, $played, $reference, $original, $exactGain),
         );
     }
 
@@ -129,10 +150,11 @@ final readonly class Solo
      * @param array<int, array<mixed>> $channels
      * @param list<int>                $asked
      * @param list<int>                $played
+     * @param list<int>                $exactGain trimmed outputs that run at 1:1.1 for the recording
      *
      * @return list<string>
      */
-    private static function warnings(array $state, array $channels, array $asked, array $played, ?int $reference, TestTone $original): array
+    private static function warnings(array $state, array $channels, array $asked, array $played, ?int $reference, TestTone $original, array $exactGain): array
     {
         $warnings = [];
         if ([] === $asked) {
@@ -150,6 +172,11 @@ final readonly class Solo
                 $warnings[] = \sprintf(
                     '%s has its compressor on (%s from %.1f dB), which can hold the level down.',
                     Channel::label($channel), Labels::COMP_RATIOS[$ratio] ?? (string) $ratio, Scale::thresholdToDb(self::int($comp, 'threshold', 180)),
+                );
+            } elseif (!\in_array($channel, $exactGain, true) && Scale::GAIN_UNITY !== ($gain = self::int($channels[$channel], 'gain', Scale::GAIN_UNITY))) {
+                $warnings[] = \sprintf(
+                    '%s is set to %+.1f dB with its compressor at 1:1.0, where the 8x8 exaggerates every gain but 0 dB and adds the spectrum mirrored at 24 kHz.',
+                    Channel::label($channel), Scale::gainToDb($gain),
                 );
             }
         }
@@ -212,6 +239,8 @@ final readonly class Solo
         }
         if (\is_array($output['comp'] ?? null) && 0 !== self::int($output['comp'], 'ratio')) {
             $reasons[] = 'compressor';
+        } elseif (Scale::GAIN_UNITY !== ($gain = self::int($output, 'gain', Scale::GAIN_UNITY))) {
+            $reasons[] = \sprintf('%+.1f dB at compressor 1:1.0', Scale::gainToDb($gain));
         }
         if (0 !== self::int($output, 'delay')) {
             $reasons[] = 'delay';

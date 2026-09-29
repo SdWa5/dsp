@@ -123,8 +123,9 @@ final class MeasureCommandTest extends KernelTestCase
         $tester->assertCommandIsSuccessful();
         self::assertIsArray($during);
         self::assertSame(TestTone::PINK, $during['tone_mode']);
-        // Out3 at +5 dB plays 20 dB lower, the muted reference Out8 plays, the rest is muted
+        // Out3 at +5 dB plays 20 dB lower at compressor 1:1.1, the muted reference Out8 plays, the rest is muted
         self::assertSame(Scale::dbToGain(-15.0), self::out($during, 3)['gain']);
+        self::assertSame([1, 220], [self::out($during, 3)['comp']['ratio'] ?? null, self::out($during, 3)['comp']['threshold'] ?? null]);
         self::assertFalse(self::out($during, 3)['mute']);
         self::assertFalse(self::out($during, 8)['mute']);
         foreach ([1, 2, 4, 5, 6, 7] as $number) {
@@ -135,6 +136,7 @@ final class MeasureCommandTest extends KernelTestCase
         $text = self::text($tester);
         self::assertStringContainsString('Pink Noise on Out3, Out8 (reference), the other outputs muted.', $text);
         self::assertStringContainsString('Out8 was muted and plays for the recording.', $text);
+        self::assertStringContainsString('The recording runs the compressor of Out3 at 1:1.1 from +20 dB.', $text);
         self::assertStringContainsString('The test tone was already on (White Noise). It goes back on after the recording.', $text);
         self::assertStringContainsString('Out3 +5.0 dB -15.0 dB -20.0 dB', $text);
         self::assertStringContainsString('Third-octave bands in dBFS: ', $text);
@@ -224,6 +226,21 @@ final class MeasureCommandTest extends KernelTestCase
         self::assertArrayNotHasKey('played', $json);
         self::assertIsArray($json['channels']);
         self::assertSame([1], array_keys($json['channels']));
+    }
+
+    public function testLeavesTheClickAtTheStartOfARecordingOut(): void
+    {
+        $click = array_fill(0, 240, 1.0);
+        $sine = Signals::sine(1000.0, 2 * Scale::SAMPLE_RATE, 0.5);
+        $wav = $this->wav([array_merge($click, \array_slice($sine, 240)), array_merge($click, array_fill(0, 2 * Scale::SAMPLE_RATE - 240, 0.0))]);
+
+        $tester = $this->measure(['-c' => '1,2', '--wav' => $wav]);
+
+        $tester->assertCommandIsSuccessful();
+        $text = self::text($tester);
+        self::assertStringContainsString('1 -9.0 -6.0 3.0 dB 0', $text);
+        self::assertStringContainsString('2 silent silent 0.0 dB 0', $text);
+        self::assertStringNotContainsString('clipped', $text);
     }
 
     public function testTheCalibrationCorrectsTheBands(): void

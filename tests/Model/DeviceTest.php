@@ -179,7 +179,17 @@ final class DeviceTest extends TestCase
         self::assertSame([100, 0xC0], [$this->dev->groups[0]->gain, $this->dev->groups[0]->mask]);
         self::assertSame(0x03, $this->dev->groups[1]->mask);
         self::assertSame([85, 0x0C], [$this->dev->groups[4]->gain, $this->dev->groups[4]->mask]);
-        self::assertSame(2, $this->dev->toneMode);
+        self::assertSame([2, 0], [$this->dev->toneMode, $this->dev->toneFreq]);
+    }
+
+    public function testToneFrequencyFromTheFooter(): void
+    {
+        $config = self::$config;
+        $config[Device::FOOTER_BASE + 50] = \chr(12);
+        self::assertSame(12, Device::parse($config)->toneFreq);
+        // Past the 31 frequencies the model keeps its default of 1 kHz
+        $config[Device::FOOTER_BASE + 50] = \chr(31);
+        self::assertSame(17, Device::parse($config)->toneFreq);
     }
 
     public function testFooterStates(): void

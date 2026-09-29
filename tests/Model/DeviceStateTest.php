@@ -62,7 +62,7 @@ final class DeviceStateTest extends TestCase
         }
         $clear($f + 22, 0x1F);
         $clear($f + 23);
-        // Test tone (left out on purpose) and bytes without a known command
+        // Test tone mode and frequency (left out on purpose) and bytes without a known command
         foreach ([48, 49, 50, 51, 53, 54, 55, 62] as $o) {
             $clear($f + $o);
         }
@@ -133,18 +133,26 @@ final class DeviceStateTest extends TestCase
         $state = new DeviceState(self::fixture());
         $state->apply(Commands::phantom(2, true));
         $state->apply(Commands::workingStatus(1));
-        $state->apply(Commands::testTone(3, 12));
         $state->apply(Commands::deviceId(7));
-        self::assertSame(3, $state->toDevice()->toneMode);
-        // The tone mode is part of the configuration, the frequency is not
         $state->replaceConfig(self::fixture());
         $device = $state->toDevice();
 
         self::assertTrue($device->inputs[2]->phantom);
         self::assertNull($device->inputs[3]->phantom);
         self::assertSame(1, $device->workingStatus);
-        self::assertSame(12, $device->toneFreq);
         self::assertSame(7, $device->deviceId);
+    }
+
+    public function testTheTestToneLivesInTheConfiguration(): void
+    {
+        $state = new DeviceState(self::fixture());
+        $state->apply(Commands::testTone(3, 12));
+
+        self::assertSame([3, 12], [$state->toDevice()->toneMode, $state->toDevice()->toneFreq]);
+        self::assertSame("\x03\x00\x0C", substr($state->config(), Device::FOOTER_BASE + 48, 3));
+        // A fresh read brings back what the device holds, the frequency as well as the mode
+        $state->replaceConfig(self::fixture());
+        self::assertSame([2, 0], [$state->toDevice()->toneMode, $state->toDevice()->toneFreq]);
     }
 
     public function testCopyChannelCopiesBlockAndMute(): void

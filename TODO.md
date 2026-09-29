@@ -46,6 +46,11 @@
 
 - Verify the gain riders and the auto EQ on the device with the UMC1820 and the measurement mic, on the command
   line and in the browser editor
+- The rack's output panel has a broken connection on output 8 (found 2026-09-29). Until it is repaired, measure
+  with `--reference-output=out6`. Afterwards repeat B1 of `docs/measurements.md` against Out8
+- Flag an output at compressor ratio 1:1.0 with a gain off 0 dB in the browser editor and in the auto EQ, as
+  `trackdsp:measure` does. The 8x8 then applies the gain more strongly than set and adds the spectrum mirrored
+  at 24 kHz, which the auto EQ would try to fit. Offer 1:1.1 from +20 dB instead
 - Harden the restore of the auto EQ and `trackdsp:measure`. Send it also after a timeout of the setup writes,
   since the bridge still applies a write whose client has gone. Wait up to 30 s for a lost device and send it
   again, which is safe because the frames are absolute. Save the restore frames and the rider settings to a
@@ -73,8 +78,10 @@
   2. Start from the output gains of the rig import, or from the current ones.
   3. EQ each group on its own within its passband.
   4. Set the relative level between the groups. Each group's output gain is set so that its level within its
-     passband meets the target curve, which also decides how loud the subs play against the tops. If the
-     output gain comes after the limiter, the step moves every threshold along with the gain.
+     passband meets the target curve, which also decides how loud the subs play against the tops. The output
+     gain comes before the limiter, so the thresholds stay where they are. A tuned output needs a compressor
+     ratio other than 1:1.0, where the 8x8 applies the gain more strongly than set
+     ([docs/measurements.md](docs/measurements.md)).
   5. Align delay and polarity between the groups. The transfer function gives the arrival times, and the delay
      and polarity of the later group are chosen so that the groups add up in their crossover region.
   6. Correct the phase between the groups. A delay shifts the phase evenly over frequency, so where the phase
@@ -106,10 +113,10 @@
   parsing the workbook, whose Drive folder holds several diverging copies of the limiter sheet. Three things
   need settling before the first import.
   - The sheet assumes that the 8x8's compressor threshold means dBu at the output connector, with 18 dBu as the
-    8x8's maximum output. Confirm it with a 100 Hz sine from the test tone, the amplifiers off and a true-RMS
-    meter on the output.
-  - Find out whether the output gain comes before or after the compressor. If it comes after it, every gain
-    change moves the real limit, so the tuning has to move the threshold with it.
+    8x8's maximum output. The loopback measurements show that the limiter follows the threshold 1 dB per dB
+    and that the output clips at about +12.5 dB on that scale ([docs/measurements.md](docs/measurements.md)).
+    Whether the scale is dBu needs a 100 Hz sine from the test tone, the amplifiers off and a true-RMS meter on
+    the output.
   - Settle which column holds the output gain. `DSP_Output_Gain_Set_dB` equals the threshold by formula
     (SIG-6 in sdwa5-3d).
 
@@ -119,4 +126,5 @@
 - Presets: recall F00 (`20 00`) on the device, and find a command that deletes a stored slot. Store, recall and occupancy are confirmed on U20
 - PIN: set (`2F`), unlock (`2D`), change and unset, with the lock state from `2C` after every step. Find the recovery path first (manual chapter 6, the 4x4 projects)
 - Command for changing the IP address
-- Meter dB scale calibration
+- Meter dB scale calibration. The formula in `docs/protocol.md` does not fit. Record gain steps at 1:1.1 and
+  compare the raw meter bytes with the UMC1820 ([docs/measurements.md](docs/measurements.md#meters))

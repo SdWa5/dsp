@@ -6,6 +6,7 @@ use App\Measurement\Solo;
 use App\Protocol\Channel;
 use App\Protocol\Commands;
 use App\Protocol\Frame;
+use App\Protocol\Opcode;
 use App\Protocol\Scale;
 use App\Transport\DemoTransport;
 use PHPUnit\Framework\TestCase;
@@ -68,7 +69,34 @@ final class SoloTest extends TestCase
             'Out1 has its compressor on (Limit from 0.0 dB), which can hold the level down.',
             'Out2 has its compressor on (Limit from 0.0 dB), which can hold the level down.',
             'The test tone was already on (White Noise). It goes back on after the recording.',
+            'The reference output Out8 is not flat (-6.0 dB at compressor 1:1.0), so its loopback carries these settings.',
         ], $solo->warnings);
+    }
+
+    public function testATrimRunsACompressorAt1To1AtExactGain(): void
+    {
+        // Out7 at 0 dB with the factory compressor 1:1.0 from +20 dB, attack 50 ms, release 200 ms
+        $solo = Solo::plan(self::demo(), [Channel::output(7)], -20.0, Channel::output(8));
+
+        self::assertSame(self::expected([
+            Commands::mute(8, true), Commands::mute(9, true), Commands::mute(10, true), Commands::mute(11, true), Commands::mute(12, true), Commands::mute(13, true),
+            Commands::compressor(14, 1, 0, 49, 199, 220),
+            Commands::gain(14, Scale::dbToGain(-20.0)),
+            Commands::mute(15, false),
+        ]), self::hex($solo->setup));
+        self::assertSame(self::expected([
+            Commands::mute(15, true),
+            Commands::gain(14, 280),
+            Commands::compressor(14, 0, 0, 49, 199, 220),
+            Commands::mute(8, false), Commands::mute(9, false), Commands::mute(10, false), Commands::mute(11, false), Commands::mute(12, false), Commands::mute(13, false),
+        ]), self::hex($solo->restore));
+        self::assertContains('The recording runs the compressor of Out7 at 1:1.1 from +20 dB. At 1:1.0 the 8x8 exaggerates a trim and adds the spectrum mirrored at 24 kHz.', $solo->notes);
+
+        // Without a trim the output plays as set, and a gain off 0 dB at 1:1.0 is reported
+        $solo = Solo::plan(self::demo(), [Channel::output(3), Channel::output(7)]);
+        self::assertSame([], array_filter($solo->setup, static fn (Frame $frame): bool => Opcode::Compressor === $frame->opcode()), 'No compressor write');
+        self::assertContains('Out3 is set to +5.0 dB with its compressor at 1:1.0, where the 8x8 exaggerates every gain but 0 dB and adds the spectrum mirrored at 24 kHz.', $solo->warnings);
+        self::assertCount(1, array_filter($solo->warnings, static fn (string $warning): bool => str_contains($warning, 'exaggerates')), 'Out7 at 0 dB is exact');
     }
 
     public function testWithoutOutputsEveryOutputPlaysAsSet(): void
@@ -115,6 +143,7 @@ final class SoloTest extends TestCase
 
         self::assertIsArray($during['outputs']);
         self::assertSame([true, true, false, true, false, false, true, false], array_column($during['outputs'], 'mute'));
+        self::assertSame([15, 15, 1, 0, 1, 1, 0, 0], array_column(array_column($during['outputs'], 'comp'), 'ratio'), 'Out3, Out5 and Out6 trim at 1:1.1');
         self::assertSame($before, $device->toDevice()->toArray());
     }
 
@@ -135,10 +164,11 @@ final class SoloTest extends TestCase
 
         self::assertSame([
             'Out3 has no input routed, so it plays nothing.',
+            'Out3 is set to +5.0 dB with its compressor at 1:1.0, where the 8x8 exaggerates every gain but 0 dB and adds the spectrum mirrored at 24 kHz.',
             'Output group 1 holds Out3 at 80 %.',
             'Sub control mutes Out7.',
             'The Aux takes In1+In2 and is not muted. If the test tone enters at the inputs, the Aux plays it too.',
-            'The reference output Out8 is not flat (PEQ 2, delay), so its loopback carries these settings.',
+            'The reference output Out8 is not flat (PEQ 2, -6.0 dB at compressor 1:1.0, delay), so its loopback carries these settings.',
         ], $solo->warnings);
     }
 
