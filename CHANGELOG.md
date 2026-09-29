@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.1] - 2026-09-29
+
+### Added
+
+- `docs/measurements.md` covers the speaker and amplifier tests with one Tecnare, one Flexy, one SKRAM and one Achenbach 18, the noise floor and hum of the amplifiers, the mic matching and the SPL offset
+
 ## [0.15.0] - 2026-09-29
 
 ### Added
@@ -253,7 +259,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.15.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/011da6f...main
+[0.15.1]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/840ca13...main
+[0.15.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/011da6f...840ca13
 [0.14.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/66d6b82...011da6f
 [0.13.1]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d45de7f...66d6b82
 [0.13.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/9494c73...d45de7f

@@ -14,7 +14,8 @@ measuring machine and are not part of the repository.
   knobs at minimum. 8x8 OUT7 goes to IN5. 8x8 OUT6 goes to IN6 as the reference loopback, because the rack's
   output panel has a broken connection on output 8 (see B1). Until that is repaired, every run needs
   `--reference-output=out6`.
-- The amplifiers were off for every test on this page.
+- The amplifiers were off for the bench tests B1 to B6 and the meter calibration. The speaker tests at the end
+  of the page ran with the amplifiers on and used Out7 as the reference.
 - The bridge in ddev holds the 8x8 on USB. Every session starts from a saved state and ends with a byte
   comparison of the configuration against it.
 - The test tone enters before the input gain (B2). The preset in use keeps every input at gain raw 0, which the
@@ -339,3 +340,161 @@ walked down from +20 dB. The table gives the drop of the Out7 meter against the 
 - Gain raw 0, which the editor shows as -60 dB, mutes the channel.
 - A limiter holds a 1 kHz signal at its threshold as read on the output meter, and a 100 Hz signal about
   2.2 dB above it. The meters show the level before the mute, so a muted channel keeps its reading.
+
+## Speakers and amplifiers
+
+One cabinet of every type, measured indoors on 2026-09-29 with the amplifiers on.
+
+### Setup
+
+- The DCX2496 was left out. The 8x8 split Tecnare L itself. Out1 took In5 for the woofer with a high-pass at
+  185 Hz and a low-pass at 2520 Hz, both LK-24, and Limit at -10 dB. Out2 took In5 for the horn with a
+  high-pass at 2520 Hz LK-24 and Limit at -20 dB.
+- TIP10000q channel 1 drove the woofer and channel 2 the horn. MM14K #1 channel A drove a Flexy from Out3 and
+  MM14K #4 a SKRAM from Out4. An Achenbach 18 was fed from Out6. Every amplifier knob stood at half. The DIP
+  switch gains were not noted.
+- The subs played full range, without a high-pass or a low-pass. Their compressors stood at 1:1.0 from +20 dB,
+  which `trackdsp:measure` switches to 1:1.1 for the recording.
+- In3 to In7 stood at 0 dB. In1 and In2 stayed at raw 0, since the preset loops Out1 and Out2 back into them.
+- Out7 on IN5 was the reference loopback.
+- Mic 1 and mic 2 stood side by side on axis, about 1 m in front of the cabinet. For the later runs they stood
+  somewhat higher and farther away, since the room left no other place. With one position per cabinet in a
+  room, every curve holds room modes and floor reflections, which can move a band below about 300 Hz by
+  several dB.
+- Every run played pink noise at `--trim=-20` for 10 s, unless the text says otherwise.
+
+```bash
+ddev exec bin/trackdsp measure out3 -c 1,2,5 --reference-output=out7 --trim=-20 --save=s4-flexy
+ddev exec bin/trackdsp measure out1,out2 -c 1,2,5 --reference-output=out7 --trim=-20 --relative=1 --save=s4-c2c3-tecL-full
+ddev exec bin/trackdsp measure -c 1,2,5 --signal=none --save=s4-s1-floor-mm14k1-on
+```
+
+### S1: noise floor and hum
+
+The generator was on Analog Input with no signal, and mic 1 stood 1 m from the subs.
+
+| Amplifiers | Mic 1 RMS | Third-octave bands |
+|---|---|---|
+| Off | -75.8 dBFS | -88 to -93 dBFS from 20 Hz to 5 kHz |
+| MM14K #1 on | -71.5 dBFS | -81 to -82 dBFS at 200 Hz and from 315 to 500 Hz, the rest unchanged |
+
+- There is no mains hum. The 50 Hz and the 100 Hz band stayed at the floor with every amplifier on.
+- The fans of the MM14K add about 10 dB between 200 and 500 Hz. That stays more than 20 dB below the subs at
+  -20 dB.
+- The TIP10000q whines between 800 Hz and 1.25 kHz. While the horn played, whose high-pass keeps it out of that
+  range, mic 1 read a steady -78 dBFS at 800 Hz and -76 dBFS at 1 kHz.
+- `s4-s1-floor-amps-on` was recorded before the amplifiers were actually on and holds the floor with them off.
+  `s4-s1-floor-amps-off` holds room noise and is not used.
+
+### S2: subs
+
+Mic 1 per band in dB, against each sub's own power mean from 40 to 125 Hz.
+
+| Band | SKRAM | Flexy | Achenbach 18 |
+|---|---|---|---|
+| 20 Hz | -20 | -24 | -26 |
+| 25 Hz | -8 | -24 | -18 |
+| 31.5 Hz | -3 | -19 | -10 |
+| 40 Hz | 0 | -3 | -1 |
+| 63 Hz | -2 | -4 | -3 |
+| 100 Hz | +1 | +1 | +2 |
+| 160 Hz | -8 | -2 | -4 |
+| 200 Hz | 0 | 0 | -9 |
+| 250 Hz | 0 | -6 | -8 |
+| 315 Hz | -1 | -12 | -6 |
+| 400 Hz | -17 | -13 | -5 |
+| 630 Hz | -17 | -9 | -6 |
+| 1 kHz | -24 | -13 | -10 |
+| 1.6 kHz | -20 | -17 | -15 |
+| 2.5 kHz | -27 | -25 | -11 |
+
+- The SKRAM reaches deepest and is 3 dB down at 31.5 Hz. The Achenbach 18 is 10 dB down at 31.5 Hz and about
+  6 dB down at 35 Hz, which fits the 35 Hz in its sdwa5-3d spec. The Flexy falls below 40 Hz and is 19 dB down
+  at 31.5 Hz.
+- From 40 to 125 Hz all three stay within about 4 dB of flat. The dip at 63 Hz shows in all three and is
+  probably the room.
+- Above 125 Hz the SKRAM holds up to 315 Hz and then falls by 17 dB, while the Flexy falls from 250 Hz. The
+  Achenbach 18 dips by 8 to 9 dB at 200 and 250 Hz and still plays 5 to 11 dB below its passband up to
+  2.5 kHz, so the upper limit of 1500 Hz in its spec is too low. Whether the dip comes from the horn or from
+  this position needs a second position.
+- Mic 1 read -58.7, -57.7 and -56.7 dBFS from 40 to 125 Hz for the SKRAM, the Flexy and the Achenbach 18. The
+  amplifiers differ and their gains were not noted, so this compares no sensitivities.
+- Every sub sounded clean at -20 dB, without a rattle or a buzz.
+- The runs `s4-s2-out3` to `s4-s2-out3-d` had the mics several metres from the Flexy. `s4-flexy` repeats them
+  at about 1 m, and `s4-achenbach-spl` repeats `s4-achenbach` within 0.3 dB.
+
+### S2: Tecnare L
+
+Mic 1 in dBFS, with each way at -20 dB. The last column plays both ways together. The horn is left out below
+2 kHz, where only the whine of the TIP10000q and the floor reach the mic.
+
+| Band | Woofer, Out1 | Horn, Out2 | Both |
+|---|---|---|---|
+| 125 Hz | -74.1 | | -73.8 |
+| 160 Hz | -61.7 | | -61.9 |
+| 200 Hz | -52.2 | | -52.8 |
+| 315 Hz | -49.1 | | -48.8 |
+| 500 Hz | -45.7 | | -45.9 |
+| 800 Hz | -52.6 | | -52.4 |
+| 1.25 kHz | -60.2 | | -61.0 |
+| 2 kHz | -59.7 | -64.0 | -58.9 |
+| 2.5 kHz | -66.6 | -60.6 | -58.6 |
+| 3.15 kHz | -75.7 | -55.9 | -57.2 |
+| 5 kHz | -93.0 | -51.8 | -52.9 |
+| 8 kHz | | -52.7 | -52.8 |
+| 12.5 kHz | | -50.8 | -52.6 |
+| 16 kHz | | -53.4 | -54.5 |
+| 20 kHz | | -63.5 | -64.5 |
+
+- The woofer plays from about 200 Hz and is 10 dB down at 160 Hz, where the 185 Hz high-pass and the cabinet
+  add up. It peaks at 500 Hz and falls from 800 Hz on, 14 dB below the peak at 1.25 kHz.
+- The horn stays within 3 dB from 5 to 16 kHz at about -52 dBFS and rolls off above 16 kHz.
+- Played together, the two ways leave a hollow from 1.25 to 2.5 kHz, about 7 dB below the horn's plateau and
+  13 dB below the woofer's peak. The split in the 8x8 stood in for the DCX2496 and is not the rig's crossover,
+  but the woofer's fall above 800 Hz belongs to the cabinet.
+- Out1 at -30 dB instead of -20 dB lowered every band from 160 Hz to 2.5 kHz by 10 dB within 1.1 dB, so the
+  woofer is linear at these levels.
+- Tecnare R was not measured.
+
+### S3: pinout and high-pass check
+
+- Before the horn was connected, the high-pass was checked on the loopback. Out2, Out5 and Out6 with a
+  high-pass at 2520 Hz LK-24 read 6.0 dB down at 2.5 kHz and 24.3 dB down at 1.25 kHz against their level from
+  8 to 16 kHz. That is the corner of a Linkwitz-Riley filter and one octave at 24 dB per octave. Out2 was
+  recorded on IN8 in `s4-hf-check-out2-in8`.
+- The Tecnare takes both ways over one Speakon cable. In the TIP10000q's other output socket the horn signal
+  reached the woofer and the woofer signal reached nothing. In the right socket channel 1 drives the woofer and
+  channel 2 the horn.
+
+### C2: mic matching
+
+- Mic 2 reads 1 to 2.5 dB above mic 1 from 25 Hz to 6.3 kHz in every run with the capsules side by side, most
+  bands at 1.5 to 2 dB. Above 8 kHz the difference falls to between +0.9 and -1.0 dB.
+- The same curve in every run points to the capsules or the preamps rather than to the positions. Single bands
+  of the Tecnare and the Achenbach 18 stray by up to 1 dB more, where a few centimetres between the capsules
+  matter.
+- A first run with one mic hanging towards the floor read 4 dB apart. The capsules have to stand side by side.
+- `s4-c2-out4-parallel` and `s4-c2c3-tecL-full` keep the curve for the auto EQ with two mics.
+
+### C3: SPL offset
+
+The meter at hand is a cheap one with A weighting only and a min, max and hold function. It was held at the
+mics and read on max. Mic 1's level was A-weighted from its third-octave bands.
+
+| Run | Mic 1 | Meter max | Offset |
+|---|---|---|---|
+| Tecnare L, both ways at -20 dB | -41.8 dBFS(A) | 81.3 dB(A) | 123.1 dB |
+| Flexy at -14 dB | -60.1 dBFS(A) | 64.0 dB(A) | 124.1 dB |
+| Achenbach 18 at -20 dB | -56.0 dBFS(A) | 69.4 dB(A) | 125.4 dB |
+
+- With the gain knob of UMC1820 IN1 as set on 2026-09-29, 0 dBFS on mic 1 means about 123 dB SPL(A). The
+  offset holds within about 2.5 dB.
+- The max function catches the loudest moment of the noise, and the room noise weighs more in the quieter
+  runs. Both lift the offset of the sub runs by 1 to 2.5 dB.
+- The first Flexy reading at -20 dB, 66.1 dB(A), was disturbed by room noise and is left out.
+
+### Open
+
+- Tecnare R and the DIP switch gains of the amplifiers.
+- The DCX2496's latency and the rig's crossover, which need the DCX2496 in the chain.
+- A meter with C or Z weighting and a slow RMS reading would pin the SPL offset more tightly.
