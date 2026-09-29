@@ -73,7 +73,7 @@ bin/trackdsp mute out1                 # and unmute out1
 bin/trackdsp phase out3 invert         # or normal
 bin/trackdsp route out3 1,2            # Out3 gets In1 + In2, "none" for no input
 bin/trackdsp dump config.bin           # raw configuration, hex without a file
-bin/trackdsp meters                    # levels in approximated dB, --raw for the bytes
+bin/trackdsp meters                    # levels in dB on the threshold scale, --raw for the bytes
 ```
 
 The target is `auto` (the first device that discovery finds, USB before the network), `usb` (first USB device),

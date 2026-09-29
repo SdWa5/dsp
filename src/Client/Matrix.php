@@ -216,7 +216,7 @@ final class Matrix
     }
 
     /**
-     * Levels of In1–8, Out1–8 and Aux in approximated dB, see Scale::meterDb().
+     * Levels of In1–8, Out1–8 and Aux in dB, see Scale::meterDb().
      *
      * @return list<float>
      */
@@ -225,7 +225,7 @@ final class Matrix
         $levels = [];
         for ($i = 0; $i < self::METER_CHANNELS; ++$i) {
             $o = 3 * $i;
-            $levels[] = \strlen($data) >= $o + 2 ? Scale::meterDb(\ord($data[$o]) | \ord($data[$o + 1]) << 8) : -90.0;
+            $levels[] = \strlen($data) >= $o + 2 ? Scale::meterDb(\ord($data[$o]) | \ord($data[$o + 1]) << 8) : Scale::METER_FLOOR;
         }
 
         return $levels;

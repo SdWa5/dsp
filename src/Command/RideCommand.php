@@ -33,12 +33,12 @@ final class RideCommand extends Command
     {
         $this
             ->addArgument('channel', InputArgument::OPTIONAL, 'in1..in8')
-            ->addOption('level', 'l', InputOption::VALUE_REQUIRED, 'Target meter level in dB (approximated meter scale)', '-18')
+            ->addOption('level', 'l', InputOption::VALUE_REQUIRED, 'Target meter level in dB', '-18')
             ->addOption('min', null, InputOption::VALUE_REQUIRED, 'Lowest gain in dB', '-20')
             ->addOption('max', null, InputOption::VALUE_REQUIRED, 'Highest gain in dB', '0')
             ->addOption('slew', null, InputOption::VALUE_REQUIRED, 'Fastest gain change in dB per second', '0.5')
             ->addOption('average', null, InputOption::VALUE_REQUIRED, 'Time constant of the level average in seconds', '5')
-            ->addOption('silence', null, InputOption::VALUE_REQUIRED, 'Hold the gain below this meter level in dB', '-45')
+            ->addOption('silence', null, InputOption::VALUE_REQUIRED, 'Hold the gain while the level before the gain is below this, in dB', '-45')
             ->addOption('deadband', null, InputOption::VALUE_REQUIRED, 'Leave deviations up to this size alone, in dB', '1')
             ->addOption('hold', null, InputOption::VALUE_REQUIRED, 'Pause in seconds after someone else changed the gain', '30')
             ->addOption('allow-boost', null, InputOption::VALUE_NONE, 'Allow a maximum above 0 dB')

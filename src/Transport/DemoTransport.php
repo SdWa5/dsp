@@ -6,6 +6,7 @@ use App\Model\Device;
 use App\Model\DeviceState;
 use App\Protocol\Frame;
 use App\Protocol\Opcode;
+use App\Protocol\Scale;
 
 /**
  * Simulated device for working without hardware. It answers like the 8x8, applies the write
@@ -131,14 +132,14 @@ final class DemoTransport implements TransportInterface
     }
 
     /**
-     * 17 × (lo, hi, peak) plus 4 trailing bytes. Routed inputs with gain produce a slowly moving level.
+     * 17 × (lo, hi, x) plus 4 trailing bytes. Every channel moves slowly between -40 and -10 dB.
      */
     private function meters(): string
     {
         ++$this->tick;
         $data = '';
         for ($i = 0; $i < 17; ++$i) {
-            $level = 0x05AD + (int) (0x2000 * (0.5 + 0.5 * sin($this->tick / 4 + $i)));
+            $level = Scale::dbToMeter(-25 + 15 * sin($this->tick / 4 + $i));
             $data .= pack('v', $level)."\x00";
         }
 

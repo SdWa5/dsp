@@ -67,7 +67,7 @@ Gain, EQ, filters and the rest go to the operated channel only (✓).
 | `29` | slot 00–14 | Read a preset name (00 = U01 … 13 = U20, 14 = F00) | ✓ |
 | `2C` | – | Device status. The editor sends it on connect. Reply `00 27 0F 00 00 00`, byte 6 lock (≈) | ✓ format, ≈ meaning |
 | `2D` / `2F` | PIN | Unlock / set PIN and lock | ≈ |
-| `30` | ch, ratio, knee, att u16, rel u16, thr u16 | Compressor (Out, Aux). At ratio 1:1.0 an output gain off 0 dB misbehaves, see [Signal chain](#signal-chain) | ✓ |
+| `30` | ch, ratio, knee, att u16, rel u16, thr u16 | Compressor (Out, Aux). At ratio 1:1.0 an output gain other than 0 dB misbehaves, and every compression mirrors the signal at 24 kHz, see [Signal chain](#signal-chain). Limit or 1:1.1 at +20 dB is off | ✓ |
 | `31` / `32` | ch, freq u16, slope | Low pass / high pass. slope 0 = bypass, 1–20 = BW/BL/LK −6…−48 | ✓ |
 | `33` | ch, band, gain u16, freq u16, q, type, bypass | PEQ (In/Aux 5 bands, Out 7) | ✓ |
 | `34` | ch, raw u16 | Gain | ✓ |
@@ -80,7 +80,7 @@ Gain, EQ, filters and the rest go to the operated channel only (✓).
 | `3C` | ch, 0/1 | EQ bypass of the whole channel | ✓ |
 | `3D` | ch, 8 chars | Channel name | ✓ |
 | `3E` | ch, att u16, rel u16, thr u16 | Noise gate (the 8x8 has no hold) | ✓ |
-| `40` | – | Meters: 17 × 3 bytes (In1–8, Out1–8, Aux) + 4 bytes | ✓ format, ? scale |
+| `40` | – | Meters: 17 × 3 bytes (In1–8, Out1–8, Aux) + `00 FF FF 00`, scale under Meter below | ✓ |
 | `55` | ch, mode | Input: 0 Line, 1 Mic 0 dB, 2 Mic +1 dB, 3 Mic +2 dB | ✓ |
 | `56` | ch, 0/1 | +48V phantom power | ✓ |
 | `5A` | idx | AutoMix slope 0 = −3 dB … 3 = −6 dB | ✓ |
@@ -114,7 +114,7 @@ Every frame the editor sent in the 143 captures (4830 frames) is rebuilt byte fo
 | Ratio | 0 = 1:1.0 … 14 = 1:20, 15 = Limit | ✓ |
 | Delay | samples / 48 (ms) | ✓ |
 | Reverb time | 139 = 1.96 s (no further data points) | approximated |
-| Meter | unknown. (lo + 256 · hi) / 256 − 60 dB reads -6.0 dB for an idle input and 0.7 dB for a real step of 8.1 dB | ? |
+| Meter | value = lo + 256 · hi + byte 3 / 256, dB = (value − 15906) · 20 · log10(2) / 128, which is 21.26 per dB. 0 dB lies on the threshold scale, a 1 kHz sine at unity reads −27.8 dB. 0x05AD is digital silence | ✓ |
 
 ### Signal chain
 
@@ -125,12 +125,21 @@ Measured with the loopbacks of a UMC1820 on 2026-09-29. The procedures and the n
   plays 15 dB louder than the sine.
 - The input gain is exact.
 - On an output the gain comes before the compressor.
-- The limiter works on the peak and follows the threshold 1 dB per dB. The output clips at about +12.5 dB on
-  the threshold scale.
-- At compressor ratio 1:1.0, the factory setting, every output gain other than 0 dB acts more strongly than
-  set. -6 dB acts as -8.2 dB, -20 dB as -23.4 dB, +6 dB as +9.7 dB and +12 dB as +19.7 dB. The output then
-  also carries the signal mirrored at 24 kHz, about 10 dB below it at -6 dB. The limiter adds the same image
-  while it works. At any other ratio the output gain is exact as long as the compressor does not work.
+- The limiter works on the peak and follows the threshold 1 dB per dB. It holds a 100 Hz signal about 2.2 dB
+  higher than a 1 kHz signal of the same level. The output clips at about +12.5 dB on the threshold scale by
+  the 100 Hz relation and at about +14.8 dB by the 1 kHz relation.
+- At compressor ratio 1:1.0, the factory setting, every second sample gets the output gain twice. With the
+  gain A as a factor the level becomes 10 · log10((A² + A⁴) / 2), so every gain other than 0 dB acts more
+  strongly than set. -6 dB acts as -8.2 dB, -20 dB as -23.4 dB, +6 dB as +9.7 dB and +12 dB as +19.7 dB. The
+  output then also carries the signal mirrored at 24 kHz, at (1 − A) / (1 + A) of it, which is about 10 dB
+  below it at -6 dB. At any other ratio the output gain is exact as long as the compressor does not work, so
+  Limit or 1:1.1 at +20 dB switches the compressor off.
+- Every compressor applies its gain reduction the same way while it works, whatever its ratio and its times.
+  The samples alternate between g and g², which mirrors the signal at 24 kHz, 15 dB below it at 3 dB of gain
+  reduction and 10 dB below it at 6 dB.
+- Gain raw 0 mutes the channel, while the editor shows it as -60 dB.
+- The meters tap after the gain and, on the outputs, after the compressor. They tap before the mute, so a muted
+  channel keeps its reading. They read like an RMS meter.
 
 ### Configuration (1277 bytes via `27`)
 
@@ -182,9 +191,9 @@ Group control is read with `6C 00` (8 × gain %, mute, mask).
   see `TODO.md`.
 - Deleting a stored preset: no command is known, a slot can only be overwritten.
 - Changing the IP address: the command is unknown (the editor sends it only on a real change).
-- Meters: the format is known, the dB scale is not ([measurements.md](measurements.md#meters)).
-- The unit of the compressor threshold at the output connector, and whether the output ceiling of about
-  +12.5 dB on that scale is analog or digital.
+- The unit of the compressor threshold at the output connector, which a voltmeter on a 100 Hz sine settles,
+  and whether the output ceiling of about +12.5 dB on that scale is analog or digital.
+- Why a limiter holds a 100 Hz signal about 2.2 dB higher than a 1 kHz signal of the same level.
 
 ---
 

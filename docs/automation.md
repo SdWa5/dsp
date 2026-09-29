@@ -38,12 +38,17 @@ again afterwards.
 | `--slew` | Fastest change | 0.5 | largest change in dB per second |
 | `--average` | Averaging time | 5 | averaging time in seconds (power average) |
 | `--deadband` | Leave alone within | 1 | no change while the average is this close to the target |
-| `--silence` | Hold below | -45 | below this level the gain is frozen, so a pause between tracks does not pull it up |
+| `--silence` | Hold below | -45 | below this level before the gain the gain is frozen, so a pause between tracks does not pull it up |
 | `--hold` | Pause after a manual change | 30 | seconds the rider pauses after somebody else changed the gain |
 
 A gain change that did not come from the rider (browser editor, vendor editor, another command) counts as a
 manual override. The rider adopts the new gain and pauses for the hold time. The device meters show the level
-after the gain, and the rider compensates its average for every step it writes.
+after the gain, and the rider compensates its average for every step it writes. For the same reason it judges
+silence on the level before the gain, which is the meter level minus the gain. A quiet track after a loud one
+therefore gets raised, even where the gain the loud track left behind puts its meter level below the silence
+level. A meter at its floor counts as silence at any gain, since gain raw 0 reads the same as no signal. A muted
+input is no pause. Its meter still shows the level, because the mute acts after it, so the rider keeps the
+gain right for the moment the input is unmuted.
 
 ## Compressor: `trackdsp:compressor`
 

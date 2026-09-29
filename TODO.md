@@ -11,6 +11,9 @@
 - Vendor preset files: the file format of the vendor editor is unknown. Capture a file saved by the vendor
   editor in the win11 VM, then decide whether trackdsp reads and writes it
 - Remove `legacy/python/` once the rewrite has reached parity
+- The meters light their red top at 0 dB, which on the calibrated scale lies 12.5 to 14.8 dB below the output
+  ceiling. For programme with a crest factor of 12 to 15 dB that is about where its peaks reach the ceiling,
+  while a sine or a limited signal lights it that much too early. Decide where the red top belongs
 
 ## Several devices
 
@@ -48,9 +51,13 @@
   line and in the browser editor
 - The rack's output panel has a broken connection on output 8 (found 2026-09-29). Until it is repaired, measure
   with `--reference-output=out6`. Afterwards repeat B1 of `docs/measurements.md` against Out8
-- Flag an output at compressor ratio 1:1.0 with a gain off 0 dB in the browser editor and in the auto EQ, as
-  `trackdsp:measure` does. The 8x8 then applies the gain more strongly than set and adds the spectrum mirrored
-  at 24 kHz, which the auto EQ would try to fit. Offer 1:1.1 from +20 dB instead
+- Gain raw 0 mutes the channel, while the browser editor, `trackdsp:gain` and the gain rider treat it as -60 dB.
+  Show it as muted in the editor. Keep the rider's lowest gain at -59.5 dB, since a rider that writes raw 0
+  reads silence afterwards and stays there
+- Flag an output at compressor ratio 1:1.0 with a gain other than 0 dB in the browser editor and in the auto EQ,
+  as `trackdsp:measure` does. The 8x8 then applies the gain more strongly than set and adds the spectrum
+  mirrored at 24 kHz, which the auto EQ would try to fit. Offer Limit or 1:1.1 from +20 dB instead, which keep
+  the gain exact and add no image
 - Harden the restore of the auto EQ and `trackdsp:measure`. Send it also after a timeout of the setup writes,
   since the bridge still applies a write whose client has gone. Wait up to 30 s for a lost device and send it
   again, which is safe because the frames are absolute. Save the restore frames and the rider settings to a
@@ -79,9 +86,9 @@
   3. EQ each group on its own within its passband.
   4. Set the relative level between the groups. Each group's output gain is set so that its level within its
      passband meets the target curve, which also decides how loud the subs play against the tops. The output
-     gain comes before the limiter, so the thresholds stay where they are. A tuned output needs a compressor
-     ratio other than 1:1.0, where the 8x8 applies the gain more strongly than set
-     ([docs/measurements.md](docs/measurements.md)).
+     gain comes before the limiter, so the thresholds stay where they are. A tuned output needs its compressor
+     switched off at Limit or 1:1.1 from +20 dB rather than at ratio 1:1.0, where the 8x8 applies the gain more
+     strongly than set ([docs/measurements.md](docs/measurements.md)).
   5. Align delay and polarity between the groups. The transfer function gives the arrival times, and the delay
      and polarity of the later group are chosen so that the groups add up in their crossover region.
   6. Correct the phase between the groups. A delay shifts the phase evenly over frequency, so where the phase
@@ -114,9 +121,10 @@
   need settling before the first import.
   - The sheet assumes that the 8x8's compressor threshold means dBu at the output connector, with 18 dBu as the
     8x8's maximum output. The loopback measurements show that the limiter follows the threshold 1 dB per dB
-    and that the output clips at about +12.5 dB on that scale ([docs/measurements.md](docs/measurements.md)).
-    Whether the scale is dBu needs a 100 Hz sine from the test tone, the amplifiers off and a true-RMS meter on
-    the output.
+    and that the output clips at about +12.5 dB on that scale by the 100 Hz relation, or at about +14.8 dB by
+    the 1 kHz relation, since a limiter holds a 100 Hz signal about 2.2 dB higher
+    ([docs/measurements.md](docs/measurements.md)). Whether the scale is dBu needs a 100 Hz sine from the test
+    tone, the amplifiers off and a true-RMS meter on the output.
   - Settle which column holds the output gain. `DSP_Output_Gain_Set_dB` equals the threshold by formula
     (SIG-6 in sdwa5-3d).
 
@@ -126,5 +134,3 @@
 - Presets: recall F00 (`20 00`) on the device, and find a command that deletes a stored slot. Store, recall and occupancy are confirmed on U20
 - PIN: set (`2F`), unlock (`2D`), change and unset, with the lock state from `2C` after every step. Find the recovery path first (manual chapter 6, the 4x4 projects)
 - Command for changing the IP address
-- Meter dB scale calibration. The formula in `docs/protocol.md` does not fit. Record gain steps at 1:1.1 and
-  compare the raw meter bytes with the UMC1820 ([docs/measurements.md](docs/measurements.md#meters))

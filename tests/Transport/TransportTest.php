@@ -139,7 +139,9 @@ final class TransportTest extends TestCase
         self::assertSame([40, 5], [$device->outputs[0]->hpf->freq, $device->outputs[0]->hpf->slope]);
         self::assertTrue($device->aux->mute);
         self::assertSame(Device::CONFIG_SIZE, \strlen($device->raw));
-        self::assertCount(17, \App\Client\Matrix::parseMeters($dsp->metersRaw()));
+        $levels = \App\Client\Matrix::parseMeters($dsp->metersRaw());
+        self::assertCount(17, $levels);
+        self::assertSame([], array_filter($levels, static fn (float $db): bool => $db < -40.05 || $db > -9.95), 'Demo meters move between -40 and -10 dB');
     }
 
     public function testDemoStoresPresetName(): void

@@ -5,6 +5,24 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2026-09-29
+
+### Added
+
+- `Scale::dbToMeter()` and the constants `Scale::METER_ZERO`, `METER_PER_DOUBLING` and `METER_FLOOR`
+- `docs/measurements.md` covers the mirror image of a working compressor at every ratio, the meter calibration, the limiter onset and the frequency dependence of the threshold, and `docs/protocol.md` documents the meter scale
+
+### Changed
+
+- Meter levels are calibrated decibels on the scale of the compressor threshold, with 128 steps per doubling and 0 dB at 15906. A 1 kHz sine at unity gain reads -27.8 dB, the level at which a limiter holds it. `trackdsp:meters`, the browser meters, the bridge's meter events and the gain rider use the new scale, so a rider target or silence level saved in `<socket>.riders.json` before this version means something else now and needs to be set again
+- The gain rider judges silence on the level before the gain, which is the meter level minus the gain, and counts a meter at its floor as silence at any gain
+- The meters of the demo device move between -40 and -10 dB
+
+### Fixed
+
+- The meter levels came from a formula that did not fit the device. An idle input read -6.0 dB, the test tone -0.2 dB and a real step of 8.1 dB showed as 0.7 dB
+- The gain rider stopped raising the gain after a loud source. A quiet source that followed read below the silence level at the gain the loud one left behind, so the rider took it for a pause and held the gain
+
 ## [0.13.1] - 2026-09-29
 
 ### Added
@@ -213,7 +231,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.13.1]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d45de7f...main
+[0.14.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/66d6b82...main
+[0.13.1]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d45de7f...66d6b82
 [0.13.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/9494c73...d45de7f
 [0.12.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/1bb70a3...9494c73
 [0.11.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c378966...1bb70a3
