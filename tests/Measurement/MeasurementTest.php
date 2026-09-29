@@ -46,6 +46,46 @@ final class MeasurementTest extends TestCase
         (new Fft(8))->power([1.0, 2.0]);
     }
 
+    public function testFftInverseGivesTheSignalBack(): void
+    {
+        $fft = new Fft(256);
+        $real = Signals::pinkNoise(256, 4);
+        $imag = Signals::pinkNoise(256, 5);
+        [$re, $im] = $fft->inverse(...$fft->transform($real, $imag));
+
+        self::assertEqualsWithDelta($real, $re, 1e-12);
+        self::assertEqualsWithDelta($imag, $im, 1e-12);
+    }
+
+    public function testFftOfAComplexExponentialFillsOneBin(): void
+    {
+        $fft = new Fft(64);
+        // e^(2πi·5n/64) lands in bin 5 alone, with |X| = N
+        $n = range(0, 63);
+        [$re, $im] = $fft->transform(array_map(static fn (int $i): float => cos(2 * M_PI * 5 * $i / 64), $n), array_map(static fn (int $i): float => sin(2 * M_PI * 5 * $i / 64), $n));
+
+        self::assertEqualsWithDelta(64.0, $re[5], 1e-9);
+        self::assertEqualsWithDelta(0.0, $im[5], 1e-9);
+        self::assertEqualsWithDelta(0.0, array_sum(array_map(static fn (float $r, float $i): float => $r * $r + $i * $i, $re, $im)) - 64 ** 2, 1e-6);
+    }
+
+    public function testFftCarriesTwoRealSignalsAtOnce(): void
+    {
+        $fft = new Fft(128);
+        $x = Signals::pinkNoise(128, 2);
+        $y = Signals::sine(1500.0, 128);
+        [$zr, $zi] = $fft->transform($x, $y);
+        [$xr, $xi] = $fft->transform($x);
+        [$yr, $yi] = $fft->transform($y);
+
+        // Z = X + jY
+        foreach (range(0, 127) as $k) {
+            self::assertEqualsWithDelta($xr[$k] - $yi[$k], $zr[$k], 1e-9);
+            self::assertEqualsWithDelta($xi[$k] + $yr[$k], $zi[$k], 1e-9);
+        }
+        self::assertEqualsWithDelta(array_map(static fn (float $r, float $i): float => $r * $r + $i * $i, \array_slice($xr, 0, 65), \array_slice($xi, 0, 65)), $fft->power($x), 1e-9);
+    }
+
     public function testWavFormats(): void
     {
         $left = [0.0, 0.5, -0.5, 1.0];

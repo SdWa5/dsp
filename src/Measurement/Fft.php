@@ -17,6 +17,8 @@ final class Fft
     private readonly array $cos;
     /** @var list<float> */
     private readonly array $sin;
+    /** @var list<float> */
+    private readonly array $sinInverse;
 
     public function __construct(public readonly int $size)
     {
@@ -40,6 +42,7 @@ final class Fft
         }
         $this->cos = $cos;
         $this->sin = $sin;
+        $this->sinInverse = array_map(static fn (float $v): float => -$v, $sin);
     }
 
     /**
@@ -51,35 +54,92 @@ final class Fft
      */
     public function power(array $samples): array
     {
-        if (\count($samples) !== $this->size) {
-            throw new \LengthException(\sprintf('The FFT needs %d samples, got %d.', $this->size, \count($samples)));
-        }
-        $re = [];
-        foreach ($this->reverse as $r) {
-            $re[] = $samples[$r];
-        }
-        $im = array_fill(0, $this->size, 0.0);
-        for ($half = 1, $step = $this->size >> 1; $half < $this->size; $half <<= 1, $step >>= 1) {
-            for ($start = 0; $start < $this->size; $start += $half << 1) {
-                for ($k = 0, $t = 0; $k < $half; ++$k, $t += $step) {
-                    $a = $start + $k;
-                    $b = $a + $half;
-                    $wr = $this->cos[$t];
-                    $wi = $this->sin[$t];
-                    $xr = $re[$b] * $wr - $im[$b] * $wi;
-                    $xi = $re[$b] * $wi + $im[$b] * $wr;
-                    $re[$b] = $re[$a] - $xr;
-                    $im[$b] = $im[$a] - $xi;
-                    $re[$a] += $xr;
-                    $im[$a] += $xi;
-                }
-            }
-        }
+        [$re, $im] = $this->transform($samples);
         $power = [];
         for ($k = 0; $k <= $this->size >> 1; ++$k) {
             $power[] = $re[$k] * $re[$k] + $im[$k] * $im[$k];
         }
 
         return $power;
+    }
+
+    /**
+     * Complex transform X[k] = Σ x[n]·e^(-2πikn/N) of exactly $size samples. Without $imag the input is real.
+     *
+     * @param list<float>      $real
+     * @param list<float>|null $imag
+     *
+     * @return array{list<float>, list<float>} real and imaginary part of the bins 0..size-1
+     */
+    public function transform(array $real, ?array $imag = null): array
+    {
+        return $this->run($real, $imag, false);
+    }
+
+    /**
+     * Inverse transform x[n] = 1/N · Σ X[k]·e^(2πikn/N), so that inverse(transform(x)) gives x back.
+     *
+     * @param list<float> $real
+     * @param list<float> $imag
+     *
+     * @return array{list<float>, list<float>}
+     */
+    public function inverse(array $real, array $imag): array
+    {
+        [$re, $im] = $this->run($real, $imag, true);
+        $scale = 1 / $this->size;
+
+        return [array_map(static fn (float $v): float => $v * $scale, $re), array_map(static fn (float $v): float => $v * $scale, $im)];
+    }
+
+    /**
+     * @param list<float>      $real
+     * @param list<float>|null $imag
+     *
+     * @return array{list<float>, list<float>}
+     */
+    private function run(array $real, ?array $imag, bool $inverse): array
+    {
+        if (\count($real) !== $this->size || (null !== $imag && \count($imag) !== $this->size)) {
+            throw new \LengthException(\sprintf('The FFT needs %d samples, got %d.', $this->size, \count($real)));
+        }
+        $re = [];
+        foreach ($this->reverse as $r) {
+            $re[] = $real[$r];
+        }
+        if (null === $imag) {
+            $im = array_fill(0, $this->size, 0.0);
+        } else {
+            $im = [];
+            foreach ($this->reverse as $r) {
+                $im[] = $imag[$r];
+            }
+        }
+        // Locals instead of properties, the loop runs size/2 · log2(size) times
+        $cos = $this->cos;
+        $sin = $inverse ? $this->sinInverse : $this->sin;
+        $size = $this->size;
+        for ($half = 1, $step = $size >> 1; $half < $size; $half <<= 1, $step >>= 1) {
+            for ($start = 0; $start < $size; $start += $half << 1) {
+                for ($k = 0, $t = 0; $k < $half; ++$k, $t += $step) {
+                    $a = $start + $k;
+                    $b = $a + $half;
+                    $wr = $cos[$t];
+                    $wi = $sin[$t];
+                    $br = $re[$b];
+                    $bi = $im[$b];
+                    $xr = $br * $wr - $bi * $wi;
+                    $xi = $br * $wi + $bi * $wr;
+                    $ar = $re[$a];
+                    $ai = $im[$a];
+                    $re[$b] = $ar - $xr;
+                    $im[$b] = $ai - $xi;
+                    $re[$a] = $ar + $xr;
+                    $im[$a] = $ai + $xi;
+                }
+            }
+        }
+
+        return [array_values($re), array_values($im)];
     }
 }

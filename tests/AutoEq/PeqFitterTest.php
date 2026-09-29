@@ -117,6 +117,13 @@ final class PeqFitterTest extends TestCase
         self::assertEqualsWithDelta(6.0, $band->responseAt($band->hz()), 0.01);
         self::assertEqualsWithDelta(0.0, $band->responseAt(50), 0.1);
         self::assertSame(0.0, self::band(1000, 0.0, 2.0)->responseAt(1000));
+        // Minimum phase: 0° at the centre and far away, a boost leads below the centre and lags above it
+        self::assertEqualsWithDelta(0.0, $band->phaseAt($band->hz()), 0.01);
+        self::assertEqualsWithDelta(0.0, $band->phaseAt(20), 0.5);
+        self::assertGreaterThan(5.0, $band->phaseAt(700));
+        self::assertLessThan(-5.0, $band->phaseAt(1400));
+        self::assertEqualsWithDelta(-$band->phaseAt(700), self::band(1000, -6.0, 2.0)->phaseAt(700), 0.01);
+        self::assertSame(0.0, self::band(1000, 0.0, 2.0)->phaseAt(700));
         self::assertSame(['freq' => $band->freq, 'gain' => 180, 'q' => $band->q, 'hz' => round($band->hz(), 1), 'db' => 6.0, 'q_value' => round($band->qValue(), 2)], $band->toArray());
     }
 

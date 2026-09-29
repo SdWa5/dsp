@@ -178,13 +178,15 @@ writing to verify.
 ## Measurements: `trackdsp:measure`
 
 `trackdsp:measure` plays the device's test tone on some outputs through the bridge, records inputs of the
-interface and prints their levels and third-octave bands. It is meant for checking the measurement chain, the
+interface and prints their levels and third-octave bands. With `--reference` it also prints the transfer
+function of every channel against the reference loopback. It is meant for checking the measurement chain, the
 8x8 and the speakers one output at a time. Every recording stays in `--dir` with a JSON file of its results,
 so it can be analysed again later.
 
 ```bash
 bin/console trackdsp:measure out3 -c 1,2,6 --trim=-20             # pink noise on Out3 alone, Out8 keeps playing
 bin/console trackdsp:measure out7 -c 5,6 --relative=6             # a loopback against the reference loopback
+bin/console trackdsp:measure out3 -c 1,6 --reference=6            # delay, polarity and phase of Out3 at mic 1
 bin/console trackdsp:measure out7 -c 5 --signal=sine:100          # level of a 100 Hz sine
 bin/console trackdsp:measure -c 1 --signal=none                   # generator off: noise floor and hum
 bin/console trackdsp:measure -c 1,2,5,6 --wav=var/measure/stage1-loopback.wav   # no bridge needed
@@ -202,7 +204,8 @@ output plays as set. One run does this:
 4. Switches the tone back to what it was, puts the gains, the compressors and the mutes back and starts the
    riders again. This also happens when the recording fails. Ctrl+C before or during the recording skips it
    and puts the device back.
-5. Prints the levels and the bands, and saves the recording and its JSON file in `--dir`.
+5. Prints the levels and the bands, with `--reference` also the transfer functions, and saves the recording
+   and its JSON file in `--dir`.
 
 | Option | Default | Meaning |
 |---|---|---|
@@ -216,6 +219,7 @@ output plays as set. One run does this:
 | `--settle` | 2 | seconds of tone before the recording |
 | `--cal` | – | mic calibration file for the first recorded channel, or `<channel>:<file>`. It can be given once per channel and corrects the bands only |
 | `--relative` | – | shows the other channels relative to this input |
+| `--reference` | – | input that records the reference loopback. Every other recorded channel gets its transfer function against it, see [Transfer function](#transfer-function) |
 | `--wav` | – | analyses this recording instead of measuring, without the bridge. The JSON file is written only with `--save` |
 | `--save` | `measure-<time>` | base name of the recording and its JSON file in `--dir`. An existing file is never overwritten |
 | `--restore` | – | replays the restore file a crashed measurement left behind and stops, see [Restore](#restore) |
@@ -258,6 +262,49 @@ Symfony Console reads `-c=1,5,6` as `=1,5,6`. Write `-c 1,5,6` or `--channels=1,
 - The JSON file holds the settings of the run (signal, played outputs, reference output, trims, notes,
   warnings, seconds, settle) and per channel the levels, the calibration file and the bands, rounded to
   0.01 dB.
+
+### Transfer function
+
+`--reference` names the input that records the reference output's loopback, for example IN6 for Out8. The
+reference has to be one of at least two recorded channels. Every other channel then gets its transfer function
+against it, on a live recording and on a `--wav` file alike. The interface records both inputs with one clock,
+so no drift correction is needed.
+
+- The analysis is a dual-channel FFT (`App\Measurement\TransferFunction`). Welch's method with Hann windows and
+  50 % overlap gives the auto spectra Gxx and Gyy and the cross spectrum Gxy. The transfer function is
+  H = Gxy / Gxx and the coherence is γ² = |Gxy|² / (Gxx · Gyy). Both signals of a segment go through one
+  complex FFT.
+- The first pass uses 65536 points and finds the whole-sample lag from the peak of the impulse response, within
+  ±682 ms. The second pass shifts the reference by that lag and computes H and γ² with 16384 points, which gives
+  bins of 2.9 Hz. It averages up to 32 segments, about 2.8 s of the recording, and refuses fewer than 8,
+  because the coherence of a few segments reads too high. A recording of 2 s is enough for a lag up to about
+  350 ms.
+- The delay is the peak of the envelope of the analytic impulse response. Every bin counts by its coherence, so
+  bins without signal add no noise. The envelope is evaluated on a grid of 1/8 sample around the peak and
+  refined with a parabola. Without a peak at least 20 dB above the envelope's median there is no delay. The
+  delay covers everything between the two inputs, which means the output path past the loopback, any delay set
+  on the output, the processors and amplifiers in the chain and the air.
+- The polarity comes from the phase of the analytic impulse response at the peak. It reads normal within ±45°
+  of 0°, inverted within ±45° of 180° and unclear otherwise. For a way that is coherent over fewer than
+  3 octaves, the command adds a note. There the peak gives the group delay of that band, and the way is aligned
+  by its phase in the crossover region instead.
+- The phase leaves out the measured delay, so a pure delay reads 0° at every frequency. Without a delay it leaves
+  out the whole-sample lag.
+- The bands are the third octaves of the level bands. Each gives the power mean of |H| in dB, the phase of the
+  coherence-weighted mean of H/|H| and the mean γ². A band's phase is hidden below a mean γ² of 0.5.
+- The summary names the widest run of adjacent bands with γ² of 0.5 or more as the coherent range, which is the
+  band a way plays in, and the mean γ² inside it.
+- A reference that clips or is silent gives a warning and no transfer functions, while the levels and the bands
+  still count. A reference below -50 dBFS RMS gives a warning, since the interface noise then lowers the
+  coherence.
+- The magnitude includes the difference between the preamp gains of the two inputs, like `--relative`. Compare
+  outputs recorded on the same pair of inputs.
+- The JSON file names `reference_input` and holds per channel a `transfer` with the lag, the delay in samples
+  and in ms, the delay the phase leaves out (`aligned`), the polarity, the phase and the ratio of the peak, the
+  mean coherence, the coherent range, the segments, the warnings and the bands.
+- The FFT runs in plain PHP. `trackdsp:measure` and `trackdsp:autoeq` switch PHP's JIT on at their start
+  (`App\Measurement\Jit`), which makes it about twice as fast where the JIT is set to `off` with a buffer, as
+  in `.ddev/php/jit.ini`. One pair of a 10 s recording then takes about 2 s in ddev.
 
 ### Restore
 

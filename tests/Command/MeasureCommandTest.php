@@ -206,6 +206,39 @@ final class MeasureCommandTest extends KernelTestCase
         self::assertEqualsWithDelta(FakeRecorderFactory::STEP_DB - 5.5, $band($json, 5, 17) - $band($json, 6, 17), 1.0);
     }
 
+    public function testTheTransferFunctionAgainstTheReferenceInput(): void
+    {
+        $this->client();
+
+        $tester = $this->measure(['outputs' => 'out7', '-c' => '4,5,6', '--reference' => '5', '--socket' => $this->bridge?->socket, '--save' => 'transfer']);
+
+        $tester->assertCommandIsSuccessful();
+        $text = self::text($tester);
+        self::assertStringContainsString('Transfer function against input 5: ', $text);
+        self::assertStringContainsString('4 48.00 samples, 1.000 ms normal 20Hz to 20kHz 1.00', $text);
+        self::assertStringContainsString('Band In4 dB Phase γ² In6 dB Phase γ²', $text);
+
+        // In4 is the reference noise 6 dB lower and 48 samples later, In6 the same noise 48 samples earlier through the peak
+        $json = $this->json('transfer');
+        self::assertSame(5, $json['reference_input']);
+        self::assertIsArray($json['channels']);
+        self::assertNull($json['channels'][5]['transfer']);
+        $in4 = $json['channels'][4]['transfer'];
+        $in6 = $json['channels'][6]['transfer'];
+        self::assertIsArray($in4);
+        self::assertIsArray($in6);
+        self::assertEqualsWithDelta(FakeRecorderFactory::LAG, $in4['delay'], 0.1);
+        self::assertSame('normal', $in4['polarity']);
+        self::assertIsArray($in4['bands']);
+        self::assertIsArray($in4['bands'][17]);
+        self::assertEqualsWithDelta(FakeRecorderFactory::STEP_DB, $in4['bands'][17]['db'], 0.2);
+        self::assertEqualsWithDelta(0.0, $in4['bands'][17]['phase'], 2.0);
+        self::assertEqualsWithDelta(-FakeRecorderFactory::LAG, $in6['delay'], 0.5);
+        self::assertIsArray($in6['bands']);
+        self::assertIsArray($in6['bands'][17]);
+        self::assertEqualsWithDelta(-FakeRecorderFactory::STEP_DB + 5.5, $in6['bands'][17]['db'], 1.0);
+    }
+
     public function testAnalysesARecordingWithoutTheBridge(): void
     {
         $wav = $this->wav([Signals::sine(1000.0, 2 * Scale::SAMPLE_RATE, 0.5), array_fill(0, 2 * Scale::SAMPLE_RATE, 0.0)]);
@@ -219,6 +252,11 @@ final class MeasureCommandTest extends KernelTestCase
         self::assertStringContainsString('1kHz -9.0 silent', $text);
         self::assertStringContainsString('Input 2 delivers digital silence.', $text);
         self::assertSame([$wav], glob($this->directory.'/*') ?: [], 'No JSON without --save');
+
+        $tester = $this->measure(['-c' => '1,2', '--wav' => $wav, '--reference' => '2']);
+
+        $tester->assertCommandIsSuccessful();
+        self::assertStringContainsString('No transfer function against input 2. The reference is silent.', self::text($tester));
 
         $tester = $this->measure(['-c' => '1', '--wav' => $wav, '--save' => 'sine']);
 
@@ -329,6 +367,8 @@ final class MeasureCommandTest extends KernelTestCase
             '--settle must not be negative.' => ['--settle' => '-1'],
             '--channels takes inputs of the interface from 1, got "0".' => ['-c' => '1,0'],
             '--relative=3 is not among the recorded channels 1,2.' => ['-c' => '1,2', '--relative' => '3'],
+            '--reference=3 must be one of at least two recorded channels, got 1,2.' => ['-c' => '1,2', '--reference' => '3'],
+            '--reference=1 must be one of at least two recorded channels, got 1.' => ['--reference' => '1'],
             '--cal names channel 3, which is not recorded.' => ['--cal' => ['3:mic.txt']],
             'Cannot read the calibration file' => ['--cal' => ['/nonexistent/mic.txt']],
             '--save takes a file name without a directory' => ['--save' => '../out3'],

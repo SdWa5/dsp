@@ -559,3 +559,39 @@ ddev exec bin/console trackdsp:ride in5 --max=6 --allow-boost
   It works on the gain and the meter of the input it rides, so the loop back into IN1 and IN2 does not reach
   it. On IN1 and IN2 it would undo the bus compression. A rider rides one channel and knows no links, so a
   stereo pair needs a rider for a link group first (TODO.md).
+
+## Transfer function
+
+`trackdsp:measure --reference` ([automation.md](automation.md#transfer-function)) analysed recordings from
+the bench and from the speaker tests again on 2026-09-29, with no new measurements. The bench recording has Out6
+as the reference on IN6. The speaker recordings have Out7 as the reference on IN5. The mics stood about 1 m in
+front of each cabinet, somewhat farther for the later runs, and 1 m of air accounts for about 2.9 ms.
+
+```bash
+ddev exec bin/trackdsp measure -c 5,6 --reference=6 --wav=var/measure/b1-out7-vs-out6.wav
+ddev exec bin/trackdsp measure -c 1,2,5 --reference=5 --wav=var/measure/s4-s2-tecL-hf.wav
+```
+
+| Recording | Mic 1 delay | Mic 2 delay | Polarity | Coherent range |
+|---|---|---|---|---|
+| Out7 against Out6 on the bench | 0.00 samples | | normal | 20 Hz to 20 kHz |
+| Tecnare L woofer, Out1 | 4.33 ms | 4.33 ms | unclear | 100 Hz to 4 kHz |
+| Tecnare L horn, Out2 | 3.92 ms | 3.92 ms | inverted | 1 to 16 kHz |
+| Flexy, Out3 | 12.22 ms | 12.29 ms | inverted | 31.5 Hz to 2.5 kHz |
+| SKRAM, Out4 | 7.73 ms | 6.72 ms | inverted and unclear | 20 Hz to 2.5 kHz |
+| Achenbach 18, Out6 | 3.28 ms | 3.31 ms | normal | 31.5 Hz to 4 kHz |
+
+- The bench loopback reads 0 samples and 0° in every band, with γ² 1.00 from 20 Hz to 20 kHz. Its magnitude is
+  +0.2 to +0.3 dB, the preamp difference that B1 found as well. That is the flat case of T1.
+- The two mics agree within 0.07 ms on every cabinet except the SKRAM, where they differ by 1.0 ms. A sub's
+  impulse response has a broad peak, so its delay is weaker than that of a top.
+- The horn arrives 0.41 ms before the woofer. Both ways carry an LK-24 filter at 2520 Hz, and the filter's group
+  delay is part of each reading.
+- The horn reads inverted and the woofer unclear. The high-pass at 2520 Hz alone turns the horn's phase by 180°
+  at its corner, so the peak phase does not tell whether the horn is wired inverted. The phase of both ways in
+  the crossover region decides that (T4).
+- The subs played full range, so their delays include the group delay of the cabinet, which is long for a
+  horn-loaded sub. The Flexy arrives 9 ms after the Achenbach 18. The system tuning aligns
+  subs by their phase at the crossover rather than by the peak.
+- The table is not an alignment yet. Every delay includes any delay set on the output, and the rig's crossover
+  in the DCX2496 was not in the chain.

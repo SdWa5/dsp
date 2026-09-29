@@ -12,6 +12,7 @@ use App\Bridge\BridgeClient;
 use App\Bridge\BridgeException;
 use App\Measurement\Calibration;
 use App\Measurement\Interrupt;
+use App\Measurement\Jit;
 use App\Measurement\RecorderFactory;
 use App\Protocol\Channel;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -75,6 +76,7 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        Jit::enable();
         $io = new SymfonyStyle($input, $output);
         try {
             $outputs = self::outputs($input);

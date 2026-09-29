@@ -129,6 +129,7 @@ bin/console trackdsp:compressor out1,out2 --ratio=4 --threshold=-6 # the other v
 bin/console trackdsp:autoeq out1,out2 --device=plughw:CARD=UMC1820,DEV=0 --positions=3   # needs the bridge
 bin/console trackdsp:autoeq out1,out2 --revert=var/autoeq/backup-<time>.json
 bin/console trackdsp:measure out3 -c 1,6 --trim=-20                # Out3 alone, mic on input 1, Out8's loopback on 6
+bin/console trackdsp:measure out3 -c 1,6 --reference=6            # plus delay, polarity and phase against the loopback
 bin/console trackdsp:measure -c 1,6 --wav=var/measure/<name>.wav   # analyse a recording again, no bridge needed
 bin/console trackdsp:measure --restore                             # put the device back after a crashed measurement
 ```
@@ -137,7 +138,9 @@ The gain riders run inside the bridge and come back after a restart. The auto EQ
 records the measurement mic, fits up to 7 PEQ bands to a target and writes them only after confirmation. It records
 from `TRACKDSP_CAPTURE_DEVICE` unless `--device` names another ALSA capture device. All three
 are also in the browser editor. `trackdsp:measure` plays the test tone on some outputs alone while the reference
-output keeps playing for the loopback, records the interface and prints levels and third-octave bands. It keeps
+output keeps playing for the loopback, records the interface and prints levels and third-octave bands. With
+`--reference` it adds the transfer function of every channel against the loopback, with delay, polarity,
+coherence and the phase per band. It keeps
 the recording and a JSON file of the results in `var/measure/` and puts the tone, the gains and the mutes back
 afterwards, also after Ctrl+C or a device that drops off. What a crash leaves behind, `--restore` replays. Every option, the fitting rules and the solo rules are in [docs/automation.md](docs/automation.md).
 The first measurements of the chain and of the 8x8 itself, with their commands and results, are in
@@ -166,7 +169,7 @@ file_put_contents('preset.json', $device->toJson());    // same file format as t
 | `App\Bridge` | the bridge loop, write queue, command allow-list and the socket client |
 | `App\Discovery` | device search on USB and on the local networks |
 | `App\Automation` | the gain rider |
-| `App\Measurement` | FFT, WAV reader, spectrum and third-octave analysis, levels, responses, calibration files, `arecord` recorder, the test tone, the solo plan and the playback that puts the device back |
+| `App\Measurement` | FFT, WAV reader, spectrum and third-octave analysis, transfer function, levels, responses, calibration files, `arecord` recorder, the test tone, the solo plan and the playback that puts the device back |
 | `App\AutoEq` | target curves, the PEQ fitter, and the measure, backup, apply and revert steps shared by the command and the browser session |
 | `App\Command` | the `trackdsp:*` console commands |
 | `App\Controller` | the browser editor, the JSON API, the auto EQ API and the event stream |
