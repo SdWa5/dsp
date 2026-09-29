@@ -130,6 +130,7 @@ bin/console trackdsp:autoeq out1,out2 --device=plughw:CARD=UMC1820,DEV=0 --posit
 bin/console trackdsp:autoeq out1,out2 --revert=var/autoeq/backup-<time>.json
 bin/console trackdsp:measure out3 -c 1,6 --trim=-20                # Out3 alone, mic on input 1, Out8's loopback on 6
 bin/console trackdsp:measure -c 1,6 --wav=var/measure/<name>.wav   # analyse a recording again, no bridge needed
+bin/console trackdsp:measure --restore                             # put the device back after a crashed measurement
 ```
 
 The gain riders run inside the bridge and come back after a restart. The auto EQ plays the device's pink noise,
@@ -138,7 +139,7 @@ from `TRACKDSP_CAPTURE_DEVICE` unless `--device` names another ALSA capture devi
 are also in the browser editor. `trackdsp:measure` plays the test tone on some outputs alone while the reference
 output keeps playing for the loopback, records the interface and prints levels and third-octave bands. It keeps
 the recording and a JSON file of the results in `var/measure/` and puts the tone, the gains and the mutes back
-afterwards. Every option, the fitting rules and the solo rules are in [docs/automation.md](docs/automation.md).
+afterwards, also after Ctrl+C or a device that drops off. What a crash leaves behind, `--restore` replays. Every option, the fitting rules and the solo rules are in [docs/automation.md](docs/automation.md).
 The first measurements of the chain and of the 8x8 itself, with their commands and results, are in
 [docs/measurements.md](docs/measurements.md).
 

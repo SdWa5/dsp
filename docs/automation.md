@@ -118,7 +118,8 @@ bin/console trackdsp:autoeq out1,out2 --revert=var/autoeq/backup-20260927-120000
 The auto EQ is supervised and runs before the show, not during it. One run does this:
 
 1. Saves the device state as a preset file `backup-<time>.json` in `--dir` (default `var/autoeq`).
-2. For each of `--positions` positions it pauses the gain riders, bypasses the PEQ bands it owns on the
+2. For each of `--positions` positions it saves the restore to a file (see [Restore](#restore)), pauses the
+   gain riders, bypasses the PEQ bands it owns on the
    chosen outputs (bands 1 to `--bands`) and starts the device's pink noise on every routed output. Keep the
    level safe before starting. With more than one position it asks before each recording.
 3. Waits until the device has taken these writes, lets the noise settle for `--settle` seconds (default 2) and
@@ -129,8 +130,8 @@ The auto EQ is supervised and runs before the show, not during it. One run does 
 7. Writes the bands only with `--apply` or after a confirmation, whose default is no. Unused owned bands are
    set flat and bypassed. Without a write, the original bands are restored.
 
-The tone and the bands are restored when a recording fails, also on Ctrl+C, within the limits described under
-[Restore](#restore). `--revert` restores the PEQ of the outputs from a backup. `--wav` analyses existing
+The tone and the bands are restored when a recording fails. Ctrl+C before or during a recording puts them back,
+skips the recording and ends the remaining positions. See [Restore](#restore) for a device that drops off. `--revert` restores the PEQ of the outputs from a backup. `--wav` analyses existing
 recordings instead of measuring and leaves the device untouched until the write.
 
 Only one measurement runs on a bridge at a time. The Auto EQ page, `trackdsp:autoeq` and `trackdsp:measure`
@@ -194,12 +195,13 @@ output plays as set. One run does this:
 
 1. Reads the device state from the bridge and plans the solo (see [Solo](#solo)). Every frame of the setup
    and of the restore is built before the first write.
-2. Pauses the gain riders, mutes the other outputs, sets the compressor of a trimmed output at ratio 1:1.0 to
+2. Saves the restore to a file, pauses the gain riders, mutes the other outputs, sets the compressor of a trimmed output at ratio 1:1.0 to
    1:1.1 from +20 dB, trims the played ones, unmutes a played output that is muted and starts the test tone.
 3. Waits until the device has taken these writes, lets the tone settle for `--settle` seconds and records
    `--seconds` from `--device`.
 4. Switches the tone back to what it was, puts the gains, the compressors and the mutes back and starts the
-   riders again. This also happens when the recording fails or is stopped with Ctrl+C.
+   riders again. This also happens when the recording fails. Ctrl+C before or during the recording skips it
+   and puts the device back.
 5. Prints the levels and the bands, and saves the recording and its JSON file in `--dir`.
 
 | Option | Default | Meaning |
@@ -216,6 +218,7 @@ output plays as set. One run does this:
 | `--relative` | – | shows the other channels relative to this input |
 | `--wav` | – | analyses this recording instead of measuring, without the bridge. The JSON file is written only with `--save` |
 | `--save` | `measure-<time>` | base name of the recording and its JSON file in `--dir`. An existing file is never overwritten |
+| `--restore` | – | replays the restore file a crashed measurement left behind and stops, see [Restore](#restore) |
 | `-s`, `--socket` | `TRACKDSP_BRIDGE_SOCKET` or `var/bridge.sock` | bridge socket |
 | `--dir` | `var/measure` | directory for recordings and results |
 
@@ -258,7 +261,29 @@ Symfony Console reads `-c=1,5,6` as `=1,5,6`. Write `-c 1,5,6` or `--channels=1,
 
 ### Restore
 
-The restore needs the bridge and the device. When the device drops off during a recording, or the bridge does
-not answer the setup writes, the restore does not get through. The test tone then keeps playing and the other
-outputs stay muted until they are set back in the editor. The auto EQ has the same limits for its tone and its
-bands. Making the restore survive both is listed in [TODO.md](../TODO.md).
+`trackdsp:measure`, `trackdsp:autoeq` and the Auto EQ page share one restore:
+
+- Before the setup, the frames that put the device back and the settings of the paused gain riders are saved
+  to `<socket>.measure.restore.json` (`var/bridge.measure.restore.json` by default). A measurement whose
+  restore file cannot be saved does not start.
+- The restore also runs when the setup writes fail or time out, since the bridge still applies a write whose
+  client has gone.
+- When the device drops off, the restore waits up to 30 s for the bridge to reconnect and sends the frames
+  again. Sending them twice is safe, because they carry absolute values. The riders start again in any case,
+  since they run in the bridge.
+- Only a restore that the device has taken deletes the file. The error then names both failures when the
+  recording failed as well.
+
+While a restore file is there, no measurement starts and the error names the file, because the next snapshot
+would take the device as it was left for the original. Once the device is connected again, replay the file:
+
+```bash
+bin/console trackdsp:measure --restore        # prints what it put back, or "Nothing to restore."
+```
+
+Deleting the file instead keeps the device as it is. After a crash of the bridge, start it first, since the
+replay goes through it.
+
+Ctrl+C or SIGTERM sets a flag that the settle and the wait for the device check every 0.1 s. The recording then
+does not start, a recording that ends after the signal is dropped, and the restore runs without waiting for
+another signal.

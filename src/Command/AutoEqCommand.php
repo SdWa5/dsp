@@ -11,6 +11,7 @@ use App\AutoEq\TargetCurve;
 use App\Bridge\BridgeClient;
 use App\Bridge\BridgeException;
 use App\Measurement\Calibration;
+use App\Measurement\Interrupt;
 use App\Measurement\RecorderFactory;
 use App\Protocol\Channel;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -35,6 +36,8 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 #[AsCommand('trackdsp:autoeq', 'Measure with pink noise and a measurement mic and fit the output PEQ to a target (needs a running bridge)')]
 final class AutoEqCommand extends Command implements SignalableCommandInterface
 {
+    private ?Interrupt $interrupt = null;
+
     public function __construct(
         #[Autowire('%trackdsp.bridge_socket%')]
         private readonly string $defaultSocket,
@@ -76,7 +79,8 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
         try {
             $outputs = self::outputs($input);
             $socket = self::optional($input, 'socket') ?? $this->defaultSocket;
-            $autoEq = new AutoEq(new BridgeClient($socket), self::optional($input, 'dir') ?? $this->defaultDirectory, $this->recorders);
+            $this->interrupt = new Interrupt();
+            $autoEq = new AutoEq(new BridgeClient($socket), self::optional($input, 'dir') ?? $this->defaultDirectory, $this->recorders, $this->interrupt);
             if (null !== $revert = self::optional($input, 'revert')) {
                 return $this->revert($autoEq, $outputs, $revert, $io);
             }
@@ -149,10 +153,13 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
     }
 
     /**
-     * arecord gets the signal too and fails, and AutoEq::record() switches the tone off and restores the bands.
+     * Lets AutoEq::record() stop before the recording and put tone and bands back, which also ends the
+     * remaining positions. arecord gets the signal too.
      */
     public function handleSignal(int $signal, int|false $previousExitCode = 0): int|false
     {
+        $this->interrupt?->trigger();
+
         return false;
     }
 
