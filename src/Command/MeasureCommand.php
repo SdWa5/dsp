@@ -5,6 +5,7 @@ namespace App\Command;
 use App\Bridge\BridgeClient;
 use App\Bridge\BridgeException;
 use App\Measurement\Calibration;
+use App\Measurement\Interrupt;
 use App\Measurement\Levels;
 use App\Measurement\Playback;
 use App\Measurement\RecorderFactory;
@@ -31,6 +32,8 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  * The outputs given play alone (see Solo), and the reference output keeps playing for the loopback. Every
  * recording puts mutes, gains and the tone back afterwards, also when it fails (see Playback). The recording
  * and a JSON file with the results stay in --dir. --wav analyses an existing recording without the bridge.
+ * --restore replays what a crashed measurement left in its restore file. Ctrl+C stops before the recording and
+ * puts the device back.
  */
 #[AsCommand('trackdsp:measure', 'Play the test tone on outputs, record the interface and print levels and third-octave bands (needs a running bridge)')]
 final class MeasureCommand extends Command implements SignalableCommandInterface
@@ -42,6 +45,8 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
      * with a click of a few milliseconds on a line input, up to -16 dBFS on an input that is silent afterwards.
      */
     private const SKIP = 0.1;
+
+    private ?Interrupt $interrupt = null;
 
     public function __construct(
         #[Autowire('%trackdsp.bridge_socket%')]
@@ -69,6 +74,7 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
             ->addOption('relative', null, InputOption::VALUE_REQUIRED, 'Show the other channels relative to this one')
             ->addOption('wav', null, InputOption::VALUE_REQUIRED, 'Analyse this recording instead of measuring, without the bridge')
             ->addOption('save', null, InputOption::VALUE_REQUIRED, 'Base name of the recording and its JSON in --dir (default: measure-<time>)')
+            ->addOption('restore', null, InputOption::VALUE_NONE, 'Replay the restore file a crashed measurement left behind, and stop')
             ->addOption('socket', 's', InputOption::VALUE_REQUIRED, 'Bridge socket (default: $TRACKDSP_BRIDGE_SOCKET or var/bridge.sock)')
             ->addOption('dir', null, InputOption::VALUE_REQUIRED, 'Directory for recordings and results (default: var/measure)');
     }
@@ -76,6 +82,10 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+        $this->interrupt = new Interrupt();
+        if ($input->getOption('restore')) {
+            return $this->restore(self::optional($input, 'socket') ?? $this->defaultSocket, $io);
+        }
         try {
             $channels = self::channels($input);
             $relative = null === ($value = self::optional($input, 'relative')) ? null : self::input($value, '--relative');
@@ -136,11 +146,32 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
     }
 
     /**
-     * arecord gets the signal too and fails, and Playback puts the device back.
+     * Lets Playback stop before the recording and put the device back. arecord gets the signal too.
      */
     public function handleSignal(int $signal, int|false $previousExitCode = 0): int|false
     {
+        $this->interrupt?->trigger();
+
         return false;
+    }
+
+    private function restore(string $socket, SymfonyStyle $io): int
+    {
+        try {
+            $saved = (new Playback(new BridgeClient($socket)))->recover();
+        } catch (BridgeException|\RuntimeException $e) {
+            $io->error($e->getMessage());
+
+            return Command::FAILURE;
+        }
+        if (null === $saved) {
+            $io->writeln('Nothing to restore.');
+        } else {
+            $riders = array_map(static fn (array $rider): string => Channel::label((int) ($rider['channel'] ?? -1)), $saved['riders']);
+            $io->success(\sprintf('Put back %d frame%s from the measurement of %s%s.', \count($saved['frames']), 1 === \count($saved['frames']) ? '' : 's', $saved['time'], [] === $riders ? '' : ' and started the riders on '.implode(', ', $riders).' again'));
+        }
+
+        return Command::SUCCESS;
     }
 
     /**
@@ -225,7 +256,7 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
         }
         $recorder = $this->recorders->create($plan['device'], max($channels));
         $io->writeln(\sprintf('Recording %d s from %s…', $plan['seconds'], $plan['device']));
-        (new Playback($bridge))->run($solo->setup, $tone, $solo->original, $solo->restore, $plan['settle'], static fn (): string => $recorder->record($plan['seconds'], $wav));
+        (new Playback($bridge, interrupt: $this->interrupt))->run($solo->setup, $tone, $solo->original, $solo->restore, $plan['settle'], static fn (): string => $recorder->record($plan['seconds'], $wav));
 
         return [
             'time' => date(\DATE_ATOM),

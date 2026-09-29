@@ -46,6 +46,7 @@ final class BridgeProcess
         @unlink($this->socket);
         @unlink(preg_replace('/\.sock$/', '', $this->socket).'.riders.json');
         @unlink(preg_replace('/\.sock$/', '', $this->socket).'.measure.lock');
+        @unlink(preg_replace('/\.sock$/', '', $this->socket).'.measure.restore.json');
 
         return $this->process->getExitCode();
     }

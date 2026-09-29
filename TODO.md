@@ -58,11 +58,6 @@
   as `trackdsp:measure` does. The 8x8 then applies the gain more strongly than set and adds the spectrum
   mirrored at 24 kHz, which the auto EQ would try to fit. Offer Limit or 1:1.1 from +20 dB instead, which keep
   the gain exact and add no image
-- Harden the restore of the auto EQ and `trackdsp:measure`. Send it also after a timeout of the setup writes,
-  since the bridge still applies a write whose client has gone. Wait up to 30 s for a lost device and send it
-  again, which is safe because the frames are absolute. Save the restore frames and the rider settings to a
-  file before the setup, delete the file after a clean restore and replay it with `trackdsp:measure --restore`
-  after a crash. Let Ctrl+C end the settle and skip the recording, which today starts anyway
 - Measure the 8x8's PEQ shapes against the RBJ filters the fitter assumes. Include the allpass types and the
   phase of the HPF and LPF types, because the phase step of the system tuning predicts with them
 - Measure a transfer function instead of the plain pink noise spectrum, which the delay, polarity and phase

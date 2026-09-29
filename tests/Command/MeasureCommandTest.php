@@ -3,7 +3,9 @@
 namespace App\Tests\Command;
 
 use App\Bridge\BridgeClient;
+use App\Measurement\Playback;
 use App\Measurement\TestTone;
+use App\Protocol\Commands;
 use App\Protocol\Scale;
 use App\Tests\Support\BridgeProcess;
 use App\Tests\Support\FakeRecorderFactory;
@@ -272,6 +274,35 @@ final class MeasureCommandTest extends KernelTestCase
         self::assertSame(Command::FAILURE, $tester->getStatusCode());
         self::assertStringContainsString('The reference output Out1 is linked (Out1, Out2).', self::text($tester));
         self::assertSame($before, self::state($client));
+    }
+
+    public function testRestoreReplaysWhatACrashedMeasurementLeft(): void
+    {
+        $client = $this->client();
+        $before = self::state($client);
+        $original = TestTone::fromState($before);
+        // The crash left the tone on and Out3 muted
+        $client->request('write', ['frames' => [Playback::hex(Commands::mute(3, true)), Playback::hex((new TestTone(TestTone::PINK))->frame())]]);
+        file_put_contents(Playback::restoreFile((string) $this->bridge?->socket), json_encode([
+            'time' => '2026-09-29T20:00:00+00:00',
+            'frames' => [Playback::hex($original->frame()), Playback::hex(Commands::mute(3, false))],
+            'riders' => [['channel' => 1, 'target' => -24]],
+        ], \JSON_THROW_ON_ERROR));
+
+        $tester = $this->measure(['--restore' => true, '--socket' => $this->bridge?->socket]);
+
+        self::assertSame(Command::SUCCESS, $tester->getStatusCode());
+        self::assertStringContainsString('Put back 2 frames from the measurement of 2026-09-29T20:00:00+00:00 and started the riders on In2 again.', self::text($tester));
+        self::assertSame($before, self::state($client));
+        $status = $client->request('status');
+        self::assertIsArray($status);
+        self::assertIsArray($status['riders']);
+        self::assertSame([1], array_column($status['riders'], 'channel'));
+        self::assertFileDoesNotExist(Playback::restoreFile((string) $this->bridge?->socket));
+
+        $tester = $this->measure(['--restore' => true, '--socket' => $this->bridge?->socket]);
+        self::assertSame(Command::SUCCESS, $tester->getStatusCode());
+        self::assertStringContainsString('Nothing to restore.', self::text($tester));
     }
 
     public function testFailsWithoutBridge(): void

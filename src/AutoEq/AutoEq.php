@@ -4,6 +4,7 @@ namespace App\AutoEq;
 
 use App\Bridge\BridgeClient;
 use App\Bridge\BridgeException;
+use App\Measurement\Interrupt;
 use App\Measurement\Playback;
 use App\Measurement\RecorderFactory;
 use App\Measurement\Response;
@@ -36,8 +37,9 @@ final class AutoEq
         #[Autowire('%trackdsp.autoeq_dir%')]
         private readonly string $directory,
         private readonly RecorderFactory $recorders = new RecorderFactory(),
+        ?Interrupt $interrupt = null,
     ) {
-        $this->playback = new Playback($bridge);
+        $this->playback = new Playback($bridge, interrupt: $interrupt);
     }
 
     public function directory(): string

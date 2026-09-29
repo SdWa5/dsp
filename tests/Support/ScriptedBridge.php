@@ -7,8 +7,8 @@ use Symfony\Component\Process\Process;
 
 /**
  * A stand-in for the bridge as a subprocess, for what the simulated device cannot show, such as a device
- * that is slow to take the writes or gone. It answers "status" from a script, every other op with success,
- * and "log" with every request received so far.
+ * that is slow to take the writes or gone. It answers "status" and "write" from scripts, every other op with
+ * success, and "log" with every request received so far.
  */
 final class ScriptedBridge
 {
@@ -18,11 +18,14 @@ final class ScriptedBridge
     /**
      * @param list<array<string, mixed>> $statuses answers to "status" in turn over {connected: true, queued: 0,
      *                                             riders: []}, the last one repeats
+     * @param list<string|null>          $writes   answers to "write" in turn: null takes it, a string rejects
+     *                                             it with that bridge error code, for example "offline". Once
+     *                                             they are used up every write is taken
      */
-    public function __construct(array $statuses = [[]])
+    public function __construct(array $statuses = [[]], array $writes = [])
     {
         $this->socket = sys_get_temp_dir().'/trackdsp-scripted-'.bin2hex(random_bytes(4)).'.sock';
-        $this->process = new Process(['php', __DIR__.'/scripted-bridge.php', $this->socket, json_encode($statuses, \JSON_THROW_ON_ERROR)]);
+        $this->process = new Process(['php', __DIR__.'/scripted-bridge.php', $this->socket, json_encode($statuses, \JSON_THROW_ON_ERROR), json_encode($writes, \JSON_THROW_ON_ERROR)]);
         $this->process->start();
         $deadline = microtime(true) + 10;
         while (!file_exists($this->socket)) {
@@ -65,5 +68,6 @@ final class ScriptedBridge
         $this->process->stop(0);
         @unlink($this->socket);
         @unlink(preg_replace('/\.sock$/', '', $this->socket).'.measure.lock');
+        @unlink(preg_replace('/\.sock$/', '', $this->socket).'.measure.restore.json');
     }
 }

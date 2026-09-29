@@ -5,6 +5,28 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0] - 2026-09-29
+
+### Added
+
+- `trackdsp:measure --restore` replays the restore file that a crashed measurement left behind
+- `App\Measurement\Interrupt` and `Interrupted`. `trackdsp:measure` and `trackdsp:autoeq` set the flag on Ctrl+C and SIGTERM
+- `Playback::restoreFile()` and `Playback::recover()`, and the constructor arguments `$reconnectTimeout` (30 s) and `$interrupt`
+- The scripted test bridge can reject writes with a bridge error code
+
+### Changed
+
+- A measurement saves its restore frames and the settings of the paused gain riders to `<socket>.measure.restore.json` before the setup and deletes the file only after a clean restore. No measurement starts while the file is there
+- The setup and the test tone go to the bridge in one write, and so do the tone and the restore
+- When both the recording and the restore fail, the error names both and keeps the first one as previous
+
+### Fixed
+
+- A setup write that failed or timed out skipped the restore, although the bridge still applies a write whose client has gone
+- A device that dropped off during a recording kept the test tone on and the other outputs muted. The restore now waits up to 30 s for the reconnect and sends the frames again
+- Ctrl+C cut the settle short and the recording started anyway. It now skips the recording, drops one that ends after the signal and ends the remaining positions of the auto EQ
+- A failing restore replaced the error of the recording, so the reason of the first failure was lost
+
 ## [0.14.0] - 2026-09-29
 
 ### Added
@@ -231,7 +253,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.14.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/66d6b82...main
+[0.15.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/011da6f...main
+[0.14.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/66d6b82...011da6f
 [0.13.1]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d45de7f...66d6b82
 [0.13.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/9494c73...d45de7f
 [0.12.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/1bb70a3...9494c73
