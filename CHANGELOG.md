@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.2] - 2026-09-29
+
+### Added
+
+- `docs/measurements.md` covers the auto EQ and the gain rider on the device
+
+### Removed
+
+- The TODO item to verify the gain riders and the auto EQ on the device, which both passed
+
 ## [0.15.1] - 2026-09-29
 
 ### Added
@@ -259,7 +269,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.15.1]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/840ca13...main
+[0.15.2]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/613f252...main
+[0.15.1]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/840ca13...613f252
 [0.15.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/011da6f...840ca13
 [0.14.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/66d6b82...011da6f
 [0.13.1]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d45de7f...66d6b82

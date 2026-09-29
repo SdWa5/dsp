@@ -498,3 +498,64 @@ mics and read on max. Mic 1's level was A-weighted from its third-octave bands.
 - Tecnare R and the DIP switch gains of the amplifiers.
 - The DCX2496's latency and the rig's crossover, which need the DCX2496 in the chain.
 - A meter with C or Z weighting and a slow RMS reading would pin the SPL offset more tightly.
+
+## Auto EQ and gain rider on the device
+
+Taken on 2026-09-29 after the speaker tests, with Tecnare L on Out1 and Out2 at -20 dB and every other speaker
+output muted.
+
+### Auto EQ
+
+Mic 1 stood about 1 m in front of Tecnare L. The fit ran from 200 Hz to 16 kHz against the flat target with
+the default limits.
+
+```bash
+ddev exec bin/console trackdsp:autoeq out1,out2 -n --low=200 --high=16000
+```
+
+| | Deviation RMS | Deviation peak |
+|---|---|---|
+| Without the bands | 2.7 dB | 8.6 dB |
+| Predicted with the bands | 1.8 dB | 6.5 dB |
+| Measured with the bands | 1.8 dB | 5.5 dB |
+
+- The seven bands were written to both outputs through `/api/write`, recorded with `trackdsp:measure --trim=0`
+  and analysed with `trackdsp:autoeq --wav`. Measured and predicted deviation agree within 1.4 dB per third
+  octave and 1.0 dB RMS. Above 1.25 kHz every band reads about 1 dB below the prediction, which is the level
+  alignment of the fit rather than a band error. The largest difference lies at 400 and 500 Hz, where five bands
+  overlap.
+- The largest deviation is the hollow at 2.5 kHz between the two ways, 8.5 dB deep. The boost limit of 3 dB
+  leaves most of it, and the crossover rather than the EQ has to close it.
+- The fitter spent three of its seven bands at 388 to 397 Hz on boosts that lift the flank of its own 9 dB cut
+  at 477 Hz, so the dips at 5 and 8 kHz stayed uncorrected (TODO.md).
+- The Auto EQ page gave the same result through its own API, 2.7 against 1.78 dB RMS, and showed the session,
+  the plot and the band table correctly.
+- `--revert` put the backup back, and the bands of both outputs read flat afterwards.
+
+### Gain rider
+
+A UMC1820 line output fed In5 with pink noise in level steps. The rider ran with its defaults except for a gain
+window up to +6 dB.
+
+```bash
+ddev exec bin/console trackdsp:ride in5 --max=6 --allow-boost
+```
+
+| Time | Step | Rider gain | Average | Status |
+|---|---|---|---|---|
+| 0 to 60 s | start level | -6.2 dB | -17.3 dB | steady after 18 s |
+| 60 to 120 s | 10 dB quieter | +2.2 dB | -18.7 dB | steady after 17 s |
+| 120 to 180 s | 16 dB louder | -12.2 dB | -17.3 dB | steady after 30 s |
+| 180 to 210 s | silence | -12.2 dB | | silent |
+| 210 to 260 s | 10 dB quieter | +2.0 dB | -18.9 dB | steady after 29 s |
+
+- The rider holds the target within its deadband of 1 dB and stops at its edge, 0.7 dB off the target.
+- The gain never changed faster than 0.5 dB per second, so the step of 14.4 dB took 29 s.
+- The gain stayed frozen through the silence.
+- The UMC1820 passes its own inputs to its MAIN outputs. Fed from MAIN OUT, the mics went to In5 as well, which
+  raised the floor to -63 dB and closed a feedback loop over the Tecnare once the MAIN knob was turned up. The
+  line outputs carry only the playback.
+- In the rig the rider belongs on the console inputs IN3 and IN4, before the bus compressor on Out1 and Out2.
+  It works on the gain and the meter of the input it rides, so the loop back into IN1 and IN2 does not reach
+  it. On IN1 and IN2 it would undo the bus compression. A rider rides one channel and knows no links, so a
+  stereo pair needs a rider for a link group first (TODO.md).

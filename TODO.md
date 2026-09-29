@@ -47,8 +47,14 @@
 
 ## Automation
 
-- Verify the gain riders and the auto EQ on the device with the UMC1820 and the measurement mic, on the command
-  line and in the browser editor
+- Stereo gain rider. A rider rides one channel and knows no links, so two riders on the console inputs IN3 and
+  IN4 of the rig ride left and right apart and shift the balance with panned material. Ride a link group as
+  one, with the power mean of both meters and the same gain written to every member. First check whether the
+  8x8 copies a gain write to a linked input by itself. If it does, two riders on a linked pair take each
+  other's writes for manual changes and pause each other
+- After a restart of the ddev web container the bridge comes back on the demo target instead of USB, and
+  writes then go to the demo without a warning (seen 2026-09-29). Reconnect to the last target, or warn in the
+  API and the editor while the bridge is on the demo
 - The rack's output panel has a broken connection on output 8 (found 2026-09-29). Until it is repaired, measure
   with `--reference-output=out6`. Afterwards repeat B1 of `docs/measurements.md` against Out8
 - Gain raw 0 mutes the channel, while the browser editor, `trackdsp:gain` and the gain rider treat it as -60 dB.
@@ -60,6 +66,13 @@
   the gain exact and add no image
 - Measure the 8x8's PEQ shapes against the RBJ filters the fitter assumes. Include the allpass types and the
   phase of the HPF and LPF types, because the phase step of the system tuning predicts with them
+- The PEQ fitter wastes bands on overlapping corrections. On Tecnare L (2026-09-29) it cut 477 Hz by 9 dB
+  with a Q of 1.9 and then spent three bands at 388 to 397 Hz boosting the cut's flank back up, so the dips at
+  5 and 8 kHz stayed uncorrected. The coordinate descent moves one parameter of one band at a time and gets
+  stuck where a narrower cut would only pay off together with dropping the boosts. Try removing each band and
+  refining the rest, drop a band that barely helps, and move frequency and Q together. Needs a test with a
+  synthetic curve of one peak and two dips. Do it after the PEQ shapes are measured, since those may change
+  the model, and before the system tuning, which needs free bands for the allpass and the system EQ
 - Measure a transfer function instead of the plain pink noise spectrum, which the delay, polarity and phase
   steps of the system tuning need. Decided is a dual-channel FFT of the mic against the device's pink noise,
   looped back from the spare OUT8 into a second input of the UMC1820, rather than a log sweep with
