@@ -10,6 +10,8 @@
   offers no obvious way to start from it
 - Vendor preset files: the file format of the vendor editor is unknown. Capture a file saved by the vendor
   editor in the win11 VM, then decide whether trackdsp reads and writes it
+- Localization of the browser editor and the command line, primarily to add German. Collect the user-facing
+  strings into Symfony Translation catalogues, with English as the source and a German catalogue first
 - Remove `legacy/python/` once the rewrite has reached parity
 - The meters light their red top at 0 dB, which on the calibrated scale lies 12.5 to 14.8 dB below the output
   ceiling. For programme with a crest factor of 12 to 15 dB that is about where its peaks reach the ceiling,
@@ -28,6 +30,13 @@
 
 ## VIM3
 
+- JIT on the board with the next deployment. Set `opcache.jit=off` and `opcache.jit_buffer_size=64M` for the
+  CLI (`/etc/php/8.4/cli/conf.d/`) as in `.ddev/php/jit.ini`, so that `trackdsp:measure` and `trackdsp:autoeq`
+  can switch the JIT on for their FFTs. Check that the JIT is available on ARM64 and time a transfer function
+  with and without it. For PHP-FPM, whose opcache outlives the request, try `opcache.jit=1235` directly, since
+  the Auto EQ page runs its analysis there. `opcache.jit=function` compiles every function of every process at
+  load, which made the test suite in ddev about 2.5 times slower and let some tests time out, so it is not an
+  option
 - Find out whether the Deco's WAN port is fixed. Its ports are marked 1 and 2 only, which suggests auto-sensing,
   where the Deco takes the port that gets a DHCP lease as WAN. Check in the Deco app which port is the internet
   connection, then plug the VIM3 into the other port and see whether path B (`http://10.42.0.1/`) still comes
@@ -53,8 +62,9 @@
   8x8 copies a gain write to a linked input by itself. If it does, two riders on a linked pair take each
   other's writes for manual changes and pause each other
 - After a restart of the ddev web container the bridge comes back on the demo target instead of USB, and
-  writes then go to the demo without a warning (seen 2026-09-29). Reconnect to the last target, or warn in the
-  API and the editor while the bridge is on the demo
+  writes then go to the demo without a warning (seen 2026-09-29). The daemon in `.ddev/config.bridge.yaml`
+  starts it with `--target=demo`. Reconnect to the last target, or warn in the API and the editor while the
+  bridge is on the demo
 - The rack's output panel has a broken connection on output 8 (found 2026-09-29). Until it is repaired, measure
   with `--reference-output=out6`. Afterwards repeat B1 of `docs/measurements.md` against Out8
 - Gain raw 0 mutes the channel, while the browser editor, `trackdsp:gain` and the gain rider treat it as -60 dB.
@@ -73,10 +83,7 @@
   refining the rest, drop a band that barely helps, and move frequency and Q together. Needs a test with a
   synthetic curve of one peak and two dips. Do it after the PEQ shapes are measured, since those may change
   the model, and before the system tuning, which needs free bands for the allpass and the system EQ
-- Measure a transfer function instead of the plain pink noise spectrum, which the delay, polarity and phase
-  steps of the system tuning need. Decided is a dual-channel FFT of the mic against the device's pink noise,
-  looped back from the spare OUT8 into a second input of the UMC1820, rather than a log sweep with
-  deconvolution. The impulse response gives the arrival time per output, and the fit plot can show the phase
+- Show the phase of the transfer function in the fit plot of the Auto EQ page
 - Auto EQ with two mics: record both at once (`arecord -c 2`, one channel per mic) and power-average them, or
   give each mic its own outputs (left and right side). Today every recording reads one mic channel, and
   several positions are averaged one after another

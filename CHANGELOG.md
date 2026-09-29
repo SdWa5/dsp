@@ -5,6 +5,29 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0] - 2026-09-29
+
+### Added
+
+- `trackdsp:measure --reference=<ch>` prints the transfer function of every other recorded channel against the reference loopback, with delay, polarity, coherent range and third-octave bands of magnitude, phase and coherence, on live recordings and on `--wav` files. The JSON file holds it per channel under `transfer`, and `reference_input` names the reference
+- `App\Measurement\TransferFunction`, a dual-channel FFT in two passes with the sub-sample delay from the analytic impulse response
+- `App\Measurement\Transfer` for the result and the `Polarity` enum
+- `Fft::transform()` and `Fft::inverse()` for complex signals
+- `FittedBand::phaseAt()` gives the phase of the RBJ peaking filter
+- `Signals::delay()` delays a test signal by a fractional or negative number of samples
+- `App\Measurement\Jit` switches PHP's JIT on for `trackdsp:measure` and `trackdsp:autoeq`, which makes their FFTs about twice as fast
+- `.ddev/php/jit.ini` reserves the JIT buffer in ddev and leaves the JIT off for every other process
+- `docs/automation.md` and `docs/measurements.md` describe the transfer function and its first results on the bench and speaker recordings
+- TODO items for localization, the JIT on the VIM3 and the phase in the Auto EQ plot
+
+### Changed
+
+- `Fft::power()` is built on `transform()` and gives the same values
+
+### Removed
+
+- The TODO item to measure a transfer function
+
 ## [0.15.2] - 2026-09-29
 
 ### Added
@@ -269,7 +292,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.15.2]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/613f252...main
+[0.16.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/49d84ea...main
+[0.15.2]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/613f252...49d84ea
 [0.15.1]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/840ca13...613f252
 [0.15.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/011da6f...840ca13
 [0.14.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/66d6b82...011da6f

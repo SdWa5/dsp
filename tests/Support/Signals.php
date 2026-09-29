@@ -75,6 +75,49 @@ final class Signals
     }
 
     /**
+     * The samples delayed by $samples, which may be fractional or negative (an advance). A whole delay shifts,
+     * a fractional one goes through a Blackman-windowed sinc of 2·TAPS + 1 taps. Samples from outside the
+     * input read as silence, and the length stays the same.
+     *
+     * @param list<float> $samples
+     *
+     * @return list<float>
+     */
+    public static function delay(array $samples, float $delay): array
+    {
+        $count = \count($samples);
+        $whole = (int) floor($delay);
+        $fraction = $delay - $whole;
+        if (abs($fraction) < 1e-12) {
+            $out = [];
+            for ($n = 0; $n < $count; ++$n) {
+                $out[] = $samples[$n - $whole] ?? 0.0;
+            }
+
+            return $out;
+        }
+        $taps = 32;
+        $kernel = [];
+        for ($k = -$taps; $k <= $taps; ++$k) {
+            // y[n] = Σ x[n - whole - k] · h[k], h[k] = sinc(k - fraction) in a Blackman window centred on the fraction
+            $t = $k - $fraction;
+            $sinc = sin(M_PI * $t) / (M_PI * $t);
+            $phase = ($t + $taps + 1) / (2 * $taps + 2);
+            $kernel[$k] = $sinc * (0.42 - 0.5 * cos(2 * M_PI * $phase) + 0.08 * cos(4 * M_PI * $phase));
+        }
+        $out = [];
+        for ($n = 0; $n < $count; ++$n) {
+            $sum = 0.0;
+            foreach ($kernel as $k => $h) {
+                $sum += ($samples[$n - $whole - $k] ?? 0.0) * $h;
+            }
+            $out[] = $sum;
+        }
+
+        return $out;
+    }
+
+    /**
      * @param list<list<float>> $channels equal length, one list per channel
      */
     public static function wav(array $channels, int $bits = 16, bool $float = false, int $rate = Scale::SAMPLE_RATE): string

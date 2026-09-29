@@ -6,6 +6,7 @@ use App\Bridge\BridgeClient;
 use App\Bridge\BridgeException;
 use App\Measurement\Calibration;
 use App\Measurement\Interrupt;
+use App\Measurement\Jit;
 use App\Measurement\Levels;
 use App\Measurement\Playback;
 use App\Measurement\RecorderFactory;
@@ -13,6 +14,8 @@ use App\Measurement\Response;
 use App\Measurement\Solo;
 use App\Measurement\Spectrum;
 use App\Measurement\TestTone;
+use App\Measurement\Transfer;
+use App\Measurement\TransferFunction;
 use App\Measurement\WavReader;
 use App\Protocol\Channel;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -32,6 +35,8 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  * The outputs given play alone (see Solo), and the reference output keeps playing for the loopback. Every
  * recording puts mutes, gains and the tone back afterwards, also when it fails (see Playback). The recording
  * and a JSON file with the results stay in --dir. --wav analyses an existing recording without the bridge.
+ * --reference names the input that records the reference loopback, and every other channel then also gets its
+ * transfer function against it (see TransferFunction): delay, polarity, coherence and bands with phase.
  * --restore replays what a crashed measurement left in its restore file. Ctrl+C stops before the recording and
  * puts the device back.
  */
@@ -45,6 +50,9 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
      * with a click of a few milliseconds on a line input, up to -16 dBFS on an input that is silent afterwards.
      */
     private const SKIP = 0.1;
+
+    /** A way coherent over fewer octaves gets a note that its delay and polarity come from a band-limited peak */
+    private const BROADBAND_OCTAVES = 3;
 
     private ?Interrupt $interrupt = null;
 
@@ -72,6 +80,7 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
             ->addOption('settle', null, InputOption::VALUE_REQUIRED, 'Seconds of tone before the recording', '2')
             ->addOption('cal', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Mic calibration file for the first channel, or <channel>:<file> (repeatable, corrects the bands only)')
             ->addOption('relative', null, InputOption::VALUE_REQUIRED, 'Show the other channels relative to this one')
+            ->addOption('reference', null, InputOption::VALUE_REQUIRED, 'Input that records the reference loopback, for the transfer function of every other channel')
             ->addOption('wav', null, InputOption::VALUE_REQUIRED, 'Analyse this recording instead of measuring, without the bridge')
             ->addOption('save', null, InputOption::VALUE_REQUIRED, 'Base name of the recording and its JSON in --dir (default: measure-<time>)')
             ->addOption('restore', null, InputOption::VALUE_NONE, 'Replay the restore file a crashed measurement left behind, and stop')
@@ -81,6 +90,7 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        Jit::enable();
         $io = new SymfonyStyle($input, $output);
         $this->interrupt = new Interrupt();
         if ($input->getOption('restore')) {
@@ -91,6 +101,10 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
             $relative = null === ($value = self::optional($input, 'relative')) ? null : self::input($value, '--relative');
             if (null !== $relative && !\in_array($relative, $channels, true)) {
                 throw new \InvalidArgumentException(\sprintf('--relative=%d is not among the recorded channels %s.', $relative, implode(',', $channels)));
+            }
+            $reference = null === ($value = self::optional($input, 'reference')) ? null : self::input($value, '--reference');
+            if (null !== $reference && (!\in_array($reference, $channels, true) || 1 === \count($channels))) {
+                throw new \InvalidArgumentException(\sprintf('--reference=%d must be one of at least two recorded channels, got %s.', $reference, implode(',', $channels)));
             }
             $calibrations = self::calibrations($input, $channels);
             $wav = self::optional($input, 'wav');
@@ -122,10 +136,11 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
                 $json = self::path($directory, $name.'.json');
                 $meta = $this->record($plan, $channels, $wav, $io);
             }
-            $analysis = self::analyse($wav, $channels, $calibrations);
+            [$analysis, $samples] = self::analyse($wav, $channels, $calibrations);
             self::report($analysis, $relative, $io);
+            $transfers = null === $reference ? [] : self::transfers($samples, $reference, $io);
             if (null !== $json) {
-                file_put_contents($json, json_encode(self::json($wav, $meta, $analysis, $calibrations, $relative), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR));
+                file_put_contents($json, json_encode(self::json($wav, $meta, $analysis, $calibrations, $relative, $reference, $transfers), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR));
                 $io->writeln(\sprintf('Saved %s%s.', null === $plan ? '' : $wav.' and ', $json));
             }
         } catch (BridgeException|\RuntimeException|\InvalidArgumentException|\LengthException|\JsonException $e) {
@@ -279,12 +294,12 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
      * @param list<int>                                        $channels
      * @param array<int, array{file: string, curve: Response}> $calibrations
      *
-     * @return array<int, array{levels: Levels, bands: list<array{hz: float, label: string, db: float}>}>
+     * @return array{array<int, array{levels: Levels, bands: list<array{hz: float, label: string, db: float}>}>, array<int, array{samples: list<float>, rate: int}>}
      */
     private static function analyse(string $wav, array $channels, array $calibrations): array
     {
         $spectrum = new Spectrum(65536);
-        $analysis = [];
+        $analysis = $kept = [];
         foreach ($channels as $channel) {
             $recording = WavReader::read($wav, $channel);
             $samples = \array_slice($recording['samples'], (int) round($recording['rate'] * self::SKIP));
@@ -294,9 +309,74 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
                 $bands = array_map(static fn (array $band): array => ['db' => $band['db'] <= Levels::FLOOR ? $band['db'] : $band['db'] - $curve->at($band['hz'])] + $band, $bands);
             }
             $analysis[$channel] = ['levels' => Levels::of($samples), 'bands' => $bands];
+            $kept[$channel] = ['samples' => $samples, 'rate' => $recording['rate']];
         }
 
-        return $analysis;
+        return [$analysis, $kept];
+    }
+
+    /**
+     * The transfer function of every channel against the reference channel, printed as a summary and a band
+     * table. A reference the analysis refuses, for example because it clips, gives a warning and no transfers,
+     * so that the levels and the bands above still count.
+     *
+     * @param array<int, array{samples: list<float>, rate: int}> $samples
+     *
+     * @return array<int, Transfer>
+     */
+    private static function transfers(array $samples, int $reference, SymfonyStyle $io): array
+    {
+        $function = new TransferFunction();
+        $transfers = [];
+        try {
+            foreach ($samples as $channel => $recording) {
+                if ($channel !== $reference) {
+                    $transfers[$channel] = $function->analyse($samples[$reference]['samples'], $recording['samples'], $recording['rate']);
+                }
+            }
+        } catch (\InvalidArgumentException|\LengthException $e) {
+            $io->warning(\sprintf('No transfer function against input %d. %s', $reference, $e->getMessage()));
+
+            return [];
+        }
+        if ([] === $transfers) {
+            return [];
+        }
+        $io->writeln(\sprintf('Transfer function against input %d:', $reference));
+        $io->table(['Input', 'Delay', 'Polarity', 'Coherent', 'γ²'], array_map(static fn (int $channel, Transfer $t): array => [
+            $channel,
+            null === $t->delay ? \sprintf('no clear peak (lag %d samples)', $t->lag) : \sprintf('%.2f samples, %.3f ms', $t->delay, $t->delayMs()),
+            $t->polarity->value,
+            null === ($range = $t->coherentRange()) ? 'nowhere' : $range['from'].' to '.$range['to'],
+            \sprintf('%.2f', $range['coherence'] ?? $t->meanCoherence()),
+        ], array_keys($transfers), $transfers));
+        $narrow = array_keys(array_filter($transfers, static fn (Transfer $t): bool => null !== $t->delay && ($t->coherentRange()['octaves'] ?? 0.0) < self::BROADBAND_OCTAVES));
+        if ([] !== $narrow) {
+            $io->note(\sprintf('%s %s coherent over less than %d octaves. There the delay is the group delay of that band and the polarity only a hint, so align such a way by its phase in the crossover region.', 1 === \count($narrow) ? 'Input' : 'Inputs', implode(', ', $narrow).(1 === \count($narrow) ? ' is' : ' are'), self::BROADBAND_OCTAVES));
+        }
+        $rows = [];
+        foreach ($transfers[array_key_first($transfers)]->bands as $i => $band) {
+            $row = [$band['label']];
+            foreach ($transfers as $t) {
+                $b = $t->bands[$i];
+                array_push($row, \sprintf('%+.1f', $b['db']), null === $b['phase'] ? '–' : \sprintf('%+.0f°', $b['phase']), \sprintf('%.2f', $b['coherence']));
+            }
+            $rows[] = $row;
+        }
+        $headers = ['Band'];
+        foreach (array_keys($transfers) as $channel) {
+            array_push($headers, 'In'.$channel.' dB', 'Phase', 'γ²');
+        }
+        $io->writeln(\sprintf('Transfer function bands, the phase without the delay and hidden below γ² %.1f:', Transfer::PHASE_COHERENCE));
+        $io->table($headers, $rows);
+        foreach ($transfers as $t) {
+            if ([] !== $t->warnings) {
+                $io->warning($t->warnings);
+                break;
+            }
+        }
+
+        return $transfers;
     }
 
     /**
@@ -334,10 +414,11 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
      * @param array<string, mixed>                                                                       $meta
      * @param array<int, array{levels: Levels, bands: list<array{hz: float, label: string, db: float}>}> $analysis
      * @param array<int, array{file: string, curve: Response}>                                           $calibrations
+     * @param array<int, Transfer>                                                                       $transfers
      *
      * @return array<string, mixed>
      */
-    private static function json(string $wav, array $meta, array $analysis, array $calibrations, ?int $relative): array
+    private static function json(string $wav, array $meta, array $analysis, array $calibrations, ?int $relative, ?int $reference, array $transfers): array
     {
         $channels = [];
         foreach ($analysis as $channel => $a) {
@@ -345,10 +426,11 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
                 'levels' => $a['levels']->toArray(),
                 'calibration' => $calibrations[$channel]['file'] ?? null,
                 'bands' => array_map(static fn (array $band): array => ['hz' => round($band['hz'], 1), 'label' => $band['label'], 'db' => round($band['db'], 2)], $a['bands']),
+                'transfer' => isset($transfers[$channel]) ? $transfers[$channel]->toArray() : null,
             ];
         }
 
-        return ['wav' => $wav] + $meta + ['relative' => $relative, 'channels' => $channels];
+        return ['wav' => $wav] + $meta + ['relative' => $relative, 'reference_input' => $reference, 'channels' => $channels];
     }
 
     /**

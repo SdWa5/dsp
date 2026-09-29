@@ -60,6 +60,30 @@ final readonly class FittedBand
         return 10 * log10($num / $den);
     }
 
+    /**
+     * Phase in degrees at $hz of the same RBJ peaking filter, -180..180. A boost leads below the centre
+     * frequency and lags above it, a cut the other way round.
+     */
+    public function phaseAt(float $hz): float
+    {
+        $db = $this->db();
+        if (0.0 === $db) {
+            return 0.0;
+        }
+        $a = 10 ** ($db / 40);
+        $w0 = 2 * M_PI * $this->hz() / Scale::SAMPLE_RATE;
+        $alpha = sin($w0) / (2 * $this->qValue());
+        $cw = cos($w0);
+        [$b0, $b1, $b2] = [1 + $alpha * $a, -2 * $cw, 1 - $alpha * $a];
+        [$a0, $a1, $a2] = [1 + $alpha / $a, -2 * $cw, 1 - $alpha / $a];
+        $w = 2 * M_PI * $hz / Scale::SAMPLE_RATE;
+        [$c1, $s1, $c2, $s2] = [cos($w), sin($w), cos(2 * $w), sin(2 * $w)];
+        // H(e^jw) = (b0 + b1·e^-jw + b2·e^-2jw) / (a0 + a1·e^-jw + a2·e^-2jw)
+        $phase = atan2(-($b1 * $s1 + $b2 * $s2), $b0 + $b1 * $c1 + $b2 * $c2) - atan2(-($a1 * $s1 + $a2 * $s2), $a0 + $a1 * $c1 + $a2 * $c2);
+
+        return rad2deg(atan2(sin($phase), cos($phase)));
+    }
+
     public function with(?int $freq = null, ?int $gain = null, ?int $q = null): self
     {
         return new self($freq ?? $this->freq, $gain ?? $this->gain, $q ?? $this->q);
