@@ -37,6 +37,12 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
 {
     private const MIN_SECONDS = 2;
 
+    /**
+     * Seconds at the start of a recording that the analysis leaves out. The UMC1820 sometimes starts a capture
+     * with a click of a few milliseconds on a line input, up to -16 dBFS on an input that is silent afterwards.
+     */
+    private const SKIP = 0.1;
+
     public function __construct(
         #[Autowire('%trackdsp.bridge_socket%')]
         private readonly string $defaultSocket,
@@ -237,6 +243,8 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
     }
 
     /**
+     * Levels and bands of every channel, without the first SKIP seconds.
+     *
      * @param list<int>                                        $channels
      * @param array<int, array{file: string, curve: Response}> $calibrations
      *
@@ -248,12 +256,13 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
         $analysis = [];
         foreach ($channels as $channel) {
             $recording = WavReader::read($wav, $channel);
-            $bands = $spectrum->bands($recording['samples'], $recording['rate']);
+            $samples = \array_slice($recording['samples'], (int) round($recording['rate'] * self::SKIP));
+            $bands = $spectrum->bands($samples, $recording['rate']);
             if (isset($calibrations[$channel])) {
                 $curve = $calibrations[$channel]['curve'];
                 $bands = array_map(static fn (array $band): array => ['db' => $band['db'] <= Levels::FLOOR ? $band['db'] : $band['db'] - $curve->at($band['hz'])] + $band, $bands);
             }
-            $analysis[$channel] = ['levels' => Levels::of($recording['samples']), 'bands' => $bands];
+            $analysis[$channel] = ['levels' => Levels::of($samples), 'bands' => $bands];
         }
 
         return $analysis;

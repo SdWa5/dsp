@@ -189,12 +189,12 @@ output plays as set. One run does this:
 
 1. Reads the device state from the bridge and plans the solo (see [Solo](#solo)). Every frame of the setup
    and of the restore is built before the first write.
-2. Pauses the gain riders, mutes the other outputs, trims the played ones, unmutes a played output that is
-   muted and starts the test tone.
+2. Pauses the gain riders, mutes the other outputs, sets the compressor of a trimmed output at ratio 1:1.0 to
+   1:1.1 from +20 dB, trims the played ones, unmutes a played output that is muted and starts the test tone.
 3. Waits until the device has taken these writes, lets the tone settle for `--settle` seconds and records
    `--seconds` from `--device`.
-4. Switches the tone back to what it was, puts the gains and the mutes back and starts the riders again. This
-   also happens when the recording fails or is stopped with Ctrl+C.
+4. Switches the tone back to what it was, puts the gains, the compressors and the mutes back and starts the
+   riders again. This also happens when the recording fails or is stopped with Ctrl+C.
 5. Prints the levels and the bands, and saves the recording and its JSON file in `--dir`.
 
 | Option | Default | Meaning |
@@ -202,7 +202,7 @@ output plays as set. One run does this:
 | `-c`, `--channels` | 1 | inputs of the interface to record and analyse, counted from 1, for example `1,5,6` |
 | `-d`, `--device` | `TRACKDSP_CAPTURE_DEVICE` | ALSA capture device, recorded as for the auto EQ (see [Measurement](#measurement)) |
 | `--signal` | pink | `pink`, `white`, `sine:<Hz>` or `none`. A sine takes the nearest of the device's 31 frequencies (20 Hz to 20 kHz in third octaves) and is refused more than 1/6 octave away from it. `none` switches the generator off, so whatever arrives at the analog inputs plays |
-| `--trim` | 0 | dB added to the gain of every played output except the reference. Each output is trimmed from its own gain and held within -60..+12 dB |
+| `--trim` | 0 | dB added to the gain of every played output except the reference. Each output is trimmed from its own gain and held within -60..+12 dB. A trimmed output at compressor ratio 1:1.0 runs at 1:1.1 from +20 dB for the recording, see [Solo](#solo) |
 | `--allow-boost` | off | needed for a positive `--trim` |
 | `--reference-output` | out8 | output that keeps playing, unmuted and untrimmed, so that every recording also holds its loopback. `none` plays the outputs given and nothing else |
 | `--seconds` | 10 | recording length in whole seconds, 2 at least |
@@ -221,14 +221,23 @@ Symfony Console reads `-c=1,5,6` as `=1,5,6`. Write `-c 1,5,6` or `--channels=1,
 - Linked outputs play together. Asking for `out2` plays Out1 and Out2 when the two are linked, and the command
   says so. Every member gets its own mute and gain frame.
 - A played output that is muted plays for the recording and is muted again afterwards.
+- At compressor ratio 1:1.0, the factory setting, the 8x8 applies every output gain but 0 dB more strongly
+  than set and adds the spectrum mirrored at 24 kHz ([measurements.md](measurements.md#output-gain-at-compressor-ratio-110)).
+  A trim at -20 dB would act as -23.4 dB and lift the top octave by several dB. So a trimmed output at 1:1.0
+  runs at 1:1.1 from +20 dB for the recording, which never compresses below the output ceiling and keeps the
+  gain exact, and it gets its own compressor back afterwards. The command says so in a note.
 - A linked reference output is refused, and so is a reference output among the played ones.
 - Warnings name what can make a recording misleading. These are a played output without a routed input, a
-  compressor on a played output, an output group or the sub control that mutes or lowers a played output, an
-  Aux that takes inputs and is not muted, a test tone that was already on, and a reference output that is not
-  flat (PEQ, HPF, LPF, compressor, delay or inverted phase).
+  compressor on a played output, a played output at 1:1.0 whose own gain is not 0 dB, an output group or the
+  sub control that mutes or lowers a played output, an Aux that takes inputs and is not muted, a test tone that
+  was already on, and a reference output that is not flat (PEQ, HPF, LPF, compressor, a gain off 0 dB at 1:1.0,
+  delay or inverted phase).
 
 ### Levels and bands
 
+- The analysis leaves out the first 100 ms of every recording. The UMC1820 sometimes starts a capture with a
+  click shorter than 5 ms, up to -16 dBFS on a line input that is silent afterwards, which would spoil the
+  levels of quiet inputs.
 - The levels are in dBFS. The table shows RMS, peak, the crest factor (peak minus RMS) and the samples at full
   scale (|x| ≥ 0.9999). A full-scale sine reads -3.01 dBFS RMS. Silence reads "silent", which is -200 dB in
   the JSON file. A warning names every input that clipped or delivers digital silence.

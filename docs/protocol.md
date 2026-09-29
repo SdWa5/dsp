@@ -67,20 +67,20 @@ Gain, EQ, filters and the rest go to the operated channel only (✓).
 | `29` | slot 00–14 | Read a preset name (00 = U01 … 13 = U20, 14 = F00) | ✓ |
 | `2C` | – | Device status. The editor sends it on connect. Reply `00 27 0F 00 00 00`, byte 6 lock (≈) | ✓ format, ≈ meaning |
 | `2D` / `2F` | PIN | Unlock / set PIN and lock | ≈ |
-| `30` | ch, ratio, knee, att u16, rel u16, thr u16 | Compressor (Out, Aux) | ✓ |
+| `30` | ch, ratio, knee, att u16, rel u16, thr u16 | Compressor (Out, Aux). At ratio 1:1.0 an output gain off 0 dB misbehaves, see [Signal chain](#signal-chain) | ✓ |
 | `31` / `32` | ch, freq u16, slope | Low pass / high pass. slope 0 = bypass, 1–20 = BW/BL/LK −6…−48 | ✓ |
 | `33` | ch, band, gain u16, freq u16, q, type, bypass | PEQ (In/Aux 5 bands, Out 7) | ✓ |
 | `34` | ch, raw u16 | Gain | ✓ |
 | `35` | ch, 0/1 | Mute | ✓ |
 | `36` | ch, 0/1 | Phase inverted | ✓ |
 | `38` | ch, samples u16 | Delay (48 kHz) | ✓ |
-| `39` | mode, freq | Test tone: 0 analog, 1 pink, 2 white, 3 sine (31 third-octave bands) | ✓ |
+| `39` | mode, freq | Test tone: 0 analog, 1 pink, 2 white, 3 sine (31 third-octave bands). The configuration keeps the mode at footer +48 and the frequency at +50 | ✓ |
 | `3A` | ch, mask u16 | Matrix (Out) or Aux source selection (ch `12`) | ✓ |
 | `3B` | ch, flags | Channel link (master = OR mask, slave = 0). The editor sends `2A` master→slave first, then `3B`, then `12`. Linked channels then follow mute, Line and FBQ inside the device | ✓ |
 | `3C` | ch, 0/1 | EQ bypass of the whole channel | ✓ |
 | `3D` | ch, 8 chars | Channel name | ✓ |
 | `3E` | ch, att u16, rel u16, thr u16 | Noise gate (the 8x8 has no hold) | ✓ |
-| `40` | – | Meters: 17 × 3 bytes (In1–8, Out1–8, Aux) + 4 bytes | ✓ format, scale approximated |
+| `40` | – | Meters: 17 × 3 bytes (In1–8, Out1–8, Aux) + 4 bytes | ✓ format, ? scale |
 | `55` | ch, mode | Input: 0 Line, 1 Mic 0 dB, 2 Mic +1 dB, 3 Mic +2 dB | ✓ |
 | `56` | ch, 0/1 | +48V phantom power | ✓ |
 | `5A` | idx | AutoMix slope 0 = −3 dB … 3 = −6 dB | ✓ |
@@ -110,11 +110,27 @@ Every frame the editor sent in the 143 captures (4830 frames) is rebuilt byte fo
 | PEQ type | 0 Peak, 1 Low Shelf, 2 High Shelf, 3 Low Pass, 4 High Pass, 5 Allpass1, 6 Allpass2 | ✓ |
 | Times | ms = raw + 1 | ✓ |
 | Gate threshold | raw/2 − 90 dB | ✓ |
-| Compressor / AutoMix threshold | raw/2 − 90 dB (180 = 0 dB, 220 = +20 dB) | ✓ |
+| Compressor / AutoMix threshold | raw/2 − 90 dB (180 = 0 dB, 220 = +20 dB). The limiter moves the output peak 1 dB per dB | ✓, unit at the connector unconfirmed |
 | Ratio | 0 = 1:1.0 … 14 = 1:20, 15 = Limit | ✓ |
 | Delay | samples / 48 (ms) | ✓ |
 | Reverb time | 139 = 1.96 s (no further data points) | approximated |
-| Meter | (lo + 256 · hi) / 256 − 60 dB | approximated |
+| Meter | unknown. (lo + 256 · hi) / 256 − 60 dB reads -6.0 dB for an idle input and 0.7 dB for a real step of 8.1 dB | ? |
+
+### Signal chain
+
+Measured with the loopbacks of a UMC1820 on 2026-09-29. The procedures and the numbers are in
+[measurements.md](measurements.md).
+
+- The test tone generator feeds every input before its gain and its mute, as one coherent source. Pink noise
+  plays 15 dB louder than the sine.
+- The input gain is exact.
+- On an output the gain comes before the compressor.
+- The limiter works on the peak and follows the threshold 1 dB per dB. The output clips at about +12.5 dB on
+  the threshold scale.
+- At compressor ratio 1:1.0, the factory setting, every output gain other than 0 dB acts more strongly than
+  set. -6 dB acts as -8.2 dB, -20 dB as -23.4 dB, +6 dB as +9.7 dB and +12 dB as +19.7 dB. The output then
+  also carries the signal mirrored at 24 kHz, about 10 dB below it at -6 dB. The limiter adds the same image
+  while it works. At any other ratio the output gain is exact as long as the compressor does not work.
 
 ### Configuration (1277 bytes via `27`)
 
@@ -139,20 +155,22 @@ reflect, time, reverb) · 84 ratio · 85 knee · 86 attack · 88 release · 90 t
 
 **Footer (63):** 0 mute mask inputs · 2 Aux mute · 4 mute mask outputs · 6 + 2k band bypass mask input k ·
 22 band bypass Aux · 24 + 2k band bypass output k · 40 sub in (gain %, mute, mask, x) · 44 sub out (same) ·
-48 test tone mode · 52 delay unit · 56 EQ bypass mask inputs · 58 EQ bypass mask outputs · 60 EQ bypass Aux
+48 test tone mode · 50 test tone frequency · 52 delay unit · 56 EQ bypass mask inputs · 58 EQ bypass mask outputs ·
+60 EQ bypass Aux
 
 The mute, band bypass and EQ bypass masks are 16 bit words with one bit per channel or band. Only the low bits
 are used: 8 channels for inputs and outputs, bit 0 for the Aux, 5 bands per input and for the Aux, 7 per output.
 
 Every field is checked against the vendor editor display (`tests/Model/DeviceTest.php`). `DeviceState` writes
 each command where `Device::parse()` reads it. `tests/Model/DeviceStateTest.php` uploads the demo and the factory
-configuration onto blank, `FF` and factory bases and compares every writable bit. No command writes these bytes:
+configuration onto blank, `FF` and factory bases and compares every writable bit. An upload does not write these bytes:
 
 - header 0..15 (`FF FF` and the preset name, written only by storing a preset)
 - input +8, +11, +59, +61 (+8 is probably +48V)
 - output +71, +75
 - Aux +13..15, +17
-- footer +48..51 (test tone), +53..55, +62 and the unused bits of the mask words
+- footer +48 and +50 (test tone mode and frequency, left out of an upload on purpose), +49, +51, +53..55, +62
+  and the unused bits of the mask words
 
 The factory reset read-out is `resources/factory_config.bin`.
 Group control is read with `6C 00` (8 × gain %, mute, mask).
@@ -164,7 +182,9 @@ Group control is read with `6C 00` (8 × gain %, mute, mask).
   see `TODO.md`.
 - Deleting a stored preset: no command is known, a slot can only be overwritten.
 - Changing the IP address: the command is unknown (the editor sends it only on a real change).
-- Meters: the format is known, the dB scale is approximated.
+- Meters: the format is known, the dB scale is not ([measurements.md](measurements.md#meters)).
+- The unit of the compressor threshold at the output connector, and whether the output ceiling of about
+  +12.5 dB on that scale is analog or digital.
 
 ---
 

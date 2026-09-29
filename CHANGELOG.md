@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.1] - 2026-09-29
+
+### Added
+
+- `docs/measurements.md` with the setup, the commands and the results of the first loopback measurements of the UMC1820 and the 8x8
+- `trackdsp:measure` warns about a played output at compressor ratio 1:1.0 whose gain is not 0 dB, and counts such a gain as not flat on the reference output
+
+### Fixed
+
+- A `--trim` of `trackdsp:measure` on an output at compressor ratio 1:1.0, the factory setting, came out stronger than asked (-20 dB as -23.4 dB, +6 dB as +9.7 dB) and added the spectrum mirrored at 24 kHz. Such an output now runs at 1:1.1 from +20 dB for the recording and gets its compressor back afterwards
+- `trackdsp:measure` analysed the first milliseconds of a recording, where the UMC1820 sometimes starts with a click. A muted input read -75.5 instead of -108.7 dBFS, and the peak and the crest factor of quiet signals were wrong. The analysis now leaves out the first 100 ms
+- The device model did not read the test tone frequency, which the 8x8 keeps at footer byte +50. The editor showed 1 kHz whatever the device held, and every restore of `trackdsp:measure` and the auto EQ wrote 1 kHz back
+
 ## [0.13.0] - 2026-09-29
 
 ### Added
@@ -200,7 +213,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.12.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/1bb70a3...main
+[0.13.1]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d45de7f...main
+[0.13.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/9494c73...d45de7f
+[0.12.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/1bb70a3...9494c73
 [0.11.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c378966...1bb70a3
 [0.10.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c432438...c378966
 [0.9.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/de8a921...c432438
