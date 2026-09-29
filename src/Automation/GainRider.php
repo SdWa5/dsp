@@ -10,7 +10,9 @@ use App\Protocol\Scale;
  * It averages the meter level as power with an exponential time constant, leaves small deviations
  * alone, changes the gain by at most the slew rate and holds the gain while the input is silent, so it
  * never rides up the noise floor. The input meters read after the gain, so a gain change shifts the
- * average by the same amount at once and the loop does not overshoot.
+ * average by the same amount at once and the loop does not overshoot. For the same reason silence is
+ * judged on the level before the gain: a quiet source after a loud one is no pause, even where the gain
+ * the loud one left behind puts its meter level below the silence level.
  *
  * Someone else changing the gain (the editor, a fader) pauses the rider for the hold time and makes that
  * gain the new starting point. The rider's own writes come back in later state events and are recognised.
@@ -86,7 +88,8 @@ final class GainRider
         if (null === $this->gainDb || $this->isPaused($now)) {
             return null;
         }
-        if ($levelDb < $this->settings->silenceDb) {
+        // A meter at its floor (gain raw 0 or nothing playing) tells nothing about the level before the gain
+        if ($levelDb <= Scale::METER_FLOOR || $levelDb - $this->gainDb < $this->settings->silenceDb) {
             $this->status = self::SILENT;
 
             return null;

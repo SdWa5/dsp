@@ -101,13 +101,15 @@ final class MatrixTest extends TestCase
 
     public function testParseMeters(): void
     {
-        $data = pack('v', 0x05AD)."\x00".str_repeat("\x00\x3C\x00", 16)."\x00\x00\x00\x00";
+        // Read from the device: a muted input, an idle input at 0 dB gain, the 1 kHz test tone and pink noise at
+        // unity gain. The Aux bytes are missing.
+        $data = (string) hex2bin('ad05b0013618d23b6d043d00'.str_repeat('ad05c4', 12));
 
         $levels = Matrix::parseMeters($data);
 
         self::assertCount(17, $levels);
-        self::assertEqualsWithDelta(-54.3, $levels[0], 0.1);
-        self::assertSame(0.0, $levels[16]);
+        self::assertSame([-90.0, -90.0, -27.85, -13.45], \array_slice($levels, 0, 4));
+        self::assertSame(-90.0, $levels[16]);
         self::assertSame(-90.0, Matrix::parseMeters('')[0]);
     }
 }

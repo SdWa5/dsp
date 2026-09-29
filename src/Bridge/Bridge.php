@@ -10,6 +10,7 @@ use App\Model\DeviceState;
 use App\Protocol\Commands;
 use App\Protocol\Frame;
 use App\Protocol\Opcode;
+use App\Protocol\Scale;
 use App\Transport\TcpTransport;
 use App\Transport\TransportException;
 use App\Transport\TransportFactory;
@@ -518,7 +519,7 @@ final class Bridge
         $frames = [];
         foreach ($this->riders as $channel => $rider) {
             $rider->observeGain($inputs[$channel]->gain, $now);
-            if (null !== $raw = $rider->meter($levels[$channel] ?? -90.0, $now)) {
+            if (null !== $raw = $rider->meter($levels[$channel] ?? Scale::METER_FLOOR, $now)) {
                 $frames[] = Commands::gain($channel, $raw);
             }
         }

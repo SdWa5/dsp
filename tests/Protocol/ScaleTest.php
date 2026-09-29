@@ -64,6 +64,18 @@ final class ScaleTest extends TestCase
         self::assertSame(100, Scale::qToIndex(500));
     }
 
+    public function testMeterScale(): void
+    {
+        self::assertSame(0.0, Scale::meterDb(Scale::METER_ZERO));
+        self::assertSame(6.02, Scale::meterDb(Scale::METER_ZERO + 128));
+        self::assertSame(-27.8, Scale::meterDb(15315), 'The 1 kHz test tone at unity gain');
+        self::assertEqualsWithDelta(-12.0, Scale::meterDb(15059) - Scale::meterDb(15315), 0.05, 'A 12 dB step on the device');
+        self::assertSame(-90.0, Scale::meterDb(0x05AD), 'Digital silence, for example gain raw 0');
+        self::assertSame(-90.0, Scale::meterDb(0));
+        self::assertSame(Scale::METER_ZERO, Scale::dbToMeter(0.0));
+        self::assertSame(15315, Scale::dbToMeter(-27.8));
+    }
+
     public function testDynamicsAndDelay(): void
     {
         self::assertSame(-90.0, Scale::thresholdToDb(0));

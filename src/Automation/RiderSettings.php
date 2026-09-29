@@ -5,8 +5,7 @@ namespace App\Automation;
 use App\Protocol\Channel;
 
 /**
- * Settings of the gain rider. Levels are meter levels in the approximated dB scale of Scale::meterDb(),
- * so the target is relative until the meters are calibrated. Gains are channel gains in dB.
+ * Settings of the gain rider. Levels are meter levels in dB, see Scale::meterDb(). Gains are channel gains in dB.
  */
 final readonly class RiderSettings
 {
@@ -17,7 +16,7 @@ final readonly class RiderSettings
      * @param float $maxGainDb           highest gain the rider sets, above 0 dB only with $allowBoost
      * @param float $slewDbPerSecond     fastest gain change
      * @param float $averageSeconds      time constant of the level average
-     * @param float $silenceDb           below this level the rider holds the gain
+     * @param float $silenceDb           below this level before the gain (meter level minus gain) the rider holds the gain
      * @param float $deadbandDb          deviations up to this size are left alone
      * @param float $overrideHoldSeconds pause after someone else changed the gain
      */

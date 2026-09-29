@@ -34,7 +34,8 @@
                 {% endfor %}
                 <label class="check"><input type="checkbox" name="boost"> Allow a highest gain above 0 dB</label>
             </div>
-            <p class="dialog__note">Levels are on the device's approximated meter scale.</p>
+            <p class="dialog__note">Levels are meter levels in dB, on the scale of the compressor threshold. Hold below compares the
+                level before the gain, so a quiet source after a loud one still gets raised.</p>
             <p class="dialog__error" data-riders-target="error" role="alert"></p>
             <div class="dialog__buttons">
                 <button type="button" class="big big--danger" data-riders-target="stop" data-action="riders#stop">Stop rider</button>

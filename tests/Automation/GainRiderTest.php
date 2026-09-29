@@ -91,6 +91,32 @@ final class GainRiderTest extends TestCase
         self::assertNull($rider->averageDb());
     }
 
+    public function testAQuietSourceAfterALoudOneIsNoPause(): void
+    {
+        $raw = Scale::GAIN_UNITY;
+        $rider = $this->rider($raw, targetDb: -18.0, silenceDb: -45.0);
+        $this->feed($rider, 2.0, 120.0, $raw);
+        self::assertLessThan(-18.0, Scale::gainToDb($raw));
+
+        // 30 dB quieter: at the gain the loud source left behind the meter reads below -45 dB, the source does not
+        $this->feed($rider, -28.0, 120.0, $raw);
+
+        self::assertSame(0.0, Scale::gainToDb($raw));
+        self::assertSame(GainRider::LIMIT, $rider->status($this->now));
+    }
+
+    public function testAMeterAtItsFloorIsSilentAtAnyGain(): void
+    {
+        $raw = Scale::dbToGain(-50.0);
+        $rider = $this->rider($raw, targetDb: -18.0, minGainDb: -60.0, silenceDb: -45.0);
+
+        for ($i = 0; $i < 100; ++$i) {
+            $this->now += self::TICK;
+            self::assertNull($rider->meter(Scale::METER_FLOOR, $this->now));
+        }
+        self::assertSame(GainRider::SILENT, $rider->status($this->now));
+    }
+
     public function testLeavesSmallDeviationsAlone(): void
     {
         $raw = Scale::GAIN_UNITY;

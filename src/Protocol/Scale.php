@@ -17,6 +17,9 @@ final class Scale
     public const SAMPLE_RATE = 48000;
     public const SPEED_OF_SOUND = 343.0;
     public const FEET_PER_METRE = 3.2808;
+    public const METER_ZERO = 15906;
+    public const METER_PER_DOUBLING = 128;
+    public const METER_FLOOR = -90.0;
 
     /**
      * Channel gain: 0..79 in 0.5 dB steps from -60 dB, from 80 in 0.1 dB steps from -20 dB.
@@ -162,11 +165,21 @@ final class Scale
     }
 
     /**
-     * Meter value approximation, not calibrated: 16-bit value / 256 - 60 dB.
-     * A quiet channel reads about 0x05AD (-54 dB), noise at +12 dB gain about 0x3524 (-7 dB).
+     * Meter value in dB: 128 units per doubling of the level (21.26 per dB), and 0 dB at 15906, so that a 1 kHz
+     * sine reads the threshold at which a limiter holds it. Measured from +12 to -50 dB over a loopback, see
+     * docs/measurements.md. Digital silence (gain raw 0, or a channel fed only by muted inputs) reads about 0x05AD,
+     * which lands on the floor like anything below it. A channel's own mute acts after its meter.
      */
     public static function meterDb(int $value): float
     {
-        return $value / 256 - 60;
+        return max(self::METER_FLOOR, round(($value - self::METER_ZERO) * 20 * log10(2) / self::METER_PER_DOUBLING, 2));
+    }
+
+    /**
+     * Inverse of meterDb() above the floor.
+     */
+    public static function dbToMeter(float $db): int
+    {
+        return (int) round(self::METER_ZERO + $db * self::METER_PER_DOUBLING / (20 * log10(2)));
     }
 }
