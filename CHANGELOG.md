@@ -5,6 +5,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.0] - 2026-09-30
+
+### Added
+
+- `trackdsp:bridge --target-file`, by default the socket path with `.target.json`. Every `connect` and `disconnect` saves the target and whether the bridge should be connected there, and a start without `--target` takes both from it
+- `demo` in the bridge status, true while the target is the simulated device
+- The editor shows "Demo" instead of "Online" and a banner while the bridge is on the simulated device, from `assets/lib/connection.js`
+- A TODO item to rename the repository and give it a description
+
+### Changed
+
+- The ddev daemon starts the bridge with `TRACKDSP_TARGET=demo` rather than `--target=demo`, so the saved target wins over it
+
+### Fixed
+
+- After a restart of the ddev web container the bridge came back on the simulated device instead of the device the editor had chosen, and writes went to the demo without a warning
+
+### Removed
+
+- The TODO item for the bridge coming back on the demo target
+
 ## [0.16.0] - 2026-09-29
 
 ### Added

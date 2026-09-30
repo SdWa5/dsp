@@ -6,17 +6,24 @@ use Symfony\Component\Process\Process;
 
 /**
  * Runs bin/console trackdsp:bridge on the simulated device as a subprocess with its own socket.
+ * A null target starts it without --target, on the saved target or else on $TRACKDSP_TARGET (demo in tests).
  */
 final class BridgeProcess
 {
     public readonly string $socket;
     private Process $process;
 
-    public function __construct(string $target = 'demo')
+    /**
+     * @param array<string, mixed>|null $savedTarget written to the target file before the start
+     */
+    public function __construct(?string $target = 'demo', ?array $savedTarget = null)
     {
         $this->socket = sys_get_temp_dir().'/trackdsp-test-'.bin2hex(random_bytes(4)).'.sock';
+        if (null !== $savedTarget) {
+            file_put_contents($this->file('.target.json'), json_encode($savedTarget, \JSON_THROW_ON_ERROR));
+        }
         $this->process = new Process(
-            ['php', 'bin/console', 'trackdsp:bridge', '--env=test', '--target='.$target, '--socket='.$this->socket, '--meter-interval=0.05'],
+            ['php', 'bin/console', 'trackdsp:bridge', '--env=test', ...(null === $target ? [] : ['--target='.$target]), '--socket='.$this->socket, '--meter-interval=0.05'],
             \dirname(__DIR__, 2),
         );
         $this->process->start();
@@ -44,10 +51,15 @@ final class BridgeProcess
             $this->process->wait();
         }
         @unlink($this->socket);
-        @unlink(preg_replace('/\.sock$/', '', $this->socket).'.riders.json');
-        @unlink(preg_replace('/\.sock$/', '', $this->socket).'.measure.lock');
-        @unlink(preg_replace('/\.sock$/', '', $this->socket).'.measure.restore.json');
+        foreach (['.riders.json', '.target.json', '.measure.lock', '.measure.restore.json'] as $suffix) {
+            @unlink($this->file($suffix));
+        }
 
         return $this->process->getExitCode();
+    }
+
+    private function file(string $suffix): string
+    {
+        return (preg_replace('/\.sock$/', '', $this->socket) ?? $this->socket).$suffix;
     }
 }

@@ -1,6 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
 import { api, getDefaults, listen, on, send, status, store } from '../lib/device.js';
 import { changedPaths } from '../lib/defaults.js';
+import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel, channelParts } from '../lib/channels.js';
 import { linkCommands, linkGroups, linkedMembers } from '../lib/link.js';
 import { presetLabel, presetSlotInfo } from '../lib/scale.js';
@@ -70,15 +71,10 @@ export default class extends Controller {
     }
 
     showStatus() {
-        const online = status.bridge && status.connected;
-        this.onlineTarget.textContent = online ? 'Online' : 'Offline';
+        const { label, online, demo, banner } = describeConnection(status);
+        this.onlineTarget.textContent = label;
         this.onlineTarget.classList.toggle('is-on', online);
-        let banner = '';
-        if (!status.bridge) {
-            banner = status.error || 'The bridge is not running. Start it with bin/console trackdsp:bridge.';
-        } else if (!status.connected) {
-            banner = `Not connected${status.target ? ` to ${status.target}` : ''}.${status.error ? ` ${status.error}` : ''}`;
-        }
+        this.onlineTarget.classList.toggle('is-demo', demo);
         this.bannerTextTarget.textContent = banner;
         this.bannerTarget.hidden = '' === banner;
         if (this.hasStatusTarget) {
