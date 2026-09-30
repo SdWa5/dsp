@@ -34,6 +34,10 @@ use Psr\Log\NullLogger;
  * polled while a client listens or a rider runs, and write the input gain like any other client. Their
  * settings are kept in $ridersFile and come back after a restart.
  *
+ * Every connect and disconnect op is kept in $targetFile. With $restoreTarget the bridge starts on that target,
+ * connected or not as it was left, instead of on the one it was given. A restart therefore does not drop the
+ * editor's choice and fall back to the simulated device, which the status reports as "demo" while it is the target.
+ *
  * Ops: ping, status, state, write {frames: [hex]}, connect {target?}, disconnect, refresh, subscribe,
  * ride {channel, settings}, unride {channel}
  */
@@ -76,6 +80,8 @@ final class Bridge
         private readonly float $publishInterval = 0.2,
         private readonly float $resyncInterval = 60.0,
         private readonly ?string $ridersFile = null,
+        private readonly ?string $targetFile = null,
+        private readonly bool $restoreTarget = false,
     ) {
         $this->queue = new WriteQueue();
     }
@@ -104,6 +110,7 @@ final class Bridge
         stream_set_blocking($server, false);
         $this->server = $server;
         $this->loadRiders();
+        $this->loadTarget();
         $this->logger->info('Bridge listening on {socket}, target {target}.', ['socket' => $this->socketPath, 'target' => $this->target]);
     }
 
@@ -156,6 +163,7 @@ final class Bridge
         return [
             'connected' => null !== $this->dsp,
             'target' => $this->target,
+            'demo' => 'demo' === $this->target,
             'transport' => $this->dsp?->transport()->describe(),
             'info' => $this->info,
             'error' => $this->error,
@@ -428,12 +436,14 @@ final class Bridge
                 $this->failures = 0;
                 $this->error = '';
                 $this->nextConnect = 0.0;
+                $this->saveTarget();
 
                 return $this->status();
             case 'disconnect':
                 $this->disconnect();
                 $this->wanted = false;
                 $this->error = '';
+                $this->saveTarget();
 
                 return $this->status();
             case 'refresh':
@@ -595,6 +605,38 @@ final class Bridge
         $settings = array_values(array_map(static fn (GainRider $r): array => $r->settings()->toArray(), $this->riders));
         if (false === @file_put_contents($this->ridersFile, json_encode($settings, \JSON_PRETTY_PRINT | \JSON_THROW_ON_ERROR))) {
             $this->logger->warning('Cannot save the gain riders to {file}.', ['file' => $this->ridersFile]);
+        }
+    }
+
+    /**
+     * Takes the target and the connection wish of the last connect or disconnect op, see $restoreTarget.
+     * A file that cannot be read leaves the given target in place.
+     */
+    private function loadTarget(): void
+    {
+        if (!$this->restoreTarget || null === $this->targetFile || !is_file($this->targetFile)) {
+            return;
+        }
+        $saved = json_decode((string) file_get_contents($this->targetFile), true);
+        $target = \is_array($saved) && \is_string($saved['target'] ?? null) ? trim($saved['target']) : '';
+        if ('' === $target || !\is_bool($saved['connect'] ?? null)) {
+            $this->logger->warning('Ignored the saved target in {file}, it has no target and connect flag.', ['file' => $this->targetFile]);
+
+            return;
+        }
+        $this->target = $target;
+        $this->wanted = $saved['connect'];
+        $this->logger->info('Restored target {target} ({wish}) from {file}.', ['target' => $target, 'wish' => $this->wanted ? 'connect' : 'stay disconnected', 'file' => $this->targetFile]);
+    }
+
+    private function saveTarget(): void
+    {
+        if (null === $this->targetFile) {
+            return;
+        }
+        $saved = json_encode(['target' => $this->target, 'connect' => $this->wanted], \JSON_PRETTY_PRINT | \JSON_THROW_ON_ERROR);
+        if (false === @file_put_contents($this->targetFile, $saved)) {
+            $this->logger->warning('Cannot save the target to {file}.', ['file' => $this->targetFile]);
         }
     }
 

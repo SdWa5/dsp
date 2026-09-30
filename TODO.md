@@ -1,5 +1,16 @@
 # TODO
 
+## Repository
+
+- Rename the repository and give it a description. `dsp_linux_8x8` names the first goal, a Linux editor for
+  the t.racks 8x8 Matrix, while the project now also measures, rides gains, fits the auto EQ and is to tune a
+  whole PA. The GitHub description is empty, and `composer.json` and the README still describe an 8x8 editor
+  only. Renaming needs admin rights on the repository, which the account `bestcodename` does not have (push
+  and triage, read from the API on 2026-09-30). Settle the new name first, then check what it touches: the
+  clone command in the README, the sibling entry in the sdwa5 repository, and whether the project name
+  `trackdsp` goes with it, which is also the composer package, the ddev name, `bin/trackdsp` and the
+  `trackdsp:` command prefix
+
 ## Rewrite
 
 - Browser editor: check every page and dialog against the device, with a harmless round trip per control
@@ -61,10 +72,6 @@
   one, with the power mean of both meters and the same gain written to every member. First check whether the
   8x8 copies a gain write to a linked input by itself. If it does, two riders on a linked pair take each
   other's writes for manual changes and pause each other
-- After a restart of the ddev web container the bridge comes back on the demo target instead of USB, and
-  writes then go to the demo without a warning (seen 2026-09-29). The daemon in `.ddev/config.bridge.yaml`
-  starts it with `--target=demo`. Reconnect to the last target, or warn in the API and the editor while the
-  bridge is on the demo
 - The rack's output panel has a broken connection on output 8 (found 2026-09-29). Until it is repaired, measure
   with `--reference-output=out6`. Afterwards repeat B1 of `docs/measurements.md` against Out8
 - Gain raw 0 mutes the channel, while the browser editor, `trackdsp:gain` and the gain rider treat it as -60 dB.

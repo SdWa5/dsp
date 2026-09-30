@@ -20,15 +20,17 @@ bin/console trackdsp:bridge -t 192.168.68.10     # or usb, usb:/dev/hidrawN, dem
 
 | Option | Default | Meaning |
 |---|---|---|
-| `-t`, `--target` | `$TRACKDSP_TARGET` | device to connect to |
+| `-t`, `--target` | the target of the last `connect` or `disconnect`, else `$TRACKDSP_TARGET` | device to connect to |
 | `-s`, `--socket` | `$TRACKDSP_BRIDGE_SOCKET`, else `var/bridge.sock` | unix socket |
 | `--meter-interval` | `0.3` | seconds between meter polls while a client listens |
 | `--resync-interval` | `60` | seconds between full re-reads of the device |
 | `--riders-file` | the socket path with `.riders.json` | where the gain riders are kept across restarts |
+| `--target-file` | the socket path with `.target.json` | where the last `connect` or `disconnect` is kept across restarts |
 
-In ddev the bridge runs as a daemon of the web container (`.ddev/config.bridge.yaml`) on the simulated
-device. `POST /api/connect` switches it to the real one, over USB (see the README) or the network. It
-starts on the simulated device again after every `ddev restart`. Its log is in `ddev logs -s web`, and `-v`
+In ddev the bridge runs as a daemon of the web container (`.ddev/config.bridge.yaml`), the first time on the
+simulated device. `POST /api/connect` switches it to the real one, over USB (see the README) or the network.
+Every later start, also after `ddev restart`, is on the device it was last switched to. The daemon sets
+`TRACKDSP_TARGET=demo` rather than `--target=demo` for that reason. Its log is in `ddev logs -s web`, and `-v`
 shows the info messages.
 
 The USB search reads the hidraw class in `TRACKDSP_HIDRAW_SYSFS` (default `/sys/class/hidraw`) and opens the
@@ -64,6 +66,12 @@ answers on the same socket. A socket file without a bridge behind it is removed.
 - **USB timing:** the 8x8 answers within about 10 ms, but it loses about one request per 0.2 to 0.3 s of
   continuous traffic. Over USB every attempt therefore waits 0.15 s and a request is tried up to 5 times
   (`TransportFactory::USB_TIMEOUT`, `USB_RETRIES`). Over TCP an attempt waits 1 s, with 3 attempts.
+- **Target:** every `connect` and `disconnect` saves the target and whether the bridge should be connected to the
+  target file. A start without `--target` takes both from there, so a restart keeps the editor's choice, also
+  a deliberate disconnect that leaves the device free for the vendor editor. `--target` wins over the file,
+  which is why the VIM3 unit keeps starting on USB. A file without a target and a connect flag is ignored
+  with a warning. `demo` in the status is true while the target is the simulated device, where no write
+  reaches an 8x8.
 - **Errors:** a device error drops the connection and clears the queue. The bridge reconnects after
   1, 2, 4, 8 and then every 15 seconds. `disconnect` stops that until the next `connect`.
 
@@ -80,7 +88,7 @@ One JSON object per line in each direction.
 | op | Parameters | Result |
 |---|---|---|
 | `ping` | – | `"pong"` |
-| `status` | – | `connected`, `target`, `transport`, `info`, `error`, `queued`, `resync` (progress 0..1 of a running re-read, else `null`), `clients`, `riders` (list of rider settings) |
+| `status` | – | `connected`, `target`, `demo` (the target is the simulated device), `transport`, `info`, `error`, `queued`, `resync` (progress 0..1 of a running re-read, else `null`), `clients`, `riders` (list of rider settings) |
 | `state` | – | the device as `Device::toArray()`, the `device` object of a preset file plus `preset_stored` (20 × bool, which user slots hold a stored preset, `null` before the first read) |
 | `write` | `frames`: list of hex strings, command byte followed by the data | `{"queued": n}` |
 | `connect` | `target` (optional, the current one otherwise) | status |

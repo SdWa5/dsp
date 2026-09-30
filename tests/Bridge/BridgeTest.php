@@ -37,9 +37,9 @@ final class BridgeTest extends TestCase
         $this->bridge->close();
     }
 
-    private function bridge(string $target, ?string $ridersFile = null): Bridge
+    private function bridge(string $target, ?string $ridersFile = null, ?string $targetFile = null, bool $restoreTarget = false): Bridge
     {
-        $bridge = new Bridge(new TransportFactory(new HidrawLocator('/nonexistent'), self::DEMO, 0.01), $this->socket, $target, meterInterval: 0.01, publishInterval: 0.0, ridersFile: $ridersFile);
+        $bridge = new Bridge(new TransportFactory(new HidrawLocator('/nonexistent'), self::DEMO, 0.01), $this->socket, $target, meterInterval: 0.01, publishInterval: 0.0, ridersFile: $ridersFile, targetFile: $targetFile, restoreTarget: $restoreTarget);
         $bridge->listen();
 
         return $bridge;
@@ -300,11 +300,11 @@ final class BridgeTest extends TestCase
         self::assertSame([], $this->request('status')['result']['riders']);
     }
 
-    private function restart(?string $ridersFile): void
+    private function restart(?string $ridersFile, ?string $targetFile = null, bool $restoreTarget = false): void
     {
         @fclose($this->client);
         $this->bridge->close();
-        $this->bridge = $this->bridge('demo', $ridersFile);
+        $this->bridge = $this->bridge('demo', $ridersFile, $targetFile, $restoreTarget);
         $this->client = $this->connectClient();
         $this->buffer = '';
     }
@@ -326,6 +326,96 @@ final class BridgeTest extends TestCase
         $this->request('disconnect');
         iterator_to_array($this->messages(3), false);
         self::assertFalse($this->request('status')['result']['connected']);
+    }
+
+    public function testReportsTheSimulatedDevice(): void
+    {
+        self::assertTrue($this->request('status')['result']['demo']);
+        $this->request('connect', ['target' => 'usb:/nonexistent/hidraw9']);
+        self::assertFalse($this->request('status')['result']['demo']);
+    }
+
+    public function testTheChosenTargetSurvivesARestart(): void
+    {
+        $file = self::targetFile();
+        try {
+            $this->restart(null, $file, true);
+            self::assertSame('demo', $this->request('status')['result']['target']);
+
+            $this->request('connect', ['target' => 'usb:/nonexistent/hidraw9']);
+            self::assertSame(['target' => 'usb:/nonexistent/hidraw9', 'connect' => true], json_decode((string) file_get_contents($file), true));
+
+            // The web container restarts, and its daemon starts the bridge on the demo again
+            $this->restart(null, $file, true);
+            iterator_to_array($this->messages(3), false);
+            $status = $this->request('status')['result'];
+            self::assertSame('usb:/nonexistent/hidraw9', $status['target']);
+            self::assertFalse($status['demo']);
+            self::assertFalse($status['connected']);
+            self::assertNotSame('', $status['error'], 'It keeps trying the chosen device rather than falling back.');
+        } finally {
+            @unlink($file);
+        }
+    }
+
+    public function testADisconnectSurvivesARestart(): void
+    {
+        $file = self::targetFile();
+        try {
+            $this->restart(null, $file, true);
+            $this->request('disconnect');
+            $this->restart(null, $file, true);
+            iterator_to_array($this->messages(5), false);
+            $status = $this->request('status')['result'];
+            self::assertSame('demo', $status['target']);
+            self::assertFalse($status['connected']);
+            self::assertSame('', $status['error']);
+
+            $this->request('connect');
+            iterator_to_array($this->messages(3), false);
+            self::assertTrue($this->request('status')['result']['connected']);
+        } finally {
+            @unlink($file);
+        }
+    }
+
+    public function testAGivenTargetWinsOverTheSavedOne(): void
+    {
+        $file = self::targetFile();
+        file_put_contents($file, json_encode(['target' => 'usb:/nonexistent/hidraw9', 'connect' => false]));
+        try {
+            $this->restart(null, $file, false);
+            $status = $this->request('status')['result'];
+            self::assertSame('demo', $status['target']);
+            self::assertTrue($status['connected']);
+
+            // It is still kept for a later start without a target
+            $this->request('connect', ['target' => 'usb:/nonexistent/hidraw8']);
+            self::assertSame('usb:/nonexistent/hidraw8', json_decode((string) file_get_contents($file), true)['target']);
+        } finally {
+            @unlink($file);
+        }
+    }
+
+    public function testAnUnreadableSavedTargetKeepsTheGivenOne(): void
+    {
+        $file = self::targetFile();
+        try {
+            foreach (['not json', '[]', '{"target": "  ", "connect": true}', '{"target": "usb"}', '{"target": 5, "connect": true}'] as $content) {
+                file_put_contents($file, $content);
+                $this->restart(null, $file, true);
+                $status = $this->request('status')['result'];
+                self::assertSame('demo', $status['target'], $content);
+                self::assertTrue($status['connected'], $content);
+            }
+        } finally {
+            @unlink($file);
+        }
+    }
+
+    private static function targetFile(): string
+    {
+        return sys_get_temp_dir().'/trackdsp-test-'.bin2hex(random_bytes(4)).'.target.json';
     }
 
     public function testRefusesASecondBridgeOnTheSameSocket(): void

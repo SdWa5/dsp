@@ -33,26 +33,30 @@ final class BridgeCommand extends Command implements SignalableCommandInterface
     protected function configure(): void
     {
         $this
-            ->addOption('target', 't', InputOption::VALUE_REQUIRED, 'auto, usb, usb:/dev/hidrawN, demo or host[:port] (default: $TRACKDSP_TARGET)')
+            ->addOption('target', 't', InputOption::VALUE_REQUIRED, 'auto, usb, usb:/dev/hidrawN, demo or host[:port]. Without it the bridge starts on the target of the last connect or disconnect, else on $TRACKDSP_TARGET')
             ->addOption('socket', 's', InputOption::VALUE_REQUIRED, 'Unix socket path (default: $TRACKDSP_BRIDGE_SOCKET or var/bridge.sock)')
             ->addOption('meter-interval', null, InputOption::VALUE_REQUIRED, 'Seconds between meter polls while a client listens', '0.3')
             ->addOption('resync-interval', null, InputOption::VALUE_REQUIRED, 'Seconds between full re-reads of the device', '60')
-            ->addOption('riders-file', null, InputOption::VALUE_REQUIRED, 'Where the gain riders are kept across restarts (default: the socket path with .riders.json)');
+            ->addOption('riders-file', null, InputOption::VALUE_REQUIRED, 'Where the gain riders are kept across restarts (default: the socket path with .riders.json)')
+            ->addOption('target-file', null, InputOption::VALUE_REQUIRED, 'Where the last connect or disconnect is kept across restarts (default: the socket path with .target.json)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $target = self::option($input, 'target', $this->defaultTarget);
+        $explicitTarget = self::option($input, 'target', '');
         $socket = self::option($input, 'socket', $this->defaultSocket);
+        $base = preg_replace('/\.sock$/', '', $socket) ?? $socket;
         $this->bridge = new Bridge(
             $this->transports,
             $socket,
-            $target,
+            '' !== $explicitTarget ? $explicitTarget : $this->defaultTarget,
             new ConsoleLogger($output),
             max(0.05, (float) self::option($input, 'meter-interval', '0.3')),
             resyncInterval: max(1.0, (float) self::option($input, 'resync-interval', '60')),
-            ridersFile: self::option($input, 'riders-file', (preg_replace('/\.sock$/', '', $socket) ?? $socket).'.riders.json'),
+            ridersFile: self::option($input, 'riders-file', $base.'.riders.json'),
+            targetFile: self::option($input, 'target-file', $base.'.target.json'),
+            restoreTarget: '' === $explicitTarget,
         );
         try {
             $this->bridge->listen();
@@ -61,7 +65,7 @@ final class BridgeCommand extends Command implements SignalableCommandInterface
 
             return Command::FAILURE;
         }
-        $io->writeln(\sprintf('Bridge on <info>%s</info>, target <info>%s</info>. Stop with Ctrl+C.', $socket, $target));
+        $io->writeln(\sprintf('Bridge on <info>%s</info>, target <info>%s</info>. Stop with Ctrl+C.', $socket, $this->bridge->status()['target']));
         $this->bridge->run();
 
         return Command::SUCCESS;

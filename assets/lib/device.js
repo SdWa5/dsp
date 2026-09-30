@@ -6,7 +6,7 @@ import { Store } from './store.js';
 export const HEADER = 'X-Trackdsp';
 
 export const store = new Store();
-export const status = { connected: false, bridge: false, error: '', target: '', riders: [] };
+export const status = { connected: false, bridge: false, error: '', target: '', demo: false, riders: [] };
 const listeners = { status: new Set(), meters: new Set(), riders: new Set(), error: new Set() };
 
 /** Listens to status, meters (levels), riders (what the gain riders do right now) or error. */

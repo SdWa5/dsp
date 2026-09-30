@@ -62,6 +62,31 @@ final class BridgeProcessTest extends TestCase
         }
     }
 
+    public function testStartsOnTheSavedTargetUnlessOneIsGiven(): void
+    {
+        $saved = ['target' => 'usb:/nonexistent/hidraw9', 'connect' => false];
+        $bridge = new BridgeProcess(null, $saved);
+        try {
+            $status = (new BridgeClient($bridge->socket))->request('status');
+            self::assertIsArray($status);
+            self::assertSame('usb:/nonexistent/hidraw9', $status['target']);
+            self::assertFalse($status['connected']);
+        } finally {
+            $bridge->stop();
+        }
+        self::assertStringContainsString('target usb:/nonexistent/hidraw9', $bridge->process()->getOutput());
+
+        $bridge = new BridgeProcess('demo', $saved);
+        try {
+            $status = (new BridgeClient($bridge->socket))->request('status');
+            self::assertIsArray($status);
+            self::assertSame('demo', $status['target']);
+            self::assertTrue($status['demo']);
+        } finally {
+            $bridge->stop();
+        }
+    }
+
     public function testClientWithoutBridge(): void
     {
         $this->expectException(BridgeException::class);
