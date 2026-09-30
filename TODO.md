@@ -19,6 +19,10 @@
 - Offline mode like the vendor editor: check whether a preset can be set up in the browser editor without a
   device and handed to the real device later. The bridge target `demo` simulates a device, but the editor
   offers no obvious way to start from it
+- EQ overview on the Gain page, as the vendor editor has it. One graph shows the EQ curve of every input and
+  output at once, with an on/off switch for each EQ. Check in the vendor editor whether its switch only hides
+  the curve or bypasses the EQ, which the configuration keeps in the EQ bypass bits of the footer, and do the
+  same. The channel tabs already draw one curve each from `assets/lib/eq.js`
 - Vendor preset files: the file format of the vendor editor is unknown. Capture a file saved by the vendor
   editor in the win11 VM, then decide whether trackdsp reads and writes it
 - Localization of the browser editor and the command line, primarily to add German. Collect the user-facing
