@@ -5,6 +5,28 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.18.0] - 2026-10-01
+
+### Added
+
+- `Scale::GAIN_MUTED` in PHP and `GAIN_MUTED` in `assets/lib/scale.js`, gain raw 0
+- `RiderSettings::LOWEST_GAIN_DB`, -59.5 dB
+- `trackdsp:gain` warns when the value is gain raw 0, which mutes the channel
+- The browser editor accepts "mute" as a gain value
+- A TODO item to check on the device that gain raw 0 mutes an output and the Aux
+
+### Changed
+
+- The browser editor shows a gain at raw 0 as "Muted" instead of -60.0 dB, and the channel tab of such a channel gets a hollow mute dot
+- `trackdsp:status` reads the whole configuration and shows `MUTED(gain)` for a channel whose gain is at raw 0
+- The gain rider's lowest gain is -59.5 dB. A rider with a lower `min` is refused, and a saved one is skipped with a warning when the bridge starts
+- The rider dialog allows -59.5 dB as the lowest value for the lowest and highest gain
+- The README names `TRACKDSP_TRUSTED_HOSTS` for a ddev with another `project_tld`
+
+### Removed
+
+- The TODO item for gain raw 0
+
 ## [0.17.0] - 2026-09-30
 
 ### Added

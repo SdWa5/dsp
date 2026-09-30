@@ -27,7 +27,7 @@
             <p class="dialog__note">The rider moves the input gain slowly towards a target meter level. It runs in the bridge, so it keeps
                 working without this page and after a restart. When somebody moves the gain, it pauses for the hold time.</p>
             <div class="form-grid">
-                {% for key, spec in {target: ['Target level', 'dB', -60, 0, 0.5], min: ['Lowest gain', 'dB', -60, 12, 0.5], max: ['Highest gain', 'dB', -60, 12, 0.5],
+                {% for key, spec in {target: ['Target level', 'dB', -60, 0, 0.5], min: ['Lowest gain', 'dB', -59.5, 12, 0.5], max: ['Highest gain', 'dB', -59.5, 12, 0.5],
                     slew: ['Fastest change', 'dB/s', 0.1, 10, 0.1], average: ['Averaging time', 's', 0.1, 60, 0.1], silence: ['Hold below', 'dB', -90, 0, 1],
                     deadband: ['Leave alone within', 'dB', 0, 6, 0.1], hold: ['Pause after a manual change', 's', 0, 600, 1]} %}
                     <label>{{ spec[0] }} <span class="unit-input"><input type="number" name="{{ key }}" min="{{ spec[2] }}" max="{{ spec[3] }}" step="{{ spec[4] }}" required>{{ spec[1] }}</span></label>

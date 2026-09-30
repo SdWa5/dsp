@@ -48,17 +48,28 @@ final class CliTest extends KernelTestCase
     {
         $display = $this->runCommand('trackdsp:status')->getDisplay();
 
-        self::assertStringContainsString('in1:MUTED in2:MUTED in3:on', $display);
+        self::assertStringContainsString('in1:MUTED in2:MUTED in3:on in4:on in5:MUTED(gain)', $display);
         self::assertStringContainsString('out8:MUTED', $display);
     }
 
     public function testWrites(): void
     {
-        $this->runCommand('trackdsp:gain', ['channel' => 'in1', 'db' => '-6'])->assertCommandIsSuccessful();
+        $tester = $this->runCommand('trackdsp:gain', ['channel' => 'in1', 'db' => '-6']);
+        $tester->assertCommandIsSuccessful();
+        self::assertStringNotContainsString('mutes', $tester->getDisplay());
         $this->runCommand('trackdsp:mute', ['channel' => 'out1'])->assertCommandIsSuccessful();
         $this->runCommand('trackdsp:unmute', ['channel' => 'in1'])->assertCommandIsSuccessful();
         $this->runCommand('trackdsp:phase', ['channel' => 'out3', 'mode' => 'invert'])->assertCommandIsSuccessful();
         $this->runCommand('trackdsp:route', ['output' => 'out3', 'inputs' => 'in1,2'])->assertCommandIsSuccessful();
+    }
+
+    public function testTheLowestGainWarnsThatItMutes(): void
+    {
+        $tester = $this->runCommand('trackdsp:gain', ['channel' => 'in1', 'db' => '-60']);
+
+        $tester->assertCommandIsSuccessful();
+        self::assertStringContainsString('-60.0 dB is gain raw 0, which mutes the channel.', $tester->getDisplay());
+        self::assertStringNotContainsString('mutes', $this->runCommand('trackdsp:gain', ['channel' => 'in1', 'db' => '-59.5'])->getDisplay());
     }
 
     public function testBoostNeedsFlag(): void

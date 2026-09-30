@@ -9,10 +9,13 @@ use App\Protocol\Channel;
  */
 final readonly class RiderSettings
 {
+    /** The rider stays one step above gain raw 0, which mutes the channel, so its meter would read silence and it would stay there. */
+    public const LOWEST_GAIN_DB = -59.5;
+
     /**
      * @param int   $channel             input channel index 0..7
      * @param float $targetDb            meter level the rider aims for
-     * @param float $minGainDb           lowest gain the rider sets
+     * @param float $minGainDb           lowest gain the rider sets, at least LOWEST_GAIN_DB
      * @param float $maxGainDb           highest gain the rider sets, above 0 dB only with $allowBoost
      * @param float $slewDbPerSecond     fastest gain change
      * @param float $averageSeconds      time constant of the level average
@@ -35,8 +38,8 @@ final readonly class RiderSettings
         if (!Channel::isInput($channel)) {
             throw new \InvalidArgumentException(\sprintf('The gain rider works on inputs only, got %s.', Channel::label($channel)));
         }
-        if ($minGainDb < -60 || $maxGainDb > 12 || $minGainDb >= $maxGainDb) {
-            throw new \InvalidArgumentException(\sprintf('The gain window must lie in -60..+12 dB with min below max, got %s..%s.', $minGainDb, $maxGainDb));
+        if ($minGainDb < self::LOWEST_GAIN_DB || $maxGainDb > 12 || $minGainDb >= $maxGainDb) {
+            throw new \InvalidArgumentException(\sprintf('The gain window must lie in %s..+12 dB with min below max, got %s..%s. -60 dB mutes the channel.', self::LOWEST_GAIN_DB, $minGainDb, $maxGainDb));
         }
         if ($maxGainDb > 0 && !$allowBoost) {
             throw new \InvalidArgumentException(\sprintf('A maximum of %+.1f dB is a boost. Allow boosts to be sure.', $maxGainDb));

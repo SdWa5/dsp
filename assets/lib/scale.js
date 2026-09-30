@@ -2,6 +2,8 @@
 
 export const GAIN_MAX = 400;
 export const GAIN_UNITY = 280;
+/** Gain raw 0 mutes the channel, although the vendor editor shows it as -60 dB. */
+export const GAIN_MUTED = 0;
 export const FREQ_STEPS = 300;
 export const FREQ_BASE = 19.6875;
 export const PEQ_GAIN_UNITY = 120;
@@ -86,7 +88,7 @@ const signed = (v) => (v > 0 ? `+${v.toFixed(1)}` : v.toFixed(1));
  */
 export const formats = {
     raw: (v) => String(v),
-    gain: (v) => `${signed(gainToDb(v))}dB`,
+    gain: (v) => (GAIN_MUTED === v ? 'Muted' : `${signed(gainToDb(v))}dB`),
     hz: (v) => formatHz(indexToHz(v)),
     // The editor rounds Q to one decimal and shows two: 25 = 1.70, 32 = 2.50
     q: (v) => (Math.round(indexToQ(v) * 10) / 10).toFixed(2),
@@ -149,7 +151,7 @@ const number = (text) => {
  */
 export const parsers = {
     raw: (t) => number(t),
-    gain: (t) => (null === number(t) ? null : dbToGain(number(t))),
+    gain: (t) => (/^\s*mute/i.test(t) ? GAIN_MUTED : null === number(t) ? null : dbToGain(number(t))),
     hz: (t) => (null === number(t) ? null : hzToIndex(/k/i.test(t) ? number(t) * 1000 : number(t))),
     q: (t) => (null === number(t) ? null : qToIndex(number(t))),
     peq: (t) => (null === number(t) ? null : dbToPeqGain(number(t))),

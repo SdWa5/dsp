@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Client\Matrix;
+use App\Protocol\Scale;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -37,7 +38,11 @@ final class GainCommand extends DeviceCommand
 
     protected function handle(Matrix $dsp, InputInterface $input, SymfonyStyle $io): int
     {
-        $dsp->setGain(self::string($input, 'channel'), (float) self::string($input, 'db'));
+        $db = (float) self::string($input, 'db');
+        $dsp->setGain(self::string($input, 'channel'), $db);
+        if (Scale::GAIN_MUTED === Scale::dbToGain($db)) {
+            $io->warning(\sprintf('%.1f dB is gain raw 0, which mutes the channel. The lowest gain that passes signal is -59.5 dB.', $db));
+        }
 
         return Command::SUCCESS;
     }

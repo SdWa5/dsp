@@ -108,13 +108,26 @@ final class GainRiderTest extends TestCase
     public function testAMeterAtItsFloorIsSilentAtAnyGain(): void
     {
         $raw = Scale::dbToGain(-50.0);
-        $rider = $this->rider($raw, targetDb: -18.0, minGainDb: -60.0, silenceDb: -45.0);
+        $rider = $this->rider($raw, targetDb: -18.0, minGainDb: RiderSettings::LOWEST_GAIN_DB, silenceDb: -45.0);
 
         for ($i = 0; $i < 100; ++$i) {
             $this->now += self::TICK;
             self::assertNull($rider->meter(Scale::METER_FLOOR, $this->now));
         }
         self::assertSame(GainRider::SILENT, $rider->status($this->now));
+    }
+
+    public function testStopsOneStepAboveTheMutingRawZero(): void
+    {
+        $raw = Scale::dbToGain(-50.0);
+        $rider = $this->rider($raw, targetDb: -18.0, minGainDb: RiderSettings::LOWEST_GAIN_DB, slewDbPerSecond: 10.0, averageSeconds: 0.5);
+
+        // +50 dB before the gain would need -68 dB
+        $writes = $this->feed($rider, 50.0, 30.0, $raw);
+
+        self::assertNotContains(Scale::GAIN_MUTED, $writes);
+        self::assertSame(1, $raw);
+        self::assertSame(GainRider::LIMIT, $rider->status($this->now));
     }
 
     public function testLeavesSmallDeviationsAlone(): void
@@ -243,6 +256,7 @@ final class GainRiderTest extends TestCase
         yield 'output channel' => [['channel' => Channel::output(1)]];
         yield 'boost without flag' => [['channel' => 0, 'maxGainDb' => 3.0]];
         yield 'min above max' => [['channel' => 0, 'minGainDb' => -3.0, 'maxGainDb' => -6.0]];
+        yield 'down to -60 dB, which mutes' => [['channel' => 0, 'minGainDb' => -60.0]];
         yield 'below -60 dB' => [['channel' => 0, 'minGainDb' => -70.0]];
         yield 'no slew' => [['channel' => 0, 'slewDbPerSecond' => 0.0]];
         yield 'negative deadband' => [['channel' => 0, 'deadbandDb' => -1.0]];

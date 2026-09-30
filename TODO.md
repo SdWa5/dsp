@@ -74,9 +74,6 @@
   other's writes for manual changes and pause each other
 - The rack's output panel has a broken connection on output 8 (found 2026-09-29). Until it is repaired, measure
   with `--reference-output=out6`. Afterwards repeat B1 of `docs/measurements.md` against Out8
-- Gain raw 0 mutes the channel, while the browser editor, `trackdsp:gain` and the gain rider treat it as -60 dB.
-  Show it as muted in the editor. Keep the rider's lowest gain at -59.5 dB, since a rider that writes raw 0
-  reads silence afterwards and stays there
 - Flag an output at compressor ratio 1:1.0 with a gain other than 0 dB in the browser editor and in the auto EQ,
   as `trackdsp:measure` does. The 8x8 then applies the gain more strongly than set and adds the spectrum
   mirrored at 24 kHz, which the auto EQ would try to fit. Offer Limit or 1:1.1 from +20 dB instead, which keep
@@ -156,3 +153,5 @@
 - Presets: recall F00 (`20 00`) on the device, and find a command that deletes a stored slot. Store, recall and occupancy are confirmed on U20
 - PIN: set (`2F`), unlock (`2D`), change and unset, with the lock state from `2C` after every step. Find the recovery path first (manual chapter 6, the 4x4 projects)
 - Command for changing the IP address
+- Check on the device that gain raw 0 mutes an output and the Aux, as it mutes an input. The editor and
+  `trackdsp:status` already show all three as muted

@@ -144,6 +144,7 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 /* Mute dot top left, link group top right, so neither covers the ID */
 .chtab__marks { display: contents; }
 .chtab__mute { position: absolute; top: 4px; left: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--mute); }
+.chtab__mute.is-gain { background: none; box-shadow: inset 0 0 0 1.5px var(--mute); }
 .chtab__link { position: absolute; top: 2px; right: 3px; font-size: 9px; font-weight: 700; padding: 0 3px; border-radius: 6px; background: #ffffff33; color: var(--head-text); }
 /* Differs from the factory default: a corner triangle bottom left, a shape that reads without colour */
 .chtab__changed, .tab.is-changed::after {
