@@ -137,7 +137,8 @@ Measured with the loopbacks of a UMC1820 on 2026-09-29. The procedures and the n
 - Every compressor applies its gain reduction the same way while it works, whatever its ratio and its times.
   The samples alternate between g and g², which mirrors the signal at 24 kHz, 15 dB below it at 3 dB of gain
   reduction and 10 dB below it at 6 dB.
-- Gain raw 0 mutes the channel, while the editor shows it as -60 dB.
+- Gain raw 0 mutes the channel, while the vendor editor shows it as -60 dB. This was measured on an input (IN5,
+  2026-09-29). trackdsp treats the outputs and the Aux the same, which is not measured yet.
 - The meters tap after the gain and, on the outputs, after the compressor. They tap before the mute, so a muted
   channel keeps its reading. They read like an RMS meter.
 

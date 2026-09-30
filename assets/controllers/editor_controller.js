@@ -4,7 +4,7 @@ import { changedPaths } from '../lib/defaults.js';
 import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel, channelParts } from '../lib/channels.js';
 import { linkCommands, linkGroups, linkedMembers } from '../lib/link.js';
-import { presetLabel, presetSlotInfo } from '../lib/scale.js';
+import { GAIN_MUTED, presetLabel, presetSlotInfo } from '../lib/scale.js';
 
 const THEMES = ['auto', 'light', 'dark'];
 const changedText = (count) => `${count} ${1 === count ? 'setting differs' : 'settings differ'} from the factory default`;
@@ -99,7 +99,7 @@ export default class extends Controller {
         }
     }
 
-    /** A channel tab: ID, name, a dot while muted, the link group and a mark when it differs from the factory. */
+    /** A channel tab: ID, name, a dot while muted (hollow for a gain at raw 0), the link group and a mark when it differs from the factory. */
     showChannelTab(tab, state) {
         const side = tab.dataset.side;
         const index = Number(tab.dataset.index);
@@ -111,6 +111,9 @@ export default class extends Controller {
         if (state?.[side]?.[index]?.mute) {
             marks.push('<span class="chtab__mute" aria-hidden="true"></span>');
             titles.push('muted');
+        } else if (GAIN_MUTED === state?.[side]?.[index]?.gain) {
+            marks.push('<span class="chtab__mute is-gain" aria-hidden="true"></span>');
+            titles.push('muted by its gain');
         }
         if (state) {
             const group = linkGroups(state[side])[index];

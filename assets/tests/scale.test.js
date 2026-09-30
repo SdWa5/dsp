@@ -12,6 +12,8 @@ test('gain matches the editor display', () => {
     assert.equal(S.dbToGain(99), 400);
     assert.equal(S.format('gain', 280), '0.0dB');
     assert.equal(S.format('gain', 400), '+12.0dB');
+    assert.equal(S.format('gain', 1), '-59.5dB');
+    assert.equal(S.format('gain', 0), 'Muted');
 });
 
 test('frequency, Q and PEQ gain', () => {
@@ -56,6 +58,8 @@ test('typed values parse back to raw values', () => {
     assert.equal(S.parse('gain', '-6 dB'), 220);
     assert.equal(S.parse('gain', '-6,0dB'), 220);
     assert.equal(S.parse('gain', 'loud'), null);
+    assert.equal(S.parse('gain', 'mute'), 0);
+    assert.equal(S.parse('gain', '-60'), 0);
     assert.equal(S.parse('threshold', '-6'), 168);
     assert.equal(S.parse('ms', '200ms'), 199);
     assert.equal(S.parse('ratio', '1:4', null, labels), 9);
@@ -70,7 +74,7 @@ test('typed values parse back to raw values', () => {
     assert.equal(S.parse('delay', '11.253', { delay_unit: 2 }), 480);
     assert.equal(S.parse('percent', '50%'), 50);
     assert.equal(S.parse('reverbTime', '1.96s'), 139);
-    for (const [fmt, raw] of [['gain', 190], ['threshold', 150], ['ms', 500], ['delay', 960], ['knee', 6]]) {
+    for (const [fmt, raw] of [['gain', 190], ['gain', 0], ['threshold', 150], ['ms', 500], ['delay', 960], ['knee', 6]]) {
         assert.equal(S.parse(fmt, S.format(fmt, raw)), raw, fmt);
     }
 });

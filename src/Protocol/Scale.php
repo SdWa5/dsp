@@ -9,6 +9,8 @@ final class Scale
 {
     public const GAIN_MAX = 400;
     public const GAIN_UNITY = 280;
+    /** Gain raw 0 mutes the channel, although the vendor editor shows it as -60 dB. */
+    public const GAIN_MUTED = 0;
     public const FREQ_STEPS = 300;
     public const FREQ_BASE = 19.6875;
     public const PEQ_GAIN_MAX = 240;
@@ -23,7 +25,7 @@ final class Scale
 
     /**
      * Channel gain: 0..79 in 0.5 dB steps from -60 dB, from 80 in 0.1 dB steps from -20 dB.
-     * 20 = -50, 80 = -20, 280 = 0, 400 = +12 dB.
+     * 20 = -50, 80 = -20, 280 = 0, 400 = +12 dB. Raw 0 reads as -60 dB but mutes the channel, see GAIN_MUTED.
      */
     public static function gainToDb(int $raw): float
     {

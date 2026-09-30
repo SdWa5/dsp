@@ -67,8 +67,8 @@ The appliance setup on a Khadas VIM3 (bridge, PHP-FPM, Caddy, systemd units) is 
 bin/trackdsp discover                  # devices on USB and the local networks
 bin/trackdsp info -t 192.168.68.10     # device, IP, active preset
 bin/trackdsp presets                   # preset names U01..U20, F00, and which slots are stored
-bin/trackdsp status                    # mute state of all channels
-bin/trackdsp gain in1 -6               # boosts above 0 dB only with --allow-boost
+bin/trackdsp status                    # mute state of all channels, MUTED(gain) for a gain at raw 0
+bin/trackdsp gain in1 -6               # boosts above 0 dB only with --allow-boost, -60 mutes
 bin/trackdsp mute out1                 # and unmute out1
 bin/trackdsp phase out3 invert         # or normal
 bin/trackdsp route out3 1,2            # Out3 gets In1 + In2, "none" for no input
@@ -89,16 +89,20 @@ although the device answers ping. Close the vendor editor first.
 
 `https://trackdsp.ddev.site` in ddev. It has the Gain, Gate, Comp, Delay, Matrix, Aux and Auto EQ pages, a tab
 per input and output with the EQ curve, live meters and the File, Device, Channels, Tools and Help menus. The
-editor talks to the bridge through the JSON API below.
+editor talks to the bridge through the JSON API below. A ddev with another `project_tld` needs its host names in
+`TRACKDSP_TRUSTED_HOSTS` in `.env.local`, or the app answers 400 "Untrusted Host".
 
 - A named channel shows its name next to its ID wherever the ID appears, for example "Out1 Main L" or
   "Out1 (Main L)" in lists. A name that only repeats the ID is left out.
-- The channel tabs show a dot for a muted channel and the link group (L1, L2, ...).
+- The channel tabs show a dot for a muted channel, a hollow one for a channel whose gain mutes it, and the link
+  group (L1, L2, ...).
 - Every setting that differs from the factory default (`resources/factory_config.bin`) has a bar on its left
   edge, and its channel tab or the Aux tab a corner triangle. Both are shapes, so they read without colour.
 - The store and recall dialogs show which user slots are empty. An empty slot cannot be recalled.
 - A fader value can be typed, with or without its unit ("-6", "2k", "200ms", "1:4"). A double click on a gain
   or delay fader sets it back to 0 dB or no delay.
+- A gain at its lowest step shows as "Muted", because raw 0 mutes the channel although the vendor editor shows
+  it as -60 dB. Typing "mute" sets it. -59.5 dB is the lowest gain that passes signal.
 - The meters hold their peak for 1.5 s and light a red top for 2 s after reaching 0 dB.
 - The Gain page starts and shows the gain riders, and the Auto EQ page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
 - The theme button switches between auto, light and dark. The choice is kept in the browser.

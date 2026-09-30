@@ -15,7 +15,9 @@ final class ScaleTest extends TestCase
         self::assertSame(400, Scale::dbToGain(12));
         self::assertSame(-9.5, Scale::gainToDb(185));
         self::assertSame(-50.0, Scale::gainToDb(20));
-        self::assertSame(-60.0, Scale::gainToDb(0));
+        self::assertSame(-60.0, Scale::gainToDb(Scale::GAIN_MUTED));
+        self::assertSame(Scale::GAIN_MUTED, Scale::dbToGain(-59.8));
+        self::assertSame(1, Scale::dbToGain(-59.5));
         for ($raw = 0; $raw <= Scale::GAIN_MAX; ++$raw) {
             self::assertSame($raw, Scale::dbToGain(Scale::gainToDb($raw)));
         }

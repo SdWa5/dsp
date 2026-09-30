@@ -33,7 +33,7 @@ again afterwards.
 | Option | Browser field | Default | Meaning |
 |---|---|---|---|
 | `--level` | Target level | -18 | target level in meter dB |
-| `--min`, `--max` | Lowest gain, Highest gain | -20, 0 | gain window in dB. It never leaves the window, and a gain outside it only moves back in |
+| `--min`, `--max` | Lowest gain, Highest gain | -20, 0 | gain window in dB, from -59.5 dB, since -60 dB is gain raw 0 and mutes the channel. It never leaves the window, and a gain outside it only moves back in |
 | `--allow-boost` | Allow a highest gain above 0 dB | off | needed for `--max` above 0 dB |
 | `--slew` | Fastest change | 0.5 | largest change in dB per second |
 | `--average` | Averaging time | 5 | averaging time in seconds (power average) |
