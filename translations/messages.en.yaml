@@ -36,14 +36,16 @@ editor:
         language: Language
         language_auto: Automatic (server/browser)
     link_view:
-        title: Link display (channel tabs and Link dialog)
-        code: Group code (L1, L2 …)
+        title: Link display
+        code: Group code or name (L1, L2 …)
         shape: Icon per group
         colour: Colour per group
         placement: Placement of linked channels
         normal: In channel order
         side: Side by side
         stacked: Stacked per link group
+        names: Group names
+        no_groups: No link groups yet. Link channels above to name their group.
     bar:
         id: ID
         theme: Colour theme

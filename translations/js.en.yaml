@@ -83,3 +83,4 @@
 "verify": "verify"
 "%level% dB, peak %peak% dB": "%level% dB, peak %peak% dB"
 "Linked: %channels%": "Linked: %channels%"
+"Name of the group %channels%": "Name of the group %channels%"

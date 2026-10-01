@@ -24,7 +24,7 @@
                 </fieldset>
             {% endfor %}
         </div>
-        <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.select">
+        <fieldset class="group" data-controller="collapse linkplace" data-collapse-key-value="aux.select">
             <legend>{{ w.fold('Select', 'aux_select') }}</legend>
             {% for i in 0..7 %}
                 {{ w.toggle(w.ch(i), 'aux.select', [{command: 'routing', args: {channel: 18, mask: '@aux.select'}}], null, {bit: i, class: 'toggle--route'}) }}

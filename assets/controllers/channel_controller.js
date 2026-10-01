@@ -1,27 +1,33 @@
 import { Controller } from '@hotwired/stimulus';
 import { store } from '../lib/device.js';
 import { channelLabel, channelParts } from '../lib/channels.js';
+import { linkGroups, linkMark, linkName } from '../lib/link.js';
+import { getLinkView, onLinkView } from '../lib/linkview.js';
 
 /**
  * A channel ID with the channel's name next to it: "In1 DJ L". In an <option> as plain text "In1 · DJ L".
- * Value: index (0..7 In, 8..15 Out, 18 Aux).
+ * A linked input or output also shows its link group as the display settings ask: the code, the icon and the
+ * colour, as on the channel tabs. Values: index (0..7 In, 8..15 Out, 18 Aux), link (false where the group
+ * would mislead, as in the Link dialog, which shows the groups being edited).
  */
 export default class extends Controller {
-    static values = { index: Number };
+    static values = { index: Number, link: { type: Boolean, default: true } };
 
     connect() {
         this.shown = null;
-        this.off = store.subscribe((state) => this.render(state));
+        this.offs = [store.subscribe((state) => this.render(state)), onLinkView(() => this.render(store.state))];
         this.render(store.state);
     }
 
     disconnect() {
-        this.off?.();
+        this.offs.forEach((off) => off());
     }
 
     render(state) {
         const { id, name } = channelParts(this.indexValue, state);
-        const key = `${id}|${name}`;
+        const view = getLinkView();
+        const { group, label } = this.group(state, view);
+        const key = JSON.stringify([id, name, group, label, view.code, view.shape, view.colour]);
         if (key === this.shown) {
             return;
         }
@@ -36,5 +42,37 @@ export default class extends Controller {
         }
         this.element.classList.toggle('is-named', '' !== name);
         this.element.title = channelLabel(this.indexValue, state);
+        this.showLink(view, group, label);
+    }
+
+    /** {group, label}: the link group (1..) of this channel and its name, group 0 when it is alone, the Aux or not to be shown. */
+    group(state, view) {
+        const index = this.indexValue;
+        const side = index < 8 ? 'inputs' : 'outputs';
+        const channels = state?.[side];
+        if (!this.linkValue || index > 15 || !Array.isArray(channels)) {
+            return { group: 0, label: '' };
+        }
+        const groups = linkGroups(channels);
+        const group = groups[index % 8];
+        return { group, label: linkName(view, side, groups, group) };
+    }
+
+    showLink(view, group, label) {
+        let mark = this.element.querySelector(':scope > .ch__link');
+        const html = linkMark(view, group, label);
+        this.element.dataset.group = view.colour && group > 0 ? String(group) : '';
+        // With neither code nor icon, the colour alone shows as a dot
+        if ('' === html && '' === this.element.dataset.group) {
+            mark?.remove();
+            return;
+        }
+        if (!mark) {
+            mark = document.createElement('span');
+            mark.className = 'ch__link';
+            this.element.append(mark);
+        }
+        mark.innerHTML = html;
+        mark.classList.toggle('is-dot', '' === html);
     }
 }

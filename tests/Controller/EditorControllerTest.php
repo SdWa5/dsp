@@ -186,6 +186,37 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(0, $overview->filter('[data-toggle-send-value], [data-fader-send-value]'));
     }
 
+    public function testChannelSectionsFollowTheLinkPlacement(): void
+    {
+        $page = self::page();
+        $placed = [
+            'section[data-page=gain] .strips[data-collapse-key-value="gain.input"]' => 1,
+            'section[data-page=gain] .strips[data-collapse-key-value="gain.output"]' => 1,
+            'section[data-page=gain] .eq-overview__side' => 2,
+            'section[data-page=gain] .strip' => 16 + 10,
+            'section[data-page=gate] .strips' => 1,
+            'section[data-page=comp] .strips' => 1,
+            'section[data-page=delay] .strips' => 1,
+            'section[data-page=matrix] table.matrix' => 2,
+            'section[data-page=aux] fieldset[data-collapse-key-value="aux.select"]' => 1,
+            'section[data-page=autoeq] .checks' => 1,
+        ];
+        foreach ($placed as $selector => $count) {
+            self::assertCount($count, $page->filter($selector), $selector);
+            $page->filter($selector)->each(static function (Crawler $node) use ($selector): void {
+                if (str_ends_with($selector, '.strip') && null === $node->filter('.toggle--route')->getNode(0)) {
+                    return;
+                }
+                self::assertContains('linkplace', explode(' ', (string) $node->attr('data-controller')), $selector);
+            });
+        }
+        // The Link dialog shows the groups being edited, so its channel labels leave out the groups on the device
+        self::assertCount(32, $page->filter('dialog#dialog-link .ch[data-channel-link-value=false]'));
+        // The name fields are built per link group, the hint stands in while there is none
+        self::assertCount(1, $page->filter('dialog#dialog-link [data-editor-target=linkNames]'));
+        self::assertCount(1, $page->filter('dialog#dialog-link [data-editor-target=linkNamesEmpty]'));
+    }
+
     public function testMatrixPageCarriesTheRoutingGraph(): void
     {
         $graph = self::page()->filter('section[data-page=matrix] .matrix-page > [data-controller~=routing]');

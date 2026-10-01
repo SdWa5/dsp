@@ -1,30 +1,33 @@
 import { Controller } from '@hotwired/stimulus';
 import { store } from '../lib/device.js';
 import { channelParts } from '../lib/channels.js';
+import { linkGroups, linkName, linkPlacement } from '../lib/link.js';
+import { getLinkView, onLinkView } from '../lib/linkview.js';
 import { routingEdges, routingRows, SOURCES, sourceChannel } from '../lib/routing.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
 // One colour per source, the inputs as on the EQ overview, Aux in grey
 const COLORS = ['#ff5252', '#ffd740', '#e040fb', '#40c4ff', '#69f0ae', '#448aff', '#b0bec5', '#ffab40', '#9e9e9e'];
-const NODE = { width: 130, height: 26 };
-const WIDTH = 440;
+const NODE = { width: 150, height: 26 };
+const WIDTH = 480;
 
 /**
  * The routing of the matrix as the vendor editor draws it: In1..In8 and Aux on the left, Out1..Out8 on the right,
- * and a line for every connection, coloured by its source. Hovering a channel brings out its lines. It only
- * shows the routing, the matrix next to it sets it.
+ * and a line for every connection, coloured by its source. Hovering a channel brings out its lines. Both columns
+ * follow the link placement, and a linked channel carries its group code and colour. It only shows the routing,
+ * the matrix next to it sets it.
  */
 export default class extends Controller {
     static targets = ['svg'];
 
     connect() {
         this.signature = null;
-        this.unsubscribe = store.subscribe(() => this.render());
+        this.offs = [store.subscribe(() => this.render()), onLinkView(() => this.render())];
         this.render();
     }
 
     disconnect() {
-        this.unsubscribe?.();
+        this.offs.forEach((off) => off());
     }
 
     render() {
@@ -32,8 +35,16 @@ export default class extends Controller {
         const edges = routingEdges(state?.outputs);
         const names = [...Array.from({ length: SOURCES }, (_, s) => sourceChannel(s)), ...Array.from({ length: 8 }, (_, o) => 8 + o)]
             .map((index) => channelParts(index, state));
-        // The state updates often, the graph only redraws when a connection or a name changes
-        const signature = JSON.stringify([edges, names]);
+        const view = getLinkView();
+        const groups = { inputs: linkGroups(state?.inputs ?? []), outputs: linkGroups(state?.outputs ?? []) };
+        const placement = null === state ? 'normal' : view.placement;
+        // Row of every source and output: In1..In8 by the placement and the Aux last, Out1..Out8 by the placement
+        const slots = {
+            sources: [...linkPlacement(groups.inputs, placement).order, 8],
+            outputs: linkPlacement(groups.outputs, placement).order,
+        };
+        // The state updates often, the graph only redraws when a connection, a name or the link display changes
+        const signature = JSON.stringify([edges, names, groups, view]);
         if (signature === this.signature) {
             return;
         }
@@ -45,8 +56,8 @@ export default class extends Controller {
         const left = NODE.width;
         const right = WIDTH - NODE.width;
         for (const { source, output } of edges) {
-            const y1 = rows.sources[source];
-            const y2 = rows.outputs[output];
+            const y1 = rows.sources[slots.sources.indexOf(source)];
+            const y2 = rows.outputs[slots.outputs.indexOf(output)];
             const mid = (left + right) / 2;
             this.element(svg, 'path', {
                 class: 'routing__edge',
@@ -58,13 +69,22 @@ export default class extends Controller {
         }
         names.forEach((parts, n) => {
             const isSource = n < SOURCES;
-            const y = isSource ? rows.sources[n] : rows.outputs[n - SOURCES];
+            const y = isSource ? rows.sources[slots.sources.indexOf(n)] : rows.outputs[slots.outputs.indexOf(n - SOURCES)];
+            const group = n < 8 ? groups.inputs[n] : n >= SOURCES ? groups.outputs[n - SOURCES] : 0;
             const node = this.element(svg, 'g', {
                 class: 'routing__node',
                 transform: `translate(${isSource ? 0 : right},${y - NODE.height / 2})`,
                 [isSource ? 'data-source' : 'data-output']: isSource ? n : n - SOURCES,
             });
-            this.element(node, 'rect', { width: NODE.width, height: NODE.height, rx: 4 });
+            this.element(node, 'rect', { class: 'routing__box', width: NODE.width, height: NODE.height, rx: 4 });
+            if (group > 0) {
+                node.dataset.group = view.colour ? String(group) : '';
+                if (view.code) {
+                    const code = this.element(node, 'text', { class: 'routing__link', x: NODE.width - 6, y: NODE.height / 2 + 4, 'text-anchor': 'end' });
+                    const side = n < 8 ? 'inputs' : 'outputs';
+                    code.textContent = linkName(view, side, groups[side], group) || `L${group}`;
+                }
+            }
             if (isSource) {
                 this.element(node, 'rect', { class: 'routing__swatch', width: 4, height: NODE.height, fill: COLORS[n] });
             }

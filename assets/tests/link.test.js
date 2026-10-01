@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { lcm, linkCommands, linkGroups, linkLayout, linkMark, linkUnits, linkedMembers, linkOrder, linkView, toggleLink } from '../lib/link.js';
+import { lcm, linkCommands, linkGaps, linkGroups, linkLayout, linkMark, linkName, linkNameKey, linkPlacement, linkUnits, linkedMembers, linkOrder, linkView, toggleLink } from '../lib/link.js';
 
 // An unlinked channel holds its own bit (factory default 1, 2, 4 …), a slave holds 0
 const side = (...links) => [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ link: links[i] ?? 1 << i }));
@@ -39,9 +39,9 @@ test('linked channels are ordered next to each other', () => {
 });
 
 test('the stored link view migrates the old side-by-side checkbox', () => {
-    assert.deepEqual(linkView(null), { code: true, colour: false, shape: false, placement: 'normal' });
+    assert.deepEqual(linkView(null), { code: true, colour: false, shape: false, placement: 'normal', names: {} });
     // Before 0.30.0 a group without the code showed its shape
-    assert.deepEqual(linkView({ code: false, colour: true, columns: true }), { code: false, colour: true, shape: true, placement: 'side' });
+    assert.deepEqual(linkView({ code: false, colour: true, columns: true }), { code: false, colour: true, shape: true, placement: 'side', names: {} });
     assert.equal(linkView({ code: false, shape: false }).shape, false);
     assert.deepEqual(linkView({ columns: true, placement: 'stacked' }).placement, 'stacked');
     assert.deepEqual(linkView({ placement: 'diagonal' }).placement, 'normal');
@@ -101,4 +101,32 @@ test('the least common multiple sizes the stacked rows', () => {
     assert.equal(lcm(2, 3), 6);
     assert.equal(lcm(4, 6), 12);
     assert.equal(lcm(5, 3), 15);
+});
+
+test('linkPlacement keeps channel order, or groups members, with blocks only when stacked', () => {
+    const groups = [1, 0, 2, 1, 0, 2, 2, 0];
+    assert.deepEqual(linkPlacement(groups, 'normal'), { order: [0, 1, 2, 3, 4, 5, 6, 7], blocks: [] });
+    assert.deepEqual(linkPlacement(groups, 'side'), { order: [0, 3, 1, 2, 5, 6, 4, 7], blocks: [] });
+    assert.deepEqual(linkPlacement(groups, 'stacked'), { order: [0, 3, 1, 2, 5, 6, 4, 7], blocks: [[0, 3], [2, 5, 6]] });
+});
+
+test('linkGaps separates link groups from their neighbours only when stacked', () => {
+    const groups = [1, 0, 2, 1, 0, 2, 2, 0];
+    // Order 0 3 | 1 | 2 5 6 | 4 7
+    assert.deepEqual([...linkGaps(groups, 'stacked')], [1, 2, 4]);
+    assert.deepEqual([...linkGaps(groups, 'side')], []);
+    assert.deepEqual([...linkGaps([0, 0, 0, 0, 0, 0, 0, 0], 'stacked')], []);
+});
+
+test('a group name replaces the code, escaped, and stays with the group by its lowest channel', () => {
+    const view = linkView({ names: { 'inputs:2': '  Stage <L>  ', 'outputs:9': 'x', 'inputs:3': '', 'inputs:4': 'A very long group name' } });
+    assert.deepEqual(view.names, { 'inputs:2': 'Stage <L>', 'inputs:4': 'A very long ' });
+    const groups = [0, 0, 1, 0, 1, 0, 0, 0];
+    assert.equal(linkNameKey('inputs', groups, 1), 'inputs:2');
+    assert.equal(linkName(view, 'inputs', groups, 1), 'Stage <L>');
+    assert.equal(linkName(view, 'outputs', groups, 1), '');
+    assert.equal(linkName(view, 'inputs', groups, 0), '');
+    assert.equal(linkMark(view, 1, 'Stage <L>'), '<span class="link-label" title="Stage &#60;L&#62;">Stage &#60;L&#62;</span>');
+    assert.equal(linkMark({ ...view, shape: true }, 1, 'Stage'), '<span class="link-label" title="Stage">Stage</span><span class="link-shape" data-shape="1" aria-hidden="true"></span>');
+    assert.equal(linkMark({ ...view, code: false }, 1, 'Stage'), '');
 });

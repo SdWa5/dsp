@@ -35,14 +35,16 @@ editor:
         language: Sprache
         language_auto: Automatisch (Server/Browser)
     link_view:
-        title: Link-Anzeige (Kanal-Tabs und Link-Dialog)
-        code: Gruppencode (L1, L2 …)
+        title: Link-Anzeige
+        code: Gruppencode oder -name (L1, L2 …)
         shape: Symbol pro Gruppe
         colour: Farbe pro Gruppe
         placement: Anordnung verknüpfter Kanäle
         normal: In Kanalreihenfolge
         side: Nebeneinander
         stacked: Pro Link-Gruppe gestapelt
+        names: Gruppennamen
+        no_groups: Noch keine Link-Gruppen. Oben Kanäle verknüpfen, um ihre Gruppe zu benennen.
     bar:
         id: ID
         theme: Farbschema
