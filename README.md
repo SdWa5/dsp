@@ -143,9 +143,10 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   browser. The In headers sit on the left or at the top and the Out headers on the right or at the bottom, so the
   signal always runs from In to Out. Next to the matrix, a routing graph draws the inputs and the Aux on the left,
   the outputs on the right and a line for every connection. Hovering a channel brings out its lines.
-- An output at compressor ratio 1:1.0 with a gain other than 0 dB is flagged on its strip. Two buttons set 1:1.1
-  from +20 dB, one keeping the gain value ("Exact gain") and one moving the gain to the level heard before
-  ("Keep level"). Each button names the gain it sets. The Auto EQ page and `trackdsp:autoeq` warn about it before
+- An output at compressor ratio 1:1.0 with a gain other than 0 dB is flagged on its strip on the Comp page. Two
+  buttons set 1:1.1 from +20 dB, one keeping the gain value ("Exact gain") and one moving the gain to the level
+  heard before ("Keep level"). Each button names the gain it sets. "Keep threshold" makes them leave the
+  threshold as set. The Auto EQ page and `trackdsp:autoeq` warn about it before
   measuring.
 - Every page with more than one panel folds them down to their title: the panels of the Gain page, the steps of
   the Auto EQ page, and on the channel and Aux pages the EQ curve, the band table and each group beside it. Folded

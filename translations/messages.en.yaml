@@ -144,6 +144,7 @@ editor:
             groups: "Group Control. Eight groups, each with one fader and one mute for the channels it selects, in percent."
 
 # Widget labels and explanatory text use their English source as message IDs.
+"1:1.1 compresses levels above the threshold slightly, below it the gain is exact.": "1:1.1 compresses levels above the threshold slightly, below it the gain is exact."
 "\"auto\" connects to the first device found, USB before the network. Disconnect frees the device's connection, and the vendor editor may take it at once.": "\"auto\" connects to the first device found, USB before the network. Disconnect frees the device's connection, and the vendor editor may take it at once."
 "%channel% delay": "%channel% delay"
 "%channel% gain": "%channel% gain"
@@ -219,6 +220,7 @@ editor:
 "Fit": "Fit"
 "Fitting again with other limits needs no new measurement.": "Fitting again with other limits needs no new measurement."
 "Fix with 1:1.1 at +20 dB:": "Fix with 1:1.1 at +20 dB:"
+"Fix with 1:1.1, threshold as set:": "Fix with 1:1.1, threshold as set:"
 "Flat": "Flat"
 "Freq": "Freq"
 "Frequency": "Frequency"
@@ -239,6 +241,7 @@ editor:
 "Input": "Input"
 "Inverse": "Inverse"
 "Keep level": "Keep level"
+"Keep threshold": "Keep threshold"
 "Knee": "Knee"
 "Largest boost": "Largest boost"
 "Leave alone within": "Leave alone within"
@@ -264,6 +267,7 @@ editor:
 "Not affiliated with Thomann. The protocol is described in": "Not affiliated with Thomann. The protocol is described in"
 "Off": "Off"
 "On": "On"
+"On: the fix only sets 1:1.1 and leaves the threshold, so levels above it get compressed slightly. Off: the threshold goes to +20 dB, where 1:1.1 never compresses.": "On: the fix only sets 1:1.1 and leaves the threshold, so levels above it get compressed slightly. Off: the threshold goes to +20 dB, where 1:1.1 never compresses."
 "Out group %group%": "Out group %group%"
 "Output": "Output"
 "Outputs to correct": "Outputs to correct"

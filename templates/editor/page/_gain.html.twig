@@ -71,7 +71,6 @@
             </div>
             {{ w.toggle('Normal', p ~ '.phase', [{command: 'phase', args: {channel: 8 + i, inverted: '@' ~ p ~ '.phase'}}], 'outputs:' ~ i, {on: 'Inverse'}) }}
             {{ w.toggle('Mute', p ~ '.mute', [{command: 'mute', args: {channel: 8 + i, on: '@' ~ p ~ '.mute'}}], 'outputs:' ~ i, {class: 'toggle--mute', muted_by: p ~ '.gain'}) }}
-            {{ w.gain_warning(i) }}
         </div>
     {% endfor %}
 </div>

@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.39.0] - 2026-10-01
+
+### Added
+
+- "Keep threshold" above the 1:1.0 fix buttons: ticked, both buttons set only 1:1.1 and leave the threshold as set, so levels above it get compressed slightly. Kept in the browser and shared by every output
+
+### Removed
+
+- The 1:1.0 warning on the output strips of the Gain page. It stays on the Comp page
+
 ## [0.38.0] - 2026-10-01
 
 ### Added
