@@ -96,6 +96,8 @@ test('the level a gain had at 1:1.0 becomes the exact gain', () => {
     assert.equal(S.heardGain(S.GAIN_UNITY), S.GAIN_UNITY);
     // Above about +6 dB the level lies beyond the gain range
     assert.equal(S.heardGain(S.dbToGain(12)), S.GAIN_MAX);
+    assert.equal(Math.round(S.heardDb(S.dbToGain(12)) * 10) / 10, 21.3);
+    assert.equal(Math.round(S.heardDb(S.dbToGain(6)) * 10) / 10, 10);
     assert.equal(S.heardGain(S.GAIN_MUTED), S.GAIN_MUTED);
     // The lowest gains stay one step above mute
     assert.equal(S.heardGain(1), 1);

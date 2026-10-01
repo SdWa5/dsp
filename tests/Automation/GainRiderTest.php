@@ -178,6 +178,77 @@ final class GainRiderTest extends TestCase
         self::assertFalse($rider->isPaused($this->now));
     }
 
+    public function testRidesALinkGroupWithOneGain(): void
+    {
+        // In3 and In4 linked, In4's gain a little off at the start
+        $gains = [2 => Scale::GAIN_UNITY, 3 => Scale::dbToGain(-2.0)];
+        $rider = new GainRider(new RiderSettings(Channel::input(3), targetDb: -18.0, averageSeconds: 1.0));
+        self::assertFalse($rider->observeGains($gains, $this->now));
+        self::assertSame([3 => Scale::GAIN_UNITY], $rider->writes($this->now));
+        $gains[3] = Scale::GAIN_UNITY;
+
+        // Panned material: the left side loud, the right side 10 dB quieter
+        for ($t = 0.0; $t < 40.0; $t += self::TICK) {
+            $this->now += self::TICK;
+            self::assertFalse($rider->observeGains($gains, $this->now));
+            $gain = Scale::gainToDb($gains[2]);
+            $rider->meter(GainRider::groupLevel([-10.0 + $gain, -20.0 + $gain]), $this->now);
+            $writes = $rider->writes($this->now);
+            if ([] !== $writes) {
+                self::assertSame([2, 3], array_keys($writes));
+                self::assertSame($writes[2], $writes[3]);
+                $gains = $writes + $gains;
+            }
+        }
+
+        // The power mean of -10 and -20 dB is -12.6 dB, so both members end up about 5.4 dB down, balance kept
+        self::assertSame($gains[2], $gains[3]);
+        self::assertEqualsWithDelta(-5.4, Scale::gainToDb($gains[2]), 1.0 + 1e-9);
+    }
+
+    public function testAManualChangeOnAnyMemberPausesAndTheOthersFollowItAfterwards(): void
+    {
+        $rider = new GainRider(new RiderSettings(Channel::input(3), overrideHoldSeconds: 10.0));
+        $rider->observeGains([2 => Scale::GAIN_UNITY, 3 => Scale::GAIN_UNITY], $this->now);
+
+        $moved = Scale::dbToGain(-6.0);
+        self::assertTrue($rider->observeGains([2 => Scale::GAIN_UNITY, 3 => $moved], $this->now));
+        self::assertSame(-6.0, $rider->gainDb());
+        self::assertSame([], $rider->writes($this->now));
+        // The member that kept its gain is no second change
+        $this->now += 5.0;
+        self::assertFalse($rider->observeGains([2 => Scale::GAIN_UNITY, 3 => $moved], $this->now));
+
+        $this->now += 6.0;
+        self::assertSame([2 => $moved], $rider->writes($this->now));
+        // A device that copies the write to the linked input brings the same value back, which is no change
+        self::assertFalse($rider->observeGains([2 => $moved, 3 => $moved], $this->now));
+        self::assertFalse($rider->isPaused($this->now));
+    }
+
+    public function testAGroupLevelIsThePowerMeanOfItsMembers(): void
+    {
+        self::assertEqualsWithDelta(-20.0, GainRider::groupLevel([-20.0, -20.0]), 1e-9);
+        self::assertEqualsWithDelta(-23.01, GainRider::groupLevel([-20.0, Scale::METER_FLOOR]), 0.01);
+        self::assertEqualsWithDelta(-12.6, GainRider::groupLevel([-10.0, -20.0]), 0.05);
+        self::assertSame(Scale::METER_FLOOR, GainRider::groupLevel([Scale::METER_FLOOR, Scale::METER_FLOOR]));
+        self::assertSame(-30.0, GainRider::groupLevel([-30.0]));
+    }
+
+    public function testResetForgetsEverything(): void
+    {
+        $rider = $this->rider(Scale::GAIN_UNITY, overrideHoldSeconds: 10.0);
+        $rider->observeGain(Scale::dbToGain(-6.0), $this->now);
+        self::assertTrue($rider->isPaused($this->now));
+
+        $rider->reset();
+
+        self::assertFalse($rider->isPaused($this->now));
+        self::assertNull($rider->gainDb());
+        self::assertSame(GainRider::WAITING, $rider->status($this->now));
+        self::assertFalse($rider->observeGain(Scale::dbToGain(-6.0), $this->now));
+    }
+
     public function testGainOutsideTheWindowMovesBackAtTheSlewRate(): void
     {
         $raw = Scale::dbToGain(3.0);

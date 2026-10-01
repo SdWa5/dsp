@@ -5,7 +5,7 @@
 {% endmacro %}
 
 <dialog class="dialog" id="dialog-connect" data-editor-target="dialog">
-    {{ _self.dialog('connect', 'Connection') }}
+    {{ _self.dialog('connect', 'Connection', 'connect') }}
     <p class="dialog__status" data-editor-target="status">–</p>
     <form class="dialog__form" data-action="editor#connectTo">
         <label>{{ "Target"|trans }} <input type="text" name="target" data-editor-target="target" placeholder="{{ "auto, 192.168.68.10, usb or demo"|trans }}" required></label>
@@ -21,7 +21,7 @@
 </dialog>
 
 <dialog class="dialog" id="dialog-store" data-editor-target="dialog">
-    {{ _self.dialog('store', 'Store preset') }}
+    {{ _self.dialog('store', 'Store preset', 'store') }}
     <form class="dialog__form" data-action="editor#store">
         <label>{{ "Slot"|trans }} <select name="number" data-editor-target="slots" data-first="1"></select></label>
         <label>{{ "Name"|trans }} <input type="text" name="name" maxlength="14" required data-editor-target="storeName"></label>
@@ -31,7 +31,7 @@
 </dialog>
 
 <dialog class="dialog" id="dialog-recall" data-editor-target="dialog">
-    {{ _self.dialog('recall', 'Recall preset') }}
+    {{ _self.dialog('recall', 'Recall preset', 'recall') }}
     <form class="dialog__form" data-action="editor#recall">
         <label>{{ "Preset"|trans }} <select name="number" data-editor-target="slots" data-first="0"></select></label>
         <p class="dialog__note">{{ "A recall replaces all live settings."|trans }}</p>
@@ -40,7 +40,7 @@
 </dialog>
 
 <dialog class="dialog dialog--wide" id="dialog-link" data-editor-target="dialog">
-    {{ _self.dialog('link', 'Link') }}
+    {{ _self.dialog('link', 'Link', 'link') }}
     <form class="dialog__form" data-action="editor#link">
         <p class="dialog__note">{{ "A cell links its row and column channel, and linked channels form a group, which lights as a block. A lit cell takes the column channel out of its group. The lowest channel of a group is copied to the others. The rows and columns follow the placement below."|trans }}</p>
         <div class="link-matrices">
@@ -79,7 +79,7 @@
 </dialog>
 
 <dialog class="dialog" id="dialog-copy" data-editor-target="dialog">
-    {{ _self.dialog('copy', 'Copy channel') }}
+    {{ _self.dialog('copy', 'Copy channel', 'copy') }}
     <form class="dialog__form" data-action="editor#copy">
         <label>{{ "From"|trans }} <select name="source">{% for c in 0..15 %}{{ w.ch_option(c) }}{% endfor %}</select></label>
         <label>{{ "To"|trans }} <select name="target">{% for c in 0..15 %}{{ w.ch_option(c) }}{% endfor %}</select></label>
@@ -89,25 +89,25 @@
 </dialog>
 
 <dialog class="dialog" id="dialog-lock" data-editor-target="dialog">
-    {{ _self.dialog('lock', 'Lock') }}
+    {{ _self.dialog('lock', 'Lock', 'lock') }}
     <p>{{ "The front panel PIN is not available yet. Setting and removing it will follow once it has been tested on the device."|trans }}</p>
 </dialog>
 
 <dialog class="dialog" id="dialog-working" data-editor-target="dialog">
-    {{ _self.dialog('working', 'Working Status') }}
+    {{ _self.dialog('working', 'Working Status', 'working') }}
     <p class="dialog__note">{{ "Memorize keeps the live settings through a power cycle. Forget starts with the last recalled preset. The device does not report this value."|trans }}</p>
     {{ w.choice('Working status', 'working_status', [{command: 'workingStatus', args: {mode: '@working_status'}}], labels.WORKING_STATUS) }}
 </dialog>
 
 <dialog class="dialog" id="dialog-idip" data-editor-target="dialog">
-    {{ _self.dialog('idip', 'Setting ID/IP') }}
+    {{ _self.dialog('idip', 'Setting ID/IP', 'idip') }}
     <label>{{ "Device ID"|trans }} {{ w.choice('Device ID', 'device_id', [{command: 'deviceId', args: {id: '@device_id'}}], device_ids) }}</label>
     <p>{{ "IP address"|trans }} {{ w.value('ip') }}</p>
     <p class="dialog__note">{{ "The IP address can only be read. It is changed on the device."|trans }}</p>
 </dialog>
 
 <dialog class="dialog" id="dialog-tone" data-editor-target="dialog">
-    {{ _self.dialog('tone', 'Test Tone') }}
+    {{ _self.dialog('tone', 'Test Tone', 'tone') }}
     {% set tone = [{command: 'testTone', args: {mode: '@tone_mode', freqIndex: '@tone_freq'}}] %}
     <label>{{ "Source"|trans }} {{ w.choice('Test tone source', 'tone_mode', tone, labels.TONE_MODES) }}</label>
     <label>{{ "Sine frequency"|trans }} {{ w.choice('Sine frequency', 'tone_freq', tone, labels.TONE_FREQUENCIES) }}</label>
@@ -115,7 +115,7 @@
 </dialog>
 
 <dialog class="dialog dialog--wide" id="dialog-names" data-editor-target="dialog">
-    {{ _self.dialog('names', 'Channel Name') }}
+    {{ _self.dialog('names', 'Channel Name', 'names') }}
     <div class="names">
         {% for side, prefix in {inputs: 'In', outputs: 'Out'} %}
             {% for i in 0..7 %}
@@ -135,7 +135,7 @@
 {% endfor %}
 
 <dialog class="dialog dialog--wide" id="dialog-auxcomp" data-editor-target="dialog">
-    {{ _self.dialog('auxcomp', 'Aux compressor') }}
+    {{ _self.dialog('auxcomp', 'Aux compressor', 'aux_comp_dialog') }}
     {{ include('editor/page/_compressor.html.twig', {p: 'aux', channel: 18, meter: 16}) }}
 </dialog>
 
@@ -180,7 +180,7 @@
 </dialog>
 
 <dialog class="dialog dialog--wide" id="dialog-help" data-editor-target="dialog">
-    {{ _self.dialog('help', 'RS232 Code Table') }}
+    {{ _self.dialog('help', 'RS232 Code Table', 'help') }}
     <p>{{ "RS232/485 remote control, manual chapter 6.1. 115200 baud, 8N1, at least 200 ms between packets. A packet is"|trans }} <code>7B 7D ID CMD D1 D2 D3 7D 7B</code>{{ ". These command numbers do not apply over USB or TCP."|trans }}</p>
     <table class="table">
         <thead><tr><th>CMD</th><th>{{ "Function"|trans }}</th><th>{{ "Data"|trans }}</th></tr></thead>
@@ -202,7 +202,7 @@
 </dialog>
 
 <dialog class="dialog" id="dialog-about" data-editor-target="dialog">
-    {{ _self.dialog('about', 'About') }}
+    {{ _self.dialog('about', 'About', 'about') }}
     <p><b>trackdsp</b>{{ ": free control software for the Thomann t.racks 8x8 Matrix DSP over USB (HID) and TCP port 9761."|trans }}</p>
     <p>{{ "Not affiliated with Thomann. The protocol is described in"|trans }} <code>docs/protocol.md</code>.</p>
 </dialog>

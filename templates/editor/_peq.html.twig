@@ -14,7 +14,7 @@
         <button type="button" class="toggle" title="{{ 'editor.tip.eq_reset'|trans }}" data-action="peq#reset">{{ "EQ Reset"|trans }}</button>
     </div>
     <div class="fold-panel" data-controller="collapse" data-collapse-key-value="{{ fold }}.curve">
-        <h3 class="fold-panel__title">{{ w.fold('EQ curve') }}</h3>
+        <h3 class="fold-panel__title">{{ w.fold('EQ curve', 'eq_curve') }}</h3>
         <canvas class="peq__curve" data-peq-target="canvas"
                 data-action="pointerdown->peq#pointerdown pointermove->peq#pointermove pointerup->peq#pointerup pointercancel->peq#pointerup wheel->peq#wheel"></canvas>
     </div>

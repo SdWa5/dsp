@@ -61,6 +61,17 @@ final class EditorTooltipTest extends WebTestCase
         self::assertNull($title('[data-toggle-bind-value="outputs.0.route"]'));
     }
 
+    #[DataProvider('locales')]
+    public function testEverySectionTitleHasATooltip(string $locale): void
+    {
+        $page = $this->page($locale);
+        $titles = $page->filter('.fold, dialog > .dialog__head h2, details.card > summary');
+        self::assertGreaterThan(30, $titles->count());
+        $titles->each(static function (Crawler $node): void {
+            self::assertNotEmpty($node->attr('title'), trim($node->text()).' has no tooltip');
+        });
+    }
+
     private function page(string $locale): Crawler
     {
         $client = self::createClient();

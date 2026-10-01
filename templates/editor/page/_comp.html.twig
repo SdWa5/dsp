@@ -3,7 +3,7 @@
     {% for i in 0..7 %}
         <div class="strip">
             <h3 class="strip__title">{{ w.ch(8 + i) }}</h3>
-            {{ include('editor/page/_compressor.html.twig', {p: 'outputs.' ~ i, channel: 8 + i, meter: 8 + i}) }}
+            {{ include('editor/page/_compressor.html.twig', {p: 'outputs.' ~ i, channel: 8 + i, meter: 8 + i, link: 'outputs:' ~ i}) }}
             {{ w.gain_warning(i) }}
         </div>
     {% endfor %}

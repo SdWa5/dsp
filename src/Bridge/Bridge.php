@@ -7,6 +7,8 @@ use App\Automation\RiderSettings;
 use App\Client\DspException;
 use App\Client\Matrix;
 use App\Model\DeviceState;
+use App\Model\InputChannel;
+use App\Model\Links;
 use App\Protocol\Commands;
 use App\Protocol\Frame;
 use App\Protocol\Opcode;
@@ -516,7 +518,8 @@ final class Bridge
     }
 
     /**
-     * Feeds one meter reading to every rider and queues the gains they change.
+     * Feeds one meter reading to every rider and queues the gains they change. A rider on a linked input rides
+     * its whole link group (riderGroups()).
      *
      * @param list<float> $levels
      */
@@ -527,10 +530,20 @@ final class Bridge
         }
         $inputs = $this->state->toDevice()->inputs;
         $frames = [];
-        foreach ($this->riders as $channel => $rider) {
-            $rider->observeGain($inputs[$channel]->gain, $now);
-            if (null !== $raw = $rider->meter($levels[$channel] ?? Scale::METER_FLOOR, $now)) {
-                $frames[] = Commands::gain($channel, $raw);
+        foreach ($this->riderGroups() as $channel => $members) {
+            $rider = $this->riders[$channel];
+            if ([] === $members) {
+                $rider->reset();
+                continue;
+            }
+            $gains = [];
+            foreach ($members as $member) {
+                $gains[$member] = $inputs[$member]->gain;
+            }
+            $rider->observeGains($gains, $now);
+            $rider->meter(GainRider::groupLevel(array_map(static fn (int $m): float => $levels[$m] ?? Scale::METER_FLOOR, $members)), $now);
+            foreach ($rider->writes($now) as $member => $raw) {
+                $frames[] = Commands::gain($member, $raw);
             }
         }
         foreach ($frames as $frame) {
@@ -543,12 +556,44 @@ final class Bridge
     }
 
     /**
-     * @return list<array{channel: int, gain: float|null, average: float|null, status: string}>
+     * The inputs each rider rides, rider channel => channels, its own first: its link group, or itself alone. Where
+     * two riders share a link group, the one on the lowest channel rides it and the others ride none, so they never
+     * take each other's writes for manual changes.
+     *
+     * @return array<int, list<int>>
+     */
+    private function riderGroups(): array
+    {
+        $links = new Links(null === $this->state ? [] : array_map(static fn (InputChannel $c): int => $c->link, $this->state->toDevice()->inputs));
+        $groups = [];
+        $ridden = [];
+        foreach (array_keys($this->riders) as $channel) {
+            if (isset($ridden[$channel])) {
+                $groups[$channel] = [];
+                continue;
+            }
+            $members = array_values(array_unique([$channel, ...$links->members($channel)]));
+            $groups[$channel] = $members;
+            $ridden += array_fill_keys($members, true);
+        }
+
+        return $groups;
+    }
+
+    /**
+     * @return list<array{channel: int, gain: float|null, average: float|null, status: string, members: list<int>, lead?: int}>
      */
     private function riderStatus(float $now): array
     {
+        $groups = $this->riderGroups();
         $status = [];
         foreach ($this->riders as $channel => $rider) {
+            $members = $groups[$channel] ?? [$channel];
+            if ([] === $members) {
+                $lead = array_key_first(array_filter($groups, static fn (array $m): bool => \in_array($channel, $m, true))) ?? $channel;
+                $status[] = ['channel' => $channel, 'gain' => null, 'average' => null, 'status' => 'linked', 'members' => [], 'lead' => $lead];
+                continue;
+            }
             $gain = $rider->gainDb();
             $average = $rider->averageDb();
             $status[] = [
@@ -556,6 +601,7 @@ final class Bridge
                 'gain' => null === $gain ? null : round($gain, 1),
                 'average' => null === $average ? null : round($average, 1),
                 'status' => $rider->status($now),
+                'members' => $members,
             ];
         }
 

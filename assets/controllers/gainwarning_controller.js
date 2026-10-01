@@ -1,7 +1,9 @@
 import { Controller } from '@hotwired/stimulus';
 import { send, store } from '../lib/device.js';
+import { t } from '../lib/i18n.js';
+import { linkedMembers } from '../lib/link.js';
 import { readPref, writePref } from '../lib/prefs.js';
-import { EXACT_RATIO, EXACT_THRESHOLD, exaggeratesGain, format, heardGain } from '../lib/scale.js';
+import { EXACT_RATIO, EXACT_THRESHOLD, exaggeratesGain, format, GAIN_MAX, gainToDb, heardDb, heardGain } from '../lib/scale.js';
 
 const KEEP_THRESHOLD = 'gain-fix-keep-threshold';
 const CHANGED = 'trackdsp:gain-fix';
@@ -11,7 +13,9 @@ const CHANGED = 'trackdsp:gain-fix';
  * 0 dB, and offers 1:1.1 from +20 dB, which keeps the gain exact: either with the gain as set ("Exact gain"), or
  * with the gain moved to the level the output had at 1:1.0 ("Keep level"). Each button names the gain it sets.
  * "Keep threshold" leaves the threshold as set, so 1:1.1 compresses above it. That choice is kept in the browser
- * and shared by every output. Values: path ("outputs.3"), channel (11).
+ * and shared by every output. Above about +6 dB the level at 1:1.0 lies beyond the highest gain, and "Keep level"
+ * says by how much it falls short. On a linked output the fix goes to every output of the link group, which
+ * share their gain and compressor. Values: path ("outputs.3"), channel (11).
  */
 export default class extends Controller {
     static values = { path: String, channel: Number };
@@ -49,7 +53,9 @@ export default class extends Controller {
             return;
         }
         this.exactTarget.textContent = `(${format('gain', output.gain)})`;
-        this.keepTarget.textContent = `(${format('gain', heardGain(output.gain))})`;
+        const keep = format('gain', heardGain(output.gain));
+        const short = heardDb(output.gain) - gainToDb(GAIN_MAX);
+        this.keepTarget.textContent = `(${short >= 0.05 ? t('%gain%, %short% dB short', { gain: keep, short: short.toFixed(1) }) : keep})`;
     }
 
     exact() {
@@ -61,23 +67,29 @@ export default class extends Controller {
     }
 
     fix(keepLevel) {
+        const [side, index] = this.pathValue.split('.');
         const comp = store.get(`${this.pathValue}.comp`);
         const gain = store.get(`${this.pathValue}.gain`);
         if (!comp || undefined === gain) {
             return;
         }
+        const members = linkedMembers(store.get(side) ?? [], Number(index));
+        const base = this.channelValue - Number(index);
         const commands = [];
         if (keepLevel) {
-            // The gain first, so the level never jumps up between the two writes
+            // The gains first, so the level never jumps up between the writes
             const raw = heardGain(gain);
-            store.set(`${this.pathValue}.gain`, raw);
-            commands.push({ command: 'gain', args: { channel: this.channelValue, raw } });
+            for (const i of members) {
+                store.set(`${side}.${i}.gain`, raw);
+                commands.push({ command: 'gain', args: { channel: base + i, raw } });
+            }
         }
         const threshold = readPref(KEEP_THRESHOLD, false) ? comp.threshold : EXACT_THRESHOLD;
-        store.set(`${this.pathValue}.comp.ratio`, EXACT_RATIO);
-        store.set(`${this.pathValue}.comp.threshold`, threshold);
+        for (const i of members) {
+            store.set(`${side}.${i}.comp`, { ...comp, ratio: EXACT_RATIO, threshold });
+            commands.push({ command: 'compressor', args: { ...comp, channel: base + i, ratio: EXACT_RATIO, threshold } });
+        }
         store.notify();
-        commands.push({ command: 'compressor', args: { ...comp, channel: this.channelValue, ratio: EXACT_RATIO, threshold } });
         send(commands, false);
     }
 }

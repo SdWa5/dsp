@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.40.0] - 2026-10-01
+
+### Added
+
+- A gain rider on a linked input rides its whole link group as one: the power mean of the members' meters, the same gain written to every member, and a pause when somebody else changes any member's gain. A second rider in the same group stands by. The status line names the members, and every other member reads "Ridden with In3"
+- A tooltip on every section and dialog title, for example EQ overview, Input, Output, EQ curve, Routing graph, the Auto EQ steps and every dialog of the menu
+
+### Changed
+
+- A setting changed on a linked channel goes to every channel of its group on every page, so linked channels follow in demo mode too. Besides mute, phase, mode and +48V, this now covers gain, gate, compressor, delay, FBQ, PEQ bands, high and low pass and EQ bypass. Only the name stays per channel
+- The 1:1.0 fix buttons fix every output of a link group
+- "Keep level" says how far it falls short where the level at 1:1.0 lies beyond +12 dB, for example "(+12.0dB, 9.3 dB short)" for an output at +12 dB
+
 ## [0.39.0] - 2026-10-01
 
 ### Added

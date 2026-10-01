@@ -1,6 +1,6 @@
 {% import 'editor/_widgets.html.twig' as w %}
 <div class="strips eq-overview" data-controller="collapse eqoverview" data-collapse-key-value="gain.eq">
-    <h2 class="strips__title">{{ w.fold('EQ overview') }}</h2>
+    <h2 class="strips__title">{{ w.fold('EQ overview', 'eq_overview') }}</h2>
     <canvas class="eq-overview__plot" data-eqoverview-target="canvas"></canvas>
     <div class="eq-overview__switches" role="group" aria-label="{{ "Curves shown"|trans }}">
         {% for side in ['inputs', 'outputs'] %}
@@ -18,13 +18,13 @@
 <div class="gain-layout__channels">
 <div data-controller="riders" data-riders-defaults-value="{{ rider_defaults|json_encode }}">
     <div class="strips" data-controller="collapse linkplace" data-collapse-key-value="gain.input">
-        <h2 class="strips__title">{{ w.fold('Input') }}</h2>
+        <h2 class="strips__title">{{ w.fold('Input', 'inputs') }}</h2>
         {% for i in 0..7 %}
             {% set p = 'inputs.' ~ i %}
             <div class="strip">
                 <h3 class="strip__title">{{ w.ch(i) }}</h3>
                 <div class="strip__row">
-                    {{ w.fader('', p ~ '.gain', [{command: 'gain', args: {channel: i, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', null, {label: '%channel% gain'|trans({'%channel%': 'In' ~ (i + 1)}), default: 280}) }}
+                    {{ w.fader('', p ~ '.gain', [{command: 'gain', args: {channel: i, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', 'inputs:' ~ i, {label: '%channel% gain'|trans({'%channel%': 'In' ~ (i + 1)}), default: 280}) }}
                     {{ w.meter(i) }}
                 </div>
                 <button type="button" class="toggle toggle--rider" data-riders-target="button" data-channel="{{ i }}"
@@ -39,7 +39,7 @@
     </div>
 
     <dialog class="dialog" data-riders-target="dialog">
-        <header class="dialog__head"><h2 data-riders-target="title">{{ "Gain rider"|trans }}</h2><button type="button" class="dialog__close" data-action="riders#close" aria-label="{{ "Close"|trans }}">×</button></header>
+        <header class="dialog__head"><h2 title="{{ 'editor.tip.panel.rider'|trans }}" data-riders-target="title">{{ "Gain rider"|trans }}</h2><button type="button" class="dialog__close" data-action="riders#close" aria-label="{{ "Close"|trans }}">×</button></header>
         <form class="dialog__form" data-riders-target="form" data-action="riders#save">
             <p class="dialog__note">{{ "The rider moves the input gain slowly towards a target meter level. It runs in the bridge, so it keeps working without this page and after a restart. When somebody moves the gain, it pauses for the hold time."|trans }}</p>
             <div class="form-grid">
@@ -60,13 +60,13 @@
     </dialog>
 </div>
 <div class="strips" data-controller="collapse linkplace" data-collapse-key-value="gain.output">
-    <h2 class="strips__title">{{ w.fold('Output') }}</h2>
+    <h2 class="strips__title">{{ w.fold('Output', 'outputs') }}</h2>
     {% for i in 0..7 %}
         {% set p = 'outputs.' ~ i %}
         <div class="strip">
             <h3 class="strip__title">{{ w.ch(8 + i) }}</h3>
             <div class="strip__row">
-                {{ w.fader('', p ~ '.gain', [{command: 'gain', args: {channel: 8 + i, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', null, {label: '%channel% gain'|trans({'%channel%': 'Out' ~ (i + 1)}), default: 280}) }}
+                {{ w.fader('', p ~ '.gain', [{command: 'gain', args: {channel: 8 + i, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', 'outputs:' ~ i, {label: '%channel% gain'|trans({'%channel%': 'Out' ~ (i + 1)}), default: 280}) }}
                 {{ w.meter(8 + i) }}
             </div>
             {{ w.toggle('Normal', p ~ '.phase', [{command: 'phase', args: {channel: 8 + i, inverted: '@' ~ p ~ '.phase'}}], 'outputs:' ~ i, {on: 'Inverse'}) }}

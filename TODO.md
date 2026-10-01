@@ -66,11 +66,6 @@
 
 ## Automation
 
-- Stereo gain rider. A rider rides one channel and knows no links, so two riders on the console inputs IN3 and
-  IN4 of the rig ride left and right apart and shift the balance with panned material. Ride a link group as
-  one, with the power mean of both meters and the same gain written to every member. First check whether the
-  8x8 copies a gain write to a linked input by itself. If it does, two riders on a linked pair take each
-  other's writes for manual changes and pause each other
 - The rack's output panel has a broken connection on output 8 (found 2026-09-29). Until it is repaired, measure
   with `--reference-output=out6`. Afterwards repeat B1 of `docs/measurements.md` against Out8
 - Measure the 8x8's PEQ shapes against the RBJ filters the fitter assumes. Include the allpass types and the

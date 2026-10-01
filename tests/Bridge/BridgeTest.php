@@ -291,6 +291,37 @@ final class BridgeTest extends TestCase
         }
     }
 
+    public function testARiderRidesItsLinkGroupAsOne(): void
+    {
+        // In1 and In2 linked, In2 starting 3 dB below In1
+        $frames = array_map(self::hex(...), [Commands::link(0, 0b11), Commands::link(1, 0), Commands::gain(1, $this->state()['inputs'][0]['gain'] - 30)]);
+        self::assertTrue($this->request('write', ['frames' => $frames])['ok']);
+        $before = $this->state()['inputs'][0]['gain'];
+        $settings = ['target' => -80, 'silence' => -90, 'min' => -40, 'slew' => 50, 'average' => 0.05, 'deadband' => 0];
+        self::assertTrue($this->request('ride', ['channel' => 0, 'settings' => $settings])['ok']);
+        // A second rider in the same group stands by instead of fighting the first
+        self::assertTrue($this->request('ride', ['channel' => 1, 'settings' => $settings])['ok']);
+
+        fwrite($this->client, '{"id":99,"op":"subscribe"}'."\n");
+        $riders = null;
+        $deadline = microtime(true) + 5;
+        do {
+            foreach ($this->messages(10) as $message) {
+                if ('meters' === ($message['event'] ?? null)) {
+                    $riders = $message['data']['riders'];
+                }
+            }
+            $inputs = $this->state()['inputs'];
+        } while (($inputs[0]['gain'] >= $before || $inputs[0]['gain'] !== $inputs[1]['gain']) && microtime(true) < $deadline);
+
+        self::assertLessThan($before, $inputs[0]['gain']);
+        self::assertSame($inputs[0]['gain'], $inputs[1]['gain']);
+        self::assertIsArray($riders);
+        self::assertSame([0, 1], $riders[0]['members']);
+        self::assertContains($riders[0]['status'], ['riding', 'limit', 'steady']);
+        self::assertSame(['linked', [], 0], [$riders[1]['status'], $riders[1]['members'], $riders[1]['lead']]);
+    }
+
     public function testRejectsBadRiders(): void
     {
         self::assertSame('invalid', $this->request('ride', ['channel' => 8, 'settings' => []])['code']);

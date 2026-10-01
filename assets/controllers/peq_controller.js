@@ -2,6 +2,7 @@ import { t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { isChanged } from '../lib/defaults.js';
 import { getDefaults, getLabels, send, store } from '../lib/device.js';
+import { linkedMembers } from '../lib/link.js';
 import { getPath } from '../lib/store.js';
 import { drawGrid, Plot, prepare, response } from '../lib/eq.js';
 import * as S from '../lib/scale.js';
@@ -13,7 +14,8 @@ const DEFAULT_FREQS = { 5: [49, 101, 148, 200, 255], 7: [31, 71, 118, 161, 200, 
 /**
  * PEQ editor of one channel: response curve with draggable band points and filter handles, band table,
  * parameter faders of the selected band, high and low pass. Values: path ("outputs.0"), channel (index).
- * Every field that differs from the factory default gets the class is-changed.
+ * Every field that differs from the factory default gets the class is-changed. A write to a linked input or
+ * output goes to every channel of its link group, as the Gain page's widgets do (bound_controller.js).
  */
 export default class extends Controller {
     static values = { path: String, channel: Number };
@@ -42,12 +44,24 @@ export default class extends Controller {
 
     // --- writes ---------------------------------------------------------------------------------
 
+    /** The channels a write goes to: {path, channel} of this one and of the channels linked with it. */
+    members() {
+        const [side, index] = this.pathValue.split('.');
+        if (!['inputs', 'outputs'].includes(side)) {
+            return [{ path: this.pathValue, channel: this.channelValue }];
+        }
+        const base = 'outputs' === side ? 8 : 0;
+        return linkedMembers(store.get(side) ?? [], Number(index)).map((i) => ({ path: `${side}.${i}`, channel: base + i }));
+    }
+
+    /** Sends band `band` of this channel to every member, with its values copied to the linked channels. */
     sendBand(band) {
         const b = this.channel.peq[band];
-        send([{
-            command: 'peq',
-            args: { channel: this.channelValue, band, gainRaw: b.gain, freqIndex: b.freq, qIndex: b.q, type: b.type, bypass: b.bypass },
-        }]);
+        const commands = this.members().map(({ path, channel }) => {
+            store.set(`${path}.peq.${band}`, { ...b });
+            return { command: 'peq', args: { channel, band, gainRaw: b.gain, freqIndex: b.freq, qIndex: b.q, type: b.type, bypass: b.bypass } };
+        });
+        send(commands);
         store.notify();
     }
 
@@ -60,7 +74,11 @@ export default class extends Controller {
 
     sendFilter(kind) {
         const filter = this.channel[kind];
-        send([{ command: 'hpf' === kind ? 'highPass' : 'lowPass', args: { channel: this.channelValue, freqIndex: filter.freq, slope: filter.slope } }]);
+        const commands = this.members().map(({ path, channel }) => {
+            store.set(`${path}.${kind}`, { ...filter });
+            return { command: 'hpf' === kind ? 'highPass' : 'lowPass', args: { channel, freqIndex: filter.freq, slope: filter.slope } };
+        });
+        send(commands);
         store.notify();
     }
 
@@ -135,8 +153,11 @@ export default class extends Controller {
 
     eqBypass() {
         const on = !this.channel.eq_bypass;
-        store.set(`${this.pathValue}.eq_bypass`, on);
-        send([{ command: 'eqBypass', args: { channel: this.channelValue, on } }]);
+        const commands = this.members().map(({ path, channel }) => {
+            store.set(`${path}.eq_bypass`, on);
+            return { command: 'eqBypass', args: { channel, on } };
+        });
+        send(commands);
         store.notify();
     }
 
