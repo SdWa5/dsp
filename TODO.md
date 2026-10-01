@@ -1,5 +1,12 @@
 # TODO
 
+## First
+
+- Check the clone on the laptop for uncommitted work before touching anything in Automation or related to it.
+  Work on the Automation items had already started there, and an auto mode session may have stopped when the
+  battery ran empty. Run `git status` and `git log origin/main..` there. If something is left, commit it on a
+  feature branch, merge it into `main` and push. Only then pull here and continue
+
 ## Repository
 
 - Rename the repository and give it a description. `dsp_linux_8x8` names the first goal, a Linux editor for
