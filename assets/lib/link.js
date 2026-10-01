@@ -34,10 +34,14 @@ export function linkGroups(channels) {
 
 /**
  * Commands for new link groups: copy the master to new slaves, set the link flags, then activate.
- * groups: group number per index (0 = alone), base: 0 for inputs, 8 for outputs.
+ * A slave is new when its group had another master before, which also covers a slave that moves from one
+ * group to another and keeps its flags 0. The copy takes every parameter, and in the demo also the name, so
+ * each new slave gets its own name back right after it. groups: group number per index (0 = alone), base: 0
+ * for inputs, 8 for outputs.
  */
 export function linkCommands(channels, groups, base) {
     const copies = [];
+    const names = [];
     const links = [];
     const byGroup = new Map();
     groups.forEach((group, i) => {
@@ -49,15 +53,16 @@ export function linkCommands(channels, groups, base) {
         const mask = members.reduce((m, i) => m | (1 << i), 0);
         members.forEach((i, k) => {
             const value = 0 === k ? mask : 0;
-            if (k > 0 && channels[i].link !== value) {
+            if (k > 0 && linkedMembers(channels, i)[0] !== members[0]) {
                 copies.push({ command: 'copyChannel', args: { source: base + members[0], target: base + i } });
+                names.push({ command: 'channelName', args: { channel: base + i, name: channels[i].name ?? '' } });
             }
             if (channels[i].link !== value) {
                 links.push({ command: 'link', args: { channel: base + i, flags: value } });
             }
         });
     }
-    return [...copies, ...links];
+    return [...copies, ...names, ...links];
 }
 
 /**

@@ -575,7 +575,7 @@ export default class extends Controller {
             return;
         }
         const copies = commands.filter((c) => 'copyChannel' === c.command).length;
-        if (copies > 0 && !window.confirm(t("Linking copies the first channel of each group to %count% channel(s). Go on?", { count: copies }))) {
+        if (copies > 0 && !window.confirm(t("Linking copies the settings of the first channel of each group to %count% channel(s). Their names stay. Go on?", { count: copies }))) {
             return;
         }
         await send([...commands, { command: 'activate', args: {} }], false);

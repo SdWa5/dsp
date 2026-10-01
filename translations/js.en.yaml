@@ -33,7 +33,7 @@
 "Is %file% a verify recording, made with the bands on?": "Is %file% a verify recording, made with the bands on?"
 "It replaces \"%name%\".": "It replaces \"%name%\"."
 "Light": "Light"
-"Linking copies the first channel of each group to %count% channel(s). Go on?": "Linking copies the first channel of each group to %count% channel(s). Go on?"
+"Linking copies the settings of the first channel of each group to %count% channel(s). Their names stay. Go on?": "Linking copies the settings of the first channel of each group to %count% channel(s). Their names stay. Go on?"
 "Loading %file%…": "Loading %file%…"
 "Muted": "Muted"
 "Muted by its gain at the lowest step": "Muted by its gain at the lowest step"

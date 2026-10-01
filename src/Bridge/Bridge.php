@@ -459,8 +459,11 @@ final class Bridge
                 if (!\is_array($settings)) {
                     throw new BridgeException('"settings" must be an object.', 400);
                 }
+                // A rider on a linked input is the rider of its link group, so every member gets the same settings
                 try {
-                    $this->riders[$channel] = new GainRider(RiderSettings::fromArray($channel, $settings));
+                    foreach ($this->inputLinks()->members($channel) as $member) {
+                        $this->riders[$member] = new GainRider(RiderSettings::fromArray($member, $settings));
+                    }
                 } catch (\InvalidArgumentException $e) {
                     throw new BridgeException($e->getMessage(), 400, $e);
                 }
@@ -471,7 +474,9 @@ final class Bridge
 
                 return $this->status();
             case 'unride':
-                unset($this->riders[self::riderChannel($request)]);
+                foreach ($this->inputLinks()->members(self::riderChannel($request)) as $member) {
+                    unset($this->riders[$member]);
+                }
                 $this->saveRiders();
                 $this->statusDirty = true;
 
@@ -510,6 +515,12 @@ final class Bridge
         foreach ($parsed as $frame) {
             $state->apply($frame);
             $this->queue->push($frame);
+            // Factory default (F00) starts from scratch, so the riders stop and leave the factory gains alone
+            if (Opcode::LoadPreset === $frame->opcode() && "\x00" === $frame->data && [] !== $this->riders) {
+                $this->riders = [];
+                $this->saveRiders();
+                $this->logger->info('Factory default recalled, the gain riders are stopped.');
+            }
         }
         $this->stateDirty = true;
         $this->statusDirty = true;
@@ -528,7 +539,9 @@ final class Bridge
         if ([] === $this->riders || null === $this->state) {
             return;
         }
-        $inputs = $this->state->toDevice()->inputs;
+        $state = $this->state;
+        $this->syncRiders();
+        $inputs = $state->toDevice()->inputs;
         $frames = [];
         foreach ($this->riderGroups() as $channel => $members) {
             $rider = $this->riders[$channel];
@@ -547,12 +560,46 @@ final class Bridge
             }
         }
         foreach ($frames as $frame) {
-            $this->state->apply($frame);
+            $state->apply($frame);
             $this->queue->push($frame);
         }
         if ([] !== $frames) {
             $this->stateDirty = true;
         }
+    }
+
+    /**
+     * Gives every member of a ridden link group the settings of the rider on its lowest input, for a group linked
+     * after its riders were started. Unlinked again, the members keep riding with those settings.
+     */
+    private function syncRiders(): void
+    {
+        $changed = false;
+        foreach ($this->riderGroups() as $channel => $members) {
+            $settings = $this->riders[$channel]->settings()->toArray();
+            unset($settings['channel']);
+            foreach (array_slice($members, 1) as $member) {
+                $own = isset($this->riders[$member]) ? $this->riders[$member]->settings()->toArray() : null;
+                unset($own['channel']);
+                if ($own !== $settings) {
+                    $this->riders[$member] = new GainRider(RiderSettings::fromArray($member, $settings));
+                    $changed = true;
+                }
+            }
+        }
+        if ($changed) {
+            ksort($this->riders);
+            $this->saveRiders();
+            $this->statusDirty = true;
+        }
+    }
+
+    /**
+     * The links of the inputs from the device state, none before the first state.
+     */
+    private function inputLinks(): Links
+    {
+        return new Links(null === $this->state ? [] : array_map(static fn (InputChannel $c): int => $c->link, $this->state->toDevice()->inputs));
     }
 
     /**
@@ -564,7 +611,7 @@ final class Bridge
      */
     private function riderGroups(): array
     {
-        $links = new Links(null === $this->state ? [] : array_map(static fn (InputChannel $c): int => $c->link, $this->state->toDevice()->inputs));
+        $links = $this->inputLinks();
         $groups = [];
         $ridden = [];
         foreach (array_keys($this->riders) as $channel) {

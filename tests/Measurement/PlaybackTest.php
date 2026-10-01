@@ -176,7 +176,8 @@ final class PlaybackTest extends TestCase
         });
 
         self::assertSame([], $during);
-        self::assertEquals([1 => -24], $riders());
+        // The demo links In1 and In2, so the rider started on In2 is the rider of both
+        self::assertEquals([0 => -24, 1 => -24], $riders());
     }
 
     public function testWaitsUntilTheDeviceHasTheWrites(): void
