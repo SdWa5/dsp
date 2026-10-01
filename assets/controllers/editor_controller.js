@@ -1,7 +1,7 @@
 import { languageCookie, t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { api, getDefaults, listen, on, send, status, store } from '../lib/device.js';
-import { changedPaths } from '../lib/defaults.js';
+import { changedPaths, pageChanges } from '../lib/defaults.js';
 import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel, channelParts } from '../lib/channels.js';
 import { linkCommands, linkGroups, linkedMembers, linkLayout, linkMark, linkUnits, linkView, toggleLink } from '../lib/link.js';
@@ -91,11 +91,12 @@ export default class extends Controller {
             number.textContent = presetLabel(state?.active_preset);
         }
         this.placeChannelTabs(state);
+        const pages = pageChanges(state, getDefaults());
         for (const tab of this.tabTargets) {
             if (tab.dataset.side) {
                 this.showChannelTab(tab, state);
-            } else if ('aux' === tab.dataset.page) {
-                const count = state ? changedPaths(state.aux, getDefaults().aux).length : 0;
+            } else {
+                const count = pages[tab.dataset.page]?.length ?? 0;
                 tab.classList.toggle('is-changed', count > 0);
                 tab.title = count > 0 ? changedText(count) : '';
             }

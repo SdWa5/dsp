@@ -38,9 +38,32 @@ text, with English source text as fallback. Callers use textContent for messages
 `TranslationTest` checks matching catalogue keys and interpolation parameters. `EditorLocaleTest` checks English
 and German rendering and that translated labels preserve protocol values. `LocaleListenerTest` checks precedence.
 The JS tests check cookie lifetime, fallback, literal interpolation and the translated muted-gain round trip.
+Node test files are excluded from AssetMapper. `EditorAssetsTest` compiles the public map and checks that the
+browser helper is served while test files return 404.
 
 ```bash
 ddev exec composer lint
 ddev exec bin/console lint:twig templates
 ddev exec composer ci
 ```
+
+## Page change marks
+
+Every function tab uses the same corner triangle as the channel tabs. Its tooltip counts the settings that
+differ from `resources/factory_config.bin`. The bridge state updates the marks for hidden pages too. Restoring
+the defaults clears them. Missing or unreported values do not count. Theme, folds, link placement and graphical
+curve switches do not affect these marks.
+
+| Tab | Settings counted |
+|---|---|
+| Gain | Input and output gain, phase and mute, input mode, Sub Control and Group Control |
+| Gate | Input gate settings |
+| Comp | Output compressor settings |
+| Delay | Output delays and the device delay unit |
+| Matrix | Output routing masks |
+| Aux | Every Aux setting with a factory default |
+| Auto EQ | Output PEQ settings, band bypass and EQ bypass |
+
+Auto EQ marks the resulting output EQ state even when there is no active measurement session. It has no factory
+reference for recording positions or fit preferences. `pageChanges()` in `assets/lib/defaults.js` derives all
+function-page marks from one state comparison. Tests cover each page, counts, restoring defaults and unknown values.

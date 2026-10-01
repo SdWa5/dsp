@@ -111,7 +111,9 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   stacked turns each group into a block with one header naming its members. The display settings sit below the
   two matrices as well.
 - Every setting that differs from the factory default (`resources/factory_config.bin`) has a bar on its left
-  edge, and its channel tab or the Aux tab a corner triangle. Both are shapes, so they read without colour.
+  edge. Every page tab and channel tab shows a corner triangle when its settings differ. The tooltip counts
+  the changed settings. Auto EQ tracks output PEQ bands and EQ bypass. The marks clear when values return to
+  their defaults and read without colour.
 - The store and recall dialogs show which user slots are empty. An empty slot cannot be recalled.
 - A fader value can be typed, with or without its unit ("-6", "2k", "200ms", "1:4"). A double click on a gain
   or delay fader sets it back to 0 dB or no delay.

@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.32.0] - 2026-10-01
+
+### Added
+
+- Every function page tab shows a corner triangle and a changed-setting count when its controls differ from factory defaults.
+- The Auto EQ tab tracks output PEQ settings and bypass state even without a measurement session.
+- Page-mark tests cover each page, reset to defaults, unknown values and display preferences.
+
+### Fixed
+
+- Node test files are excluded from AssetMapper so test-only imports cannot break public asset serving.
+
 ## [0.31.0] - 2026-10-01
 
 ### Added

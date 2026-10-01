@@ -19,8 +19,6 @@
 - Tooltips on hover for the controls of the browser editor, above all for abbreviations such as FBQ, HPF, LPF,
   PEQ, Q and the Sub and Group control. Say what the control does in one sentence, and name the unit where a
   value has one
-- Page tabs: every tab (Gain, Gate, Comp, Delay, Matrix, Auto EQ where it applies) marks a setting that differs
-  from the factory default, the way the Aux tab and the channel tabs already do
 - Matrix page: next to the matrix, the routing as the vendor editor draws it, with the inputs and the Aux in a
   column on the left, the outputs in a column on the right, and a line for every connection
 - Vendor preset files: trackdsp reads `.prs` (docs/protocol.md). Save a second sample in the vendor editor with
