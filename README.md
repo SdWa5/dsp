@@ -104,15 +104,16 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   group. The Channels menu and the Link dialog set how a link group shows on the tabs and in the Link matrix, kept
   in the browser. The code (L1, L2, ..., on by default), an icon per group (circle, square, triangle, diamond) and a
   colour per group combine freely, and code and icon stand next to each other. The placement of linked channels is
-  in channel order, side by side, or stacked per link group in one column.
+  in channel order, side by side, or stacked per link group in one column. Stacked puts a header with the group's
+  code, icon and colour above each group column, and the members share the column height equally.
 - The Link dialog is a channel x channel matrix per side. A cell links its row and column channel, linked channels
   form a group that lights as a block, and a lit cell takes the column channel out of its group. The lowest
   channel of a group is copied to the others. The rows and columns follow the placement after every click, and
   stacked turns each group into a block with one header naming its members. The display settings sit below the
   two matrices as well.
 - Every setting that differs from the factory default (`resources/factory_config.bin`) has a bar on its left
-  edge. Every page tab and channel tab shows a corner triangle when its settings differ. The tooltip counts
-  the changed settings. Auto EQ tracks output PEQ bands and EQ bypass. The marks clear when values return to
+  edge. Every page tab shows the number of its changed settings as a badge, and every channel tab shows a corner
+  triangle when its settings differ. The tooltip counts the changed settings. Auto EQ tracks output PEQ bands and EQ bypass. The marks clear when values return to
   their defaults and read without colour.
 - Hovering a control shows what it does and its unit, in English or German. Every fader, switch and list shows
   the same tooltip on every page and in every dialog. The panels name their abbreviations, for example FBQ, HPF,
@@ -131,10 +132,12 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
 - The Gain page starts and shows the gain riders, and the Auto EQ page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
 - The corner button of the matrix swaps rows and columns, so the inputs become the rows. The choice is kept in the
   browser. The In headers sit on the left or at the top and the Out headers on the right or at the bottom, so the
-  signal always runs from In to Out.
+  signal always runs from In to Out. Next to the matrix, a routing graph draws the inputs and the Aux on the left,
+  the outputs on the right and a line for every connection. Hovering a channel brings out its lines.
 - An output at compressor ratio 1:1.0 with a gain other than 0 dB is flagged on its strip. Two buttons set 1:1.1
   from +20 dB, one keeping the gain value ("Exact gain") and one moving the gain to the level heard before
-  ("Keep level"). The Auto EQ page and `trackdsp:autoeq` warn about it before measuring.
+  ("Keep level"). Each button names the gain it sets. The Auto EQ page and `trackdsp:autoeq` warn about it before
+  measuring.
 - Every page with more than one panel folds them down to their title: the panels of the Gain page, the steps of
   the Auto EQ page, and on the channel and Aux pages the EQ curve, the band table and each group beside it. Folded
   panels are kept in the browser. All channel pages fold together, so a folded HighPass stays folded on every
@@ -148,6 +151,8 @@ publishes state and meters. In ddev it runs by itself, the first time on the sim
 dialog of the editor, or `POST /api/connect` with `{"target":"usb"}`, switches it to an 8x8 on the laptop's USB.
 It keeps that choice in `var/bridge.target.json` and starts on it again after a restart. While it is on the
 simulated device, the editor shows "Demo" instead of "Online" and a banner saying that nothing reaches an 8x8.
+The simulated device keeps stored presets in memory until the bridge restarts, and a recall of F00 restores the
+factory default from `resources/factory_config.bin`.
 
 ```bash
 bin/console trackdsp:bridge -t 192.168.68.10                  # outside ddev

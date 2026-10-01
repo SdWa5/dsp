@@ -90,7 +90,7 @@
     <div class="gain-warning" data-controller="gainwarning" data-gainwarning-path-value="outputs.{{ o }}" data-gainwarning-channel-value="{{ 8 + o }}" hidden>
         <span title="{{ "At compressor ratio 1:1.0 the 8x8 applies every gain but 0 dB more strongly than set and adds the spectrum mirrored at 24 kHz."|trans }}">{{ "⚠ 1:1.0 exaggerates the gain"|trans }}</span>
         <span title="{{ "1:1.1 with the threshold at +20 dB never compresses and keeps the gain exact."|trans }}">{{ "Fix with 1:1.1 at +20 dB:"|trans }}</span>
-        <span class="gain-warning__buttons"><button type="button" class="toggle" data-action="gainwarning#exact" title="{{ "The gain then acts as set, so the output gets louder or quieter by the exaggeration"|trans }}">{{ "Exact gain"|trans }}</button>
-        <button type="button" class="toggle" data-action="gainwarning#keepLevel" title="{{ "Moves the gain to the level the output had at 1:1.0 (modelled, within 0.5 dB up to +9 dB set; above about +6 dB it stops at +12 dB)"|trans }}">{{ "Keep level"|trans }}</button></span>
+        <span class="gain-warning__buttons"><button type="button" class="toggle" data-action="gainwarning#exact" title="{{ "The gain then acts as set, so the output gets louder or quieter by the exaggeration"|trans }}">{{ "Exact gain"|trans }} <span data-gainwarning-target="exact"></span></button>
+        <button type="button" class="toggle" data-action="gainwarning#keepLevel" title="{{ "Moves the gain to the level the output had at 1:1.0 (modelled, within 0.5 dB up to +9 dB set; above about +6 dB it stops at +12 dB)"|trans }}">{{ "Keep level"|trans }} <span data-gainwarning-target="keep"></span></button></span>
     </div>
 {%- endmacro %}

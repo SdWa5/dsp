@@ -26,6 +26,7 @@
     --warn-bg: #ffe08a;
     --warn-text: #3a2d00;
     --changed: #c2185b;
+    --changed-text: #fff;
     --fader-accent: #4b5563;
     --fader-height: 190px;
     color-scheme: light;
@@ -51,6 +52,7 @@
         --rider-text: #40c4ff;
         --limit-text: #ffb74d;
         --changed: #ff6ec7;
+        --changed-text: #1b1b1b;
         --fader-accent: #7d8aa0;
         color-scheme: dark;
     }
@@ -75,6 +77,7 @@
     --rider-text: #40c4ff;
     --limit-text: #ffb74d;
     --changed: #ff6ec7;
+    --changed-text: #1b1b1b;
     --fader-accent: #7d8aa0;
     color-scheme: dark;
 }
@@ -140,6 +143,11 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .chtab.is-split { margin-left: 6px; }
 /* Stacked per link group: the tabs of a column share its height */
 .chtabs.is-stacked .chtab { min-height: 30px; }
+/* Stacked: one header per link group above its column, with the group's code, icon and colour */
+.chtab-group { display: flex; align-items: center; justify-content: center; gap: 3px; min-height: 14px; padding: 1px 4px; font-size: 9px; font-weight: 700;
+    color: var(--head-text); background: #ffffff22; border-radius: 4px 4px 0 0; box-shadow: inset 0 -2px 0 #ffffff55; }
+.chtab-group[data-group]:not([data-group='']) { background: var(--group); color: #111; box-shadow: none; }
+.chtab-group.is-split { margin-left: 6px; }
 .chtab:hover { background: #ffffff1f; }
 .chtab.is-active { border-color: var(--accent); color: var(--accent); background: #7cfc0014; }
 .chtab__id { font-size: 13px; }
@@ -166,12 +174,15 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .link-shape[data-shape='1'] { border-radius: 50%; }
 .link-shape[data-shape='3'] { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
 .link-shape[data-shape='4'] { transform: rotate(45deg) scale(0.85); }
-/* Differs from the factory default: a corner triangle bottom left, a shape that reads without colour */
-.chtab__changed, .tab.is-changed::after {
+/* Differs from the factory default: a corner triangle bottom left on a channel tab, a count on a page tab */
+.chtab__changed {
     position: absolute; bottom: 0; left: 0; width: 0; height: 0; border-style: solid; border-width: 9px 0 0 9px;
     border-color: transparent transparent transparent var(--changed); content: '';
 }
-.tab.is-changed { position: relative; }
+.tab__count {
+    display: inline-block; min-width: 16px; margin-left: 5px; padding: 0 4px; border-radius: 8px; background: var(--changed);
+    color: var(--changed-text); font-size: 10px; line-height: 16px; text-align: center; vertical-align: 1px;
+}
 
 .banner {
     display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 0 0 10px; padding: 8px 12px; border-radius: 4px;
@@ -318,6 +329,16 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .radio input:focus-visible + span { outline: 2px solid var(--head); }
 
 /* --- matrix --- */
+.matrix-page { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+.matrix-page > .matrix-wrap { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.routing { flex: 1 1 360px; max-width: 560px; padding: 8px; background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px; }
+.routing__graph { display: block; width: 100%; height: auto; }
+.routing__node rect { fill: var(--title); }
+.routing__node text { fill: var(--text); font-size: 12px; }
+.routing__id { font-weight: 700; }
+.routing__edge { fill: none; stroke-width: 2; transition: opacity 0.15s; }
+.routing__graph.has-focus .routing__edge:not(.is-focus) { opacity: 0.12; }
+.routing__graph.has-focus .routing__edge.is-focus { stroke-width: 3; }
 .matrix-wrap { overflow-x: auto; padding: 8px; background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px; }
 .matrix { border-collapse: separate; border-spacing: 3px; margin: 0 auto; }
 .matrix caption { caption-side: bottom; padding-top: 6px; color: var(--muted); }

@@ -73,6 +73,8 @@ final class EditorControllerTest extends WebTestCase
         self::assertSame('t.racks 8x8 Matrix Editor', $page->filter('title')->text());
         self::assertCount(23, $page->filter('section.page'));
         self::assertCount(7, $page->filter('.tab'));
+        // The changed-setting count stays hidden until the state arrives
+        self::assertCount(7, $page->filter('.tab > .tab__count[hidden]'));
         self::assertCount(16, $page->filter('.chtab'));
         self::assertCount(19, $page->filter('dialog'));
         foreach ($page->filter('[data-editor-dialog-param]')->each(static fn (Crawler $n): string => (string) $n->attr('data-editor-dialog-param')) as $dialog) {
@@ -182,6 +184,27 @@ final class EditorControllerTest extends WebTestCase
         }
         // Showing a curve is a view setting, never a write to the device
         self::assertCount(0, $overview->filter('[data-toggle-send-value], [data-fader-send-value]'));
+    }
+
+    public function testMatrixPageCarriesTheRoutingGraph(): void
+    {
+        $graph = self::page()->filter('section[data-page=matrix] .matrix-page > [data-controller~=routing]');
+        self::assertCount(1, $graph);
+        self::assertSame('matrix.graph', $graph->attr('data-collapse-key-value'));
+        self::assertCount(1, $graph->filter('svg[data-routing-target=svg]'));
+        // The graph only shows the routing, the matrix sets it
+        self::assertCount(0, $graph->filter('[data-toggle-send-value], [data-fader-send-value]'));
+    }
+
+    public function testGainWarningButtonsNameTheGainTheySet(): void
+    {
+        $warnings = self::page()->filter('[data-controller~=gainwarning]');
+        // One per output on the Comp page and on the Gain page
+        self::assertCount(16, $warnings);
+        $warnings->each(static function (Crawler $warning): void {
+            self::assertCount(1, $warning->filter('[data-action="gainwarning#exact"] [data-gainwarning-target=exact]'));
+            self::assertCount(1, $warning->filter('[data-action="gainwarning#keepLevel"] [data-gainwarning-target=keep]'));
+        });
     }
 
     public function testEveryBindingIsAStatePath(): void

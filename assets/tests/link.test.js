@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { linkCommands, linkGroups, linkLayout, linkMark, linkUnits, linkedMembers, linkOrder, linkView, toggleLink } from '../lib/link.js';
+import { lcm, linkCommands, linkGroups, linkLayout, linkMark, linkUnits, linkedMembers, linkOrder, linkView, toggleLink } from '../lib/link.js';
 
 // An unlinked channel holds its own bit (factory default 1, 2, 4 …), a slave holds 0
 const side = (...links) => [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ link: links[i] ?? 1 << i }));
@@ -56,9 +56,9 @@ test('a link layout places the channels per placement', () => {
     assert.deepEqual(linkLayout(groups, 'side').cells.map((c) => c.column), [1, 3, 4, 5, 2, 7, 8, 6]);
     const stacked = linkLayout(groups, 'stacked');
     assert.equal(stacked.columns, 5);
-    assert.equal(stacked.rows, 3);
-    // Columns: In1/In5, In2, In3/In4/In8, In6, In7. The last of a shorter group and every single channel span the rest
-    assert.deepEqual(at(stacked), [[1, 1, 1], [2, 1, 3], [3, 1, 1], [3, 2, 1], [1, 2, 2], [4, 1, 3], [5, 1, 3], [3, 3, 1]]);
+    assert.equal(stacked.rows, 6);
+    // Columns: In1/In5, In2, In3/In4/In8, In6, In7. Six rows: a pair spans 3 each, a trio 2 each, a single all 6
+    assert.deepEqual(at(stacked), [[1, 1, 3], [2, 1, 6], [3, 1, 2], [3, 3, 2], [1, 4, 3], [4, 1, 6], [5, 1, 6], [3, 5, 2]]);
     assert.deepEqual(linkLayout([0, 0, 0, 0, 0, 0, 0, 0], 'stacked').columns, 8);
 });
 
@@ -94,4 +94,11 @@ test('a link mark shows the code, the shape or both', () => {
     assert.equal(linkMark({ code: true, shape: true }, 2), `L2${shape}`);
     assert.equal(linkMark({ code: false, shape: false }, 2), '');
     assert.equal(linkMark({ code: true, shape: true }, 0), '');
+});
+
+test('the least common multiple sizes the stacked rows', () => {
+    assert.equal(lcm(1, 1), 1);
+    assert.equal(lcm(2, 3), 6);
+    assert.equal(lcm(4, 6), 12);
+    assert.equal(lcm(5, 3), 15);
 });

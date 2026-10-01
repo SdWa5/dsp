@@ -119,10 +119,17 @@ export function linkView(stored) {
     };
 }
 
+/** Least common multiple, the row count in which every stacked group divides its column equally. */
+export function lcm(a, b) {
+    const gcd = (x, y) => (0 === y ? x : gcd(y, x % y));
+    return (a * b) / gcd(a, b);
+}
+
 /**
  * Grid cells of one side's eight channels for a placement: {columns, rows, cells}, where cells[i] is
  * {column, row, span} (1-based). 'stacked' gives each link group one column with its members one above the
- * other; a channel alone, and the last member of a shorter group, spans the remaining rows.
+ * other. The rows are the least common multiple of the group sizes, so the members of a group share their column
+ * equally, and a channel alone spans all rows.
  */
 export function linkLayout(groups, placement) {
     if ('normal' === placement) {
@@ -133,11 +140,12 @@ export function linkLayout(groups, placement) {
         return { columns: 8, rows: 1, cells: groups.map((_g, i) => ({ column: order.indexOf(i) + 1, row: 1, span: 1 })) };
     }
     const units = linkUnits(groups);
-    const rows = Math.max(...units.map((u) => u.length));
+    const rows = units.reduce((r, u) => lcm(r, u.length), 1);
     const cells = new Array(groups.length);
     units.forEach((unit, column) => {
-        unit.forEach((i, row) => {
-            cells[i] = { column: column + 1, row: row + 1, span: row === unit.length - 1 ? rows - row : 1 };
+        const span = rows / unit.length;
+        unit.forEach((i, position) => {
+            cells[i] = { column: column + 1, row: position * span + 1, span };
         });
     });
     return { columns: units.length, rows, cells };

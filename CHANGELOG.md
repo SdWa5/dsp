@@ -5,6 +5,40 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.36.0] - 2026-10-01
+
+### Added
+
+- Routing graph next to the matrix: In1-In8 and Aux on the left, Out1-Out8 on the right, a line per connection coloured by its source. Hovering a channel brings out its lines. It folds like the other panels (`routing_controller.js`, `assets/lib/routing.js`)
+
+## [0.35.0] - 2026-10-01
+
+### Changed
+
+- Page tabs show their changed-setting count as a badge next to the name instead of a corner triangle. Before, the count was only in the hover text
+
+## [0.34.1] - 2026-10-01
+
+### Fixed
+
+- The two 1:1.0 fix buttons looked alike. Each now names the gain it sets, for example "Exact gain (-6.0dB)" and "Keep level (-8.0dB)"
+
+## [0.34.0] - 2026-10-01
+
+### Added
+
+- Stacked channel tabs: each link group column gets a header with the group's code, icon and colour, and its hover text names the members
+
+### Changed
+
+- Stacked channel tabs: the members of a group share the column height equally, on a common row count for inputs and outputs (`lcm()` in `assets/lib/link.js`). A group member shows its link mark in the header instead of on its tab
+
+## [0.33.1] - 2026-10-01
+
+### Fixed
+
+- Factory default (F00) in demo mode: the simulated device now restores `resources/factory_config.bin`. Before, it only changed the preset number and kept every setting
+
 ## [0.33.0] - 2026-10-01
 
 ### Added
