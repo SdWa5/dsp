@@ -160,12 +160,10 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .chtab[data-group]:not([data-group='']) .chtab__link { background: var(--group); color: #111; }
 /* Without the code: circle, square, triangle, diamond, so groups differ without colour too */
 .chtab__link--shape { top: 4px; right: 4px; width: 8px; height: 8px; padding: 0; border-radius: 0; background: var(--head-text); }
-.link-mark { flex: none; padding: 0 4px; border-radius: 6px; font-size: 10px; font-weight: 700; background: var(--title); }
-[data-group]:not([data-group='']) > .link-mark { background: var(--group); color: #111; }
-.link-mark--shape { width: 9px; height: 9px; padding: 0; border-radius: 0; background: var(--text); }
-:is(.chtab__link--shape, .link-mark--shape)[data-shape='1'] { border-radius: 50%; }
-:is(.chtab__link--shape, .link-mark--shape)[data-shape='3'] { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
-:is(.chtab__link--shape, .link-mark--shape)[data-shape='4'] { transform: rotate(45deg) scale(0.85); }
+.link-cell__shape { display: inline-block; width: 10px; height: 10px; background: currentColor; }
+:is(.chtab__link--shape, .link-cell__shape)[data-shape='1'] { border-radius: 50%; }
+:is(.chtab__link--shape, .link-cell__shape)[data-shape='3'] { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+:is(.chtab__link--shape, .link-cell__shape)[data-shape='4'] { transform: rotate(45deg) scale(0.85); }
 /* Differs from the factory default: a corner triangle bottom left, a shape that reads without colour */
 .chtab__changed, .tab.is-changed::after {
     position: absolute; bottom: 0; left: 0; width: 0; height: 0; border-style: solid; border-width: 9px 0 0 9px;
@@ -419,15 +417,14 @@ details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
 .dialog__error:empty { display: none; }
 /* The gap belongs between cells, so a name stays next to its own control */
 .names { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 24px; }
-.link-grid label, .names label { display: flex; gap: 6px; align-items: center; }
-/* Link dialog: one row per side (or a column per link group when stacked), placed like the channel tabs */
-.link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 8px; overflow-x: auto; padding-bottom: 2px; }
-.link-grid.is-stacked { grid-template-columns: repeat(var(--link-columns, 8), minmax(112px, 1fr)); }
-.link-grid.is-stacked label { flex-wrap: wrap; }
-.link-grid.is-stacked select { max-width: 100%; }
-.link-grid label { padding: 4px 6px; border-radius: 4px; border: 1px solid transparent; }
-.link-grid label[data-group]:not([data-group='']) { box-shadow: inset 3px 0 0 var(--group); background: color-mix(in srgb, var(--group) 18%, transparent); }
-.link-grid .ch { flex: 1; min-width: 0; }
+.names label { display: flex; gap: 6px; align-items: center; }
+/* Link dialog: one channel x channel matrix per side, a group lights as a block in its colour */
+.link-matrices { display: flex; flex-wrap: wrap; gap: 12px; }
+.link-matrices .matrix-wrap { flex: 1 1 420px; padding: 4px; }
+.link-cell { min-width: 44px; height: 30px; font-size: 11px; font-weight: 700; }
+.link-cell:disabled { visibility: hidden; }
+.link-cell.is-on::after { content: none; }
+.link-cell.is-on[data-group]:not([data-group='']) { background: var(--group); border-color: var(--group); color: #111; }
 .table { border-collapse: collapse; width: 100%; }
 .table th, .table td { border: 1px solid var(--panel-edge); padding: 3px 6px; text-align: left; }
 

@@ -3,7 +3,7 @@ import { api, getDefaults, listen, on, send, status, store } from '../lib/device
 import { changedPaths } from '../lib/defaults.js';
 import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel, channelParts } from '../lib/channels.js';
-import { groupsFromPartners, linkCommands, linkGroups, linkedMembers, linkLayout, linkView, partnersFromGroups } from '../lib/link.js';
+import { linkCommands, linkGroups, linkedMembers, linkLayout, linkOrder, linkView, toggleLink } from '../lib/link.js';
 import { GAIN_MUTED, presetLabel, presetSlotInfo } from '../lib/scale.js';
 import { readPref, writePref } from '../lib/prefs.js';
 
@@ -17,7 +17,7 @@ const changedText = (count) => `${count} ${1 === count ? 'setting differs' : 'se
  */
 export default class extends Controller {
     static targets = ['tab', 'page', 'online', 'banner', 'bannerText', 'number', 'error', 'dialog', 'status', 'target', 'slots',
-        'storeName', 'linkGroup', 'file', 'scanButton', 'scanStatus', 'found', 'theme', 'matrix', 'linkView', 'linkPlacement', 'chtabs'];
+        'storeName', 'linkMatrix', 'file', 'scanButton', 'scanStatus', 'found', 'theme', 'matrix', 'linkView', 'linkPlacement', 'chtabs'];
 
     connect() {
         const theme = readPref('theme', 'auto');
@@ -169,50 +169,41 @@ export default class extends Controller {
         }
     }
 
-    /** Link groups of one side as the Link dialog's dropdowns name them. */
-    dialogGroups(side) {
-        return groupsFromPartners(this.linkGroupTargets.filter((s) => s.dataset.side === side).map((s) => Number(s.value)));
-    }
-
     /**
-     * The Link dialog's cells: group code, colour or shape as on the channel tabs. place: also arrange them by the
-     * placement, which happens on open only, so a cell does not jump away while its dropdown is in use.
+     * The Link matrix of each side from the groups being edited: a cell is lit while its row and column channel
+     * share a group, with the group code, colour or shape as on the channel tabs. place: also order the rows and
+     * columns by the placement, which happens on open only, so a cell does not move away under the pointer.
      */
     showLinkDialog(place) {
         const { code, colour, placement } = this.linkViewSettings;
-        for (const side of ['inputs', 'outputs']) {
-            const selects = this.linkGroupTargets.filter((s) => s.dataset.side === side);
-            const groups = this.dialogGroups(side);
-            const layout = linkLayout(groups, placement);
-            const stacked = 'stacked' === placement;
+        for (const table of this.linkMatrixTargets) {
+            const groups = this.linkDraft[table.dataset.side];
             if (place) {
-                // Stacked needs a column per link group, the other placements wrap in channel order
-                const grid = selects[0]?.closest('.link-grid');
-                grid?.classList.toggle('is-stacked', stacked);
-                grid?.style.setProperty('--link-columns', String(layout.columns));
-            }
-            for (const select of selects) {
-                const index = Number(select.dataset.index);
-                const group = groups[index];
-                const label = select.closest('label');
-                if (place) {
-                    const cell = layout.cells[index];
-                    label.style.order = stacked ? '' : String(cell.column);
-                    label.style.gridColumn = stacked ? String(cell.column) : '';
-                    label.style.gridRow = stacked ? `${cell.row} / span ${cell.span}` : '';
+                const order = 'normal' === placement ? [0, 1, 2, 3, 4, 5, 6, 7] : linkOrder(groups);
+                const sorted = (cells) => order.map((i) => cells.find((c) => Number(c.dataset.index) === i));
+                const head = table.tHead.rows[0];
+                head.append(...sorted([...head.cells].slice(1)));
+                const body = table.tBodies[0];
+                body.append(...sorted([...body.rows]));
+                for (const row of body.rows) {
+                    row.append(...sorted([...row.cells].slice(1)));
                 }
-                label.dataset.group = colour && group > 0 ? String(group) : '';
-                const mark = label.querySelector('.link-mark');
-                mark.hidden = 0 === group || !(code || colour);
-                mark.textContent = code ? `L${group}` : '';
-                mark.classList.toggle('link-mark--shape', !code);
-                mark.dataset.shape = String(group);
+            }
+            for (const cell of table.querySelectorAll('.link-cell')) {
+                const [row, column] = [Number(cell.dataset.row), Number(cell.dataset.column)];
+                const group = row !== column && groups[row] === groups[column] ? groups[row] : 0;
+                cell.classList.toggle('is-on', group > 0);
+                cell.setAttribute('aria-pressed', String(group > 0));
+                cell.dataset.group = colour && group > 0 ? String(group) : '';
+                // Without the code a group gets a shape, without code and colour the cell shows a dot like the routing matrix
+                cell.innerHTML = 0 === group ? '' : code ? `L${group}` : `<span class="link-cell__shape" data-shape="${colour ? group : 1}"></span>`;
             }
         }
     }
 
-    /** A dropdown of the Link dialog changed: recolour, but keep the cells where they are. */
-    linkGroupChanged() {
+    linkCell(event) {
+        const { side, row, column } = event.currentTarget.dataset;
+        this.linkDraft[side] = toggleLink(this.linkDraft[side], Number(row), Number(column));
         this.showLinkDialog(false);
     }
 
@@ -285,10 +276,7 @@ export default class extends Controller {
         }
         if ('link' === event.params.dialog && state) {
             const groups = { inputs: linkGroups(state.inputs), outputs: linkGroups(state.outputs) };
-            const partners = { inputs: partnersFromGroups(groups.inputs), outputs: partnersFromGroups(groups.outputs) };
-            for (const select of this.linkGroupTargets) {
-                select.value = String(partners[select.dataset.side][Number(select.dataset.index)]);
-            }
+            this.linkDraft = groups;
             this.showLinkDialog(true);
         }
         dialog.showModal();
@@ -432,7 +420,7 @@ export default class extends Controller {
         const state = store.state;
         const commands = [];
         for (const [side, base] of [['inputs', 0], ['outputs', 8]]) {
-            commands.push(...linkCommands(state[side], this.dialogGroups(side), base));
+            commands.push(...linkCommands(state[side], this.linkDraft[side], base));
         }
         if (0 === commands.length) {
             event.target.closest('dialog').close();

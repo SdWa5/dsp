@@ -123,41 +123,38 @@ export function linkLayout(groups, placement) {
     return { columns: units.length, rows, cells };
 }
 
-/**
- * Link groups from the Link dialog, where every channel names a partner on its side (index, or -1 for none).
- * Partners chain, so In3 → In2 and In2 → In1 link all three. Groups are numbered by their lowest member, as
- * linkGroups numbers them.
- */
-export function groupsFromPartners(partners) {
-    const root = partners.map((_p, i) => i);
-    const find = (i) => (root[i] === i ? i : (root[i] = find(root[i])));
-    partners.forEach((partner, i) => {
-        if (partner >= 0 && partner < partners.length && partner !== i) {
-            const [a, b] = [find(i), find(partner)];
-            root[Math.max(a, b)] = Math.min(a, b);
-        }
-    });
-    const lowest = partners.map((_p, i) => find(i));
-    const sizes = lowest.reduce((count, r) => count.set(r, (count.get(r) ?? 0) + 1), new Map());
+/** Group numbers 1.. in the order of each group's lowest member, a group of one becomes 0, as linkGroups numbers them. */
+export function normalizeGroups(groups) {
     const numbers = new Map();
-    return lowest.map((r) => {
-        if (sizes.get(r) < 2) {
+    return groups.map((group) => {
+        if (0 === group || groups.filter((g) => g === group).length < 2) {
             return 0;
         }
-        if (!numbers.has(r)) {
-            numbers.set(r, numbers.size + 1);
+        if (!numbers.has(group)) {
+            numbers.set(group, numbers.size + 1);
         }
-        return numbers.get(r);
+        return numbers.get(group);
     });
 }
 
-/** The partners the Link dialog shows for link groups: every member names the lowest one, which names the next. */
-export function partnersFromGroups(groups) {
-    return groups.map((group, i) => {
-        if (0 === group) {
-            return -1;
+/**
+ * A click on cell (row, column) of the Link matrix. An empty cell links the two channels, merging their groups.
+ * A lit cell takes the column channel out of its group. groups: group number per index, as linkGroups returns it.
+ */
+export function toggleLink(groups, row, column) {
+    if (row === column) {
+        return normalizeGroups(groups);
+    }
+    const next = [...groups];
+    if (0 !== groups[row] && groups[row] === groups[column]) {
+        next[column] = 0;
+        return normalizeGroups(next);
+    }
+    const group = groups[row] || groups[column] || Math.max(0, ...groups) + 1;
+    groups.forEach((g, i) => {
+        if (i === row || i === column || (0 !== g && (g === groups[row] || g === groups[column]))) {
+            next[i] = group;
         }
-        const members = groups.flatMap((g, k) => (g === group ? [k] : []));
-        return members[0] === i ? members[1] : members[0];
     });
+    return normalizeGroups(next);
 }

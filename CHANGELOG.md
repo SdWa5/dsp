@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.28.0] - 2026-10-01
+
+### Added
+
+- TODO item for change marks on every page tab
+
+### Changed
+
+- The Link dialog is a channel x channel matrix per side instead of a dropdown per channel. A cell links its row and column channel and merges their groups, a lit cell takes the column channel out of its group (`toggleLink()`, `normalizeGroups()` in `link.js`). A group lights as a block with its code, colour or shape, and with the placement side by side or stacked its members are moved next to each other when the dialog opens
+
+### Removed
+
+- `groupsFromPartners()` and `partnersFromGroups()`, which only the dropdowns used
+
 ## [0.27.0] - 2026-10-01
 
 ### Added

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { groupsFromPartners, linkCommands, linkGroups, linkLayout, linkedMembers, linkOrder, linkView, partnersFromGroups } from '../lib/link.js';
+import { linkCommands, linkGroups, linkLayout, linkedMembers, linkOrder, linkView, toggleLink } from '../lib/link.js';
 
 // An unlinked channel holds its own bit (factory default 1, 2, 4 …), a slave holds 0
 const side = (...links) => [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ link: links[i] ?? 1 << i }));
@@ -60,17 +60,21 @@ test('a link layout places the channels per placement', () => {
     assert.deepEqual(linkLayout([0, 0, 0, 0, 0, 0, 0, 0], 'stacked').columns, 8);
 });
 
-test('partners in the Link dialog chain into link groups', () => {
-    assert.deepEqual(groupsFromPartners([-1, -1, -1, -1, -1, -1, -1, -1]), [0, 0, 0, 0, 0, 0, 0, 0]);
-    // In3 → In2, In2 → In1: one group of three. In8 → In5: a second group, numbered after the first
-    assert.deepEqual(groupsFromPartners([-1, 0, 1, -1, -1, -1, -1, 4]), [1, 1, 1, 0, 2, 0, 0, 2]);
-    // Both naming each other, or a lower group found late, still number by the lowest member
-    assert.deepEqual(groupsFromPartners([-1, -1, -1, -1, -1, 6, 5, 0]), [1, 0, 0, 0, 0, 2, 2, 1]);
-    assert.deepEqual(groupsFromPartners([1, 0, 3, 2, 5, 4, 7, 6]), [1, 1, 2, 2, 3, 3, 4, 4]);
+test('a click in the Link matrix links two channels and merges their groups', () => {
+    const none = [0, 0, 0, 0, 0, 0, 0, 0];
+    assert.deepEqual(toggleLink(none, 0, 1), [1, 1, 0, 0, 0, 0, 0, 0]);
+    // In3 joins In1 + In2, from either half of the matrix
+    assert.deepEqual(toggleLink([1, 1, 0, 0, 0, 0, 0, 0], 2, 1), [1, 1, 1, 0, 0, 0, 0, 0]);
+    assert.deepEqual(toggleLink([1, 1, 0, 0, 0, 0, 0, 0], 0, 2), [1, 1, 1, 0, 0, 0, 0, 0]);
+    // Two groups merge, and the groups are numbered by their lowest member again
+    assert.deepEqual(toggleLink([0, 0, 0, 1, 1, 2, 2, 0], 4, 6), [0, 0, 0, 1, 1, 1, 1, 0]);
+    assert.deepEqual(toggleLink([0, 0, 0, 0, 0, 0, 1, 1], 0, 1), [1, 1, 0, 0, 0, 0, 2, 2]);
+    // The diagonal does nothing
+    assert.deepEqual(toggleLink(none, 3, 3), none);
 });
 
-test('link groups show as partners and read back the same', () => {
-    const groups = [1, 0, 2, 2, 1, 0, 0, 2];
-    assert.deepEqual(partnersFromGroups(groups), [4, -1, 3, 2, 0, -1, -1, 2]);
-    assert.deepEqual(groupsFromPartners(partnersFromGroups(groups)), groups);
+test('a click on a lit cell takes the column channel out of its group', () => {
+    assert.deepEqual(toggleLink([1, 1, 1, 0, 0, 0, 0, 0], 0, 2), [1, 1, 0, 0, 0, 0, 0, 0]);
+    // A pair falls apart completely, and the next group moves up to L1
+    assert.deepEqual(toggleLink([1, 1, 0, 0, 2, 2, 0, 0], 1, 0), [0, 0, 0, 0, 1, 1, 0, 0]);
 });

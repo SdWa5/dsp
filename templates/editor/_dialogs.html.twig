@@ -42,20 +42,30 @@
 <dialog class="dialog dialog--wide" id="dialog-link" data-editor-target="dialog">
     {{ _self.dialog('link', 'Link') }}
     <form class="dialog__form" data-action="editor#link">
-        <p class="dialog__note">Pick the channel each channel is linked with. Links chain, so In3 with In2 and In2 with In1 link all three. The lowest channel of a group is copied to the others.</p>
+        <p class="dialog__note">A cell links its row and column channel, and linked channels form a group, which lights as a block. A lit cell takes the column channel out of its group. The lowest channel of a group is copied to the others.</p>
+        <div class="link-matrices">
         {% for side, prefix in {inputs: 'In', outputs: 'Out'} %}
-            <div class="link-grid">
-                {% for i in 0..7 %}
-                    {% set base = 'inputs' == side ? 0 : 8 %}
-                    <label>{{ w.ch(base + i) }}<span class="link-mark" aria-hidden="true" hidden></span>
-                        <select name="{{ side }}-{{ i }}" aria-label="{{ prefix }}{{ i + 1 }} linked with" data-editor-target="linkGroup" data-side="{{ side }}" data-index="{{ i }}" data-action="editor#linkGroupChanged">
-                            <option value="-1">–</option>
-                            {% for k in 0..7 %}{% if k != i %}{{ w.ch_option(base + k, k) }}{% endif %}{% endfor %}
-                        </select>
-                    </label>
-                {% endfor %}
+            {% set base = 'inputs' == side ? 0 : 8 %}
+            <div class="matrix-wrap">
+            <table class="matrix link-matrix" data-editor-target="linkMatrix" data-side="{{ side }}">
+                <thead>
+                    <tr><th></th>{% for k in 0..7 %}<th scope="col" data-index="{{ k }}">{{ w.ch(base + k) }}</th>{% endfor %}</tr>
+                </thead>
+                <tbody>
+                    {% for i in 0..7 %}
+                        <tr data-index="{{ i }}">
+                            <th scope="row">{{ w.ch(base + i) }}</th>
+                            {% for k in 0..7 %}
+                                <td data-index="{{ k }}"><button type="button" class="toggle toggle--cell link-cell" data-side="{{ side }}" data-row="{{ i }}" data-column="{{ k }}"
+                                        aria-label="{{ prefix }}{{ i + 1 }} with {{ prefix }}{{ k + 1 }}"{{ i == k ? ' disabled' }} data-action="editor#linkCell"></button></td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             </div>
         {% endfor %}
+        </div>
         <div class="dialog__buttons"><button type="submit" class="big">Apply</button></div>
     </form>
 </dialog>

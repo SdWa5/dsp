@@ -153,15 +153,15 @@ final class EditorControllerTest extends WebTestCase
         $radios = self::page()->filter('input[data-editor-target=linkPlacement]');
         self::assertSame(['normal', 'side', 'stacked'], $radios->each(static fn (Crawler $n): string => (string) $n->attr('value')));
         self::assertSame(['link-placement'], array_values(array_unique($radios->each(static fn (Crawler $n): string => (string) $n->attr('name')))));
-        // Each Link dropdown names the other seven channels of its side, with the channel's name from the channel controller
-        $selects = self::page()->filter('#dialog-link select[data-editor-target=linkGroup]');
-        self::assertCount(16, $selects);
-        $out3 = $selects->eq(10)->filter('option');
-        self::assertSame(['-1', '0', '1', '3', '4', '5', '6', '7'], $out3->each(static fn (Crawler $n): string => (string) $n->attr('value')));
-        self::assertSame(['–', 'Out1', 'Out2', 'Out4', 'Out5', 'Out6', 'Out7', 'Out8'], $out3->each(static fn (Crawler $n): string => $n->text()));
-        self::assertSame('channel', $out3->eq(1)->attr('data-controller'));
-        // Every cell of the Link dialog carries a mark for the group code or shape
-        self::assertCount(16, self::page()->filter('#dialog-link .link-grid label .link-mark'));
+        // The Link dialog is one channel x channel matrix per side, with the diagonal disabled
+        $matrices = self::page()->filter('#dialog-link table.link-matrix');
+        self::assertSame(['inputs', 'outputs'], $matrices->each(static fn (Crawler $n): string => (string) $n->attr('data-side')));
+        $outputs = $matrices->eq(1);
+        self::assertCount(64, $outputs->filter('.link-cell'));
+        self::assertCount(8, $outputs->filter('.link-cell[disabled]'));
+        self::assertSame('Out1', $outputs->filter('thead th .ch__id')->first()->text());
+        self::assertSame('Out3 with Out5', $outputs->filter('tbody tr')->eq(2)->filter('.link-cell')->eq(4)->attr('aria-label'));
+        self::assertSame('editor#linkCell', $outputs->filter('.link-cell')->first()->attr('data-action'));
         // The gap between inputs and outputs starts at Out1 until the tabs are reordered
         self::assertSame('outputs0', self::page()->filter('.chtab.is-split')->attr('data-page'));
     }
