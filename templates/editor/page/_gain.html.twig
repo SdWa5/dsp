@@ -34,7 +34,7 @@
                     deadband: ['Leave alone within', 'dB', 0, 6, 0.1], hold: ['Pause after a manual change', 's', 0, 600, 1]} %}
                     <label>{{ spec[0] }} <span class="unit-input"><input type="number" name="{{ key }}" min="{{ spec[2] }}" max="{{ spec[3] }}" step="{{ spec[4] }}" required>{{ spec[1] }}</span></label>
                 {% endfor %}
-                <label class="check"><input type="checkbox" name="boost"> Allow a highest gain above 0 dB</label>
+                <label class="check"><input type="checkbox" name="boost" data-action="change->riders#boost"> Allow a highest gain above 0 dB</label>
             </div>
             <p class="dialog__note">Levels are meter levels in dB, on the scale of the compressor threshold. Hold below compares the
                 level before the gain, so a quiet source after a loud one still gets raised.</p>

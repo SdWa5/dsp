@@ -10,6 +10,8 @@ const STATES = {
     riding: 'Riding',
     limit: 'At its limit',
 };
+// The bridge refuses a highest gain above 0 dB unless boosts are allowed (RiderSettings)
+const MAX_GAIN = 12;
 const FIELDS = ['target', 'min', 'max', 'slew', 'average', 'silence', 'deadband', 'hold'];
 
 /**
@@ -84,6 +86,7 @@ export default class extends Controller {
             form.elements[field].value = values[field];
         }
         form.elements.boost.checked = Boolean(values.boost);
+        this.boost();
         this.stopTarget.hidden = !rider;
         this.errorTarget.textContent = '';
         this.submitTarget.textContent = rider ? 'Update rider' : 'Start rider';
@@ -93,6 +96,16 @@ export default class extends Controller {
 
     close() {
         this.dialogTarget.close();
+    }
+
+    /** Highest gain follows "Allow a highest gain above 0 dB": up to +12 dB with it, 0 dB without. */
+    boost() {
+        const { boost, max } = this.formTarget.elements;
+        const ceiling = boost.checked ? MAX_GAIN : 0;
+        max.max = String(ceiling);
+        if (Number(max.value) > ceiling) {
+            max.value = String(ceiling);
+        }
     }
 
     async save(event) {

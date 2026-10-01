@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.2] - 2026-10-01
+
+### Added
+
+- A TODO item for tooltips on the controls of the browser editor, above all for abbreviations
+
+### Fixed
+
+- The rider dialog's highest gain follows "Allow a highest gain above 0 dB": up to +12 dB with it and 0 dB without, and a higher value drops to 0 dB when the box is cleared. Before, the form took a boost that the bridge then refused
+
 ## [0.21.1] - 2026-10-01
 
 ### Changed
