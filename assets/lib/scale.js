@@ -210,9 +210,14 @@ export function exaggeratesGain(output) {
  * gain stays muted.
  */
 export function heardGain(raw) {
-    if (GAIN_MUTED === raw) {
-        return GAIN_MUTED;
-    }
+    return GAIN_MUTED === raw ? GAIN_MUTED : Math.max(1, dbToGain(heardDb(raw)));
+}
+
+/**
+ * The level in dB that gain raw value `raw` gives at ratio 1:1.0, by the model of heardGain(), unclamped. Above
+ * about +6 dB set it lies beyond the highest gain of +12 dB, so "Keep level" falls short there.
+ */
+export function heardDb(raw) {
     const a = 10 ** (gainToDb(raw) / 20);
-    return Math.max(1, dbToGain(10 * Math.log10((a ** 2 + a ** 4) / 2)));
+    return 10 * Math.log10((a ** 2 + a ** 4) / 2);
 }

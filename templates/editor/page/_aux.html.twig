@@ -31,7 +31,7 @@
             {% endfor %}
         </fieldset>
         <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.gain">
-            <legend>{{ w.fold('Gain') }}</legend>
+            <legend>{{ w.fold('Gain', 'aux_gain') }}</legend>
             <div class="strip__row">
                 {{ w.fader(null, 'aux.gain', [{command: 'gain', args: {channel: 18, raw: '@aux.gain'}}], 0, 400, 'gain', null, {label: 'Aux gain', default: 280}) }}
                 {{ w.meter(16) }}

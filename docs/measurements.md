@@ -557,8 +557,8 @@ ddev exec bin/console trackdsp:ride in5 --max=6 --allow-boost
   line outputs carry only the playback.
 - In the rig the rider belongs on the console inputs IN3 and IN4, before the bus compressor on Out1 and Out2.
   It works on the gain and the meter of the input it rides, so the loop back into IN1 and IN2 does not reach
-  it. On IN1 and IN2 it would undo the bus compression. A rider rides one channel and knows no links, so a
-  stereo pair needs a rider for a link group first (TODO.md).
+  it. On IN1 and IN2 it would undo the bus compression. With IN3 and IN4 linked, one rider rides both as a
+  stereo pair (since 0.40.0, [automation.md](automation.md#gain-rider)).
 
 ## Transfer function
 

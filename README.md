@@ -106,6 +106,9 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   colour per group combine freely, and code and icon stand next to each other. The placement of linked channels is
   in channel order, side by side, or stacked per link group in one column. Stacked puts a header with the group's
   code, icon and colour above each group column, and the members share the column height equally.
+- A setting changed on a linked channel goes to every channel of its group, on every page: gain, mute, phase,
+  mode and +48V, gate, compressor, delay, FBQ, PEQ bands, high and low pass and EQ bypass. Only the name stays
+  per channel. This also holds in demo mode.
 - The link display and the placement also apply inside the pages. Every channel label outside the Link dialog
   carries its group's code, icon and colour. The strips of Gain, Gate, Comp and Delay, the EQ overview switches,
   the route buttons of Sub Control, Group Control and the Aux, the Auto EQ outputs, the matrix and the routing
@@ -125,8 +128,8 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   triangle when its settings differ. The tooltip counts the changed settings. Auto EQ tracks output PEQ bands and EQ bypass. The marks clear when values return to
   their defaults and read without colour.
 - Hovering a control shows what it does and its unit, in English or German. Every fader, switch and list shows
-  the same tooltip on every page and in every dialog. The panels name their abbreviations, for example FBQ, HPF,
-  LPF, PEQ, Q, Sub Control and Group Control.
+  the same tooltip on every page and in every dialog. Every section and dialog title says what the section holds,
+  and the ones with abbreviations spell them out, for example FBQ, HPF, LPF, PEQ, Sub Control and Group Control.
 - The store and recall dialogs show which user slots are empty. An empty slot cannot be recalled.
 - A fader value can be typed, with or without its unit ("-6", "2k", "200ms", "1:4"). A double click on a gain
   or delay fader sets it back to 0 dB or no delay.
@@ -138,15 +141,16 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   A switch per channel shows or hides its curve, kept in the browser. It changes nothing on the device.
 - The Gain page also carries Sub Control next to the channel strips and Group Control below them, the same
   controls as in their dialogs.
-- The Gain page starts and shows the gain riders, and the Auto EQ page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
+- The Gain page starts and shows the gain riders. A rider on a linked input rides its link group as one. The Auto EQ page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
 - The corner button of the matrix swaps rows and columns, so the inputs become the rows. The choice is kept in the
   browser. The In headers sit on the left or at the top and the Out headers on the right or at the bottom, so the
   signal always runs from In to Out. Next to the matrix, a routing graph draws the inputs and the Aux on the left,
   the outputs on the right and a line for every connection. Hovering a channel brings out its lines.
 - An output at compressor ratio 1:1.0 with a gain other than 0 dB is flagged on its strip on the Comp page. Two
   buttons set 1:1.1 from +20 dB, one keeping the gain value ("Exact gain") and one moving the gain to the level
-  heard before ("Keep level"). Each button names the gain it sets. "Keep threshold" makes them leave the
-  threshold as set. The Auto EQ page and `trackdsp:autoeq` warn about it before
+  heard before ("Keep level"). Each button names the gain it sets, and "Keep level" says how far it falls short
+  where the level lies beyond +12 dB. "Keep threshold" makes them leave the threshold as set. On a linked output
+  the buttons fix the whole link group. The Auto EQ page and `trackdsp:autoeq` warn about it before
   measuring.
 - Every page with more than one panel folds them down to their title: the panels of the Gain page, the steps of
   the Auto EQ page, and on the channel and Aux pages the EQ curve, the band table and each group beside it. Folded

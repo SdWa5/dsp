@@ -8,7 +8,7 @@
         {% set p = 'outputs.' ~ i %}
         <div class="strip">
             <h3 class="strip__title">{{ w.ch(8 + i) }}</h3>
-            {{ w.fader('', p ~ '.delay', [{command: 'delay', args: {channel: 8 + i, samples: '@' ~ p ~ '.delay'}}], 0, 32640, 'delay', null, {class: 'fader--tall', label: '%channel% delay'|trans({'%channel%': 'Out' ~ (i + 1)}), default: 0}) }}
+            {{ w.fader('', p ~ '.delay', [{command: 'delay', args: {channel: 8 + i, samples: '@' ~ p ~ '.delay'}}], 0, 32640, 'delay', 'outputs:' ~ i, {class: 'fader--tall', label: '%channel% delay'|trans({'%channel%': 'Out' ~ (i + 1)}), default: 0}) }}
         </div>
     {% endfor %}
 </div>

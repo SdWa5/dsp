@@ -17,6 +17,10 @@ use App\Protocol\Scale;
  * Someone else changing the gain (the editor, a fader) pauses the rider for the hold time and makes that
  * gain the new starting point. The rider's own writes come back in later state events and are recognised.
  *
+ * A rider can ride a link group of inputs as one (observeGains(), groupLevel()): it takes the power mean of the
+ * members' meters, so a stereo pair keeps its balance, and the same gain goes to every member (writes()). A change
+ * to any member's gain by someone else pauses it, and once the pause ends the other members follow that gain.
+ *
  * Times are seconds on any monotonic clock. The rider does no I/O: meter() returns the raw gain to write.
  */
 final class GainRider
@@ -42,6 +46,8 @@ final class GainRider
     private ?float $power = null;
     private ?float $gainDb = null;
     private ?int $lastRaw = null;
+    /** @var array<int, int> channel => raw gain last seen or written, for a rider of several channels */
+    private array $known = [];
     private ?float $lastMeter = null;
     private float $pausedUntil = -\INF;
     private string $status = self::WAITING;
@@ -62,20 +68,95 @@ final class GainRider
      */
     public function observeGain(int $raw, float $now): bool
     {
+        return $this->observeGains([0 => $raw], $now);
+    }
+
+    /**
+     * Takes the gains of the channels the rider rides from a device state, channel => raw, the rider's own
+     * channel first. Returns true when someone else changed one of them, whose gain then becomes the starting
+     * point. A channel seen for the first time (it joined the link group) is taken as it is, writes() aligns it.
+     *
+     * @param non-empty-array<int, int> $raws
+     */
+    public function observeGains(array $raws, float $now): bool
+    {
         $this->written = array_filter($this->written, static fn (float $t): bool => $now - $t <= self::ECHO_WINDOW);
+        $this->known = array_intersect_key($this->known, $raws);
         if (null === $this->lastRaw) {
-            $this->adopt($raw);
+            $this->adopt($raws[array_key_first($raws)]);
+            $this->known = $raws;
 
             return false;
         }
-        if ($raw === $this->lastRaw || isset($this->written[$raw])) {
+        $changed = null;
+        foreach ($raws as $channel => $raw) {
+            $known = $this->known[$channel] ?? null;
+            $this->known[$channel] = $raw;
+            if (null === $known || $raw === $known || isset($this->written[$raw])) {
+                continue;
+            }
+            $changed ??= $raw;
+        }
+        if (null === $changed) {
             return false;
         }
-        $this->adopt($raw);
+        $this->adopt($changed);
         $this->power = null;
         $this->pausedUntil = $now + $this->settings->overrideHoldSeconds;
 
         return true;
+    }
+
+    /**
+     * The raw gains to write, channel => raw: every channel of observeGains() whose gain is not the rider's, so the
+     * members of a link group end up at the same gain. Nothing while paused or before the first state.
+     *
+     * @return array<int, int>
+     */
+    public function writes(float $now): array
+    {
+        if (null === $this->lastRaw || $this->isPaused($now)) {
+            return [];
+        }
+        $writes = [];
+        foreach ($this->known as $channel => $raw) {
+            if ($raw !== $this->lastRaw) {
+                $writes[$channel] = $this->lastRaw;
+                $this->known[$channel] = $this->lastRaw;
+                $this->written[$this->lastRaw] = $now;
+            }
+        }
+
+        return $writes;
+    }
+
+    /**
+     * The level of a link group for meter(): the power mean of its members' meter levels in dB. A stereo pair
+     * panned hard to one side reads 3 dB below the loud member.
+     *
+     * @param non-empty-list<float> $levels
+     */
+    public static function groupLevel(array $levels): float
+    {
+        $power = array_sum(array_map(static fn (float $db): float => $db <= Scale::METER_FLOOR ? 0.0 : 10 ** ($db / 10), $levels)) / \count($levels);
+
+        return $power > 0 ? max(Scale::METER_FLOOR, 10 * log10($power)) : Scale::METER_FLOOR;
+    }
+
+    /**
+     * Forgets the gain, the average and a pause, as for a new rider. For a rider whose channel another rider of
+     * its link group rides.
+     */
+    public function reset(): void
+    {
+        $this->power = null;
+        $this->gainDb = null;
+        $this->lastRaw = null;
+        $this->lastMeter = null;
+        $this->known = [];
+        $this->written = [];
+        $this->pausedUntil = -\INF;
+        $this->status = self::WAITING;
     }
 
     /**

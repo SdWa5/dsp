@@ -1,7 +1,7 @@
 import { t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { api, on, status, store, updateStatus } from '../lib/device.js';
-import { channelLabel } from '../lib/channels.js';
+import { channelId, channelLabel } from '../lib/channels.js';
 
 const STATES = {
     waiting: 'Waiting for the device',
@@ -18,6 +18,8 @@ const FIELDS = ['target', 'min', 'max', 'slew', 'average', 'silence', 'deadband'
 /**
  * The gain riders of the inputs, which run in the bridge: a Rider button and a status line per input,
  * and the settings dialog. Settings come with the bridge status, what they do right now with the meters.
+ * A rider on a linked input rides its link group as one. The members show which rider rides them, and a second
+ * rider in the same group stands by.
  */
 export default class extends Controller {
     static targets = ['button', 'info', 'dialog', 'form', 'title', 'stop', 'submit', 'error'];
@@ -56,16 +58,26 @@ export default class extends Controller {
             button.textContent = running ? t("Rider on") : t('Rider');
             button.disabled = !online;
         }
+        // Input => the rider that rides it along with its own input
+        const ridden = new Map();
+        for (const r of this.live.values()) {
+            (r.members ?? []).filter((m) => m !== r.channel).forEach((m) => ridden.set(m, r.channel));
+        }
         for (const info of this.infoTargets) {
             const channel = Number(info.dataset.channel);
             const rider = settings.get(channel);
             const now = this.live.get(channel);
-            info.hidden = !rider;
-            info.dataset.state = now?.status ?? '';
-            if (rider) {
+            const lead = 'linked' === now?.status ? now.lead : ridden.get(channel);
+            info.hidden = !rider && undefined === lead;
+            info.dataset.state = now?.status ?? (undefined === lead ? '' : 'linked');
+            if (undefined !== lead && null !== lead) {
+                info.textContent = t('Ridden with %channel%', { channel: channelId(lead) });
+                info.title = t('A rider on a linked input rides the whole link group with one gain.');
+            } else if (rider) {
                 const state = t(STATES[now?.status] ?? 'Starting');
                 const gain = null === (now?.gain ?? null) ? '' : ` ${now.gain > 0 ? '+' : ''}${now.gain.toFixed(1)} dB`;
-                info.textContent = `${state}${gain}`;
+                const group = (now?.members ?? []).length > 1 ? ` · ${now.members.map((m) => channelId(m)).join('+')}` : '';
+                info.textContent = `${state}${gain}${group}`;
                 info.title = t("Target %target% dB, gain %min%..%max% dB, %slew% dB/s", { target: rider.target, min: rider.min, max: rider.max, slew: rider.slew })
                     + (null === (now?.average ?? null) ? '' : t(", level %level% dB", { level: now.average.toFixed(1) }));
             }

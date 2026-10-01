@@ -13,6 +13,14 @@ rider** hands them to the bridge. A line under the button shows what the rider d
 "Riding -3.4 dB", "At its limit", "Silent, holding" or "Paused after a manual change". **Stop rider** leaves the
 gain where it is.
 
+A rider on a linked input rides its whole link group as one. It takes the power mean of the members' meters,
+so a stereo pair with panned material keeps its balance, and writes the same gain to every member. A member
+whose gain differs when the rider starts is set to the rider's gain. A change to any member's gain by somebody
+else pauses the rider, and once the pause ends the other members follow that gain. Where two riders sit in one
+link group, the one on the lowest input rides it and the other stands by, so they never take each other's
+writes for manual changes. The status line of the leading rider names its members ("Riding -3.4 dB · In3+In4"),
+and every other member reads "Ridden with In3". Unlinking the group lets a rider that stood by start afresh.
+
 ```bash
 bin/console trackdsp:ride in1                              # ride In1 towards -18 dB
 bin/console trackdsp:ride in1 --level=-20 --min=-12 --max=0   # a second call changes the settings
@@ -76,7 +84,11 @@ browser keeps that choice for every output.
 - **Keep level** first moves the gain to the level the output had at 1:1.0, from the model
   10 · log10((A² + A⁴) / 2) of [measurements.md](measurements.md#output-gain-at-compressor-ratio-110). The model
   lies within 0.5 dB of the measurement up to +9 dB set. Above about +6 dB set that level lies beyond +12 dB, and
-  the gain stops at +12 dB. A muted gain stays muted.
+  the gain stops at +12 dB. The button then says how far the output falls short, for example "Keep level
+  (+12.0dB, 9.3 dB short)" for an output at +12 dB, whose level at 1:1.0 the model puts at +21.3 dB. A muted
+  gain stays muted.
+
+On a linked output both buttons fix every output of the link group.
 
 A gain that differs only in its value cannot fix 1:1.0 on its own, because the 8x8 also mirrors the signal at
 24 kHz there, and that image is only gone at exactly 0 dB.

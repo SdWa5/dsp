@@ -6,10 +6,10 @@
         <div class="strip">
             <h3 class="strip__title">{{ w.ch(i) }}</h3>
             <div class="strip__row">
-                {{ w.fader('Threshold', p ~ '.gate.threshold', send, 0, 180, 'threshold') }}
+                {{ w.fader('Threshold', p ~ '.gate.threshold', send, 0, 180, 'threshold', 'inputs:' ~ i) }}
                 <div class="strip__stack">
-                    {{ w.fader('Attack', p ~ '.gate.attack', send, 0, 998, 'ms', null, {class: 'fader--short'}) }}
-                    {{ w.fader('Release', p ~ '.gate.release', send, 0, 2999, 'ms', null, {class: 'fader--short'}) }}
+                    {{ w.fader('Attack', p ~ '.gate.attack', send, 0, 998, 'ms', 'inputs:' ~ i, {class: 'fader--short'}) }}
+                    {{ w.fader('Release', p ~ '.gate.release', send, 0, 2999, 'ms', 'inputs:' ~ i, {class: 'fader--short'}) }}
                 </div>
                 {{ w.meter(i) }}
             </div>

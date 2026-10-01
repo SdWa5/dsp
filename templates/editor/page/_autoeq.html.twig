@@ -8,7 +8,7 @@
     <ul class="autoeq__warnings" data-autoeq-target="warnings" role="alert"></ul>
 
     <section class="card" data-autoeq-target="setup" data-controller="collapse" data-collapse-key-value="autoeq.setup">
-        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">1</span> {{ "Setup"|trans }}</button></h2>
+        <h2 class="card__title"><button type="button" title="{{ 'editor.tip.panel.autoeq_setup'|trans }}" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">1</span> {{ "Setup"|trans }}</button></h2>
         <form class="card__body" data-action="autoeq#start">
             <fieldset class="group">
                 <legend>{{ "Outputs to correct"|trans }}</legend>
@@ -32,7 +32,7 @@
     </section>
 
     <section class="card" data-autoeq-target="measure" hidden data-controller="collapse" data-collapse-key-value="autoeq.measure">
-        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">2</span> {{ "Measure"|trans }} <small data-autoeq-target="summary"></small></button></h2>
+        <h2 class="card__title"><button type="button" title="{{ 'editor.tip.panel.autoeq_measure'|trans }}" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">2</span> {{ "Measure"|trans }} <small data-autoeq-target="summary"></small></button></h2>
         <div class="card__body">
             <p class="dialog__note">{{ "Put the mic where the audience listens and record one position after the other. Three to five positions around the listening area give a correction that holds for the whole room."|trans }}</p>
             <ol class="recordings" data-autoeq-target="recordings"></ol>
@@ -50,7 +50,7 @@
     </section>
 
     <section class="card" data-autoeq-target="fitCard" hidden data-controller="collapse" data-collapse-key-value="autoeq.fit">
-        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">3</span> {{ "Fit"|trans }}</button></h2>
+        <h2 class="card__title"><button type="button" title="{{ 'editor.tip.panel.autoeq_fit'|trans }}" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">3</span> {{ "Fit"|trans }}</button></h2>
         <form class="card__body" data-autoeq-target="fitForm" data-action="autoeq#fit">
             <div class="form-grid">
                 <label>{{ "Target"|trans }} <select name="target">
@@ -82,7 +82,7 @@
     </section>
 
     <section class="card" data-autoeq-target="applyCard" hidden data-controller="collapse" data-collapse-key-value="autoeq.apply">
-        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">4</span> {{ "Apply and verify"|trans }}</button></h2>
+        <h2 class="card__title"><button type="button" title="{{ 'editor.tip.panel.autoeq_apply'|trans }}" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">4</span> {{ "Apply and verify"|trans }}</button></h2>
         <div class="card__body">
             <p class="dialog__note" data-autoeq-target="applyNote"></p>
             <div class="dialog__buttons dialog__buttons--start">
@@ -95,7 +95,7 @@
     </section>
 
     <details class="card card--plain" data-autoeq-target="backupsCard">
-        <summary class="card__title">{{ "Backups"|trans }}</summary>
+        <summary class="card__title" title="{{ 'editor.tip.panel.autoeq_backups'|trans }}">{{ "Backups"|trans }}</summary>
         <div class="card__body">
             <p class="dialog__note">{{ "Every session starts with a backup. Revert restores all PEQ bands of the outputs the backup names."|trans }}</p>
             <ul class="backups" data-autoeq-target="backups"></ul>
