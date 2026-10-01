@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.29.0] - 2026-10-01
+
+### Added
+
+- "Keep level" next to the 1:1.0 fix on the output strips: it moves the gain to the level the output had at 1:1.0 before it sets 1:1.1 from +20 dB (`heardGain()` in `scale.js`)
+
+### Changed
+
+- The 1:1.0 fix button is now "Exact gain", and the warning names the setting both buttons use
+
 ## [0.28.0] - 2026-10-01
 
 ### Added

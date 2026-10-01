@@ -207,6 +207,8 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 /* An output at compressor 1:1.0 with a gain: the warning and its fix, in the strip */
 .gain-warning { display: flex; flex-direction: column; gap: 4px; padding: 4px; border-radius: 3px; background: var(--warn-bg); color: var(--warn-text); font-size: 11px; }
 .gain-warning[hidden] { display: none; }
+.gain-warning__buttons { display: flex; gap: 4px; }
+.gain-warning__buttons .toggle { flex: 1; }
 .autoeq__warnings { margin: 0; padding: 8px 12px 8px 28px; border-radius: 4px; background: var(--warn-bg); color: var(--warn-text); }
 .autoeq__warnings:empty { display: none; }
 /* Gain page: EQ overview, one curve per channel. The swatch of a switch is its curve's colour and dash */

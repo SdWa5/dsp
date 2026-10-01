@@ -199,3 +199,17 @@ export function parse(name, text, state = null, labels = null) {
 export function exaggeratesGain(output) {
     return 0 === output?.comp?.ratio && undefined !== output.gain && GAIN_UNITY !== output.gain;
 }
+
+/**
+ * Gain raw value that gives, at an exact compressor setting, the level a gain had at ratio 1:1.0. There every
+ * second sample gets the gain twice, so the level is 10·log10((A² + A⁴) / 2) for the gain A as a factor
+ * (docs/measurements.md, within 0.5 dB of the measurement up to +9 dB set). Clamped to -60..+12 dB, a muted
+ * gain stays muted.
+ */
+export function heardGain(raw) {
+    if (GAIN_MUTED === raw) {
+        return GAIN_MUTED;
+    }
+    const a = 10 ** (gainToDb(raw) / 20);
+    return Math.max(1, dbToGain(10 * Math.log10((a ** 2 + a ** 4) / 2)));
+}

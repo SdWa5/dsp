@@ -122,8 +122,9 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
 - The corner button of the matrix swaps rows and columns, so the inputs become the rows. The choice is kept in the
   browser. The In headers sit on the left or at the top and the Out headers on the right or at the bottom, so the
   signal always runs from In to Out.
-- An output at compressor ratio 1:1.0 with a gain other than 0 dB is flagged on its strip, with a button that sets
-  1:1.1 from +20 dB. The Auto EQ page and `trackdsp:autoeq` warn about it before measuring.
+- An output at compressor ratio 1:1.0 with a gain other than 0 dB is flagged on its strip. Two buttons set 1:1.1
+  from +20 dB, one keeping the gain value ("Exact gain") and one moving the gain to the level heard before
+  ("Keep level"). The Auto EQ page and `trackdsp:autoeq` warn about it before measuring.
 - Every page with more than one panel folds them down to their title: the panels of the Gain page, the steps of
   the Auto EQ page, and on the channel and Aux pages the EQ curve, the band table and each group beside it. Folded
   panels are kept in the browser. All channel pages fold together, so a folded HighPass stays folded on every

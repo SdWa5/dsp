@@ -65,8 +65,18 @@ for that compressor, so `--threshold=-10` changes only the threshold.
 
 At ratio 1:1.0, the factory setting, the 8x8 applies every output gain but 0 dB more strongly than set and adds
 the spectrum mirrored at 24 kHz (see [Solo](#solo)). The browser editor flags such an output on its strip on the
-Comp page and the Gain page. The button there sets 1:1.1 from +20 dB, which never compresses below the output
+Comp page and the Gain page, with two buttons that set 1:1.1 from +20 dB. That never compresses below the output
 ceiling and keeps the gain exact. The other compressor values stay as they are.
+
+- **Exact gain** keeps the gain value, so the output now plays at the level its fader shows. An output set to
+  -6 dB that played at -8.2 dB gets 2.2 dB louder.
+- **Keep level** first moves the gain to the level the output had at 1:1.0, from the model
+  10 · log10((A² + A⁴) / 2) of [measurements.md](measurements.md#output-gain-at-compressor-ratio-110). The model
+  lies within 0.5 dB of the measurement up to +9 dB set. Above about +6 dB set that level lies beyond +12 dB, and
+  the gain stops at +12 dB. A muted gain stays muted.
+
+A gain that differs only in its value cannot fix 1:1.0 on its own, because the 8x8 also mirrors the signal at
+24 kHz there, and that image is only gone at exactly 0 dB.
 
 ## Auto EQ
 
