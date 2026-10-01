@@ -3,13 +3,12 @@ import { api, getDefaults, listen, on, send, status, store } from '../lib/device
 import { changedPaths } from '../lib/defaults.js';
 import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel, channelParts } from '../lib/channels.js';
-import { linkCommands, linkGroups, linkedMembers, linkOrder } from '../lib/link.js';
+import { groupsFromPartners, linkCommands, linkGroups, linkedMembers, linkLayout, linkView, partnersFromGroups } from '../lib/link.js';
 import { GAIN_MUTED, presetLabel, presetSlotInfo } from '../lib/scale.js';
 import { readPref, writePref } from '../lib/prefs.js';
 
 const THEMES = ['auto', 'light', 'dark'];
 /** How the channel tabs show link groups, each switched on its own in the Channels menu. */
-const LINK_VIEW = { code: true, colour: false, columns: false };
 const changedText = (count) => `${count} ${1 === count ? 'setting differs' : 'settings differ'} from the factory default`;
 
 /**
@@ -18,15 +17,18 @@ const changedText = (count) => `${count} ${1 === count ? 'setting differs' : 'se
  */
 export default class extends Controller {
     static targets = ['tab', 'page', 'online', 'banner', 'bannerText', 'number', 'error', 'dialog', 'status', 'target', 'slots',
-        'storeName', 'linkGroup', 'file', 'scanButton', 'scanStatus', 'found', 'theme', 'matrix', 'linkView'];
+        'storeName', 'linkGroup', 'file', 'scanButton', 'scanStatus', 'found', 'theme', 'matrix', 'linkView', 'linkPlacement', 'chtabs'];
 
     connect() {
         const theme = readPref('theme', 'auto');
         this.applyTheme(THEMES.includes(theme) ? theme : 'auto');
         this.showMatrix(readPref('matrix-swapped', false));
-        this.linkViewSettings = { ...LINK_VIEW, ...readPref('link-view', {}) };
+        this.linkViewSettings = linkView(readPref('link-view', {}));
         this.linkViewTargets.forEach((box) => {
             box.checked = Boolean(this.linkViewSettings[box.value]);
+        });
+        this.linkPlacementTargets.forEach((radio) => {
+            radio.checked = radio.value === this.linkViewSettings.placement;
         });
         this.offs = [
             on('status', () => this.showStatus()),
@@ -90,7 +92,7 @@ export default class extends Controller {
         for (const number of this.numberTargets) {
             number.textContent = presetLabel(state?.active_preset);
         }
-        this.orderChannelTabs(state);
+        this.placeChannelTabs(state);
         for (const tab of this.tabTargets) {
             if (tab.dataset.side) {
                 this.showChannelTab(tab, state);
@@ -144,22 +146,84 @@ export default class extends Controller {
         tab.title = titles.join(', ');
     }
 
-    /** Members of a link group next to each other, when that is switched on. The DOM order stays. */
-    orderChannelTabs(state) {
-        const columns = this.linkViewSettings.columns && null !== state;
-        for (const [side, base] of [['inputs', 0], ['outputs', 8]]) {
-            const order = columns ? linkOrder(linkGroups(state[side] ?? [])) : [0, 1, 2, 3, 4, 5, 6, 7];
-            for (const tab of this.tabTargets.filter((t) => t.dataset.side === side)) {
-                const position = order.indexOf(Number(tab.dataset.index));
-                tab.style.order = columns ? String(base + position) : '';
-                // The gap between the inputs and the outputs goes before the first output shown
-                tab.classList.toggle('is-split', 'outputs' === side && 0 === position);
+    /** The channel tabs placed by the link placement (normal, side by side or stacked). The DOM order stays. */
+    placeChannelTabs(state) {
+        const placement = null === state ? 'normal' : this.linkViewSettings.placement;
+        const [inputs, outputs] = ['inputs', 'outputs'].map((side) => linkLayout(linkGroups(state?.[side] ?? []), placement));
+        const offset = { inputs: 0, outputs: inputs.columns };
+        const rows = Math.max(inputs.rows, outputs.rows);
+        this.chtabsTargets.forEach((box) => {
+            box.style.setProperty('--chtab-columns', String(inputs.columns + outputs.columns));
+            box.classList.toggle('is-stacked', rows > 1);
+        });
+        for (const tab of this.tabTargets.filter((t) => t.dataset.side)) {
+            const side = tab.dataset.side;
+            const layout = 'inputs' === side ? inputs : outputs;
+            const cell = layout.cells[Number(tab.dataset.index)];
+            // A side with fewer rows than the other lets its last cells reach the bottom
+            const span = cell.row + cell.span - 1 === layout.rows ? rows - cell.row + 1 : cell.span;
+            tab.style.gridColumn = String(offset[side] + cell.column);
+            tab.style.gridRow = `${cell.row} / span ${span}`;
+            // The gap between the inputs and the outputs goes before the first output column
+            tab.classList.toggle('is-split', 'outputs' === side && 1 === cell.column);
+        }
+    }
+
+    /** Link groups of one side as the Link dialog's dropdowns name them. */
+    dialogGroups(side) {
+        return groupsFromPartners(this.linkGroupTargets.filter((s) => s.dataset.side === side).map((s) => Number(s.value)));
+    }
+
+    /**
+     * The Link dialog's cells: group code, colour or shape as on the channel tabs. place: also arrange them by the
+     * placement, which happens on open only, so a cell does not jump away while its dropdown is in use.
+     */
+    showLinkDialog(place) {
+        const { code, colour, placement } = this.linkViewSettings;
+        for (const side of ['inputs', 'outputs']) {
+            const selects = this.linkGroupTargets.filter((s) => s.dataset.side === side);
+            const groups = this.dialogGroups(side);
+            const layout = linkLayout(groups, placement);
+            const stacked = 'stacked' === placement;
+            if (place) {
+                // Stacked needs a column per link group, the other placements wrap in channel order
+                const grid = selects[0]?.closest('.link-grid');
+                grid?.classList.toggle('is-stacked', stacked);
+                grid?.style.setProperty('--link-columns', String(layout.columns));
+            }
+            for (const select of selects) {
+                const index = Number(select.dataset.index);
+                const group = groups[index];
+                const label = select.closest('label');
+                if (place) {
+                    const cell = layout.cells[index];
+                    label.style.order = stacked ? '' : String(cell.column);
+                    label.style.gridColumn = stacked ? String(cell.column) : '';
+                    label.style.gridRow = stacked ? `${cell.row} / span ${cell.span}` : '';
+                }
+                label.dataset.group = colour && group > 0 ? String(group) : '';
+                const mark = label.querySelector('.link-mark');
+                mark.hidden = 0 === group || !(code || colour);
+                mark.textContent = code ? `L${group}` : '';
+                mark.classList.toggle('link-mark--shape', !code);
+                mark.dataset.shape = String(group);
             }
         }
     }
 
+    /** A dropdown of the Link dialog changed: recolour, but keep the cells where they are. */
+    linkGroupChanged() {
+        this.showLinkDialog(false);
+    }
+
     linkView(event) {
         this.linkViewSettings[event.target.value] = event.target.checked;
+        writePref('link-view', this.linkViewSettings);
+        this.showState();
+    }
+
+    linkPlacement(event) {
+        this.linkViewSettings.placement = event.target.value;
         writePref('link-view', this.linkViewSettings);
         this.showState();
     }
@@ -221,9 +285,11 @@ export default class extends Controller {
         }
         if ('link' === event.params.dialog && state) {
             const groups = { inputs: linkGroups(state.inputs), outputs: linkGroups(state.outputs) };
+            const partners = { inputs: partnersFromGroups(groups.inputs), outputs: partnersFromGroups(groups.outputs) };
             for (const select of this.linkGroupTargets) {
-                select.value = String(groups[select.dataset.side][Number(select.dataset.index)]);
+                select.value = String(partners[select.dataset.side][Number(select.dataset.index)]);
             }
+            this.showLinkDialog(true);
         }
         dialog.showModal();
     }
@@ -366,8 +432,7 @@ export default class extends Controller {
         const state = store.state;
         const commands = [];
         for (const [side, base] of [['inputs', 0], ['outputs', 8]]) {
-            const groups = this.linkGroupTargets.filter((s) => s.dataset.side === side).map((s) => Number(s.value));
-            commands.push(...linkCommands(state[side], groups, base));
+            commands.push(...linkCommands(state[side], this.dialogGroups(side), base));
         }
         if (0 === commands.length) {
             event.target.closest('dialog').close();

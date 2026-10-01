@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.25.0] - 2026-10-01
+
+### Added
+
+- Placement of linked channels in the Channels menu: in channel order, side by side, or stacked per link group, where the members of a group share one column of the channel tabs (`linkLayout()` in `link.js`)
+- The Link dialog shows the group code, colour and shape like the channel tabs and arranges its cells by the same placement
+
+### Changed
+
+- Link dialog: each dropdown lists the other seven channels of its side with their names, and links chain into groups (`groupsFromPartners()`, `partnersFromGroups()`). This replaces the group numbers of 0.24.1
+- A stored "Linked channels side by side" becomes the placement "side by side" (`linkView()`)
+
 ## [0.24.2] - 2026-10-01
 
 ### Changed

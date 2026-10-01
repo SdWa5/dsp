@@ -74,3 +74,90 @@ export function linkOrder(groups) {
     });
     return order;
 }
+
+/** Where linked channels go: in DOM order, next to each other, or one above the other in one column. */
+export const PLACEMENTS = ['normal', 'side', 'stacked'];
+
+/**
+ * Link display settings from what a browser stored: {code, colour, placement}. Before 0.25.0 the placement was the
+ * checkbox `columns`, which becomes 'side'.
+ */
+export function linkView(stored) {
+    const value = stored && 'object' === typeof stored ? stored : {};
+    return {
+        code: value.code ?? true,
+        colour: value.colour ?? false,
+        placement: PLACEMENTS.includes(value.placement) ? value.placement : true === value.columns ? 'side' : 'normal',
+    };
+}
+
+/**
+ * Grid cells of one side's eight channels for a placement: {columns, rows, cells}, where cells[i] is
+ * {column, row, span} (1-based). 'stacked' gives each link group one column with its members one above the
+ * other; a channel alone, and the last member of a shorter group, spans the remaining rows.
+ */
+export function linkLayout(groups, placement) {
+    if ('normal' === placement) {
+        return { columns: 8, rows: 1, cells: groups.map((_g, i) => ({ column: i + 1, row: 1, span: 1 })) };
+    }
+    const order = linkOrder(groups);
+    if ('side' === placement) {
+        return { columns: 8, rows: 1, cells: groups.map((_g, i) => ({ column: order.indexOf(i) + 1, row: 1, span: 1 })) };
+    }
+    const units = [];
+    for (const i of order) {
+        const unit = 0 === groups[i] ? undefined : units.find((u) => groups[u[0]] === groups[i]);
+        if (unit) {
+            unit.push(i);
+        } else {
+            units.push([i]);
+        }
+    }
+    const rows = Math.max(...units.map((u) => u.length));
+    const cells = new Array(groups.length);
+    units.forEach((unit, column) => {
+        unit.forEach((i, row) => {
+            cells[i] = { column: column + 1, row: row + 1, span: row === unit.length - 1 ? rows - row : 1 };
+        });
+    });
+    return { columns: units.length, rows, cells };
+}
+
+/**
+ * Link groups from the Link dialog, where every channel names a partner on its side (index, or -1 for none).
+ * Partners chain, so In3 → In2 and In2 → In1 link all three. Groups are numbered by their lowest member, as
+ * linkGroups numbers them.
+ */
+export function groupsFromPartners(partners) {
+    const root = partners.map((_p, i) => i);
+    const find = (i) => (root[i] === i ? i : (root[i] = find(root[i])));
+    partners.forEach((partner, i) => {
+        if (partner >= 0 && partner < partners.length && partner !== i) {
+            const [a, b] = [find(i), find(partner)];
+            root[Math.max(a, b)] = Math.min(a, b);
+        }
+    });
+    const lowest = partners.map((_p, i) => find(i));
+    const sizes = lowest.reduce((count, r) => count.set(r, (count.get(r) ?? 0) + 1), new Map());
+    const numbers = new Map();
+    return lowest.map((r) => {
+        if (sizes.get(r) < 2) {
+            return 0;
+        }
+        if (!numbers.has(r)) {
+            numbers.set(r, numbers.size + 1);
+        }
+        return numbers.get(r);
+    });
+}
+
+/** The partners the Link dialog shows for link groups: every member names the lowest one, which names the next. */
+export function partnersFromGroups(groups) {
+    return groups.map((group, i) => {
+        if (0 === group) {
+            return -1;
+        }
+        const members = groups.flatMap((g, k) => (g === group ? [k] : []));
+        return members[0] === i ? members[1] : members[0];
+    });
+}

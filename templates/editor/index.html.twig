@@ -43,9 +43,13 @@
                             {{ _self.item('Sub Control…', 'sub') }}
                             {{ _self.item('Group Control…', 'groups') }}
                             <hr>
-                            <span class="menu__heading">Link display on the channel tabs</span>
-                            {% for key, label in {code: 'Group code (L1, L2 …)', colour: 'Colour per group', columns: 'Linked channels side by side'} %}
+                            <span class="menu__heading">Link display (channel tabs and Link dialog)</span>
+                            {% for key, label in {code: 'Group code (L1, L2 …)', colour: 'Colour per group'} %}
                                 <label class="menu__check"><input type="checkbox" value="{{ key }}" data-editor-target="linkView" data-action="change->editor#linkView"> {{ label }}</label>
+                            {% endfor %}
+                            <span class="menu__heading">Placement of linked channels</span>
+                            {% for key, label in {normal: 'In channel order', side: 'Side by side', stacked: 'Stacked per link group'} %}
+                                <label class="menu__check"><input type="radio" name="link-placement" value="{{ key }}" data-editor-target="linkPlacement" data-action="change->editor#linkPlacement"> {{ label }}</label>
                             {% endfor %}
                         </div>
                     </div>
@@ -76,7 +80,7 @@
                             data-action="editor#tab" data-editor-page-param="{{ page }}">{{ title }}</button>
                 {% endfor %}
             </div>
-            <div class="chtabs" role="tablist" aria-label="Channels">
+            <div class="chtabs" role="tablist" aria-label="Channels" data-editor-target="chtabs">
                 {% for side, prefix in {inputs: 'In', outputs: 'Out'} %}
                     {% for i in 0..7 %}
                         <button type="button" role="tab" class="chtab chtab--{{ side }}{{ 'outputs' == side and 0 == i ? ' is-split' }}" data-editor-target="tab" data-page="{{ side }}{{ i }}"

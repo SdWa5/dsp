@@ -39,17 +39,18 @@
     </form>
 </dialog>
 
-<dialog class="dialog" id="dialog-link" data-editor-target="dialog">
+<dialog class="dialog dialog--wide" id="dialog-link" data-editor-target="dialog">
     {{ _self.dialog('link', 'Link') }}
     <form class="dialog__form" data-action="editor#link">
-        <p class="dialog__note">Pick a link group (L1-L4) per channel, as the channel tabs show it. Channels in the same group are linked, and the first channel of a group is copied to the others.</p>
+        <p class="dialog__note">Pick the channel each channel is linked with. Links chain, so In3 with In2 and In2 with In1 link all three. The lowest channel of a group is copied to the others.</p>
         {% for side, prefix in {inputs: 'In', outputs: 'Out'} %}
             <div class="link-grid">
                 {% for i in 0..7 %}
-                    <label>{{ w.ch('inputs' == side ? i : 8 + i) }}
-                        <select name="{{ side }}-{{ i }}" data-editor-target="linkGroup" data-side="{{ side }}" data-index="{{ i }}">
-                            <option value="0">–</option>
-                            {% for g in 1..4 %}<option value="{{ g }}">L{{ g }}</option>{% endfor %}
+                    {% set base = 'inputs' == side ? 0 : 8 %}
+                    <label>{{ w.ch(base + i) }}<span class="link-mark" aria-hidden="true" hidden></span>
+                        <select name="{{ side }}-{{ i }}" aria-label="{{ prefix }}{{ i + 1 }} linked with" data-editor-target="linkGroup" data-side="{{ side }}" data-index="{{ i }}" data-action="editor#linkGroupChanged">
+                            <option value="-1">–</option>
+                            {% for k in 0..7 %}{% if k != i %}{{ w.ch_option(base + k, k) }}{% endif %}{% endfor %}
                         </select>
                     </label>
                 {% endfor %}

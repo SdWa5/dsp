@@ -131,13 +131,15 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 }
 .tab:hover { background: #ffffff14; }
 .tab.is-active { color: var(--accent); border-bottom-color: var(--accent); }
-.chtabs { display: grid; grid-template-columns: repeat(16, minmax(64px, 1fr)); gap: 3px; padding: 4px 8px 5px; background: var(--head-2); }
+.chtabs { display: grid; grid-template-columns: repeat(var(--chtab-columns, 16), minmax(64px, 1fr)); gap: 3px; padding: 4px 8px 5px; background: var(--head-2); }
 .chtab {
     position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 38px; padding: 2px 4px;
     border: 1px solid #ffffff22; border-radius: 4px; background: #ffffff0d; color: var(--head-text); cursor: pointer; overflow: hidden;
 }
 .chtab--outputs { background: #0000001f; }
 .chtab.is-split { margin-left: 6px; }
+/* Stacked per link group: the tabs of a column share its height */
+.chtabs.is-stacked .chtab { min-height: 30px; }
 .chtab:hover { background: #ffffff1f; }
 .chtab.is-active { border-color: var(--accent); color: var(--accent); background: #7cfc0014; }
 .chtab__id { font-size: 13px; }
@@ -150,17 +152,20 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .chtab__mute.is-gain { background: none; box-shadow: inset 0 0 0 1.5px var(--mute); }
 .chtab__link { position: absolute; top: 2px; right: 3px; font-size: 9px; font-weight: 700; padding: 0 3px; border-radius: 6px; background: #ffffff33; color: var(--head-text); }
 /* Colour per link group (Channels menu): a tinted tab with a coloured top edge and badge */
-.chtab[data-group='1'] { --group: #4fc3f7; }
-.chtab[data-group='2'] { --group: #ffb74d; }
-.chtab[data-group='3'] { --group: #ce93d8; }
-.chtab[data-group='4'] { --group: #f48fb1; }
+[data-group='1'] { --group: #4fc3f7; }
+[data-group='2'] { --group: #ffb74d; }
+[data-group='3'] { --group: #ce93d8; }
+[data-group='4'] { --group: #f48fb1; }
 .chtab[data-group]:not([data-group='']) { box-shadow: inset 0 3px 0 var(--group); background: color-mix(in srgb, var(--group) 18%, transparent); }
 .chtab[data-group]:not([data-group='']) .chtab__link { background: var(--group); color: #111; }
 /* Without the code: circle, square, triangle, diamond, so groups differ without colour too */
 .chtab__link--shape { top: 4px; right: 4px; width: 8px; height: 8px; padding: 0; border-radius: 0; background: var(--head-text); }
-.chtab__link--shape[data-shape='1'] { border-radius: 50%; }
-.chtab__link--shape[data-shape='3'] { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
-.chtab__link--shape[data-shape='4'] { transform: rotate(45deg) scale(0.85); }
+.link-mark { flex: none; padding: 0 4px; border-radius: 6px; font-size: 10px; font-weight: 700; background: var(--title); }
+[data-group]:not([data-group='']) > .link-mark { background: var(--group); color: #111; }
+.link-mark--shape { width: 9px; height: 9px; padding: 0; border-radius: 0; background: var(--text); }
+:is(.chtab__link--shape, .link-mark--shape)[data-shape='1'] { border-radius: 50%; }
+:is(.chtab__link--shape, .link-mark--shape)[data-shape='3'] { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+:is(.chtab__link--shape, .link-mark--shape)[data-shape='4'] { transform: rotate(45deg) scale(0.85); }
 /* Differs from the factory default: a corner triangle bottom left, a shape that reads without colour */
 .chtab__changed, .tab.is-changed::after {
     position: absolute; bottom: 0; left: 0; width: 0; height: 0; border-style: solid; border-width: 9px 0 0 9px;
@@ -409,13 +414,21 @@ details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
 .dialog__error { color: var(--mute); font-weight: 600; margin: 0; }
 .dialog__error:empty { display: none; }
 /* The gap belongs between cells, so a name stays next to its own control */
-.link-grid, .names { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 24px; }
+.names { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 24px; }
 .link-grid label, .names label { display: flex; gap: 6px; align-items: center; }
+/* Link dialog: one row per side (or a column per link group when stacked), placed like the channel tabs */
+.link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px 8px; overflow-x: auto; padding-bottom: 2px; }
+.link-grid.is-stacked { grid-template-columns: repeat(var(--link-columns, 8), minmax(112px, 1fr)); }
+.link-grid.is-stacked label { flex-wrap: wrap; }
+.link-grid.is-stacked select { max-width: 100%; }
+.link-grid label { padding: 4px 6px; border-radius: 4px; border: 1px solid transparent; }
+.link-grid label[data-group]:not([data-group='']) { box-shadow: inset 3px 0 0 var(--group); background: color-mix(in srgb, var(--group) 18%, transparent); }
+.link-grid .ch { flex: 1; min-width: 0; }
 .table { border-collapse: collapse; width: 100%; }
 .table th, .table td { border: 1px solid var(--panel-edge); padding: 3px 6px; text-align: left; }
 
 @media (max-width: 900px) {
-    .chtabs { grid-template-columns: repeat(16, 72px); }
+    .chtabs { grid-template-columns: repeat(var(--chtab-columns, 16), 72px); }
 }
 
 @media (max-width: 700px) {
