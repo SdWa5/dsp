@@ -2,7 +2,7 @@ import { Controller } from '@hotwired/stimulus';
 import { store } from '../lib/device.js';
 import { channelId } from '../lib/channels.js';
 import { t } from '../lib/i18n.js';
-import { linkGaps, linkGroups, linkMark, linkPlacement } from '../lib/link.js';
+import { linkGaps, linkGroups, linkMark, linkName, linkPlacement } from '../lib/link.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
 
 /** The channel index (0..15) a node shows through its first channel label, -1 for none or the Aux. */
@@ -80,7 +80,7 @@ export default class extends Controller {
             const head = document.createElement('span');
             head.className = 'link-block__head';
             head.title = t('Linked: %channels%', { channels: unit.map((i) => channelId(('outputs' === side ? 8 : 0) + i)).join(', ') });
-            head.innerHTML = linkMark(view, group);
+            head.innerHTML = linkMark(view, group, linkName(view, side, groups[side], group));
             members[0].before(block);
             block.append(head, ...members);
         }

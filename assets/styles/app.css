@@ -170,6 +170,10 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .chtab__link--bare { top: 4px; right: 4px; padding: 0; background: none; }
 .chtab[data-group]:not([data-group='']) .chtab__link--bare { background: none; color: var(--head-text); }
 .link-shape { display: inline-block; width: 8px; height: 8px; background: currentColor; }
+/* A group name instead of the code, cut short where the badge runs out of room */
+.link-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chtab__link { max-width: calc(100% - 16px); }
+.link-cell .link-label { max-width: 40px; }
 .link-cell .link-shape { width: 10px; height: 10px; }
 .link-shape[data-shape='1'] { border-radius: 50%; }
 .link-shape[data-shape='3'] { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
@@ -477,6 +481,12 @@ details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
 .link-matrix :is(td, th).is-unit-start { padding-left: 10px; }
 .link-view { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin: 0; padding: 8px 0 0; border: 0; }
 .link-view__heading { flex-basis: 100%; color: var(--muted); font-size: 11px; }
+/* A name field per link group being edited, the code as placeholder */
+.link-names__list { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.link-names__list:empty { display: none; }
+.link-names__empty { color: var(--muted); }
+.link-name { display: inline-flex; align-items: center; gap: 6px; }
+.link-name .text { width: 110px; }
 .link-cell.is-on[data-group]:not([data-group='']) { background: var(--group); border-color: var(--group); color: #111; }
 .table { border-collapse: collapse; width: 100%; }
 .table th, .table td { border: 1px solid var(--panel-edge); padding: 3px 6px; text-align: left; }

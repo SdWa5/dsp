@@ -1,15 +1,15 @@
 import { Controller } from '@hotwired/stimulus';
 import { store } from '../lib/device.js';
 import { channelParts } from '../lib/channels.js';
-import { linkGroups, linkPlacement } from '../lib/link.js';
+import { linkGroups, linkName, linkPlacement } from '../lib/link.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
 import { routingEdges, routingRows, SOURCES, sourceChannel } from '../lib/routing.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
 // One colour per source, the inputs as on the EQ overview, Aux in grey
 const COLORS = ['#ff5252', '#ffd740', '#e040fb', '#40c4ff', '#69f0ae', '#448aff', '#b0bec5', '#ffab40', '#9e9e9e'];
-const NODE = { width: 130, height: 26 };
-const WIDTH = 440;
+const NODE = { width: 150, height: 26 };
+const WIDTH = 480;
 
 /**
  * The routing of the matrix as the vendor editor draws it: In1..In8 and Aux on the left, Out1..Out8 on the right,
@@ -81,7 +81,8 @@ export default class extends Controller {
                 node.dataset.group = view.colour ? String(group) : '';
                 if (view.code) {
                     const code = this.element(node, 'text', { class: 'routing__link', x: NODE.width - 6, y: NODE.height / 2 + 4, 'text-anchor': 'end' });
-                    code.textContent = `L${group}`;
+                    const side = n < 8 ? 'inputs' : 'outputs';
+                    code.textContent = linkName(view, side, groups[side], group) || `L${group}`;
                 }
             }
             if (isSource) {

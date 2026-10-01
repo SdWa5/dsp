@@ -89,33 +89,62 @@ export function linkUnits(groups) {
     return units;
 }
 
+const escapeHtml = (text) => text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+/** The longest group name, about as wide as a channel tab. */
+export const LINK_NAME_LENGTH = 12;
+
 /**
  * The mark of link group `group` (1..) for the display settings: the code, the group's shape (circle, square,
- * triangle, diamond), both next to each other, or nothing. 0 has no mark.
+ * triangle, diamond), both next to each other, or nothing. A group with a name shows the name instead of the
+ * code. 0 has no mark.
  */
-export function linkMark(view, group) {
+export function linkMark(view, group, name = '') {
     if (group < 1) {
         return '';
     }
-    const code = view.code ? `L${group}` : '';
+    // A name sits in an element of its own, which cuts it short where the room ends
+    const code = !view.code ? '' : '' === name ? `L${group}` : `<span class="link-label" title="${escapeHtml(name)}">${escapeHtml(name)}</span>`;
     return view.shape ? `${code}<span class="link-shape" data-shape="${group}" aria-hidden="true"></span>` : code;
+}
+
+/**
+ * The key of a group's name: its side and its lowest channel, so the name stays with the group when other groups
+ * come or go. groups: group number per index, as linkGroups returns it.
+ */
+export function linkNameKey(side, groups, group) {
+    return `${side}:${groups.indexOf(group)}`;
+}
+
+/** The name the display settings hold for link group `group` of a side, '' for none. */
+export function linkName(view, side, groups, group) {
+    return group > 0 ? (view.names?.[linkNameKey(side, groups, group)] ?? '') : '';
 }
 
 /** Where linked channels go: in DOM order, next to each other, or one above the other in one column. */
 export const PLACEMENTS = ['normal', 'side', 'stacked'];
 
 /**
- * Link display settings from what a browser stored: {code, colour, shape, placement}. Before 0.25.0 the placement
- * was the checkbox `columns`, which becomes 'side'. Before 0.30.0 a group showed its shape whenever the code was
- * off, so a stored code: false turns the shape on.
+ * Link display settings from what a browser stored: {code, colour, shape, placement, names}. Before 0.25.0 the
+ * placement was the checkbox `columns`, which becomes 'side'. Before 0.30.0 a group showed its shape whenever the
+ * code was off, so a stored code: false turns the shape on. names maps a linkNameKey() to a group name, and an
+ * empty or foreign entry is left out.
  */
 export function linkView(stored) {
     const value = stored && 'object' === typeof stored ? stored : {};
+    const names = {};
+    for (const [key, name] of Object.entries(value.names && 'object' === typeof value.names ? value.names : {})) {
+        const text = 'string' === typeof name ? name.trim().slice(0, LINK_NAME_LENGTH) : '';
+        if (/^(inputs|outputs):[0-7]$/.test(key) && '' !== text) {
+            names[key] = text;
+        }
+    }
     return {
         code: value.code ?? true,
         colour: value.colour ?? false,
         shape: value.shape ?? false === value.code,
         placement: PLACEMENTS.includes(value.placement) ? value.placement : true === value.columns ? 'side' : 'normal',
+        names,
     };
 }
 

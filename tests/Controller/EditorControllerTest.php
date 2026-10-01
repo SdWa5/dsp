@@ -212,6 +212,9 @@ final class EditorControllerTest extends WebTestCase
         }
         // The Link dialog shows the groups being edited, so its channel labels leave out the groups on the device
         self::assertCount(32, $page->filter('dialog#dialog-link .ch[data-channel-link-value=false]'));
+        // The name fields are built per link group, the hint stands in while there is none
+        self::assertCount(1, $page->filter('dialog#dialog-link [data-editor-target=linkNames]'));
+        self::assertCount(1, $page->filter('dialog#dialog-link [data-editor-target=linkNamesEmpty]'));
     }
 
     public function testMatrixPageCarriesTheRoutingGraph(): void

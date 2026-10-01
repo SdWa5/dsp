@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.38.0] - 2026-10-01
+
+### Added
+
+- Names for link groups, up to 12 characters, typed in the Link dialog. A name replaces the code (L1, L2 …) on the channel tabs, the group headers, the Link matrix, every channel label and the routing graph, and is cut short where a badge runs out of room. It is kept in the browser and keyed by the group's side and lowest channel (`linkName()` and `linkNameKey()` in `assets/lib/link.js`)
+
+### Changed
+
+- The menu option "Group code" is now "Group code or name", and the heading "Link display" no longer names the channel tabs and the Link dialog only
+- The routing graph nodes are wider, so a group name fits next to the channel name
+
 ## [0.37.0] - 2026-10-01
 
 ### Added

@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
 import { store } from '../lib/device.js';
 import { channelLabel, channelParts } from '../lib/channels.js';
-import { linkGroups, linkMark } from '../lib/link.js';
+import { linkGroups, linkMark, linkName } from '../lib/link.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
 
 /**
@@ -26,8 +26,8 @@ export default class extends Controller {
     render(state) {
         const { id, name } = channelParts(this.indexValue, state);
         const view = getLinkView();
-        const group = this.group(state);
-        const key = JSON.stringify([id, name, group, view.code, view.shape, view.colour]);
+        const { group, label } = this.group(state, view);
+        const key = JSON.stringify([id, name, group, label, view.code, view.shape, view.colour]);
         if (key === this.shown) {
             return;
         }
@@ -42,22 +42,25 @@ export default class extends Controller {
         }
         this.element.classList.toggle('is-named', '' !== name);
         this.element.title = channelLabel(this.indexValue, state);
-        this.showLink(view, group);
+        this.showLink(view, group, label);
     }
 
-    /** The link group (1..) of this channel, 0 when it is alone, the Aux or not to be shown. */
-    group(state) {
+    /** {group, label}: the link group (1..) of this channel and its name, group 0 when it is alone, the Aux or not to be shown. */
+    group(state, view) {
         const index = this.indexValue;
-        if (!this.linkValue || !state || index > 15) {
-            return 0;
+        const side = index < 8 ? 'inputs' : 'outputs';
+        const channels = state?.[side];
+        if (!this.linkValue || index > 15 || !Array.isArray(channels)) {
+            return { group: 0, label: '' };
         }
-        const channels = index < 8 ? state.inputs : state.outputs;
-        return Array.isArray(channels) ? linkGroups(channels)[index % 8] : 0;
+        const groups = linkGroups(channels);
+        const group = groups[index % 8];
+        return { group, label: linkName(view, side, groups, group) };
     }
 
-    showLink(view, group) {
+    showLink(view, group, label) {
         let mark = this.element.querySelector(':scope > .ch__link');
-        const html = linkMark(view, group);
+        const html = linkMark(view, group, label);
         this.element.dataset.group = view.colour && group > 0 ? String(group) : '';
         // With neither code nor icon, the colour alone shows as a dot
         if ('' === html && '' === this.element.dataset.group) {

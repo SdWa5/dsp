@@ -4,7 +4,7 @@ import { api, getDefaults, listen, on, send, status, store } from '../lib/device
 import { changedPaths, pageChanges } from '../lib/defaults.js';
 import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel, channelParts } from '../lib/channels.js';
-import { lcm, linkCommands, linkGroups, linkedMembers, linkLayout, linkMark, linkUnits, toggleLink } from '../lib/link.js';
+import { lcm, linkCommands, linkGroups, linkedMembers, LINK_NAME_LENGTH, linkLayout, linkMark, linkName, linkNameKey, linkUnits, toggleLink } from '../lib/link.js';
 import { GAIN_MUTED, presetLabel, presetSlotInfo } from '../lib/scale.js';
 import { readPref, writePref } from '../lib/prefs.js';
 import { getLinkView, setLinkView } from '../lib/linkview.js';
@@ -21,7 +21,7 @@ const changedText = (count) => t(1 === count
  */
 export default class extends Controller {
     static targets = ['tab', 'page', 'online', 'banner', 'bannerText', 'number', 'error', 'dialog', 'status', 'target', 'slots',
-        'storeName', 'linkMatrix', 'file', 'scanButton', 'scanStatus', 'found', 'theme', 'matrix', 'linkView', 'linkPlacement', 'chtabs'];
+        'storeName', 'linkMatrix', 'file', 'scanButton', 'scanStatus', 'found', 'theme', 'matrix', 'linkView', 'linkPlacement', 'chtabs', 'linkNames', 'linkNamesEmpty'];
 
     connect() {
         const theme = readPref('theme', 'auto');
@@ -124,12 +124,13 @@ export default class extends Controller {
             titles.push(t("muted by its gain"));
         }
         if (state) {
-            const group = linkGroups(state[side])[index];
+            const groups = linkGroups(state[side]);
+            const group = groups[index];
             const members = linkedMembers(state[side], index);
             const { code, colour } = this.linkViewSettings;
             tab.dataset.group = colour && group > 0 ? String(group) : '';
             // Stacked, the group's header above the column carries the mark
-            const mark = 'stacked' === this.linkViewSettings.placement && members.length > 1 ? '' : linkMark(this.linkViewSettings, group);
+            const mark = 'stacked' === this.linkViewSettings.placement && members.length > 1 ? '' : linkMark(this.linkViewSettings, group, linkName(this.linkViewSettings, side, groups, group));
             if ('' !== mark) {
                 marks.push(`<span class="chtab__link${code ? '' : ' chtab__link--bare'}">${mark}</span>`);
             }
@@ -201,7 +202,7 @@ export default class extends Controller {
                     head.style.gridRow = '1';
                     head.title = t('Linked: %channels%', { channels: unit.map((i) => channelId(('outputs' === side ? 8 : 0) + i)).join(', ') });
                     // Without code and icon the header is a bare bracket over the group
-                    head.innerHTML = linkMark(this.linkViewSettings, group);
+                    head.innerHTML = linkMark(this.linkViewSettings, group, linkName(this.linkViewSettings, side, groups[side], group));
                     this.chtabsTargets.forEach((box) => box.append(head.cloneNode(true)));
                 });
             }
@@ -215,6 +216,7 @@ export default class extends Controller {
      */
     showLinkDialog() {
         const { colour, placement } = this.linkViewSettings;
+        this.showLinkNames();
         for (const table of this.linkMatrixTargets) {
             const groups = this.linkDraft[table.dataset.side];
             this.placeLinkMatrix(table, groups, placement);
@@ -225,7 +227,7 @@ export default class extends Controller {
                 cell.setAttribute('aria-pressed', String(group > 0));
                 cell.dataset.group = colour && group > 0 ? String(group) : '';
                 // Without code and shape a lit cell shows the dot of the routing matrix
-                cell.innerHTML = linkMark(this.linkViewSettings, group);
+                cell.innerHTML = linkMark(this.linkViewSettings, group, linkName(this.linkViewSettings, table.dataset.side, groups, group));
             }
         }
     }
@@ -276,6 +278,53 @@ export default class extends Controller {
         columnHeads.forEach((th) => th.classList.toggle('is-unit-start', starts.has(Number(th.dataset.index))));
     }
 
+    /**
+     * One name field per link group being edited, keyed by the group's side and lowest channel. The fields are
+     * only rebuilt when the groups change, so typing keeps its focus.
+     */
+    showLinkNames() {
+        const key = JSON.stringify(this.linkDraft);
+        if (!this.hasLinkNamesTarget || key === this.linkNamesKey) {
+            return;
+        }
+        this.linkNamesKey = key;
+        const fields = [];
+        for (const side of ['inputs', 'outputs']) {
+            const groups = this.linkDraft[side];
+            for (const unit of linkUnits(groups).filter((u) => u.length > 1)) {
+                const group = groups[unit[0]];
+                const channels = unit.map((i) => channelId(('outputs' === side ? 8 : 0) + i)).join(', ');
+                const label = document.createElement('label');
+                label.className = 'link-name';
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'text';
+                input.maxLength = LINK_NAME_LENGTH;
+                input.placeholder = `L${group}`;
+                input.value = linkName(this.linkViewSettings, side, groups, group);
+                input.dataset.key = linkNameKey(side, groups, group);
+                input.dataset.action = 'input->editor#renameLinkGroup';
+                input.setAttribute('aria-label', t('Name of the group %channels%', { channels }));
+                label.append(channels, input);
+                fields.push(label);
+            }
+        }
+        this.linkNamesTarget.replaceChildren(...fields);
+        this.linkNamesEmptyTarget.hidden = fields.length > 0;
+    }
+
+    renameLinkGroup(event) {
+        const names = { ...this.linkViewSettings.names };
+        const name = event.target.value.trim();
+        if ('' === name) {
+            delete names[event.target.dataset.key];
+        } else {
+            names[event.target.dataset.key] = name;
+        }
+        this.linkViewSettings.names = names;
+        this.changeLinkView();
+    }
+
     linkCell(event) {
         const { side, row, column } = event.currentTarget.dataset;
         this.linkDraft[side] = toggleLink(this.linkDraft[side], Number(row), Number(column));
@@ -304,6 +353,8 @@ export default class extends Controller {
 
     changeLinkView() {
         setLinkView(this.linkViewSettings);
+        // Back from the shared settings, which trim and drop what does not belong
+        this.linkViewSettings = { ...getLinkView() };
         this.showLinkViewSettings();
         this.showState();
         if (this.linkDraft) {

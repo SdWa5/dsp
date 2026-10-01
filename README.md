@@ -111,6 +111,10 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   the route buttons of Sub Control, Group Control and the Aux, the Auto EQ outputs, the matrix and the routing
   graph follow the placement. Stacked gathers a group under one header, and strips, being too tall to stack, form
   a block that runs across. The matrix leaves a gap around each group instead.
+- A link group can carry a name of up to 12 characters, typed in the Link dialog below the matrices. The name
+  stands wherever the code would (L1, L2, ...), so it shows when "Group code or name" is on. It is kept in the
+  browser with the other display settings and stays with the group's lowest channel, so it survives when other
+  groups change.
 - The Link dialog is a channel x channel matrix per side. A cell links its row and column channel, linked channels
   form a group that lights as a block, and a lit cell takes the column channel out of its group. The lowest
   channel of a group is copied to the others. The rows and columns follow the placement after every click, and
