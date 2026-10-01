@@ -65,9 +65,11 @@ for that compressor, so `--threshold=-10` changes only the threshold.
 
 At ratio 1:1.0, the factory setting, the 8x8 applies every output gain but 0 dB more strongly than set and adds
 the spectrum mirrored at 24 kHz (see [Solo](#solo)). The browser editor flags such an output on its strip on the
-Comp page and the Gain page, with two buttons that set 1:1.1 from +20 dB. That never compresses below the output
-ceiling and keeps the gain exact. The other compressor values stay as they are. Each button names the gain it
-sets, for example "Exact gain (-6.0dB)" and "Keep level (-8.0dB)" for an output at -6 dB.
+Comp page, with two buttons that set 1:1.1 from +20 dB. That never compresses below the output ceiling and keeps
+the gain exact. The other compressor values stay as they are. Each button names the gain it sets, for example
+"Exact gain (-6.0dB)" and "Keep level (-8.0dB)" for an output at -6 dB. With **Keep threshold** ticked, the
+buttons set only 1:1.1 and leave the threshold where it is, so levels above it get compressed slightly. The
+browser keeps that choice for every output.
 
 - **Exact gain** keeps the gain value, so the output now plays at the level its fader shows. An output set to
   -6 dB that played at -8.2 dB gets 2.2 dB louder.

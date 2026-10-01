@@ -143,6 +143,7 @@ editor:
             groups: "Group Control. Acht Gruppen mit je einem Fader und einem Mute für die Kanäle, die sie auswählen, in Prozent."
 
 # Widget labels and explanatory text use their English source as message IDs.
+"1:1.1 compresses levels above the threshold slightly, below it the gain is exact.": "1:1.1 komprimiert Pegel über der Schwelle leicht, darunter ist der Gain exakt."
 "\"auto\" connects to the first device found, USB before the network. Disconnect frees the device's connection, and the vendor editor may take it at once.": "„auto“ verbindet das erste gefundene Gerät. USB hat Vorrang vor dem Netzwerk. Trennen gibt die Geräteverbindung frei. Der Hersteller-Editor kann sie anschließend übernehmen."
 "%channel% delay": "%channel% Delay"
 "%channel% gain": "%channel% Gain"
@@ -218,6 +219,7 @@ editor:
 "Fit": "Anpassen"
 "Fitting again with other limits needs no new measurement.": "Erneutes Anpassen mit anderen Grenzen benötigt keine neue Messung."
 "Fix with 1:1.1 at +20 dB:": "Korrektur mit 1:1.1 bei +20 dB"
+"Fix with 1:1.1, threshold as set:": "Korrektur mit 1:1.1, Schwelle wie eingestellt:"
 "Flat": "Linear"
 "Freq": "Freq"
 "Frequency": "Frequenz"
@@ -238,6 +240,7 @@ editor:
 "Input": "Eingang"
 "Inverse": "Invertiert"
 "Keep level": "Pegel beibehalten"
+"Keep threshold": "Schwelle beibehalten"
 "Knee": "Knee"
 "Largest boost": "Maximale Anhebung"
 "Leave alone within": "Toleranz"
@@ -263,6 +266,7 @@ editor:
 "Not affiliated with Thomann. The protocol is described in": "Keine Verbindung zu Thomann. Die Protokollbeschreibung steht in"
 "Off": "Aus"
 "On": "Ein"
+"On: the fix only sets 1:1.1 and leaves the threshold, so levels above it get compressed slightly. Off: the threshold goes to +20 dB, where 1:1.1 never compresses.": "An: Die Korrektur setzt nur 1:1.1 und lässt die Schwelle, Pegel darüber werden leicht komprimiert. Aus: Die Schwelle geht auf +20 dB, wo 1:1.1 nie komprimiert."
 "Out group %group%": "Ausgangsgruppe %group%"
 "Output": "Ausgang"
 "Outputs to correct": "Zu korrigierende Ausgänge"

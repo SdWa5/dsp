@@ -230,11 +230,13 @@ final class EditorControllerTest extends WebTestCase
     public function testGainWarningButtonsNameTheGainTheySet(): void
     {
         $warnings = self::page()->filter('[data-controller~=gainwarning]');
-        // One per output on the Comp page and on the Gain page
-        self::assertCount(16, $warnings);
+        // One per output, on the Comp page only
+        self::assertCount(8, $warnings);
+        self::assertCount(8, self::page()->filter('section[data-page=comp] [data-controller~=gainwarning]'));
         $warnings->each(static function (Crawler $warning): void {
             self::assertCount(1, $warning->filter('[data-action="gainwarning#exact"] [data-gainwarning-target=exact]'));
             self::assertCount(1, $warning->filter('[data-action="gainwarning#keepLevel"] [data-gainwarning-target=keep]'));
+            self::assertCount(1, $warning->filter('input[type=checkbox][data-gainwarning-target=keepThreshold]'));
         });
     }
 
