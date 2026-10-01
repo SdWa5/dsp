@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.37.0] - 2026-10-01
+
+### Added
+
+- The link display (code, icon, colour) shows on every channel label inside the pages, as on the channel tabs. The Link dialog leaves it out, since it shows the groups being edited
+- The link placement applies inside the pages: the strips of Gain, Gate, Comp and Delay, the EQ overview switches, the route buttons of Sub Control, Group Control and the Aux, the Auto EQ outputs, the matrix and the routing graph. Stacked gathers a group under one header, strips form a block that runs across, and the matrix leaves a gap around each group (`linkplace_controller.js`, `linkPlacement()` and `linkGaps()` in `assets/lib/link.js`)
+
+### Changed
+
+- The link display settings live in `assets/lib/linkview.js`, so every section follows a change at once
+
 ## [0.36.0] - 2026-10-01
 
 ### Added

@@ -49,12 +49,12 @@
             <div class="matrix-wrap">
             <table class="matrix link-matrix" data-editor-target="linkMatrix" data-side="{{ side }}">
                 <thead>
-                    <tr><th></th>{% for k in 0..7 %}<th scope="col" data-index="{{ k }}">{{ w.ch(base + k) }}</th>{% endfor %}</tr>
+                    <tr><th></th>{% for k in 0..7 %}<th scope="col" data-index="{{ k }}">{{ w.ch(base + k, {link: false}) }}</th>{% endfor %}</tr>
                 </thead>
                 <tbody>
                     {% for i in 0..7 %}
                         <tr data-index="{{ i }}">
-                            <th scope="row" data-index="{{ i }}">{{ w.ch(base + i) }}</th>
+                            <th scope="row" data-index="{{ i }}">{{ w.ch(base + i, {link: false}) }}</th>
                             {% for k in 0..7 %}
                                 <td data-index="{{ k }}"><button type="button" class="toggle toggle--cell link-cell" data-side="{{ side }}" data-row="{{ i }}" data-column="{{ k }}"
                                         aria-label="{{ '%row% with %column%'|trans({'%row%': prefix ~ (i + 1), '%column%': prefix ~ (k + 1)}) }}"{{ i == k ? ' disabled' }} data-action="editor#linkCell"></button></td>
@@ -146,7 +146,7 @@
             {{ w.fader('Threshold', m ~ '.threshold', send, 0, 180, 'threshold') }}
             {{ w.fader('Attack', m ~ '.attack', send, 0, 998, 'ms') }}
             {{ w.fader('Release', m ~ '.release', send, 0, 2999, 'ms') }}
-            <fieldset class="group">
+            <fieldset class="group" data-controller="linkplace">
                 <legend>{{ "Select"|trans }}</legend>
                 {% for i in 0..7 %}
                     {{ w.toggle(w.ch(i), m ~ '.select', send, null, {bit: i, class: 'toggle--route'}) }}

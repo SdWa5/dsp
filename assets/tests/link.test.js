@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { lcm, linkCommands, linkGroups, linkLayout, linkMark, linkUnits, linkedMembers, linkOrder, linkView, toggleLink } from '../lib/link.js';
+import { lcm, linkCommands, linkGaps, linkGroups, linkLayout, linkMark, linkPlacement, linkUnits, linkedMembers, linkOrder, linkView, toggleLink } from '../lib/link.js';
 
 // An unlinked channel holds its own bit (factory default 1, 2, 4 …), a slave holds 0
 const side = (...links) => [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ link: links[i] ?? 1 << i }));
@@ -101,4 +101,19 @@ test('the least common multiple sizes the stacked rows', () => {
     assert.equal(lcm(2, 3), 6);
     assert.equal(lcm(4, 6), 12);
     assert.equal(lcm(5, 3), 15);
+});
+
+test('linkPlacement keeps channel order, or groups members, with blocks only when stacked', () => {
+    const groups = [1, 0, 2, 1, 0, 2, 2, 0];
+    assert.deepEqual(linkPlacement(groups, 'normal'), { order: [0, 1, 2, 3, 4, 5, 6, 7], blocks: [] });
+    assert.deepEqual(linkPlacement(groups, 'side'), { order: [0, 3, 1, 2, 5, 6, 4, 7], blocks: [] });
+    assert.deepEqual(linkPlacement(groups, 'stacked'), { order: [0, 3, 1, 2, 5, 6, 4, 7], blocks: [[0, 3], [2, 5, 6]] });
+});
+
+test('linkGaps separates link groups from their neighbours only when stacked', () => {
+    const groups = [1, 0, 2, 1, 0, 2, 2, 0];
+    // Order 0 3 | 1 | 2 5 6 | 4 7
+    assert.deepEqual([...linkGaps(groups, 'stacked')], [1, 2, 4]);
+    assert.deepEqual([...linkGaps(groups, 'side')], []);
+    assert.deepEqual([...linkGaps([0, 0, 0, 0, 0, 0, 0, 0], 'stacked')], []);
 });

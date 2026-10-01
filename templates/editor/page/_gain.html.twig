@@ -4,7 +4,7 @@
     <canvas class="eq-overview__plot" data-eqoverview-target="canvas"></canvas>
     <div class="eq-overview__switches" role="group" aria-label="{{ "Curves shown"|trans }}">
         {% for side in ['inputs', 'outputs'] %}
-            <span class="eq-overview__side">
+            <span class="eq-overview__side" data-controller="linkplace">
                 {% for i in 0..7 %}
                     <label class="eq-overview__switch eq-overview__switch--{{ side }}"><input type="checkbox" value="{{ side }}.{{ i }}" checked
                         data-eqoverview-target="show" data-action="change->eqoverview#toggle">{{ w.ch(('outputs' == side ? 8 : 0) + i) }}</label>
@@ -17,7 +17,7 @@
 <div class="gain-layout">
 <div class="gain-layout__channels">
 <div data-controller="riders" data-riders-defaults-value="{{ rider_defaults|json_encode }}">
-    <div class="strips" data-controller="collapse" data-collapse-key-value="gain.input">
+    <div class="strips" data-controller="collapse linkplace" data-collapse-key-value="gain.input">
         <h2 class="strips__title">{{ w.fold('Input') }}</h2>
         {% for i in 0..7 %}
             {% set p = 'inputs.' ~ i %}
@@ -59,7 +59,7 @@
         </form>
     </dialog>
 </div>
-<div class="strips" data-controller="collapse" data-collapse-key-value="gain.output">
+<div class="strips" data-controller="collapse linkplace" data-collapse-key-value="gain.output">
     <h2 class="strips__title">{{ w.fold('Output') }}</h2>
     {% for i in 0..7 %}
         {% set p = 'outputs.' ~ i %}

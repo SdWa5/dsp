@@ -106,6 +106,11 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   colour per group combine freely, and code and icon stand next to each other. The placement of linked channels is
   in channel order, side by side, or stacked per link group in one column. Stacked puts a header with the group's
   code, icon and colour above each group column, and the members share the column height equally.
+- The link display and the placement also apply inside the pages. Every channel label outside the Link dialog
+  carries its group's code, icon and colour. The strips of Gain, Gate, Comp and Delay, the EQ overview switches,
+  the route buttons of Sub Control, Group Control and the Aux, the Auto EQ outputs, the matrix and the routing
+  graph follow the placement. Stacked gathers a group under one header, and strips, being too tall to stack, form
+  a block that runs across. The matrix leaves a gap around each group instead.
 - The Link dialog is a channel x channel matrix per side. A cell links its row and column channel, linked channels
   form a group that lights as a block, and a lit cell takes the column channel out of its group. The lowest
   channel of a group is copied to the others. The rows and columns follow the placement after every click, and

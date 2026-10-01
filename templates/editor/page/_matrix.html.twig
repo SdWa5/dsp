@@ -18,7 +18,7 @@
                         title="{{ "Swap rows and columns"|trans }}">In → Out ⇄</button>
             </th>
         {% endset %}
-        <table class="matrix" data-editor-target="matrix" data-swapped="{{ swapped ? 1 : 0 }}"{{ swapped ? ' hidden' }}>
+        <table class="matrix" data-controller="linkplace" data-editor-target="matrix" data-swapped="{{ swapped ? 1 : 0 }}"{{ swapped ? ' hidden' }}>
             <caption>{{ (swapped ? 'Which outputs each input feeds' : 'Which inputs feed each output')|trans }}</caption>
             {% if swapped %}
                 <tbody>

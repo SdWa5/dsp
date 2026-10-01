@@ -4,9 +4,10 @@ import { api, getDefaults, listen, on, send, status, store } from '../lib/device
 import { changedPaths, pageChanges } from '../lib/defaults.js';
 import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel, channelParts } from '../lib/channels.js';
-import { lcm, linkCommands, linkGroups, linkedMembers, linkLayout, linkMark, linkUnits, linkView, toggleLink } from '../lib/link.js';
+import { lcm, linkCommands, linkGroups, linkedMembers, linkLayout, linkMark, linkUnits, toggleLink } from '../lib/link.js';
 import { GAIN_MUTED, presetLabel, presetSlotInfo } from '../lib/scale.js';
 import { readPref, writePref } from '../lib/prefs.js';
+import { getLinkView, setLinkView } from '../lib/linkview.js';
 
 const THEMES = ['auto', 'light', 'dark'];
 /** How the channel tabs show link groups, each switched on its own in the Channels menu. */
@@ -26,7 +27,7 @@ export default class extends Controller {
         const theme = readPref('theme', 'auto');
         this.applyTheme(THEMES.includes(theme) ? theme : 'auto');
         this.showMatrix(readPref('matrix-swapped', false));
-        this.linkViewSettings = linkView(readPref('link-view', {}));
+        this.linkViewSettings = { ...getLinkView() };
         this.showLinkViewSettings();
         this.offs = [
             on('status', () => this.showStatus()),
@@ -302,7 +303,7 @@ export default class extends Controller {
     }
 
     changeLinkView() {
-        writePref('link-view', this.linkViewSettings);
+        setLinkView(this.linkViewSettings);
         this.showLinkViewSettings();
         this.showState();
         if (this.linkDraft) {

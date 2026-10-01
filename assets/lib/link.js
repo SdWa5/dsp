@@ -186,3 +186,35 @@ export function toggleLink(groups, row, column) {
     });
     return normalizeGroups(next);
 }
+
+/**
+ * How a section with one item per channel of a side places its items: `order` lists the channel indices in display
+ * order, and `blocks` the link groups that form a block of their own (only when stacked). In channel order
+ * nothing moves, side by side and stacked put the members of a group next to each other.
+ */
+export function linkPlacement(groups, placement) {
+    if ('normal' === placement) {
+        return { order: groups.map((_g, i) => i), blocks: [] };
+    }
+    const units = linkUnits(groups);
+    return { order: units.flat(), blocks: 'stacked' === placement ? units.filter((u) => u.length > 1) : [] };
+}
+
+/**
+ * The channels before which a table leaves a gap when stacked: the first member of a link group and the first
+ * channel after a group, never between channels alone. Empty for the other placements.
+ */
+export function linkGaps(groups, placement) {
+    const { order, blocks } = linkPlacement(groups, placement);
+    const gaps = new Set();
+    if (0 === blocks.length) {
+        return gaps;
+    }
+    order.forEach((i, position) => {
+        const previous = order[position - 1];
+        if (position > 0 && (0 !== groups[i] || 0 !== groups[previous]) && groups[i] !== groups[previous]) {
+            gaps.add(i);
+        }
+    });
+    return gaps;
+}

@@ -14,7 +14,7 @@
             {% set send = [{command: 'group', args: {index: k, gainPercent: '@' ~ p ~ '.gain', muted: '@' ~ p ~ '.mute', mask: '@' ~ p ~ '.mask'}}] %}
             {% set title = (outputs ? 'Out group %group%' : 'In group %group%')|trans({'%group%': outputs ? k - 3 : k + 1}) %}
         {% endif %}
-        <div class="strip">
+        <div class="strip" data-controller="linkplace">
             <h3 class="strip__title">{{ title|trans }}</h3>
             {{ w.fader('', p ~ '.gain', send, 0, 100, 'percent', null, {label: '%channel% gain'|trans({'%channel%': title|trans})}) }}
             {{ w.toggle('Mute', p ~ '.mute', send, null, {class: 'toggle--mute'}) }}

@@ -260,6 +260,24 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .ch { display: inline-flex; align-items: baseline; gap: 5px; max-width: 100%; min-width: 0; white-space: nowrap; }
 .ch__name { overflow: hidden; text-overflow: ellipsis; font-weight: 400; }
 .ch__name:empty { display: none; }
+/* The link group of a channel, as the Channels menu shows it: the code, the icon, both, or a dot for the colour alone */
+.ch__link { display: inline-flex; align-self: center; align-items: center; gap: 2px; padding: 0 4px; border-radius: 6px; font-size: 9px; font-weight: 700; line-height: 14px; background: var(--button); color: var(--text); }
+.ch[data-group]:not([data-group='']) .ch__link { background: var(--group); color: #111; }
+.ch__link.is-dot { width: 8px; height: 8px; padding: 0; border-radius: 50%; }
+/* Placement "stacked": the members of a link group in one block under one header. Strips run across */
+.link-block { display: flex; flex-direction: column; gap: 4px; padding: 0 3px 3px; border: 1px solid var(--panel-edge); border-radius: 4px; }
+.link-block[data-group]:not([data-group='']) { border-color: var(--group); }
+.link-block__head { display: flex; align-items: center; justify-content: center; gap: 3px; min-height: 12px; margin: 0 -3px; padding: 1px 4px; font-size: 9px; font-weight: 700; border-radius: 3px 3px 0 0; background: var(--title); }
+.link-block[data-group]:not([data-group='']) > .link-block__head { background: var(--group); color: #111; }
+.link-block .ch__link { display: none; }
+.strips > .link-block { flex: 1 0 auto; flex-direction: row; flex-wrap: wrap; gap: 6px; }
+.strips > .link-block > .link-block__head { flex-basis: 100%; }
+.eq-overview__side > .link-block, .checks > .link-block { gap: 2px; }
+/* Routing matrix, stacked: a gap before every further link group */
+.matrix:not(.link-matrix) tr.is-unit-start > td { padding-top: 10px; }
+.matrix:not(.link-matrix) td.is-unit-start { padding-left: 10px; }
+.matrix:not(.link-matrix) tr.is-unit-start > th { border-top: 10px solid transparent; background-clip: padding-box; }
+.matrix:not(.link-matrix) th.is-unit-start { border-left: 10px solid transparent; background-clip: padding-box; }
 .strip__title .ch { justify-content: center; }
 .ch--big { font-size: 18px; }
 .ch--big .ch__name { color: var(--muted); }
@@ -334,6 +352,8 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .routing { flex: 1 1 360px; max-width: 560px; padding: 8px; background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px; }
 .routing__graph { display: block; width: 100%; height: auto; }
 .routing__node rect { fill: var(--title); }
+.routing__node[data-group]:not([data-group='']) .routing__box { stroke: var(--group); stroke-width: 2; }
+.routing__node text.routing__link { font-size: 10px; font-weight: 700; }
 .routing__node text { fill: var(--text); font-size: 12px; }
 .routing__id { font-weight: 700; }
 .routing__edge { fill: none; stroke-width: 2; transition: opacity 0.15s; }

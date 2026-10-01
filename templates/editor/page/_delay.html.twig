@@ -3,7 +3,7 @@
     <label>{{ "Unit"|trans }} {{ w.choice('Delay unit', 'delay_unit', [{command: 'delayUnit', args: {unit: '@delay_unit'}}], labels.DELAY_UNITS) }}</label>
     <span class="page__note">{{ "Type a value into a field in the chosen unit, or add ms, m or ft."|trans }}</span>
 </div>
-<div class="strips">
+<div class="strips" data-controller="linkplace">
     {% for i in 0..7 %}
         {% set p = 'outputs.' ~ i %}
         <div class="strip">

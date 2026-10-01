@@ -1,5 +1,5 @@
 {% import 'editor/_widgets.html.twig' as w %}
-<div class="strips">
+<div class="strips" data-controller="linkplace">
     {% for i in 0..7 %}
         {% set p = 'inputs.' ~ i %}
         {% set send = [{command: 'gate', args: {channel: i, attack: '@' ~ p ~ '.gate.attack', release: '@' ~ p ~ '.gate.release', threshold: '@' ~ p ~ '.gate.threshold'}}] %}

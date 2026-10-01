@@ -68,10 +68,11 @@
     </div>
 {% endmacro %}
 
-{# Channel ID with the channel's name next to it: 0..7 In1..In8, 8..15 Out1..Out8, 18 Aux. #}
+{# Channel ID with the channel's name and its link group next to it: 0..7 In1..In8, 8..15 Out1..Out8, 18 Aux.
+   options: class, link (false hides the link group, as in the Link dialog, which shows the groups being edited) #}
 {% macro ch(index, options = {}) -%}
     {%- set id = index < 8 ? 'In' ~ (index + 1) : (index < 16 ? 'Out' ~ (index - 7) : 'Aux') -%}
-    <span class="ch{{ options.class is defined ? ' ' ~ options.class }}" data-controller="channel" data-channel-index-value="{{ index }}"><b class="ch__id">{{ id }}</b><span class="ch__name"></span></span>
+    <span class="ch{{ options.class is defined ? ' ' ~ options.class }}" data-controller="channel" data-channel-index-value="{{ index }}"{% if options.link is defined and not options.link %} data-channel-link-value="false"{% endif %}><b class="ch__id">{{ id }}</b><span class="ch__name"></span></span>
 {%- endmacro %}
 
 {# An <option> with the channel ID and name, value defaults to the channel index. #}
