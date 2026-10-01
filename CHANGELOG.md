@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.42.0] - 2026-10-01
+
+### Changed
+
+- Gain riders belong to a preset. Storing a user preset keeps the running riders for its slot, and recalling it brings back exactly those. A slot stored without riders or before this version recalls with none, like the factory default. The riders file holds `{"riders": [...], "presets": {...}}` and still reads the plain list of earlier versions
+- The store and recall dialogs and their tooltips say that the gain riders go with the preset
+
 ## [0.41.0] - 2026-10-01
 
 ### Changed

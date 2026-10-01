@@ -26,8 +26,11 @@ a member without a rider gets one. Unlinked again, every member keeps riding on 
 status line of the leading rider names its members ("Riding -3.4 dB · In3+In4"), and every other member reads
 "Ridden with In3".
 
-Recalling the factory default (F00) stops every rider, so the factory gains stay as they are. A user preset
-keeps them.
+Riders belong to a preset. Storing a user preset keeps the running riders for its slot, and recalling it brings
+back exactly those, which take the preset's gains as they come. A slot stored without riders, or stored before
+0.42.0, recalls with none, and so does the factory default (F00), so the factory gains stay as they are. The
+bridge keeps the riders of every slot in its riders file next to the running ones, so they survive a restart.
+A preset stored in the vendor editor or on the front panel carries no riders.
 
 ```bash
 bin/console trackdsp:ride in1                              # ride In1 towards -18 dB

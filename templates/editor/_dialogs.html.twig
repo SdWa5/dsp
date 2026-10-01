@@ -25,7 +25,7 @@
     <form class="dialog__form" data-action="editor#store">
         <label>{{ "Slot"|trans }} <select name="number" data-editor-target="slots" data-first="1"></select></label>
         <label>{{ "Name"|trans }} <input type="text" name="name" maxlength="14" required data-editor-target="storeName"></label>
-        <p class="dialog__note">{{ "The live settings replace the slot. Every store is confirmed first."|trans }}</p>
+        <p class="dialog__note">{{ "The live settings and the running gain riders replace the slot. Every store is confirmed first."|trans }}</p>
         <div class="dialog__buttons"><button type="submit" class="big">{{ "Store"|trans }}</button></div>
     </form>
 </dialog>
@@ -34,7 +34,7 @@
     {{ _self.dialog('recall', 'Recall preset', 'recall') }}
     <form class="dialog__form" data-action="editor#recall">
         <label>{{ "Preset"|trans }} <select name="number" data-editor-target="slots" data-first="0"></select></label>
-        <p class="dialog__note">{{ "A recall replaces all live settings."|trans }}</p>
+        <p class="dialog__note">{{ "A recall replaces all live settings and the gain riders."|trans }}</p>
         <div class="dialog__buttons"><button type="submit" class="big">{{ "Recall"|trans }}</button></div>
     </form>
 </dialog>
