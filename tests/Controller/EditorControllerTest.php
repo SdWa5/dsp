@@ -112,6 +112,11 @@ final class EditorControllerTest extends WebTestCase
             self::assertCount(72, $table->filter('.toggle--cell'));
             self::assertSame('editor#swapMatrix', $table->filter('.matrix__corner')->attr('data-action'));
         }
+        // The signal runs from In to Out: In headers left or on top, Out headers right or at the bottom
+        self::assertSame('In1', $normal->filter('thead th')->first()->filter('.ch__id')->text());
+        self::assertSame('Out1', $normal->filter('tbody tr')->first()->filter('th')->last()->filter('.ch__id')->text());
+        self::assertSame('In1', $swapped->filter('tbody tr')->first()->filter('th')->first()->filter('.ch__id')->text());
+        self::assertCount(8, $swapped->filter('tfoot th .ch'));
         // Row In3 of the swapped table holds bit 2 of every output
         $row = $swapped->filter('tbody tr')->eq(2)->filter('.toggle--cell');
         self::assertSame('outputs.7.route', $row->last()->attr('data-toggle-bind-value'));

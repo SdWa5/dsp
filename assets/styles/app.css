@@ -315,9 +315,11 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .matrix { border-collapse: separate; border-spacing: 3px; margin: 0 auto; }
 .matrix caption { caption-side: bottom; padding-top: 6px; color: var(--muted); }
 .matrix th { padding: 4px 8px; font-weight: 400; background: var(--title); border-radius: 3px; white-space: nowrap; }
-.matrix thead th .ch { flex-direction: column; align-items: center; gap: 0; }
-.matrix thead th .ch__name { font-size: 11px; }
+.matrix :is(thead, tfoot) th .ch { flex-direction: column; align-items: center; gap: 0; }
+.matrix :is(thead, tfoot) th .ch__name { font-size: 11px; }
 .matrix tbody th { position: sticky; left: 0; z-index: 1; text-align: left; }
+/* Out row headers sit at the right edge, so they stick there */
+.matrix tbody th.matrix__end { left: auto; right: 0; }
 .matrix__corner { padding: 2px 4px; color: var(--muted); font: inherit; font-size: 11px; background: none; border: 1px dashed var(--panel-edge); border-radius: 3px; cursor: pointer; }
 .matrix__corner:hover { color: inherit; border-style: solid; }
 .matrix td { padding: 0; }

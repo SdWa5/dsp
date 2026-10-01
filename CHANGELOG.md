@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24.2] - 2026-10-01
+
+### Changed
+
+- Matrix: the Out headers sit on the right (outputs as rows) or at the bottom (inputs as rows), so the In headers are always left or on top and the signal runs from In to Out. The corner button moves with them
+
 ## [0.24.1] - 2026-10-01
 
 ### Changed
