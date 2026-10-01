@@ -286,7 +286,7 @@ final class BridgeTest extends TestCase
             self::assertSame([0, 1], array_column($this->request('status')['result']['riders'], 'channel'));
 
             self::assertSame([], $this->request('unride', ['channel' => 0])['result']['riders']);
-            self::assertSame([], json_decode((string) file_get_contents($file), true));
+            self::assertSame(['riders' => [], 'presets' => []], json_decode((string) file_get_contents($file), true));
         } finally {
             @unlink($file);
         }
@@ -347,19 +347,47 @@ final class BridgeTest extends TestCase
         self::assertSame([], $this->request('unride', ['channel' => 3])['result']['riders']);
     }
 
-    public function testFactoryDefaultStopsTheRiders(): void
+    public function testRidersAreKeptPerPreset(): void
     {
         $file = sys_get_temp_dir().'/trackdsp-test-'.bin2hex(random_bytes(4)).'.riders.json';
         $this->restart($file);
+        $channels = fn (): array => array_column($this->request('status')['result']['riders'], 'channel');
+        $write = fn (Frame ...$frames): array => $this->request('write', ['frames' => array_map(self::hex(...), $frames)]);
         try {
-            $this->request('ride', ['channel' => 0, 'settings' => []]);
-            // A user preset keeps them
-            $this->request('write', ['frames' => [self::hex(Commands::loadPreset(1))]]);
-            self::assertSame([0, 1], array_column($this->request('status')['result']['riders'], 'channel'));
+            // U01 stored with the rider on In1 and In2, U02 without riders
+            $this->request('ride', ['channel' => 0, 'settings' => ['target' => -24]]);
+            $write(Commands::presetName('With rider'), Commands::storePreset(1));
+            $this->request('unride', ['channel' => 0]);
+            $write(Commands::presetName('No rider'), Commands::storePreset(2));
 
-            $this->request('write', ['frames' => [self::hex(Commands::loadPreset(0))]]);
-            self::assertSame([], $this->request('status')['result']['riders']);
-            self::assertSame([], json_decode((string) file_get_contents($file), true));
+            $write(Commands::loadPreset(1));
+            self::assertSame([0, 1], $channels());
+            self::assertEquals([-24, -24], array_column($this->request('status')['result']['riders'], 'target'));
+            $write(Commands::loadPreset(2));
+            self::assertSame([], $channels());
+            $write(Commands::loadPreset(1));
+            self::assertSame([0, 1], $channels());
+            // Factory default runs with none
+            $write(Commands::loadPreset(0));
+            self::assertSame([], $channels());
+
+            // The riders of a preset survive a restart
+            $this->restart($file);
+            $write(Commands::loadPreset(1));
+            self::assertSame([0, 1], $channels());
+        } finally {
+            @unlink($file);
+        }
+    }
+
+    public function testReadsARidersFileFromBeforePresets(): void
+    {
+        $file = sys_get_temp_dir().'/trackdsp-test-'.bin2hex(random_bytes(4)).'.riders.json';
+        file_put_contents($file, json_encode([['channel' => 2, 'target' => -24]]));
+        try {
+            $this->restart($file);
+            // In3 comes back, the demo's link with In4 may already have added In4
+            self::assertSame(2, $this->request('status')['result']['riders'][0]['channel']);
         } finally {
             @unlink($file);
         }

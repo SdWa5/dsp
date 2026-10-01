@@ -34,7 +34,9 @@ use Psr\Log\NullLogger;
  *
  * Gain riders run inside the bridge, so they keep working without a browser. They read the meters, which are
  * polled while a client listens or a rider runs, and write the input gain like any other client. Their
- * settings are kept in $ridersFile and come back after a restart.
+ * settings are kept in $ridersFile and come back after a restart. Riders belong to a preset as well: storing a
+ * user preset keeps the running riders for its slot, recalling it brings back exactly those, and the factory
+ * default (F00) or a slot stored without riders runs with none.
  *
  * Every connect and disconnect op is kept in $targetFile. With $restoreTarget the bridge starts on that target,
  * connected or not as it was left, instead of on the one it was given. A restart therefore does not drop the
@@ -72,6 +74,8 @@ final class Bridge
     private string $error = '';
     /** @var array<int, GainRider> input channel => rider */
     private array $riders = [];
+    /** @var array<int, list<array<string, mixed>>> user preset slot 1..20 => settings of the riders stored with it */
+    private array $presetRiders = [];
 
     public function __construct(
         private readonly TransportFactory $transports,
@@ -172,7 +176,7 @@ final class Bridge
             'queued' => $this->queue->count(),
             'resync' => null === $this->resync ? null : round($this->resync->progress(), 2),
             'clients' => \count($this->clients),
-            'riders' => array_values(array_map(static fn (GainRider $r): array => $r->settings()->toArray(), $this->riders)),
+            'riders' => $this->riderSettings(),
         ];
     }
 
@@ -515,11 +519,12 @@ final class Bridge
         foreach ($parsed as $frame) {
             $state->apply($frame);
             $this->queue->push($frame);
-            // Factory default (F00) starts from scratch, so the riders stop and leave the factory gains alone
-            if (Opcode::LoadPreset === $frame->opcode() && "\x00" === $frame->data && [] !== $this->riders) {
-                $this->riders = [];
+            $slot = \ord($frame->data[0] ?? "\x00");
+            if (Opcode::StorePreset === $frame->opcode() && $slot >= 1 && $slot <= 20) {
+                $this->presetRiders[$slot] = $this->riderSettings();
                 $this->saveRiders();
-                $this->logger->info('Factory default recalled, the gain riders are stopped.');
+            } elseif (Opcode::LoadPreset === $frame->opcode()) {
+                $this->recallRiders($slot);
             }
         }
         $this->stateDirty = true;
@@ -668,23 +673,71 @@ final class Bridge
         return $channel;
     }
 
+    /**
+     * The riders of a preset recall: F00 (slot 0) stops them all, a user preset brings back the riders stored with
+     * it, none for a slot stored without riders or before riders were kept per preset. The new riders take the
+     * preset's gains as they come, without a pause.
+     */
+    private function recallRiders(int $slot): void
+    {
+        $settings = $slot >= 1 && $slot <= 20 ? ($this->presetRiders[$slot] ?? []) : [];
+        if ([] === $this->riders && [] === $settings) {
+            return;
+        }
+        $this->riders = $this->ridersFrom($settings);
+        $this->saveRiders();
+        $this->statusDirty = true;
+        $this->logger->info('Preset {slot} recalled with {count} gain rider(s).', ['slot' => 0 === $slot ? 'F00' : \sprintf('U%02d', $slot), 'count' => \count($this->riders)]);
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function riderSettings(): array
+    {
+        return array_values(array_map(static fn (GainRider $r): array => $r->settings()->toArray(), $this->riders));
+    }
+
+    /**
+     * Riders from saved settings, input channel => rider. Settings that are not valid are skipped with a warning.
+     *
+     * @return array<int, GainRider>
+     */
+    private function ridersFrom(mixed $list): array
+    {
+        $riders = [];
+        foreach (\is_array($list) ? $list : [] as $settings) {
+            try {
+                if (!\is_array($settings) || !\is_int($settings['channel'] ?? null)) {
+                    throw new \InvalidArgumentException('no channel');
+                }
+                $riders[$settings['channel']] = new GainRider(RiderSettings::fromArray($settings['channel'], $settings));
+            } catch (\InvalidArgumentException $e) {
+                $this->logger->warning('Skipped a saved gain rider in {file}: {message}', ['file' => $this->ridersFile, 'message' => $e->getMessage()]);
+            }
+        }
+        ksort($riders);
+
+        return $riders;
+    }
+
+    /**
+     * Reads $ridersFile: {"riders": [...], "presets": {"5": [...]}}, or a plain list of riders as written before
+     * riders were kept per preset.
+     */
     private function loadRiders(): void
     {
         if (null === $this->ridersFile || !is_file($this->ridersFile)) {
             return;
         }
         $saved = json_decode((string) file_get_contents($this->ridersFile), true);
-        foreach (\is_array($saved) ? $saved : [] as $settings) {
-            try {
-                if (!\is_array($settings) || !\is_int($settings['channel'] ?? null)) {
-                    throw new \InvalidArgumentException('no channel');
-                }
-                $this->riders[$settings['channel']] = new GainRider(RiderSettings::fromArray($settings['channel'], $settings));
-            } catch (\InvalidArgumentException $e) {
-                $this->logger->warning('Skipped a saved gain rider in {file}: {message}', ['file' => $this->ridersFile, 'message' => $e->getMessage()]);
+        $saved = \is_array($saved) && !array_is_list($saved) ? $saved : ['riders' => $saved];
+        $this->riders = $this->ridersFrom($saved['riders'] ?? []);
+        foreach (\is_array($saved['presets'] ?? null) ? $saved['presets'] : [] as $slot => $settings) {
+            if (is_numeric($slot) && (int) $slot >= 1 && (int) $slot <= 20) {
+                $this->presetRiders[(int) $slot] = array_values(array_map(fn (GainRider $r): array => $r->settings()->toArray(), $this->ridersFrom($settings)));
             }
         }
-        ksort($this->riders);
         if ([] !== $this->riders) {
             $this->logger->info('Restored {count} gain rider(s) from {file}.', ['count' => \count($this->riders), 'file' => $this->ridersFile]);
         }
@@ -695,8 +748,9 @@ final class Bridge
         if (null === $this->ridersFile) {
             return;
         }
-        $settings = array_values(array_map(static fn (GainRider $r): array => $r->settings()->toArray(), $this->riders));
-        if (false === @file_put_contents($this->ridersFile, json_encode($settings, \JSON_PRETTY_PRINT | \JSON_THROW_ON_ERROR))) {
+        ksort($this->presetRiders);
+        $saved = ['riders' => $this->riderSettings(), 'presets' => (object) $this->presetRiders];
+        if (false === @file_put_contents($this->ridersFile, json_encode($saved, \JSON_PRETTY_PRINT | \JSON_THROW_ON_ERROR))) {
             $this->logger->warning('Cannot save the gain riders to {file}.', ['file' => $this->ridersFile]);
         }
     }
