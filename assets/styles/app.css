@@ -364,8 +364,9 @@ details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
 .dialog__note { color: var(--muted); margin: 0 0 8px; }
 .dialog__error { color: var(--mute); font-weight: 600; margin: 0; }
 .dialog__error:empty { display: none; }
-.link-grid, .names { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 12px; }
-.link-grid label, .names label { display: flex; gap: 6px; align-items: center; justify-content: space-between; }
+/* The gap belongs between cells, so a name stays next to its own control */
+.link-grid, .names { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 24px; }
+.link-grid label, .names label { display: flex; gap: 6px; align-items: center; }
 .table { border-collapse: collapse; width: 100%; }
 .table th, .table td { border: 1px solid var(--panel-edge); padding: 3px 6px; text-align: left; }
 
