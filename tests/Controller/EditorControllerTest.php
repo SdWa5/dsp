@@ -88,6 +88,17 @@ final class EditorControllerTest extends WebTestCase
         self::assertSame('15', $page->filter('select[name=target] option')->last()->attr('value'));
     }
 
+    public function testGainPageCarriesSubAndGroupControl(): void
+    {
+        $gain = self::page()->filter('section[data-page=gain]');
+        // The same widgets as in the dialogs, bound to the same paths
+        self::assertCount(2, $gain->filter('[data-fader-bind-value^="sub."]'));
+        self::assertCount(8, $gain->filter('[data-fader-bind-value^="groups."]'));
+        self::assertCount(8 * 8, $gain->filter('.toggle--route[data-toggle-bind-value^="groups."]'));
+        self::assertCount(0, $gain->filter('[data-controller~=riders] [data-fader-bind-value^="sub."]'), 'Sub Control sits outside the rider scope.');
+        self::assertCount(2, self::page()->filter('dialog#dialog-sub [data-fader-bind-value^="sub."]'));
+    }
+
     public function testEveryBindingIsAStatePath(): void
     {
         $paths = [];

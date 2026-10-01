@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.0] - 2026-10-01
+
+### Added
+
+- Sub Control next to the channel strips and Group Control below them on the Gain page
+
+### Changed
+
+- The Sub and Group Control strips come from one partial, `templates/editor/_subgroup.html.twig`, for the dialogs and the Gain page
+
+### Removed
+
+- The TODO item for Sub and Group control on the Gain page
+
 ## [0.18.3] - 2026-10-01
 
 ### Added

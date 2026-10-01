@@ -104,6 +104,8 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
 - A gain at its lowest step shows as "Muted", because raw 0 mutes the channel although the vendor editor shows
   it as -60 dB. Typing "mute" sets it. -59.5 dB is the lowest gain that passes signal.
 - The meters hold their peak for 1.5 s and light a red top for 2 s after reaching 0 dB.
+- The Gain page also carries Sub Control next to the channel strips and Group Control below them, the same
+  controls as in their dialogs.
 - The Gain page starts and shows the gain riders, and the Auto EQ page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
 - The theme button switches between auto, light and dark. The choice is kept in the browser.
 

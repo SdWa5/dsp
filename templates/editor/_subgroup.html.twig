@@ -1,0 +1,25 @@
+{# Sub Control (key 'sub', 2 strips) or Group Control (key 'groups', 8 strips), in its dialog and on the Gain page.
+   heading: an optional panel title, the dialog has its own head. class: extra classes for the panel. #}
+{% import 'editor/_widgets.html.twig' as w %}
+<div class="strips {{ class|default('') }}">
+    {% if heading|default(null) %}<h2 class="strips__title">{{ heading }}</h2>{% endif %}
+    {% for k in 0..('sub' == key ? 1 : 7) %}
+        {% set p = key ~ '.' ~ k %}
+        {% set outputs = 'sub' == key ? 1 == k : k >= 4 %}
+        {% if 'sub' == key %}
+            {% set send = [{command: 'subControl', args: {io: k, gainPercent: '@' ~ p ~ '.gain', muted: '@' ~ p ~ '.mute', mask: '@' ~ p ~ '.mask', extra: '@sub_extra.' ~ k}}] %}
+            {% set title = outputs ? 'Output' : 'Input' %}
+        {% else %}
+            {% set send = [{command: 'group', args: {index: k, gainPercent: '@' ~ p ~ '.gain', muted: '@' ~ p ~ '.mute', mask: '@' ~ p ~ '.mask'}}] %}
+            {% set title = (outputs ? 'Out group ' ~ (k - 3) : 'In group ' ~ (k + 1)) %}
+        {% endif %}
+        <div class="strip">
+            <h3 class="strip__title">{{ title }}</h3>
+            {{ w.fader('', p ~ '.gain', send, 0, 100, 'percent', null, {label: title ~ ' gain'}) }}
+            {{ w.toggle('Mute', p ~ '.mute', send, null, {class: 'toggle--mute'}) }}
+            {% for b in 0..7 %}
+                {{ w.toggle(w.ch(outputs ? 8 + b : b), p ~ '.mask', send, null, {bit: b, class: 'toggle--route'}) }}
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>

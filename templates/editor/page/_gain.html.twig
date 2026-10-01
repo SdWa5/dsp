@@ -1,4 +1,6 @@
 {% import 'editor/_widgets.html.twig' as w %}
+<div class="gain-layout">
+<div class="gain-layout__channels">
 <div data-controller="riders" data-riders-defaults-value="{{ rider_defaults|json_encode }}">
     <div class="strips">
         <h2 class="strips__title">Input</h2>
@@ -59,3 +61,7 @@
         </div>
     {% endfor %}
 </div>
+</div>
+{{ include('editor/_subgroup.html.twig', {key: 'sub', heading: 'Sub Control', class: 'strips--side'}) }}
+</div>
+{{ include('editor/_subgroup.html.twig', {key: 'groups', heading: 'Group Control'}) }}

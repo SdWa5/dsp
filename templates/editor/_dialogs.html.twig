@@ -108,30 +108,10 @@
     </div>
 </dialog>
 
-{% for key, spec in {sub: ['Sub Control', 2], groups: ['Group Control', 8]} %}
+{% for key, title in {sub: 'Sub Control', groups: 'Group Control'} %}
     <dialog class="dialog dialog--wide" id="dialog-{{ key }}" data-editor-target="dialog">
-        {{ _self.dialog(key, spec[0]) }}
-        <div class="strips">
-            {% for k in 0..(spec[1] - 1) %}
-                {% set p = key ~ '.' ~ k %}
-                {% set outputs = 'sub' == key ? 1 == k : k >= 4 %}
-                {% if 'sub' == key %}
-                    {% set send = [{command: 'subControl', args: {io: k, gainPercent: '@' ~ p ~ '.gain', muted: '@' ~ p ~ '.mute', mask: '@' ~ p ~ '.mask', extra: '@sub_extra.' ~ k}}] %}
-                    {% set title = outputs ? 'Output' : 'Input' %}
-                {% else %}
-                    {% set send = [{command: 'group', args: {index: k, gainPercent: '@' ~ p ~ '.gain', muted: '@' ~ p ~ '.mute', mask: '@' ~ p ~ '.mask'}}] %}
-                    {% set title = (outputs ? 'Out group ' ~ (k - 3) : 'In group ' ~ (k + 1)) %}
-                {% endif %}
-                <div class="strip">
-                    <h3 class="strip__title">{{ title }}</h3>
-                    {{ w.fader('', p ~ '.gain', send, 0, 100, 'percent', null, {label: title ~ ' gain'}) }}
-                    {{ w.toggle('Mute', p ~ '.mute', send, null, {class: 'toggle--mute'}) }}
-                    {% for b in 0..7 %}
-                        {{ w.toggle(w.ch(outputs ? 8 + b : b), p ~ '.mask', send, null, {bit: b, class: 'toggle--route'}) }}
-                    {% endfor %}
-                </div>
-            {% endfor %}
-        </div>
+        {{ _self.dialog(key, title) }}
+        {{ include('editor/_subgroup.html.twig', {key: key}) }}
     </dialog>
 {% endfor %}
 

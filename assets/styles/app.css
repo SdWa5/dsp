@@ -186,6 +186,10 @@ input[type=text], input[type=number], select { background: var(--field); color: 
     background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px;
 }
 .strips__title { flex-basis: 100%; margin: 0; padding: 2px; text-align: center; font-size: 13px; background: var(--title); border-radius: 3px; }
+/* Gain page: Sub Control next to the channel strips, wrapping below them when the window is narrow */
+.gain-layout { display: flex; flex-wrap: wrap; gap: 0 10px; align-items: flex-start; }
+.gain-layout__channels { flex: 1 1 600px; min-width: 0; }
+.strips--side { flex: 0 1 auto; }
 /* A strip is as wide as its controls and grows to fill the row, up to a limit */
 .strip {
     flex: 1 0 auto; display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 104px; max-width: 300px; padding: 4px 6px 8px;

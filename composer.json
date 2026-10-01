@@ -1,7 +1,7 @@
 {
     "name": "gitiglitzer/trackdsp",
     "description": "Editor, CLI and library for the Thomann t.racks 8x8 Matrix DSP over USB-HID or LAN",
-    "version": "0.18.3",
+    "version": "0.19.0",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
