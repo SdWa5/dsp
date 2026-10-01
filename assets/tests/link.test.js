@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { linkCommands, linkGroups, linkLayout, linkedMembers, linkOrder, linkView, toggleLink } from '../lib/link.js';
+import { linkCommands, linkGroups, linkLayout, linkMark, linkUnits, linkedMembers, linkOrder, linkView, toggleLink } from '../lib/link.js';
 
 // An unlinked channel holds its own bit (factory default 1, 2, 4 …), a slave holds 0
 const side = (...links) => [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ link: links[i] ?? 1 << i }));
@@ -39,8 +39,10 @@ test('linked channels are ordered next to each other', () => {
 });
 
 test('the stored link view migrates the old side-by-side checkbox', () => {
-    assert.deepEqual(linkView(null), { code: true, colour: false, placement: 'normal' });
-    assert.deepEqual(linkView({ code: false, colour: true, columns: true }), { code: false, colour: true, placement: 'side' });
+    assert.deepEqual(linkView(null), { code: true, colour: false, shape: false, placement: 'normal' });
+    // Before 0.30.0 a group without the code showed its shape
+    assert.deepEqual(linkView({ code: false, colour: true, columns: true }), { code: false, colour: true, shape: true, placement: 'side' });
+    assert.equal(linkView({ code: false, shape: false }).shape, false);
     assert.deepEqual(linkView({ columns: true, placement: 'stacked' }).placement, 'stacked');
     assert.deepEqual(linkView({ placement: 'diagonal' }).placement, 'normal');
 });
@@ -77,4 +79,19 @@ test('a click on a lit cell takes the column channel out of its group', () => {
     assert.deepEqual(toggleLink([1, 1, 1, 0, 0, 0, 0, 0], 0, 2), [1, 1, 0, 0, 0, 0, 0, 0]);
     // A pair falls apart completely, and the next group moves up to L1
     assert.deepEqual(toggleLink([1, 1, 0, 0, 2, 2, 0, 0], 1, 0), [0, 0, 0, 0, 1, 1, 0, 0]);
+});
+
+test('link units list each group and each channel alone in link order', () => {
+    // In1 + In5 and In3 + In4 + In8
+    assert.deepEqual(linkUnits([1, 0, 2, 2, 1, 0, 0, 2]), [[0, 4], [1], [2, 3, 7], [5], [6]]);
+    assert.deepEqual(linkUnits([0, 0, 0, 0, 0, 0, 0, 0]), [[0], [1], [2], [3], [4], [5], [6], [7]]);
+});
+
+test('a link mark shows the code, the shape or both', () => {
+    const shape = '<span class="link-shape" data-shape="2" aria-hidden="true"></span>';
+    assert.equal(linkMark({ code: true, shape: false }, 2), 'L2');
+    assert.equal(linkMark({ code: false, shape: true }, 2), shape);
+    assert.equal(linkMark({ code: true, shape: true }, 2), `L2${shape}`);
+    assert.equal(linkMark({ code: false, shape: false }, 2), '');
+    assert.equal(linkMark({ code: true, shape: true }, 0), '');
 });

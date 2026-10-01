@@ -148,11 +148,14 @@ final class EditorControllerTest extends WebTestCase
 
     public function testLinkDisplayOptions(): void
     {
-        $boxes = self::page()->filter('input[data-editor-target=linkView]');
-        self::assertSame(['code', 'colour'], $boxes->each(static fn (Crawler $n): string => (string) $n->attr('value')));
-        $radios = self::page()->filter('input[data-editor-target=linkPlacement]');
-        self::assertSame(['normal', 'side', 'stacked'], $radios->each(static fn (Crawler $n): string => (string) $n->attr('value')));
-        self::assertSame(['link-placement'], array_values(array_unique($radios->each(static fn (Crawler $n): string => (string) $n->attr('name')))));
+        // The same settings in the Channels menu and below the Link matrices, each copy with a radio group of its own
+        foreach (['.menu' => 'link-placement', '#dialog-link' => 'link-dialog-placement'] as $scope => $name) {
+            $boxes = self::page()->filter($scope.' input[data-editor-target=linkView]');
+            self::assertSame(['code', 'shape', 'colour'], $boxes->each(static fn (Crawler $n): string => (string) $n->attr('value')));
+            $radios = self::page()->filter($scope.' input[data-editor-target=linkPlacement]');
+            self::assertSame(['normal', 'side', 'stacked'], $radios->each(static fn (Crawler $n): string => (string) $n->attr('value')));
+            self::assertSame([$name], array_values(array_unique($radios->each(static fn (Crawler $n): string => (string) $n->attr('name')))));
+        }
         // The Link dialog is one channel x channel matrix per side, with the diagonal disabled
         $matrices = self::page()->filter('#dialog-link table.link-matrix');
         self::assertSame(['inputs', 'outputs'], $matrices->each(static fn (Crawler $n): string => (string) $n->attr('data-side')));
@@ -160,6 +163,8 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(64, $outputs->filter('.link-cell'));
         self::assertCount(8, $outputs->filter('.link-cell[disabled]'));
         self::assertSame('Out1', $outputs->filter('thead th .ch__id')->first()->text());
+        // Headers and cells carry their channel, so the editor can order and merge them by the placement
+        self::assertSame(['0', '1', '2', '3', '4', '5', '6', '7'], $outputs->filter('tbody th')->each(static fn (Crawler $n): string => (string) $n->attr('data-index')));
         self::assertSame('Out3 with Out5', $outputs->filter('tbody tr')->eq(2)->filter('.link-cell')->eq(4)->attr('aria-label'));
         self::assertSame('editor#linkCell', $outputs->filter('.link-cell')->first()->attr('data-action'));
         // The gap between inputs and outputs starts at Out1 until the tabs are reordered

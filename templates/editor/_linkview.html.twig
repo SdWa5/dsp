@@ -1,0 +1,10 @@
+{# The link display settings, in the Channels menu and below the Link matrices. Both copies stay in step through
+   the editor controller. name: the radio group, unique per copy. heading, check: the classes of a heading and a choice. #}
+<span class="{{ heading }}">Link display (channel tabs and Link dialog)</span>
+{% for key, label in {code: 'Group code (L1, L2 …)', shape: 'Shape per group', colour: 'Colour per group'} %}
+    <label class="{{ check }}"><input type="checkbox" value="{{ key }}" data-editor-target="linkView" data-action="change->editor#linkView"> {{ label }}</label>
+{% endfor %}
+<span class="{{ heading }}">Placement of linked channels</span>
+{% for key, label in {normal: 'In channel order', side: 'Side by side', stacked: 'Stacked per link group'} %}
+    <label class="{{ check }}"><input type="radio" name="{{ name }}" value="{{ key }}" data-editor-target="linkPlacement" data-action="change->editor#linkPlacement"> {{ label }}</label>
+{% endfor %}

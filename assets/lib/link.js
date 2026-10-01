@@ -75,18 +75,46 @@ export function linkOrder(groups) {
     return order;
 }
 
+/** The channels in link order, one array per link group and one per channel alone: [[0, 4], [1], [2, 3, 7], …]. */
+export function linkUnits(groups) {
+    const units = [];
+    for (const i of linkOrder(groups)) {
+        const unit = 0 === groups[i] ? undefined : units.find((u) => groups[u[0]] === groups[i]);
+        if (unit) {
+            unit.push(i);
+        } else {
+            units.push([i]);
+        }
+    }
+    return units;
+}
+
+/**
+ * The mark of link group `group` (1..) for the display settings: the code, the group's shape (circle, square,
+ * triangle, diamond), both next to each other, or nothing. 0 has no mark.
+ */
+export function linkMark(view, group) {
+    if (group < 1) {
+        return '';
+    }
+    const code = view.code ? `L${group}` : '';
+    return view.shape ? `${code}<span class="link-shape" data-shape="${group}" aria-hidden="true"></span>` : code;
+}
+
 /** Where linked channels go: in DOM order, next to each other, or one above the other in one column. */
 export const PLACEMENTS = ['normal', 'side', 'stacked'];
 
 /**
- * Link display settings from what a browser stored: {code, colour, placement}. Before 0.25.0 the placement was the
- * checkbox `columns`, which becomes 'side'.
+ * Link display settings from what a browser stored: {code, colour, shape, placement}. Before 0.25.0 the placement
+ * was the checkbox `columns`, which becomes 'side'. Before 0.30.0 a group showed its shape whenever the code was
+ * off, so a stored code: false turns the shape on.
  */
 export function linkView(stored) {
     const value = stored && 'object' === typeof stored ? stored : {};
     return {
         code: value.code ?? true,
         colour: value.colour ?? false,
+        shape: value.shape ?? false === value.code,
         placement: PLACEMENTS.includes(value.placement) ? value.placement : true === value.columns ? 'side' : 'normal',
     };
 }
@@ -100,19 +128,11 @@ export function linkLayout(groups, placement) {
     if ('normal' === placement) {
         return { columns: 8, rows: 1, cells: groups.map((_g, i) => ({ column: i + 1, row: 1, span: 1 })) };
     }
-    const order = linkOrder(groups);
     if ('side' === placement) {
+        const order = linkOrder(groups);
         return { columns: 8, rows: 1, cells: groups.map((_g, i) => ({ column: order.indexOf(i) + 1, row: 1, span: 1 })) };
     }
-    const units = [];
-    for (const i of order) {
-        const unit = 0 === groups[i] ? undefined : units.find((u) => groups[u[0]] === groups[i]);
-        if (unit) {
-            unit.push(i);
-        } else {
-            units.push([i]);
-        }
-    }
+    const units = linkUnits(groups);
     const rows = Math.max(...units.map((u) => u.length));
     const cells = new Array(groups.length);
     units.forEach((unit, column) => {

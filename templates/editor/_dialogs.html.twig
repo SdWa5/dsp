@@ -42,7 +42,7 @@
 <dialog class="dialog dialog--wide" id="dialog-link" data-editor-target="dialog">
     {{ _self.dialog('link', 'Link') }}
     <form class="dialog__form" data-action="editor#link">
-        <p class="dialog__note">A cell links its row and column channel, and linked channels form a group, which lights as a block. A lit cell takes the column channel out of its group. The lowest channel of a group is copied to the others.</p>
+        <p class="dialog__note">A cell links its row and column channel, and linked channels form a group, which lights as a block. A lit cell takes the column channel out of its group. The lowest channel of a group is copied to the others. The rows and columns follow the placement below.</p>
         <div class="link-matrices">
         {% for side, prefix in {inputs: 'In', outputs: 'Out'} %}
             {% set base = 'inputs' == side ? 0 : 8 %}
@@ -54,7 +54,7 @@
                 <tbody>
                     {% for i in 0..7 %}
                         <tr data-index="{{ i }}">
-                            <th scope="row">{{ w.ch(base + i) }}</th>
+                            <th scope="row" data-index="{{ i }}">{{ w.ch(base + i) }}</th>
                             {% for k in 0..7 %}
                                 <td data-index="{{ k }}"><button type="button" class="toggle toggle--cell link-cell" data-side="{{ side }}" data-row="{{ i }}" data-column="{{ k }}"
                                         aria-label="{{ prefix }}{{ i + 1 }} with {{ prefix }}{{ k + 1 }}"{{ i == k ? ' disabled' }} data-action="editor#linkCell"></button></td>
@@ -66,6 +66,9 @@
             </div>
         {% endfor %}
         </div>
+        <fieldset class="link-view">
+            {{ include('editor/_linkview.html.twig', {name: 'link-dialog-placement', heading: 'link-view__heading', check: 'check'}) }}
+        </fieldset>
         <div class="dialog__buttons"><button type="submit" class="big">Apply</button></div>
     </form>
 </dialog>

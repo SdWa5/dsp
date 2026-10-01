@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.30.0] - 2026-10-01
+
+### Added
+
+- "Shape per group" in the link display settings, combinable with the code, which then shows the code and the shape next to each other (`linkMark()` in `link.js`)
+- The link display settings below the two Link matrices too, in step with the Channels menu (`_linkview.html.twig`)
+- Stacked placement in the Link dialog: each link group is a block with one header naming its members, with a gap before each further group (`linkUnits()` in `link.js`)
+
+### Changed
+
+- The Link matrices follow the placement after every click and every settings change, not only when the dialog opens
+- A colour per group without the code no longer brings a shape along. A browser that stored the code switched off gets the shape switched on
+
 ## [0.29.0] - 2026-10-01
 
 ### Added

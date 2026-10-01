@@ -3,7 +3,7 @@ import { api, getDefaults, listen, on, send, status, store } from '../lib/device
 import { changedPaths } from '../lib/defaults.js';
 import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel, channelParts } from '../lib/channels.js';
-import { linkCommands, linkGroups, linkedMembers, linkLayout, linkOrder, linkView, toggleLink } from '../lib/link.js';
+import { linkCommands, linkGroups, linkedMembers, linkLayout, linkMark, linkUnits, linkView, toggleLink } from '../lib/link.js';
 import { GAIN_MUTED, presetLabel, presetSlotInfo } from '../lib/scale.js';
 import { readPref, writePref } from '../lib/prefs.js';
 
@@ -24,12 +24,7 @@ export default class extends Controller {
         this.applyTheme(THEMES.includes(theme) ? theme : 'auto');
         this.showMatrix(readPref('matrix-swapped', false));
         this.linkViewSettings = linkView(readPref('link-view', {}));
-        this.linkViewTargets.forEach((box) => {
-            box.checked = Boolean(this.linkViewSettings[box.value]);
-        });
-        this.linkPlacementTargets.forEach((radio) => {
-            radio.checked = radio.value === this.linkViewSettings.placement;
-        });
+        this.showLinkViewSettings();
         this.offs = [
             on('status', () => this.showStatus()),
             on('error', (message) => this.showError(message)),
@@ -125,9 +120,9 @@ export default class extends Controller {
             const members = linkedMembers(state[side], index);
             const { code, colour } = this.linkViewSettings;
             tab.dataset.group = colour && group > 0 ? String(group) : '';
-            if (group > 0 && (code || colour)) {
-                // Without the code the group gets a shape of its own, so it does not rest on colour alone
-                marks.push(code ? `<span class="chtab__link">L${group}</span>` : `<span class="chtab__link chtab__link--shape" data-shape="${group}" aria-hidden="true"></span>`);
+            const mark = linkMark(this.linkViewSettings, group);
+            if ('' !== mark) {
+                marks.push(`<span class="chtab__link${code ? '' : ' chtab__link--bare'}">${mark}</span>`);
             }
             if (group > 0) {
                 titles.push(`linked with ${members.filter((m) => m !== index).map((m) => channelId(('outputs' === side ? 8 : 0) + m)).join(', ')}`);
@@ -171,52 +166,105 @@ export default class extends Controller {
 
     /**
      * The Link matrix of each side from the groups being edited: a cell is lit while its row and column channel
-     * share a group, with the group code, colour or shape as on the channel tabs. place: also order the rows and
-     * columns by the placement, which happens on open only, so a cell does not move away under the pointer.
+     * share a group, with the group code, shape or colour as on the channel tabs. The rows and columns follow the
+     * placement, and "stacked" turns each link group into a block with one header that names its members.
      */
-    showLinkDialog(place) {
-        const { code, colour, placement } = this.linkViewSettings;
+    showLinkDialog() {
+        const { colour, placement } = this.linkViewSettings;
         for (const table of this.linkMatrixTargets) {
             const groups = this.linkDraft[table.dataset.side];
-            if (place) {
-                const order = 'normal' === placement ? [0, 1, 2, 3, 4, 5, 6, 7] : linkOrder(groups);
-                const sorted = (cells) => order.map((i) => cells.find((c) => Number(c.dataset.index) === i));
-                const head = table.tHead.rows[0];
-                head.append(...sorted([...head.cells].slice(1)));
-                const body = table.tBodies[0];
-                body.append(...sorted([...body.rows]));
-                for (const row of body.rows) {
-                    row.append(...sorted([...row.cells].slice(1)));
-                }
-            }
+            this.placeLinkMatrix(table, groups, placement);
             for (const cell of table.querySelectorAll('.link-cell')) {
                 const [row, column] = [Number(cell.dataset.row), Number(cell.dataset.column)];
                 const group = row !== column && groups[row] === groups[column] ? groups[row] : 0;
                 cell.classList.toggle('is-on', group > 0);
                 cell.setAttribute('aria-pressed', String(group > 0));
                 cell.dataset.group = colour && group > 0 ? String(group) : '';
-                // Without the code a group gets a shape, without code and colour the cell shows a dot like the routing matrix
-                cell.innerHTML = 0 === group ? '' : code ? `L${group}` : `<span class="link-cell__shape" data-shape="${colour ? group : 1}"></span>`;
+                // Without code and shape a lit cell shows the dot of the routing matrix
+                cell.innerHTML = linkMark(this.linkViewSettings, group);
             }
         }
+    }
+
+    /** Orders the rows and columns of one Link matrix by the placement, and merges the headers of a group when stacked. */
+    placeLinkMatrix(table, groups, placement) {
+        const units = 'normal' === placement ? groups.map((_g, i) => [i]) : linkUnits(groups);
+        const order = units.flat();
+        const stacked = 'stacked' === placement;
+        const base = 'inputs' === table.dataset.side ? 0 : 8;
+        const head = table.tHead.rows[0];
+        const body = table.tBodies[0];
+        const byIndex = (cells) => order.map((i) => cells.find((c) => Number(c.dataset.index) === i));
+        const columnHeads = [...head.cells].slice(1);
+        const rowHeads = [...body.rows].map((row) => row.cells[0]);
+        for (const heads of [columnHeads, rowHeads]) {
+            // Every channel label back to its own header first, then a stacked group gathers them in its first one
+            const labels = heads.flatMap((th) => [...th.querySelectorAll(':scope > .ch')]);
+            for (const label of labels) {
+                heads.find((th) => Number(th.dataset.index) === Number(label.dataset.channelIndexValue) - base).append(label);
+            }
+            for (const th of heads) {
+                th.hidden = false;
+                th.colSpan = 1;
+                th.rowSpan = 1;
+                th.classList.remove('is-merged');
+            }
+            for (const unit of stacked ? units.filter((u) => u.length > 1) : []) {
+                const [first, ...rest] = unit.map((i) => heads.find((th) => Number(th.dataset.index) === i));
+                first.classList.add('is-merged');
+                first[columnHeads === heads ? 'colSpan' : 'rowSpan'] = unit.length;
+                for (const th of rest) {
+                    first.append(...th.querySelectorAll(':scope > .ch'));
+                    th.hidden = true;
+                }
+            }
+        }
+        head.append(...byIndex(columnHeads));
+        body.append(...byIndex([...body.rows]));
+        // A gap before every group but the first, when stacked
+        const starts = new Set(stacked ? units.slice(1).map((u) => u[0]) : []);
+        for (const row of body.rows) {
+            row.classList.toggle('is-unit-start', starts.has(Number(row.dataset.index)));
+            const cells = byIndex([...row.cells].slice(1));
+            row.append(...cells);
+            cells.forEach((cell) => cell.classList.toggle('is-unit-start', starts.has(Number(cell.dataset.index))));
+        }
+        columnHeads.forEach((th) => th.classList.toggle('is-unit-start', starts.has(Number(th.dataset.index))));
     }
 
     linkCell(event) {
         const { side, row, column } = event.currentTarget.dataset;
         this.linkDraft[side] = toggleLink(this.linkDraft[side], Number(row), Number(column));
-        this.showLinkDialog(false);
+        this.showLinkDialog();
+    }
+
+    /** The link display settings on every copy of their controls, in the Channels menu and in the Link dialog. */
+    showLinkViewSettings() {
+        this.linkViewTargets.forEach((box) => {
+            box.checked = Boolean(this.linkViewSettings[box.value]);
+        });
+        this.linkPlacementTargets.forEach((radio) => {
+            radio.checked = radio.value === this.linkViewSettings.placement;
+        });
     }
 
     linkView(event) {
         this.linkViewSettings[event.target.value] = event.target.checked;
-        writePref('link-view', this.linkViewSettings);
-        this.showState();
+        this.changeLinkView();
     }
 
     linkPlacement(event) {
         this.linkViewSettings.placement = event.target.value;
+        this.changeLinkView();
+    }
+
+    changeLinkView() {
         writePref('link-view', this.linkViewSettings);
+        this.showLinkViewSettings();
         this.showState();
+        if (this.linkDraft) {
+            this.showLinkDialog();
+        }
     }
 
     theme() {
@@ -277,7 +325,7 @@ export default class extends Controller {
         if ('link' === event.params.dialog && state) {
             const groups = { inputs: linkGroups(state.inputs), outputs: linkGroups(state.outputs) };
             this.linkDraft = groups;
-            this.showLinkDialog(true);
+            this.showLinkDialog();
         }
         dialog.showModal();
     }

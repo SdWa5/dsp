@@ -150,7 +150,7 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .chtab__marks { display: contents; }
 .chtab__mute { position: absolute; top: 4px; left: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--mute); }
 .chtab__mute.is-gain { background: none; box-shadow: inset 0 0 0 1.5px var(--mute); }
-.chtab__link { position: absolute; top: 2px; right: 3px; font-size: 9px; font-weight: 700; padding: 0 3px; border-radius: 6px; background: #ffffff33; color: var(--head-text); }
+.chtab__link { position: absolute; top: 2px; right: 3px; display: flex; align-items: center; gap: 2px; font-size: 9px; font-weight: 700; padding: 0 3px; border-radius: 6px; background: #ffffff33; color: var(--head-text); }
 /* Colour per link group (Channels menu): a tinted tab with a coloured top edge and badge */
 [data-group='1'] { --group: #4fc3f7; }
 [data-group='2'] { --group: #ffb74d; }
@@ -158,12 +158,14 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 [data-group='4'] { --group: #f48fb1; }
 .chtab[data-group]:not([data-group='']) { box-shadow: inset 0 3px 0 var(--group); background: color-mix(in srgb, var(--group) 18%, transparent); }
 .chtab[data-group]:not([data-group='']) .chtab__link { background: var(--group); color: #111; }
-/* Without the code: circle, square, triangle, diamond, so groups differ without colour too */
-.chtab__link--shape { top: 4px; right: 4px; width: 8px; height: 8px; padding: 0; border-radius: 0; background: var(--head-text); }
-.link-cell__shape { display: inline-block; width: 10px; height: 10px; background: currentColor; }
-:is(.chtab__link--shape, .link-cell__shape)[data-shape='1'] { border-radius: 50%; }
-:is(.chtab__link--shape, .link-cell__shape)[data-shape='3'] { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
-:is(.chtab__link--shape, .link-cell__shape)[data-shape='4'] { transform: rotate(45deg) scale(0.85); }
+/* Shape per group: circle, square, triangle, diamond, so groups differ without colour too. Next to the code or alone */
+.chtab__link--bare { top: 4px; right: 4px; padding: 0; background: none; }
+.chtab[data-group]:not([data-group='']) .chtab__link--bare { background: none; color: var(--head-text); }
+.link-shape { display: inline-block; width: 8px; height: 8px; background: currentColor; }
+.link-cell .link-shape { width: 10px; height: 10px; }
+.link-shape[data-shape='1'] { border-radius: 50%; }
+.link-shape[data-shape='3'] { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.link-shape[data-shape='4'] { transform: rotate(45deg) scale(0.85); }
 /* Differs from the factory default: a corner triangle bottom left, a shape that reads without colour */
 .chtab__changed, .tab.is-changed::after {
     position: absolute; bottom: 0; left: 0; width: 0; height: 0; border-style: solid; border-width: 9px 0 0 9px;
@@ -425,7 +427,15 @@ details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
 .link-matrices .matrix-wrap { flex: 1 1 420px; padding: 4px; }
 .link-cell { min-width: 44px; height: 30px; font-size: 11px; font-weight: 700; }
 .link-cell:disabled { visibility: hidden; }
-.link-cell.is-on::after { content: none; }
+.link-cell { display: inline-flex; align-items: center; justify-content: center; gap: 3px; }
+.link-cell.is-on:not(:empty)::after { content: none; }
+/* Stacked: a link group is a block with one header naming its members, and a gap before each further group */
+.link-matrix th.is-merged .ch { display: flex; }
+.link-matrix th.is-merged { vertical-align: middle; }
+.link-matrix tr.is-unit-start > * { padding-top: 10px; }
+.link-matrix :is(td, th).is-unit-start { padding-left: 10px; }
+.link-view { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin: 0; padding: 8px 0 0; border: 0; }
+.link-view__heading { flex-basis: 100%; color: var(--muted); font-size: 11px; }
 .link-cell.is-on[data-group]:not([data-group='']) { background: var(--group); border-color: var(--group); color: #111; }
 .table { border-collapse: collapse; width: 100%; }
 .table th, .table td { border: 1px solid var(--panel-edge); padding: 3px 6px; text-align: left; }

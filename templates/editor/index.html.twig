@@ -43,14 +43,7 @@
                             {{ _self.item('Sub Control…', 'sub') }}
                             {{ _self.item('Group Control…', 'groups') }}
                             <hr>
-                            <span class="menu__heading">Link display (channel tabs and Link dialog)</span>
-                            {% for key, label in {code: 'Group code (L1, L2 …)', colour: 'Colour per group'} %}
-                                <label class="menu__check"><input type="checkbox" value="{{ key }}" data-editor-target="linkView" data-action="change->editor#linkView"> {{ label }}</label>
-                            {% endfor %}
-                            <span class="menu__heading">Placement of linked channels</span>
-                            {% for key, label in {normal: 'In channel order', side: 'Side by side', stacked: 'Stacked per link group'} %}
-                                <label class="menu__check"><input type="radio" name="link-placement" value="{{ key }}" data-editor-target="linkPlacement" data-action="change->editor#linkPlacement"> {{ label }}</label>
-                            {% endfor %}
+                            {{ include('editor/_linkview.html.twig', {name: 'link-placement', heading: 'menu__heading', check: 'menu__check'}) }}
                         </div>
                     </div>
                     <div class="menu__item">

@@ -98,13 +98,15 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
 - A named channel shows its name next to its ID wherever the ID appears, for example "Out1 Main L" or
   "Out1 (Main L)" in lists. A name that only repeats the ID is left out.
 - The channel tabs show a dot for a muted channel, a hollow one for a channel whose gain mutes it, and the link
-  group. The Channels menu sets how a link group shows on the tabs and in the Link matrix, kept in the browser: the
-  code (L1, L2, ..., on by default) and a colour per group, each on its own, and the placement of linked channels
-  (in channel order, side by side, or stacked per link group in one column). A colour without the code comes with
-  a shape per group (circle, square, triangle, diamond), so it reads without colour too.
+  group. The Channels menu and the Link dialog set how a link group shows on the tabs and in the Link matrix, kept
+  in the browser. The code (L1, L2, ..., on by default), a shape per group (circle, square, triangle, diamond) and a
+  colour per group combine freely, and code and shape stand next to each other. The placement of linked channels is
+  in channel order, side by side, or stacked per link group in one column.
 - The Link dialog is a channel x channel matrix per side. A cell links its row and column channel, linked channels
   form a group that lights as a block, and a lit cell takes the column channel out of its group. The lowest
-  channel of a group is copied to the others.
+  channel of a group is copied to the others. The rows and columns follow the placement after every click, and
+  stacked turns each group into a block with one header naming its members. The display settings sit below the
+  two matrices as well.
 - Every setting that differs from the factory default (`resources/factory_config.bin`) has a bar on its left
   edge, and its channel tab or the Aux tab a corner triangle. Both are shapes, so they read without colour.
 - The store and recall dialogs show which user slots are empty. An empty slot cannot be recalled.
