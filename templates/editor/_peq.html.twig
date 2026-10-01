@@ -1,6 +1,10 @@
 {#
  # PEQ editor of one channel. p = state path, channel = channel index, filters = with HPF/LPF.
+ # The curve, the band table and every group fold. Their keys start with "aux" or "channel", so all channel
+ # pages fold together.
  #}
+{% import 'editor/_widgets.html.twig' as w %}
+{% set fold = 'aux' == p ? 'aux' : 'channel' %}
 <div class="peq" data-controller="peq" data-peq-path-value="{{ p }}" data-peq-channel-value="{{ channel }}">
     <div class="peq__bar">
         <label><input type="radio" name="view-{{ channel }}" checked data-action="peq#togglePhase"> Mag</label>
@@ -9,10 +13,14 @@
         <button type="button" class="toggle" data-peq-target="eqBypass" data-action="peq#eqBypass">EQ Bypass</button>
         <button type="button" class="toggle" data-action="peq#reset">EQ Reset</button>
     </div>
-    <canvas class="peq__curve" data-peq-target="canvas"
-            data-action="pointerdown->peq#pointerdown pointermove->peq#pointermove pointerup->peq#pointerup pointercancel->peq#pointerup wheel->peq#wheel"></canvas>
+    <div class="fold-panel" data-controller="collapse" data-collapse-key-value="{{ fold }}.curve">
+        <h3 class="fold-panel__title">{{ w.fold('EQ curve') }}</h3>
+        <canvas class="peq__curve" data-peq-target="canvas"
+                data-action="pointerdown->peq#pointerdown pointermove->peq#pointermove pointerup->peq#pointerup pointercancel->peq#pointerup wheel->peq#wheel"></canvas>
+    </div>
     <div class="peq__panel">
-        <div class="peq__table-wrap">
+        <div class="peq__table-wrap fold-panel" data-controller="collapse" data-collapse-key-value="{{ fold }}.bands">
+        <h3 class="fold-panel__title">{{ w.fold('Bands') }}</h3>
         <table class="peq__table">
             <thead><tr><th>PEQ</th><th>Frequency</th><th>Q</th><th>Gain</th><th>Type</th><th>Bypass</th></tr></thead>
             <tbody>
@@ -33,8 +41,8 @@
         </table>
         </div>
         <div class="group-stack">
-        <fieldset class="group group--params">
-            <legend>Selected band</legend>
+        <fieldset class="group group--params" data-controller="collapse" data-collapse-key-value="{{ fold }}.selected">
+            <legend>{{ w.fold('Selected band') }}</legend>
             {% for name, spec in {Freq: ['freq', 300], Q: ['q', 100], Gain: ['gain', 240]} %}
                 <div class="fader fader--h">
                     <span class="fader__title">{{ name }}</span>
@@ -46,8 +54,8 @@
         </fieldset>
         {% if filters %}
             {% for kind, title in {hpf: 'HighPass', lpf: 'LowPass'} %}
-                <fieldset class="group group--filter">
-                    <legend>{{ title }}</legend>
+                <fieldset class="group group--filter" data-controller="collapse" data-collapse-key-value="{{ fold }}.{{ kind }}">
+                    <legend>{{ w.fold(title) }}</legend>
                     <div class="fader fader--h">
                         <input type="range" min="0" max="300" aria-label="{{ title }} frequency" data-kind="{{ kind }}" data-peq-target="filterFreq"
                                data-action="input->peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="freq">

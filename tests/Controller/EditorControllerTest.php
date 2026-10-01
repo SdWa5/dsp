@@ -123,14 +123,21 @@ final class EditorControllerTest extends WebTestCase
         self::assertSame(['2'], array_values(array_unique($row->each(static fn (Crawler $n): string => (string) $n->attr('data-toggle-bit-value')))));
     }
 
-    public function testFoldablePanelsHaveOneToggleAndAUniqueKey(): void
+    public function testFoldablePanelsHaveOneToggleAndAKeyOfTheirOwn(): void
     {
         $panels = self::page()->filter('[data-controller~=collapse]');
         $keys = $panels->each(static fn (Crawler $n): string => (string) $n->attr('data-collapse-key-value'));
         self::assertContains('gain.input', $keys);
         self::assertContains('gain.groups', $keys);
         self::assertContains('autoeq.fit', $keys);
-        self::assertSame($keys, array_unique($keys), 'Two panels would fold together.');
+        self::assertContains('channel.hpf', $keys);
+        self::assertContains('aux.automix', $keys);
+        // Within a page two panels never fold together. The channel pages share their keys on purpose
+        self::page()->filter('section[data-page]')->each(static function (Crawler $page): void {
+            $keys = $page->filter('[data-controller~=collapse]')->each(static fn (Crawler $n): string => (string) $n->attr('data-collapse-key-value'));
+            self::assertSame($keys, array_unique($keys), 'Two panels would fold together on '.$page->attr('data-page'));
+        });
+        self::assertCount(16, self::page()->filter('[data-collapse-key-value="channel.curve"]'));
         $panels->each(static function (Crawler $panel): void {
             self::assertCount(1, $panel->filter('[data-collapse-target=toggle]'));
             self::assertSame('true', $panel->filter('[data-collapse-target=toggle]')->attr('aria-expanded'));

@@ -4,15 +4,15 @@
     {% block side %}
         {% import 'editor/_widgets.html.twig' as w %}
         {% set comp = [{command: 'compressor', args: {channel: 18, ratio: '@aux.comp.ratio', knee: '@aux.comp.knee', attack: '@aux.comp.attack', release: '@aux.comp.release', threshold: '@aux.comp.threshold'}}] %}
-        <fieldset class="group">
-            <legend>Comp</legend>
+        <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.comp">
+            <legend>{{ w.fold('Comp') }}</legend>
             {{ w.fader(null, 'aux.comp.threshold', comp, 0, 220, 'threshold', null, {label: 'Aux compressor threshold'}) }}
             <button type="button" class="toggle" data-action="editor#open" data-editor-dialog-param="auxcomp">Set</button>
         </fieldset>
         <div class="group-stack">
             {% for key, spec in {automix: ['AutoMix', 18], effect: ['Effect', null], camera: ['Camera', 19]} %}
-                <fieldset class="group">
-                    <legend>{{ spec[0] }}</legend>
+                <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.{{ key }}">
+                    <legend>{{ w.fold(spec[0]) }}</legend>
                     {% if spec[1] is null %}
                         {% set send = [{command: 'effect', args: {on: '@aux.effect.on', gain: '@aux.effect.gain'}}] %}
                     {% else %}
@@ -24,14 +24,14 @@
                 </fieldset>
             {% endfor %}
         </div>
-        <fieldset class="group">
-            <legend>Select</legend>
+        <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.select">
+            <legend>{{ w.fold('Select') }}</legend>
             {% for i in 0..7 %}
                 {{ w.toggle(w.ch(i), 'aux.select', [{command: 'routing', args: {channel: 18, mask: '@aux.select'}}], null, {bit: i, class: 'toggle--route'}) }}
             {% endfor %}
         </fieldset>
-        <fieldset class="group">
-            <legend>Gain</legend>
+        <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.gain">
+            <legend>{{ w.fold('Gain') }}</legend>
             <div class="strip__row">
                 {{ w.fader(null, 'aux.gain', [{command: 'gain', args: {channel: 18, raw: '@aux.gain'}}], 0, 400, 'gain', null, {label: 'Aux gain', default: 280}) }}
                 {{ w.meter(16) }}

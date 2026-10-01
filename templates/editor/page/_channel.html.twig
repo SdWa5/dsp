@@ -10,8 +10,8 @@
     {% block side %}
         {% import 'editor/_widgets.html.twig' as w %}
         {% if input %}
-            <fieldset class="group">
-                <legend>FBQ</legend>
+            <fieldset class="group" data-controller="collapse" data-collapse-key-value="channel.fbq">
+                <legend>{{ w.fold('FBQ') }}</legend>
                 <div class="radios" data-controller="choice" data-action="change->choice#change" data-choice-bind-value="{{ p }}.fbq"
                      data-choice-send-value="{{ [{command: 'fbq', args: {channel: channel, level: '@' ~ p ~ '.fbq'}}]|json_encode }}">
                     {% for value, text in labels.FBQ_LEVELS %}
@@ -20,8 +20,8 @@
                 </div>
             </fieldset>
         {% endif %}
-        <fieldset class="group">
-            <legend>Gain</legend>
+        <fieldset class="group" data-controller="collapse" data-collapse-key-value="channel.gain">
+            <legend>{{ w.fold('Gain') }}</legend>
             <div class="strip__row">
                 {{ w.fader(null, p ~ '.gain', [{command: 'gain', args: {channel: channel, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', null, {label: 'Gain', default: 280}) }}
                 {{ w.meter(channel) }}

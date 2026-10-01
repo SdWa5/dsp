@@ -120,8 +120,10 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   signal always runs from In to Out.
 - An output at compressor ratio 1:1.0 with a gain other than 0 dB is flagged on its strip, with a button that sets
   1:1.1 from +20 dB. The Auto EQ page and `trackdsp:autoeq` warn about it before measuring.
-- The panels of the Gain page and the steps of the Auto EQ page fold down to their title. Folded panels are kept in
-  the browser.
+- Every page with more than one panel folds them down to their title: the panels of the Gain page, the steps of
+  the Auto EQ page, and on the channel and Aux pages the EQ curve, the band table and each group beside it. Folded
+  panels are kept in the browser. All channel pages fold together, so a folded HighPass stays folded on every
+  channel.
 - The theme button switches between auto, light and dark. The choice is kept in the browser.
 
 ### Bridge and JSON API

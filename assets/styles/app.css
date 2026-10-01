@@ -366,6 +366,10 @@ details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
 .fold:focus-visible { outline: 2px solid var(--head); outline-offset: 2px; }
 .strips.is-collapsed > :not(.strips__title), .card.is-collapsed > :not(.card__title) { display: none; }
 .card.is-collapsed > .card__title { border-bottom: 0; }
+/* Channel and Aux pages: the curve, the band table and each group beside it */
+.fold-panel { display: flex; flex-direction: column; gap: 4px; }
+.fold-panel__title { margin: 0; font-size: 13px; }
+.fold-panel.is-collapsed > :not(.fold-panel__title), .group.is-collapsed > :not(legend) { display: none; }
 .card__body { display: flex; flex-direction: column; gap: 10px; padding: 10px 12px 12px; }
 .step { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--head); color: var(--head-text); font-size: 12px; }
 .checks { display: flex; flex-wrap: wrap; gap: 6px 16px; }
