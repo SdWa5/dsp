@@ -34,6 +34,18 @@
   ceiling. For programme with a crest factor of 12 to 15 dB that is about where its peaks reach the ceiling,
   while a sine or a limited signal lights it that much too early. Decide where the red top belongs
 
+## Editor
+
+- Link crossover points between outputs, so that a frequency set on one filter also lands on its partner, for
+  example the HighPass of Out1 on the LowPass of Out2. Every pair links the frequency, and optionally the slope
+  as well, which keeps the two sides of a crossover the same type and order, for example Linkwitz-Riley 24 on
+  both. This is not a link group, because the two outputs keep every other setting of their own, and a link
+  group mirrors the HighPass onto the HighPass. The configuration probably has no place for such a pairing, so
+  decide where it lives, for example in the bridge next to the gain riders and in the saved preset file. Show
+  the pairing on both filters, and decide what happens when one partner is in a link group, where the change
+  then reaches every channel of that group. The system tuning (Automation, step 6) needs matching crossover
+  filters as well and could set them through such a pair
+
 ## Several devices
 
 - Control at least two 8x8 at once. With two connected, the editor shows both control sets side by side, so
