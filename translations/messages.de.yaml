@@ -271,6 +271,7 @@ editor:
 "Predicted": "Vorhergesagt"
 "Preset": "Preset"
 "Put the mic where the audience listens and record one position after the other. Three to five positions around the listening area give a correction that holds for the whole room.": "Das Mikrofon im Hörbereich aufstellen und die Positionen nacheinander aufnehmen. Drei bis fünf Positionen im Hörbereich ergeben eine Korrektur für den ganzen Raum."
+"Routing graph": "Routing-Grafik"
 "RS232 Code Table": "RS232-Codetabelle"
 "RS232/485 remote control, manual chapter 6.1. 115200 baud, 8N1, at least 200 ms between packets. A packet is": "RS232/485-Fernsteuerung, Handbuch Kapitel 6.1. 115200 Baud, 8N1, mindestens 200 ms zwischen Paketen. Ein Paket lautet"
 "Ratio": "Verhältnis"

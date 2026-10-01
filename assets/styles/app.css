@@ -329,6 +329,16 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .radio input:focus-visible + span { outline: 2px solid var(--head); }
 
 /* --- matrix --- */
+.matrix-page { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+.matrix-page > .matrix-wrap { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.routing { flex: 1 1 360px; max-width: 560px; padding: 8px; background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px; }
+.routing__graph { display: block; width: 100%; height: auto; }
+.routing__node rect { fill: var(--title); }
+.routing__node text { fill: var(--text); font-size: 12px; }
+.routing__id { font-weight: 700; }
+.routing__edge { fill: none; stroke-width: 2; transition: opacity 0.15s; }
+.routing__graph.has-focus .routing__edge:not(.is-focus) { opacity: 0.12; }
+.routing__graph.has-focus .routing__edge.is-focus { stroke-width: 3; }
 .matrix-wrap { overflow-x: auto; padding: 8px; background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px; }
 .matrix { border-collapse: separate; border-spacing: 3px; margin: 0 auto; }
 .matrix caption { caption-side: bottom; padding-top: 6px; color: var(--muted); }

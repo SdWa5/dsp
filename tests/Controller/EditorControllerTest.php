@@ -186,6 +186,16 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(0, $overview->filter('[data-toggle-send-value], [data-fader-send-value]'));
     }
 
+    public function testMatrixPageCarriesTheRoutingGraph(): void
+    {
+        $graph = self::page()->filter('section[data-page=matrix] .matrix-page > [data-controller~=routing]');
+        self::assertCount(1, $graph);
+        self::assertSame('matrix.graph', $graph->attr('data-collapse-key-value'));
+        self::assertCount(1, $graph->filter('svg[data-routing-target=svg]'));
+        // The graph only shows the routing, the matrix sets it
+        self::assertCount(0, $graph->filter('[data-toggle-send-value], [data-fader-send-value]'));
+    }
+
     public function testGainWarningButtonsNameTheGainTheySet(): void
     {
         $warnings = self::page()->filter('[data-controller~=gainwarning]');

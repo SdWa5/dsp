@@ -132,7 +132,8 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
 - The Gain page starts and shows the gain riders, and the Auto EQ page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
 - The corner button of the matrix swaps rows and columns, so the inputs become the rows. The choice is kept in the
   browser. The In headers sit on the left or at the top and the Out headers on the right or at the bottom, so the
-  signal always runs from In to Out.
+  signal always runs from In to Out. Next to the matrix, a routing graph draws the inputs and the Aux on the left,
+  the outputs on the right and a line for every connection. Hovering a channel brings out its lines.
 - An output at compressor ratio 1:1.0 with a gain other than 0 dB is flagged on its strip. Two buttons set 1:1.1
   from +20 dB, one keeping the gain value ("Exact gain") and one moving the gain to the level heard before
   ("Keep level"). Each button names the gain it sets. The Auto EQ page and `trackdsp:autoeq` warn about it before

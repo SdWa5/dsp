@@ -8,6 +8,7 @@
     {% set p = 'outputs.' ~ o %}
     <td>{{ w.toggle('', p ~ '.route', [{command: 'routing', args: {channel: 8 + o, mask: '@' ~ p ~ '.route'}}], null, {bit: i, class: 'toggle--cell', aria: '%output% from %input%'|trans({'%output%': 'Out' ~ (o + 1), '%input%': i < 8 ? 'In' ~ (i + 1) : 'Aux'})}) }}</td>
 {% endmacro %}
+<div class="matrix-page">
 <div class="matrix-wrap">
     {# The signal runs from In to Out: the In headers sit on the left or at the top, the Out headers on the right or at the bottom #}
     {% for swapped in [false, true] %}
@@ -52,4 +53,9 @@
             {% endif %}
         </table>
     {% endfor %}
+</div>
+<div class="routing fold-panel" data-controller="collapse routing" data-collapse-key-value="matrix.graph">
+    <h3 class="fold-panel__title">{{ w.fold('Routing graph') }}</h3>
+    <svg class="routing__graph" data-routing-target="svg" role="img" aria-label="{{ 'Routing graph'|trans }}"></svg>
+</div>
 </div>

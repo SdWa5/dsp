@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.36.0] - 2026-10-01
+
+### Added
+
+- Routing graph next to the matrix: In1-In8 and Aux on the left, Out1-Out8 on the right, a line per connection coloured by its source. Hovering a channel brings out its lines. It folds like the other panels (`routing_controller.js`, `assets/lib/routing.js`)
+
 ## [0.35.0] - 2026-10-01
 
 ### Changed

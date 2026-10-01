@@ -16,8 +16,6 @@
 - Browser editor: check every page and dialog against the device, with a harmless round trip per control
 - PHPUnit group `device` with read-only checks and reversible writes over LAN and USB
 - Packaging: `trackdsp:serve`, FrankenPHP static binary, installer, desktop entry
-- Matrix page: next to the matrix, the routing as the vendor editor draws it, with the inputs and the Aux in a
-  column on the left, the outputs in a column on the right, and a line for every connection
 - Vendor preset files: trackdsp reads `.prs` (docs/protocol.md). Save a second sample in the vendor editor with
   EQ bypass on, a test tone and another delay unit, to confirm that the file leaves them out. Then decide
   whether trackdsp writes `.prs`, and check such a file by loading it in the vendor editor
