@@ -7,7 +7,8 @@ import { GAIN_MUTED } from '../lib/scale.js';
 /**
  * A button for a boolean, or with bit >= 0 for one bit of a mask (matrix, source selection).
  * text-on replaces the label while active (Normal/Inverse). muted-by (a gain path) lights a Mute button while that
- * gain sits at raw 0, which mutes the channel as well. That only shows, the mute flag stays as it is.
+ * gain sits at raw 0, which mutes the channel as well. That only shows, the mute flag stays as it is. The title
+ * the page renders (the tooltip) stays, a state message goes above it.
  */
 export default class extends BoundController {
     static values = { ...BoundController.values, bit: { type: Number, default: -1 }, textOn: String, textOff: String, mutedBy: String };
@@ -31,7 +32,10 @@ export default class extends BoundController {
         this.element.classList.toggle('is-on', on);
         this.element.classList.toggle('is-unknown', null === value);
         this.element.setAttribute('aria-pressed', on ? 'true' : 'false');
-        this.element.title = null === value ? t("Unknown: the device does not report this value") : byGain ? t("Muted by its gain at the lowest step") : '';
+        // A state message goes on a line of its own above the tooltip from the page
+        this.tip ??= this.element.title;
+        const status = null === value ? t("Unknown: the device does not report this value") : byGain ? t("Muted by its gain at the lowest step") : '';
+        this.element.title = [status, this.tip].filter(Boolean).join('\n');
         if (this.textOnValue) {
             this.element.textContent = on ? this.textOnValue : this.textOffValue;
         }

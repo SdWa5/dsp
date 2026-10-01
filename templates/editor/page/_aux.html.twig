@@ -5,14 +5,14 @@
         {% import 'editor/_widgets.html.twig' as w %}
         {% set comp = [{command: 'compressor', args: {channel: 18, ratio: '@aux.comp.ratio', knee: '@aux.comp.knee', attack: '@aux.comp.attack', release: '@aux.comp.release', threshold: '@aux.comp.threshold'}}] %}
         <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.comp">
-            <legend>{{ w.fold('Comp') }}</legend>
+            <legend>{{ w.fold('Comp', 'aux_comp') }}</legend>
             {{ w.fader(null, 'aux.comp.threshold', comp, 0, 220, 'threshold', null, {label: 'Aux compressor threshold'}) }}
             <button type="button" class="toggle" data-action="editor#open" data-editor-dialog-param="auxcomp">{{ "Set"|trans }}</button>
         </fieldset>
         <div class="group-stack">
             {% for key, spec in {automix: ['AutoMix', 18], effect: ['Effect', null], camera: ['Camera', 19]} %}
                 <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.{{ key }}">
-                    <legend>{{ w.fold(spec[0]) }}</legend>
+                    <legend>{{ w.fold(spec[0], key) }}</legend>
                     {% if spec[1] is null %}
                         {% set send = [{command: 'effect', args: {on: '@aux.effect.on', gain: '@aux.effect.gain'}}] %}
                     {% else %}
@@ -25,7 +25,7 @@
             {% endfor %}
         </div>
         <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.select">
-            <legend>{{ w.fold('Select') }}</legend>
+            <legend>{{ w.fold('Select', 'aux_select') }}</legend>
             {% for i in 0..7 %}
                 {{ w.toggle(w.ch(i), 'aux.select', [{command: 'routing', args: {channel: 18, mask: '@aux.select'}}], null, {bit: i, class: 'toggle--route'}) }}
             {% endfor %}

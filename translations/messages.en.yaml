@@ -65,6 +65,82 @@ editor:
         store: Store
         recall: Recall
 
+    # Tooltips. A widget looks its own up by its state path without side and index, e.g. comp.ratio
+    tip:
+        gain: "Level of the channel in dB. 0 dB leaves the signal unchanged, the lowest step mutes it."
+        mute: "Mutes the channel. The gain keeps its value."
+        phase: "Polarity. Inverse turns the signal upside down, for a speaker or microphone wired the other way round."
+        mode: "Input sensitivity. Line for line level sources, Mic for microphones. +48V needs a Mic mode."
+        phantom: "+48V phantom power for condenser microphones. It needs a Mic mode."
+        delay: "Delays the output, for example to line up speakers at different distances. In the unit chosen above, ms, m or ft."
+        delay_unit: "The unit the delay fields show. The device keeps the delay in samples, so switching changes no delay."
+        gate:
+            threshold: "Below this level the gate closes and silences the input, in dB on the meter scale."
+            attack: "How fast the gate opens once the level rises above the threshold, in ms."
+            release: "How fast the gate closes once the level falls below the threshold, in ms."
+        comp:
+            threshold: "Above this level the compressor lowers the gain, in dB on the meter scale."
+            ratio: "How strongly a level above the threshold is reduced. At 1:2.0, 2 dB above the threshold come out as 1 dB. Limit holds the level at the threshold."
+            knee: "How softly the compression sets in around the threshold, in dB. 0 dB is a hard knee."
+            attack: "How fast the compressor reacts once the level rises above the threshold, in ms."
+            release: "How fast the compressor lets go once the level falls below the threshold, in ms."
+        sub:
+            gain: "Level of this Sub Control in percent. It moves every channel it selects."
+            mute: "Mutes every channel this Sub Control selects."
+            mask: "Selects the channels this Sub Control moves."
+        groups:
+            gain: "Level of this group in percent. It moves every channel the group selects."
+            mute: "Mutes every channel this group selects."
+            mask: "Selects the channels this group moves."
+        select: "Selects the inputs that feed the Aux."
+        automix:
+            on: "Switches AutoMix on or off."
+            threshold: "Level from which AutoMix counts an input as active, in dB."
+            attack: "How fast AutoMix opens an input that becomes active, in ms."
+            release: "How fast AutoMix lowers an input that falls silent, in ms."
+            select: "Selects the inputs AutoMix works on."
+        automix_slope: "How far AutoMix lowers the inputs as more of them become active, in dB."
+        camera:
+            on: "Switches the Camera function on or off."
+        effect:
+            on: "Switches the Aux effect on or off."
+            echo: "Level of the echo, 0 to 100."
+            echo_repeat: "How much of the echo repeats, 0 to 100."
+            echo_delay: "Time between the echoes, in ms."
+            echo_predelay: "Time before the first echo, in ms."
+            reverb: "Level of the reverb, 0 to 100."
+            reflect: "Strength of the reflections in the reverb, 0 to 100."
+            time: "Length of the reverb, in s."
+            rev_predelay: "Time before the reverb sets in, in ms."
+            gain: "Level of the whole effect, 0 to 100."
+        tone_mode: "Source of the test tone: the analog inputs, pink or white noise, or a sine."
+        tone_freq: "Frequency of the sine, in Hz."
+        device_id: "The ID of the device for RS232/485 control, 1 to 254."
+        eq_bypass: "Switches off the EQ of this channel. The bands keep their values."
+        eq_reset: "Sets every band of this channel back to 0 dB at its default frequency."
+        band:
+            freq: "Centre frequency of the band, in Hz."
+            q: "Q is the width of the band. A higher Q acts on a narrower range."
+            gain: "Boost or cut of the band, in dB."
+            type: "Filter shape of the band: peak, shelf, low or high pass, or allpass."
+            bypass: "Switches the band off without losing its values."
+        hpf_freq: "Frequency of the high-pass filter, in Hz. Everything below it is cut."
+        lpf_freq: "Frequency of the low-pass filter, in Hz. Everything above it is cut."
+        slope: "How steeply the filter cuts, in dB per octave. BW is Butterworth, BL Bessel and LK Linkwitz-Riley."
+        panel:
+            peq: "Parametric EQ (PEQ). Every band raises or lowers the range around its frequency."
+            selected_band: "Frequency, Q and gain of the band selected in the table or on the curve."
+            hpf: "High-pass filter (HPF). It removes everything below its frequency."
+            lpf: "Low-pass filter (LPF). It removes everything above its frequency."
+            fbq: "Feedback suppression (FBQ). It finds feedback and notches it out. Close switches it off, level 1 to 4 set how strongly it acts."
+            aux_comp: "Compressor of the Aux. Set opens all of its values."
+            automix: "AutoMix lowers the selected inputs that are not in use, so only the active microphones stay open."
+            effect: "Echo and reverb on the Aux."
+            camera: "Camera function of the vendor editor, set like AutoMix. What the device does with it is not documented yet."
+            aux_select: "The inputs that feed the Aux."
+            sub: "Sub Control. One fader and one mute for a selection of inputs and one for a selection of outputs, in percent."
+            groups: "Group Control. Eight groups, each with one fader and one mute for the channels it selects, in percent."
+
 # Widget labels and explanatory text use their English source as message IDs.
 "\"auto\" connects to the first device found, USB before the network. Disconnect frees the device's connection, and the vendor editor may take it at once.": "\"auto\" connects to the first device found, USB before the network. Disconnect frees the device's connection, and the vendor editor may take it at once."
 "%channel% delay": "%channel% delay"

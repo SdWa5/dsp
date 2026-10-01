@@ -64,6 +64,82 @@ editor:
         store: Speichern
         recall: Laden
 
+    # Tooltips. A widget looks its own up by its state path without side and index, e.g. comp.ratio
+    tip:
+        gain: "Pegel des Kanals in dB. 0 dB lässt das Signal unverändert, die unterste Stufe schaltet ihn stumm."
+        mute: "Schaltet den Kanal stumm. Der Gain behält seinen Wert."
+        phase: "Polarität. Inverse dreht das Signal um, etwa für einen verkehrt verdrahteten Lautsprecher oder ein Mikrofon."
+        mode: "Eingangsempfindlichkeit. Line für Quellen mit Line-Pegel, Mic für Mikrofone. +48V braucht einen Mic-Modus."
+        phantom: "+48V Phantomspeisung für Kondensatormikrofone. Sie braucht einen Mic-Modus."
+        delay: "Verzögert den Ausgang, etwa um Lautsprecher in verschiedenen Abständen anzugleichen. In der oben gewählten Einheit ms, m oder ft."
+        delay_unit: "Die Einheit der Delay-Felder. Das Gerät speichert das Delay in Samples, ein Wechsel ändert also kein Delay."
+        gate:
+            threshold: "Unter diesem Pegel schließt das Gate und macht den Eingang still, in dB auf der Skala der Pegelanzeige."
+            attack: "Wie schnell das Gate öffnet, sobald der Pegel über die Schwelle steigt, in ms."
+            release: "Wie schnell das Gate schließt, sobald der Pegel unter die Schwelle fällt, in ms."
+        comp:
+            threshold: "Über diesem Pegel senkt der Kompressor den Gain, in dB auf der Skala der Pegelanzeige."
+            ratio: "Wie stark ein Pegel über der Schwelle reduziert wird. Bei 1:2.0 werden aus 2 dB über der Schwelle 1 dB. Limit hält den Pegel an der Schwelle."
+            knee: "Wie weich die Kompression um die Schwelle herum einsetzt, in dB. 0 dB ist ein harter Knick."
+            attack: "Wie schnell der Kompressor reagiert, sobald der Pegel über die Schwelle steigt, in ms."
+            release: "Wie schnell der Kompressor wieder loslässt, sobald der Pegel unter die Schwelle fällt, in ms."
+        sub:
+            gain: "Pegel dieser Sub Control in Prozent. Sie bewegt jeden Kanal, den sie auswählt."
+            mute: "Schaltet jeden Kanal stumm, den diese Sub Control auswählt."
+            mask: "Wählt die Kanäle, die diese Sub Control bewegt."
+        groups:
+            gain: "Pegel dieser Gruppe in Prozent. Sie bewegt jeden Kanal, den die Gruppe auswählt."
+            mute: "Schaltet jeden Kanal stumm, den diese Gruppe auswählt."
+            mask: "Wählt die Kanäle, die diese Gruppe bewegt."
+        select: "Wählt die Eingänge, die den Aux speisen."
+        automix:
+            on: "Schaltet AutoMix ein oder aus."
+            threshold: "Pegel, ab dem AutoMix einen Eingang als aktiv zählt, in dB."
+            attack: "Wie schnell AutoMix einen Eingang öffnet, der aktiv wird, in ms."
+            release: "Wie schnell AutoMix einen Eingang absenkt, der still wird, in ms."
+            select: "Wählt die Eingänge, mit denen AutoMix arbeitet."
+        automix_slope: "Wie weit AutoMix die Eingänge absenkt, wenn mehr von ihnen aktiv werden, in dB."
+        camera:
+            on: "Schaltet die Camera-Funktion ein oder aus."
+        effect:
+            on: "Schaltet den Aux-Effekt ein oder aus."
+            echo: "Pegel des Echos, 0 bis 100."
+            echo_repeat: "Wie viel vom Echo sich wiederholt, 0 bis 100."
+            echo_delay: "Zeit zwischen den Echos, in ms."
+            echo_predelay: "Zeit bis zum ersten Echo, in ms."
+            reverb: "Pegel des Halls, 0 bis 100."
+            reflect: "Stärke der Reflexionen im Hall, 0 bis 100."
+            time: "Länge des Halls, in s."
+            rev_predelay: "Zeit, bis der Hall einsetzt, in ms."
+            gain: "Pegel des gesamten Effekts, 0 bis 100."
+        tone_mode: "Quelle des Testtons: die analogen Eingänge, rosa oder weißes Rauschen oder ein Sinus."
+        tone_freq: "Frequenz des Sinus, in Hz."
+        device_id: "Die ID des Geräts für die Steuerung über RS232/485, 1 bis 254."
+        eq_bypass: "Schaltet den EQ dieses Kanals ab. Die Bänder behalten ihre Werte."
+        eq_reset: "Setzt jedes Band dieses Kanals auf 0 dB bei seiner Standardfrequenz zurück."
+        band:
+            freq: "Mittenfrequenz des Bands, in Hz."
+            q: "Q ist die Breite des Bands. Ein höheres Q wirkt auf einen schmaleren Bereich."
+            gain: "Anhebung oder Absenkung des Bands, in dB."
+            type: "Filterform des Bands: Peak, Shelf, Tief- oder Hochpass oder Allpass."
+            bypass: "Schaltet das Band ab, ohne seine Werte zu verlieren."
+        hpf_freq: "Frequenz des Hochpassfilters, in Hz. Alles darunter wird abgeschnitten."
+        lpf_freq: "Frequenz des Tiefpassfilters, in Hz. Alles darüber wird abgeschnitten."
+        slope: "Wie steil der Filter abschneidet, in dB pro Oktave. BW ist Butterworth, BL Bessel und LK Linkwitz-Riley."
+        panel:
+            peq: "Parametrischer EQ (PEQ). Jedes Band hebt oder senkt den Bereich um seine Frequenz."
+            selected_band: "Frequenz, Q und Gain des Bands, das in der Tabelle oder auf der Kurve gewählt ist."
+            hpf: "Hochpassfilter (HPF). Er entfernt alles unterhalb seiner Frequenz."
+            lpf: "Tiefpassfilter (LPF). Er entfernt alles oberhalb seiner Frequenz."
+            fbq: "Feedback-Unterdrückung (FBQ). Sie findet Rückkopplungen und senkt sie schmalbandig ab. Aus schaltet sie ab, Stufe 1 bis 4 legt fest, wie stark sie eingreift."
+            aux_comp: "Kompressor des Aux. Einstellen öffnet alle seine Werte."
+            automix: "AutoMix senkt die gewählten Eingänge ab, die nicht genutzt werden, sodass nur die aktiven Mikrofone offen bleiben."
+            effect: "Echo und Hall auf dem Aux."
+            camera: "Camera-Funktion des Hersteller-Editors, eingestellt wie AutoMix. Was das Gerät damit tut, ist noch nicht dokumentiert."
+            aux_select: "Die Eingänge, die den Aux speisen."
+            sub: "Sub Control. Ein Fader und ein Mute für eine Auswahl von Eingängen und einer für eine Auswahl von Ausgängen, in Prozent."
+            groups: "Group Control. Acht Gruppen mit je einem Fader und einem Mute für die Kanäle, die sie auswählen, in Prozent."
+
 # Widget labels and explanatory text use their English source as message IDs.
 "\"auto\" connects to the first device found, USB before the network. Disconnect frees the device's connection, and the vendor editor may take it at once.": "„auto“ verbindet das erste gefundene Gerät. USB hat Vorrang vor dem Netzwerk. Trennen gibt die Geräteverbindung frei. Der Hersteller-Editor kann sie anschließend übernehmen."
 "%channel% delay": "%channel% Delay"

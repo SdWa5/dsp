@@ -114,6 +114,9 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   edge. Every page tab and channel tab shows a corner triangle when its settings differ. The tooltip counts
   the changed settings. Auto EQ tracks output PEQ bands and EQ bypass. The marks clear when values return to
   their defaults and read without colour.
+- Hovering a control shows what it does and its unit, in English or German. Every fader, switch and list shows
+  the same tooltip on every page and in every dialog. The panels name their abbreviations, for example FBQ, HPF,
+  LPF, PEQ, Q, Sub Control and Group Control.
 - The store and recall dialogs show which user slots are empty. An empty slot cannot be recalled.
 - A fader value can be typed, with or without its unit ("-6", "2k", "200ms", "1:4"). A double click on a gain
   or delay fader sets it back to 0 dB or no delay.

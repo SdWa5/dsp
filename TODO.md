@@ -16,9 +16,6 @@
 - Browser editor: check every page and dialog against the device, with a harmless round trip per control
 - PHPUnit group `device` with read-only checks and reversible writes over LAN and USB
 - Packaging: `trackdsp:serve`, FrankenPHP static binary, installer, desktop entry
-- Tooltips on hover for the controls of the browser editor, above all for abbreviations such as FBQ, HPF, LPF,
-  PEQ, Q and the Sub and Group control. Say what the control does in one sentence, and name the unit where a
-  value has one
 - Matrix page: next to the matrix, the routing as the vendor editor draws it, with the inputs and the Aux in a
   column on the left, the outputs in a column on the right, and a line for every connection
 - Vendor preset files: trackdsp reads `.prs` (docs/protocol.md). Save a second sample in the vendor editor with

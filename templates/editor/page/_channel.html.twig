@@ -11,7 +11,7 @@
         {% import 'editor/_widgets.html.twig' as w %}
         {% if input %}
             <fieldset class="group" data-controller="collapse" data-collapse-key-value="channel.fbq">
-                <legend>{{ w.fold('FBQ') }}</legend>
+                <legend>{{ w.fold('FBQ', 'fbq') }}</legend>
                 <div class="radios" data-controller="choice" data-action="change->choice#change" data-choice-bind-value="{{ p }}.fbq"
                      data-choice-send-value="{{ [{command: 'fbq', args: {channel: channel, level: '@' ~ p ~ '.fbq'}}]|json_encode }}">
                     {% for value, text in labels.FBQ_LEVELS %}

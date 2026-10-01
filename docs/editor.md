@@ -35,6 +35,21 @@ The request's JS catalogue is embedded as JSON. `assets/lib/i18n.js` interpolate
 text, with English source text as fallback. Callers use textContent for messages. The translated gain value
 "Stumm" parses back to mute, and the original "mute" input remains accepted.
 
+## Tooltips
+
+A widget macro (`fader`, `toggle`, `choice` in `templates/editor/_widgets.html.twig`) looks up its tooltip by its
+state path without side, index and `aux`. So `outputs.3.comp.ratio` and `aux.comp.ratio` both show
+`editor.tip.comp.ratio`, and `sub.0.gain` shows `editor.tip.sub.gain`. A path without a key renders no title.
+`options.tip` names another key. Panels (`fold()`), dialog titles (`dialog()`), the band table headers and the
+filter controls name their key under `editor.tip.panel` or `editor.tip` directly. A tooltip says what the control
+does in one sentence and names the unit where the value has one.
+
+A fader with a default puts the double-click hint after its tooltip. The toggle controller keeps the tooltip and
+puts a state message, such as an unknown value or a mute by the gain, on its own line above it.
+
+`EditorTooltipTest` checks that every `editor.tip` text appears on some control in both languages, and that one
+key serves the same control on every page and in the dialogs.
+
 `TranslationTest` checks matching catalogue keys and interpolation parameters. `EditorLocaleTest` checks English
 and German rendering and that translated labels preserve protocol values. `LocaleListenerTest` checks precedence.
 The JS tests check cookie lifetime, fallback, literal interpolation and the translated muted-gain round trip.
