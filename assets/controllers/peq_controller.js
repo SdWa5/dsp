@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { isChanged } from '../lib/defaults.js';
 import { getDefaults, getLabels, send, store } from '../lib/device.js';
@@ -332,6 +333,6 @@ export default class extends Controller {
         g.textAlign = 'left';
         g.textBaseline = 'top';
         g.fillStyle = '#ffee58';
-        g.fillText(`Band ${this.selected + 1}: ${S.format('hz', b.freq)}  Q ${S.format('q', b.q)}  ${S.format('peq', b.gain)}`, plot.left + 6, plot.top + 4);
+        g.fillText(t("Band %band%: %frequency%  Q %q%  %gain%", { band: this.selected + 1, frequency: S.format('hz', b.freq), q: S.format('q', b.q), gain: S.format('peq', b.gain) }), plot.left + 6, plot.top + 4);
     }
 }

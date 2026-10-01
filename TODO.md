@@ -26,8 +26,9 @@
 - Vendor preset files: trackdsp reads `.prs` (docs/protocol.md). Save a second sample in the vendor editor with
   EQ bypass on, a test tone and another delay unit, to confirm that the file leaves them out. Then decide
   whether trackdsp writes `.prs`, and check such a file by loading it in the vendor editor
-- Localization of the browser editor and the command line, primarily to add German. Collect the user-facing
-  strings into Symfony Translation catalogues, with English as the source and a German catalogue first
+- Localization of the CLI. The browser editor has English and German catalogues in `translations/`
+- Localization of messages returned by the bridge and API, including Auto EQ warnings and recording names.
+  Return message codes and parameters so the browser can translate them without changing CLI output
 - Remove `legacy/python/` once the rewrite has reached parity
 - The meters light their red top at 0 dB, which on the calibrated scale lies 12.5 to 14.8 dB below the output
   ceiling. For programme with a crest factor of 12 to 15 dB that is about where its peaks reach the ceiling,

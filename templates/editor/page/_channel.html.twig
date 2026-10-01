@@ -4,7 +4,7 @@
 {% set p = side ~ '.' ~ i %}
 {% set link = side ~ ':' ~ i %}
 <h2 class="page__title">{{ w.ch(channel, {class: 'ch--big'}) }}
-    {{ w.text((input ? 'In' : 'Out') ~ (i + 1) ~ ' name', p ~ '.name', [{command: 'channelName', args: {channel: channel, name: '@' ~ p ~ '.name'}}], 8) }}
+    {{ w.text('%channel% name'|trans({'%channel%': (input ? 'In' : 'Out') ~ (i + 1)}), p ~ '.name', [{command: 'channelName', args: {channel: channel, name: '@' ~ p ~ '.name'}}], 8) }}
 </h2>
 {% embed 'editor/_peq.html.twig' with {p: p, channel: channel, filters: true, bands: input ? 5 : 7} %}
     {% block side %}

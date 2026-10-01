@@ -7,7 +7,7 @@
         <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.comp">
             <legend>{{ w.fold('Comp') }}</legend>
             {{ w.fader(null, 'aux.comp.threshold', comp, 0, 220, 'threshold', null, {label: 'Aux compressor threshold'}) }}
-            <button type="button" class="toggle" data-action="editor#open" data-editor-dialog-param="auxcomp">Set</button>
+            <button type="button" class="toggle" data-action="editor#open" data-editor-dialog-param="auxcomp">{{ "Set"|trans }}</button>
         </fieldset>
         <div class="group-stack">
             {% for key, spec in {automix: ['AutoMix', 18], effect: ['Effect', null], camera: ['Camera', 19]} %}
@@ -20,7 +20,7 @@
                         {% set send = [{command: 'mixFunction', args: {channel: spec[1], attack: '@' ~ m ~ '.attack', release: '@' ~ m ~ '.release', threshold: '@' ~ m ~ '.threshold', select: '@' ~ m ~ '.select', on: '@' ~ m ~ '.on'}}] %}
                     {% endif %}
                     {{ w.toggle('Off', 'aux.' ~ key ~ '.on', send, null, {on: 'On', class: 'toggle--on'}) }}
-                    <button type="button" class="toggle" data-action="editor#open" data-editor-dialog-param="{{ key }}">Set</button>
+                    <button type="button" class="toggle" data-action="editor#open" data-editor-dialog-param="{{ key }}">{{ "Set"|trans }}</button>
                 </fieldset>
             {% endfor %}
         </div>

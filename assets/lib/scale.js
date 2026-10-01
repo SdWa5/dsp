@@ -1,3 +1,4 @@
+import { t } from './i18n.js';
 // Value scales of the device, the same formulas as App\Protocol\Scale.
 
 export const GAIN_MAX = 400;
@@ -91,7 +92,7 @@ const signed = (v) => (v > 0 ? `+${v.toFixed(1)}` : v.toFixed(1));
  */
 export const formats = {
     raw: (v) => String(v),
-    gain: (v) => (GAIN_MUTED === v ? 'Muted' : `${signed(gainToDb(v))}dB`),
+    gain: (v) => (GAIN_MUTED === v ? t("Muted") : `${signed(gainToDb(v))}dB`),
     hz: (v) => formatHz(indexToHz(v)),
     // The editor rounds Q to one decimal and shows two: 25 = 1.70, 32 = 2.50
     q: (v) => (Math.round(indexToQ(v) * 10) / 10).toFixed(2),
@@ -138,10 +139,12 @@ export function presetSlotInfo(state, number) {
     const slot = presetSlot(number);
     const name = (state?.preset_names?.[slot] ?? '').trim();
     const stored = 0 === number ? true : (state?.preset_stored?.[slot] ?? null);
-    const shown = false === stored ? '(empty)' : name || '(no name)';
+    const shown = false === stored ? t("(empty)") : name || t("(no name)");
 
     return { name, stored, text: `${presetLabel(number)}  ${shown}` };
 }
+
+const tMuted = () => t('Muted').toLowerCase();
 
 const number = (text) => {
     const value = parseFloat(String(text).trim().replace(',', '.'));
@@ -154,7 +157,7 @@ const number = (text) => {
  */
 export const parsers = {
     raw: (t) => number(t),
-    gain: (t) => (/^\s*mute/i.test(t) ? GAIN_MUTED : null === number(t) ? null : dbToGain(number(t))),
+    gain: (t) => ((/^\s*mute/i.test(t) || String(t).trim().toLowerCase() === tMuted()) ? GAIN_MUTED : null === number(t) ? null : dbToGain(number(t))),
     hz: (t) => (null === number(t) ? null : hzToIndex(/k/i.test(t) ? number(t) * 1000 : number(t))),
     q: (t) => (null === number(t) ? null : qToIndex(number(t))),
     peq: (t) => (null === number(t) ? null : dbToPeqGain(number(t))),

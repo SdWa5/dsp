@@ -5,6 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.31.0] - 2026-10-01
+
+### Added
+
+- The browser editor supports English and German through Symfony Translation catalogues.
+- Help > Language offers English, Deutsch and Automatic with a persistent browser cookie.
+- The editor chooses its language from the menu cookie, `TRACKDSP_LOCALE`, the browser header, then English.
+- Locale precedence, catalogue parity, translated rendering and browser translation helpers have regression tests.
+- Translation YAML checks run in CI. A GitLab test configuration is adapted from the sibling Symfony project.
+
+### Changed
+
+- Browser control labels, confirmations, connection messages and rider status use the selected language.
+- The translated muted-gain display also parses back to mute.
+
 ## [0.30.1] - 2026-10-01
 
 ### Changed

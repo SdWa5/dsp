@@ -10,28 +10,29 @@
          data-fader-fmt-value="{{ fmt }}"{% if link %} data-fader-link-value="{{ link }}"{% endif %}
          {% if options.enabled is defined %} data-fader-enabled-value="{{ options.enabled }}"{% endif %}
          {% if options.default is defined %} data-fader-default-value="{{ options.default }}"{% endif %}>
-        {% if title %}<span class="fader__title">{{ title }}</span>{% endif %}
-        <input type="range" min="{{ min }}" max="{{ max }}" step="1" aria-label="{{ options.label|default(title ?: bind) }}"
-               {% if options.default is defined %} title="Double-click: back to the default"{% endif %}
+        {% if title %}<span class="fader__title">{{ title|trans }}</span>{% endif %}
+        <input type="range" min="{{ min }}" max="{{ max }}" step="1" aria-label="{{ options.label|default(title ?: bind)|trans }}"
+               {% if options.default is defined %} title="{{ "Double-click: back to the default"|trans }}"{% endif %}
                data-fader-target="input" data-action="input->fader#input wheel->fader#wheel dblclick->fader#reset">
-        <input type="text" class="fader__value" inputmode="decimal" aria-label="{{ options.label|default(title ?: bind) }} value"
+        <input type="text" class="fader__value" inputmode="decimal" aria-label="{{ '%label% value'|trans({'%label%': options.label|default(title ?: bind)|trans}) }}"
                data-fader-target="label" data-action="change->fader#typed keydown->fader#key focus->fader#focus blur->fader#blur">
     </div>
 {% endmacro %}
 
 {% macro toggle(label, bind, send, link = null, options = {}) %}
+    {% set label = label is same as(label|striptags) ? label|trans : label %}
     <button type="button" class="toggle{{ options.class is defined ? ' ' ~ options.class }}" data-controller="toggle"
             data-action="toggle#click" data-toggle-bind-value="{{ bind }}" data-toggle-send-value="{{ send|json_encode }}"
             {% if link %} data-toggle-link-value="{{ link }}"{% endif %}
             {% if options.bit is defined %} data-toggle-bit-value="{{ options.bit }}"{% endif %}
-            {% if options.on is defined %} data-toggle-text-on-value="{{ options.on }}" data-toggle-text-off-value="{{ label }}"{% endif %}
+            {% if options.on is defined %} data-toggle-text-on-value="{{ options.on|trans }}" data-toggle-text-off-value="{{ label }}"{% endif %}
             {% if options.enabled is defined %} data-toggle-enabled-value="{{ options.enabled }}"{% endif %}
             {% if options.muted_by is defined %} data-toggle-muted-by-value="{{ options.muted_by }}"{% endif %}
-            {% if options.aria is defined %} aria-label="{{ options.aria }}"{% endif %}>{{ label }}</button>
+            {% if options.aria is defined %} aria-label="{{ options.aria|trans }}"{% endif %}>{{ label }}</button>
 {% endmacro %}
 
 {% macro choice(label, bind, send, items, link = null, options = {}) %}
-    <select class="choice" aria-label="{{ label }}" data-controller="choice" data-action="choice#change"
+    <select class="choice" aria-label="{{ label|trans }}" data-controller="choice" data-action="choice#change"
             data-choice-bind-value="{{ bind }}" data-choice-send-value="{{ send|json_encode }}"
             {% if link %} data-choice-link-value="{{ link }}"{% endif %}
             {% if options.enabled is defined %} data-choice-enabled-value="{{ options.enabled }}"{% endif %}>
@@ -40,7 +41,7 @@
 {% endmacro %}
 
 {% macro text(label, bind, send, maxlength, link = null) %}
-    <input type="text" class="text" aria-label="{{ label }}" maxlength="{{ maxlength }}" data-controller="text"
+    <input type="text" class="text" aria-label="{{ label|trans }}" maxlength="{{ maxlength }}" data-controller="text"
            data-action="change->text#change" data-text-bind-value="{{ bind }}" data-text-send-value="{{ send|json_encode }}"
            {% if link %} data-text-link-value="{{ link }}"{% endif %}>
 {% endmacro %}
@@ -50,7 +51,7 @@
 {% endmacro %}
 
 {% macro meter(index, label = null) %}
-    <div class="meter" data-controller="meter" data-meter-index-value="{{ index }}" role="meter" aria-label="{{ label ?? 'Level' }}">
+    <div class="meter" data-controller="meter" data-meter-index-value="{{ index }}" role="meter" aria-label="{{ (label ?? 'Level')|trans }}">
         <span class="meter__bar"></span><span class="meter__peak"></span>
     </div>
 {% endmacro %}
@@ -69,15 +70,15 @@
 
 {# The title of a panel with data-controller="collapse": a button that folds the panel #}
 {% macro fold(label) -%}
-    <button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true">{{ label }}</button>
+    <button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true">{{ label|trans }}</button>
 {%- endmacro %}
 
 {# Shown while output o (0..7) runs at compressor 1:1.0 with a gain other than 0 dB, with the fix #}
 {% macro gain_warning(o) -%}
     <div class="gain-warning" data-controller="gainwarning" data-gainwarning-path-value="outputs.{{ o }}" data-gainwarning-channel-value="{{ 8 + o }}" hidden>
-        <span title="At compressor ratio 1:1.0 the 8x8 applies every gain but 0 dB more strongly than set and adds the spectrum mirrored at 24 kHz.">⚠ 1:1.0 exaggerates the gain</span>
-        <span title="1:1.1 with the threshold at +20 dB never compresses and keeps the gain exact.">Fix with 1:1.1 at +20 dB:</span>
-        <span class="gain-warning__buttons"><button type="button" class="toggle" data-action="gainwarning#exact" title="The gain then acts as set, so the output gets louder or quieter by the exaggeration">Exact gain</button>
-        <button type="button" class="toggle" data-action="gainwarning#keepLevel" title="Moves the gain to the level the output had at 1:1.0 (modelled, within 0.5 dB up to +9 dB set; above about +6 dB it stops at +12 dB)">Keep level</button></span>
+        <span title="{{ "At compressor ratio 1:1.0 the 8x8 applies every gain but 0 dB more strongly than set and adds the spectrum mirrored at 24 kHz."|trans }}">{{ "⚠ 1:1.0 exaggerates the gain"|trans }}</span>
+        <span title="{{ "1:1.1 with the threshold at +20 dB never compresses and keeps the gain exact."|trans }}">{{ "Fix with 1:1.1 at +20 dB:"|trans }}</span>
+        <span class="gain-warning__buttons"><button type="button" class="toggle" data-action="gainwarning#exact" title="{{ "The gain then acts as set, so the output gets louder or quieter by the exaggeration"|trans }}">{{ "Exact gain"|trans }}</button>
+        <button type="button" class="toggle" data-action="gainwarning#keepLevel" title="{{ "Moves the gain to the level the output had at 1:1.0 (modelled, within 0.5 dB up to +9 dB set; above about +6 dB it stops at +12 dB)"|trans }}">{{ "Keep level"|trans }}</button></span>
     </div>
 {%- endmacro %}

@@ -1,0 +1,16 @@
+# Device option values stay unchanged; only their display labels are translated.
+Low Pass: Tiefpass
+High Pass: Hochpass
+Allpass1: Allpass 1
+Allpass2: Allpass 2
+Analog Input: Analogeingang
+Pink Noise: Rosa Rauschen
+White Noise: Weißes Rauschen
+Sine Wave: Sinuston
+Close: Aus
+Level 1: Stufe 1
+Level 2: Stufe 2
+Level 3: Stufe 3
+Level 4: Stufe 4
+Memorize: Merken
+Forget: Vergessen

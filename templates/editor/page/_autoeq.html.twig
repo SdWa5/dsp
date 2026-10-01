@@ -8,10 +8,10 @@
     <ul class="autoeq__warnings" data-autoeq-target="warnings" role="alert"></ul>
 
     <section class="card" data-autoeq-target="setup" data-controller="collapse" data-collapse-key-value="autoeq.setup">
-        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">1</span> Setup</button></h2>
+        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">1</span> {{ "Setup"|trans }}</button></h2>
         <form class="card__body" data-action="autoeq#start">
             <fieldset class="group">
-                <legend>Outputs to correct</legend>
+                <legend>{{ "Outputs to correct"|trans }}</legend>
                 <div class="checks">
                     {% for o in 0..7 %}
                         <label class="check"><input type="checkbox" name="outputs" value="{{ 8 + o }}"{{ o < 2 ? ' checked' }}> {{ w.ch(8 + o) }}</label>
@@ -19,33 +19,30 @@
                 </div>
             </fieldset>
             <div class="form-grid">
-                <label>Capture device <select name="device" data-autoeq-target="devices"><option value="default">Default device</option></select></label>
-                <label>Mic on input <input type="number" name="mic_channel" min="1" max="32" value="1" required></label>
-                <label>Seconds per position <input type="number" name="seconds" min="2" max="60" value="8" required></label>
-                <label>Noise before recording <span class="unit-input"><input type="number" name="settle" min="0" max="10" step="0.5" value="2" required>s</span></label>
-                <label>Bands to use <select name="bands">{% for b in 1..7 %}<option value="{{ b }}"{{ 7 == b ? ' selected' }}>{{ b == 7 ? 'Band 1 to 7 (all)' : 'Band 1 to ' ~ b }}</option>{% endfor %}</select></label>
+                <label>{{ "Capture device"|trans }} <select name="device" data-autoeq-target="devices"><option value="default">{{ "Default device"|trans }}</option></select></label>
+                <label>{{ "Mic on input"|trans }} <input type="number" name="mic_channel" min="1" max="32" value="1" required></label>
+                <label>{{ "Seconds per position"|trans }} <input type="number" name="seconds" min="2" max="60" value="8" required></label>
+                <label>{{ "Noise before recording"|trans }} <span class="unit-input"><input type="number" name="settle" min="0" max="10" step="0.5" value="2" required>s</span></label>
+                <label>{{ "Bands to use"|trans }} <select name="bands">{% for b in 1..7 %}<option value="{{ b }}"{{ 7 == b ? ' selected' }}>{{ b == 7 ? 'Band 1 to 7 (all)'|trans : 'Band 1 to %band%'|trans({'%band%': b}) }}</option>{% endfor %}</select></label>
             </div>
-            <p class="dialog__note" data-autoeq-target="recorderNote" hidden>arecord is missing on the server, so this page cannot record.
-                Record the pink noise yourself and upload the WAV files in step 2.</p>
-            <p class="dialog__note">Starting takes a backup of the device. A recording plays the device's pink noise on every routed output,
-                with the chosen bands bypassed and the gain riders paused. Keep the level safe.</p>
-            <div class="dialog__buttons"><button type="submit" class="big">Start session</button></div>
+            <p class="dialog__note" data-autoeq-target="recorderNote" hidden>{{ "arecord is missing on the server, so this page cannot record. Record the pink noise yourself and upload the WAV files in step 2."|trans }}</p>
+            <p class="dialog__note">{{ "Starting takes a backup of the device. A recording plays the device's pink noise on every routed output, with the chosen bands bypassed and the gain riders paused. Keep the level safe."|trans }}</p>
+            <div class="dialog__buttons"><button type="submit" class="big">{{ "Start session"|trans }}</button></div>
         </form>
     </section>
 
     <section class="card" data-autoeq-target="measure" hidden data-controller="collapse" data-collapse-key-value="autoeq.measure">
-        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">2</span> Measure <small data-autoeq-target="summary"></small></button></h2>
+        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">2</span> {{ "Measure"|trans }} <small data-autoeq-target="summary"></small></button></h2>
         <div class="card__body">
-            <p class="dialog__note">Put the mic where the audience listens and record one position after the other. Three to five positions
-                around the listening area give a correction that holds for the whole room.</p>
+            <p class="dialog__note">{{ "Put the mic where the audience listens and record one position after the other. Three to five positions around the listening area give a correction that holds for the whole room."|trans }}</p>
             <ol class="recordings" data-autoeq-target="recordings"></ol>
             <div class="dialog__buttons dialog__buttons--start">
-                <button type="button" class="big" data-autoeq-target="record" data-action="autoeq#record">Record position</button>
-                <button type="button" class="toggle" data-action="autoeq#chooseWav">Upload WAV…</button>
+                <button type="button" class="big" data-autoeq-target="record" data-action="autoeq#record">{{ "Record position"|trans }}</button>
+                <button type="button" class="toggle" data-action="autoeq#chooseWav">{{ "Upload WAV…"|trans }}</button>
                 <input type="file" accept=".wav,audio/wav,audio/x-wav" multiple hidden data-autoeq-target="wav" data-action="change->autoeq#uploadWav">
-                <span class="calibration">Mic calibration <b data-autoeq-target="calibration">none</b>
-                    <button type="button" class="toggle" data-action="autoeq#chooseCalibration">Load…</button>
-                    <button type="button" class="toggle" data-autoeq-target="calibrationRemove" data-action="autoeq#removeCalibration">Remove</button>
+                <span class="calibration">{{ "Mic calibration"|trans }} <b data-autoeq-target="calibration">{{ "none"|trans }}</b>
+                    <button type="button" class="toggle" data-action="autoeq#chooseCalibration">{{ "Load…"|trans }}</button>
+                    <button type="button" class="toggle" data-autoeq-target="calibrationRemove" data-action="autoeq#removeCalibration">{{ "Remove"|trans }}</button>
                 </span>
                 <input type="file" accept=".txt,.cal,.frd,text/plain" hidden data-autoeq-target="calibrationFile" data-action="change->autoeq#uploadCalibration">
             </div>
@@ -53,31 +50,31 @@
     </section>
 
     <section class="card" data-autoeq-target="fitCard" hidden data-controller="collapse" data-collapse-key-value="autoeq.fit">
-        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">3</span> Fit</button></h2>
+        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">3</span> {{ "Fit"|trans }}</button></h2>
         <form class="card__body" data-autoeq-target="fitForm" data-action="autoeq#fit">
             <div class="form-grid">
-                <label>Target <select name="target">
-                    <option value="flat">Flat</option>
-                    {% for tilt in ['-0.5', '-1', '-1.5', '-2'] %}<option value="tilt:{{ tilt }}">Tilt {{ tilt }} dB per octave</option>{% endfor %}
+                <label>{{ "Target"|trans }} <select name="target">
+                    <option value="flat">{{ "Flat"|trans }}</option>
+                    {% for tilt in ['-0.5', '-1', '-1.5', '-2'] %}<option value="tilt:{{ tilt }}">{{ 'Tilt %tilt% dB per octave'|trans({'%tilt%': tilt}) }}</option>{% endfor %}
                 </select></label>
-                <label>From <span class="unit-input"><input type="number" name="low" min="20" max="20000" value="60" required>Hz</span></label>
-                <label>To <span class="unit-input"><input type="number" name="high" min="20" max="20000" value="16000" required>Hz</span></label>
-                <label>Largest boost <span class="unit-input"><input type="number" name="max_boost" min="0" max="12" step="0.5" value="3" required>dB</span></label>
-                <label>Deepest cut <span class="unit-input"><input type="number" name="max_cut" min="0" max="12" step="0.5" value="9" required>dB</span></label>
-                <label>Narrowest Q <input type="number" name="max_q" min="0.5" max="20" step="0.5" value="5" required></label>
-                <label>Leave alone within <span class="unit-input"><input type="number" name="tolerance" min="0.1" max="6" step="0.1" value="1" required>dB</span></label>
+                <label>{{ "From"|trans }} <span class="unit-input"><input type="number" name="low" min="20" max="20000" value="60" required>Hz</span></label>
+                <label>{{ "To"|trans }} <span class="unit-input"><input type="number" name="high" min="20" max="20000" value="16000" required>Hz</span></label>
+                <label>{{ "Largest boost"|trans }} <span class="unit-input"><input type="number" name="max_boost" min="0" max="12" step="0.5" value="3" required>dB</span></label>
+                <label>{{ "Deepest cut"|trans }} <span class="unit-input"><input type="number" name="max_cut" min="0" max="12" step="0.5" value="9" required>dB</span></label>
+                <label>{{ "Narrowest Q"|trans }} <input type="number" name="max_q" min="0.5" max="20" step="0.5" value="5" required></label>
+                <label>{{ "Leave alone within"|trans }} <span class="unit-input"><input type="number" name="tolerance" min="0.1" max="6" step="0.1" value="1" required>dB</span></label>
             </div>
-            <div class="dialog__buttons dialog__buttons--start"><button type="submit" class="big" data-autoeq-target="fitButton">Fit</button>
-                <span class="dialog__note">Fitting again with other limits needs no new measurement.</span></div>
+            <div class="dialog__buttons dialog__buttons--start"><button type="submit" class="big" data-autoeq-target="fitButton">{{ "Fit"|trans }}</button>
+                <span class="dialog__note">{{ "Fitting again with other limits needs no new measurement."|trans }}</span></div>
             <div class="autoeq__result" data-autoeq-target="result" hidden>
                 <canvas class="autoeq__plot" data-autoeq-target="plot"></canvas>
                 <ul class="legend">
-                    <li class="legend__measured">Measured</li><li class="legend__goal">Target</li><li class="legend__eq">EQ</li>
-                    <li class="legend__after">Predicted</li><li class="legend__verified" data-autoeq-target="verifiedLegend" hidden>Verified</li>
+                    <li class="legend__measured">{{ "Measured"|trans }}</li><li class="legend__goal">{{ "Target"|trans }}</li><li class="legend__eq">EQ</li>
+                    <li class="legend__after">{{ "Predicted"|trans }}</li><li class="legend__verified" data-autoeq-target="verifiedLegend" hidden>{{ "Verified"|trans }}</li>
                 </ul>
                 <p class="autoeq__stats" data-autoeq-target="stats"></p>
                 <table class="table autoeq__bands">
-                    <thead><tr><th>Band</th><th>Frequency</th><th>Gain</th><th>Q</th></tr></thead>
+                    <thead><tr><th>{{ "Band"|trans }}</th><th>{{ "Frequency"|trans }}</th><th>{{ "Gain"|trans }}</th><th>Q</th></tr></thead>
                     <tbody data-autoeq-target="bands"></tbody>
                 </table>
             </div>
@@ -85,22 +82,22 @@
     </section>
 
     <section class="card" data-autoeq-target="applyCard" hidden data-controller="collapse" data-collapse-key-value="autoeq.apply">
-        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">4</span> Apply and verify</button></h2>
+        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">4</span> {{ "Apply and verify"|trans }}</button></h2>
         <div class="card__body">
             <p class="dialog__note" data-autoeq-target="applyNote"></p>
             <div class="dialog__buttons dialog__buttons--start">
-                <button type="button" class="big" data-autoeq-target="apply" data-action="autoeq#apply">Apply</button>
-                <button type="button" class="big" data-autoeq-target="verify" data-action="autoeq#verify">Record verify position</button>
-                <button type="button" class="big" data-autoeq-target="revert" data-action="autoeq#revert">Revert to backup</button>
-                <button type="button" class="toggle" data-action="autoeq#discard">End session</button>
+                <button type="button" class="big" data-autoeq-target="apply" data-action="autoeq#apply">{{ "Apply"|trans }}</button>
+                <button type="button" class="big" data-autoeq-target="verify" data-action="autoeq#verify">{{ "Record verify position"|trans }}</button>
+                <button type="button" class="big" data-autoeq-target="revert" data-action="autoeq#revert">{{ "Revert to backup"|trans }}</button>
+                <button type="button" class="toggle" data-action="autoeq#discard">{{ "End session"|trans }}</button>
             </div>
         </div>
     </section>
 
     <details class="card card--plain" data-autoeq-target="backupsCard">
-        <summary class="card__title">Backups</summary>
+        <summary class="card__title">{{ "Backups"|trans }}</summary>
         <div class="card__body">
-            <p class="dialog__note">Every session starts with a backup. Revert restores all PEQ bands of the outputs the backup names.</p>
+            <p class="dialog__note">{{ "Every session starts with a backup. Revert restores all PEQ bands of the outputs the backup names."|trans }}</p>
             <ul class="backups" data-autoeq-target="backups"></ul>
         </div>
     </details>

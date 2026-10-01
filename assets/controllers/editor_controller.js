@@ -1,3 +1,4 @@
+import { languageCookie, t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { api, getDefaults, listen, on, send, status, store } from '../lib/device.js';
 import { changedPaths } from '../lib/defaults.js';
@@ -9,7 +10,9 @@ import { readPref, writePref } from '../lib/prefs.js';
 
 const THEMES = ['auto', 'light', 'dark'];
 /** How the channel tabs show link groups, each switched on its own in the Channels menu. */
-const changedText = (count) => `${count} ${1 === count ? 'setting differs' : 'settings differ'} from the factory default`;
+const changedText = (count) => t(1 === count
+    ? "%count% setting differs from the factory default"
+    : "%count% settings differ from the factory default", { count });
 
 /**
  * The editor frame: tabs, connection state, menus and the dialogs that do more than set one value
@@ -78,7 +81,7 @@ export default class extends Controller {
         this.bannerTarget.hidden = '' === banner;
         if (this.hasStatusTarget) {
             const info = status.info ? ` (${status.info})` : '';
-            this.statusTarget.textContent = online ? `Connected to ${status.target}${info}.` : banner;
+            this.statusTarget.textContent = online ? t("Connected to %target%%info%.", { target: status.target, info }) : banner;
         }
     }
 
@@ -110,10 +113,10 @@ export default class extends Controller {
         const titles = [channelLabel(channel, state)];
         if (state?.[side]?.[index]?.mute) {
             marks.push('<span class="chtab__mute" aria-hidden="true"></span>');
-            titles.push('muted');
+            titles.push(t("muted"));
         } else if (GAIN_MUTED === state?.[side]?.[index]?.gain) {
             marks.push('<span class="chtab__mute is-gain" aria-hidden="true"></span>');
-            titles.push('muted by its gain');
+            titles.push(t("muted by its gain"));
         }
         if (state) {
             const group = linkGroups(state[side])[index];
@@ -125,7 +128,7 @@ export default class extends Controller {
                 marks.push(`<span class="chtab__link${code ? '' : ' chtab__link--bare'}">${mark}</span>`);
             }
             if (group > 0) {
-                titles.push(`linked with ${members.filter((m) => m !== index).map((m) => channelId(('outputs' === side ? 8 : 0) + m)).join(', ')}`);
+                titles.push(t("linked with %channels%", { channels: members.filter((m) => m !== index).map((m) => channelId(('outputs' === side ? 8 : 0) + m)).join(', ') }));
             }
             const count = changedPaths(state[side]?.[index], getDefaults()[side]?.[index]).length;
             if (count > 0) {
@@ -267,6 +270,11 @@ export default class extends Controller {
         }
     }
 
+    language(event) {
+        document.cookie = languageCookie(event.target.value, 'https:' === window.location.protocol);
+        window.location.reload();
+    }
+
     theme() {
         const next = THEMES[(THEMES.indexOf(this.currentTheme) + 1) % THEMES.length];
         this.applyTheme(next);
@@ -296,8 +304,8 @@ export default class extends Controller {
             document.documentElement.dataset.theme = theme;
         }
         if (this.hasThemeTarget) {
-            this.themeTarget.textContent = { auto: 'Auto', light: 'Light', dark: 'Dark' }[theme];
-            this.themeTarget.title = `Colour theme: ${theme}. Click to change.`;
+            this.themeTarget.textContent = { auto: t('Auto'), light: t("Light"), dark: t("Dark") }[theme];
+            this.themeTarget.title = t("Colour theme %theme%. Click to change.", { theme: this.themeTarget.textContent });
         }
     }
 
@@ -372,14 +380,14 @@ export default class extends Controller {
     async scan() {
         this.scanButtonTarget.disabled = true;
         this.scanStatusTarget.hidden = false;
-        this.scanStatusTarget.textContent = 'Searching USB and the network…';
+        this.scanStatusTarget.textContent = t("Searching USB and the network…");
         this.foundTarget.replaceChildren();
         try {
             const result = await api('discover');
-            const networks = result.networks.join(', ') || 'no network';
+            const networks = result.networks.join(', ') || t("no network");
             this.scanStatusTarget.textContent = 0 === result.devices.length
-                ? `No DSP found on USB or on ${networks}.`
-                : `Found on USB and ${networks}:`;
+                ? t("No DSP found on USB or on %networks%.", { networks })
+                : t("Found on USB and %networks%.", { networks });
             this.foundTarget.replaceChildren(...result.devices.map((device) => this.foundItem(device)));
         } catch (error) {
             this.scanStatusTarget.textContent = error.message;
@@ -393,7 +401,7 @@ export default class extends Controller {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'toggle';
-        button.textContent = device.connected ? `${device.target} (connected)` : `Connect ${device.target}`;
+        button.textContent = device.connected ? t("%target% (connected)", { target: device.target }) : t("Connect %target%", { target: device.target });
         button.disabled = Boolean(device.connected);
         button.addEventListener('click', () => {
             this.targetTarget.value = device.target;
@@ -425,7 +433,7 @@ export default class extends Controller {
 
     requireState() {
         if (null === store.state) {
-            this.showError('Not connected to the device.');
+            this.showError(t("Not connected to the device."));
             return false;
         }
         return true;
@@ -437,8 +445,8 @@ export default class extends Controller {
         const number = Number(form.elements.number.value);
         const name = form.elements.name.value.trim();
         const info = presetSlotInfo(store.state, number);
-        const warning = false !== info.stored && info.name ? ` It replaces "${info.name}".` : '';
-        if (!this.requireState() || !window.confirm(`Store the live settings as ${presetLabel(number)} "${name}"?${warning}`)) {
+        const warning = false !== info.stored && info.name ? ' '+t("It replaces \"%name%\".", { name: info.name }) : '';
+        if (!this.requireState() || !window.confirm(t("Store the live settings as %preset% \"%name%\"?%warning%", { preset: presetLabel(number), name, warning }))) {
             return;
         }
         send([{ command: 'presetName', args: { name } }, { command: 'storePreset', args: { number } }], false);
@@ -448,14 +456,14 @@ export default class extends Controller {
     recall(event) {
         event.preventDefault();
         const number = Number(event.target.elements.number.value);
-        if (this.requireState() && window.confirm(`Recall ${presetLabel(number)}? It replaces all live settings.`)) {
+        if (this.requireState() && window.confirm(t("Recall %preset%? It replaces all live settings.", { preset: presetLabel(number) }))) {
             send([{ command: 'loadPreset', args: { number } }], false);
             event.target.closest('dialog').close();
         }
     }
 
     factory() {
-        if (this.requireState() && window.confirm('Recall the factory default F00? It replaces all live settings.')) {
+        if (this.requireState() && window.confirm(t("Recall the factory default F00? It replaces all live settings."))) {
             send([{ command: 'loadPreset', args: { number: 0 } }], false);
         }
     }
@@ -475,7 +483,7 @@ export default class extends Controller {
             return;
         }
         const copies = commands.filter((c) => 'copyChannel' === c.command).length;
-        if (copies > 0 && !window.confirm(`Linking copies the first channel of each group to ${copies} channel(s). Go on?`)) {
+        if (copies > 0 && !window.confirm(t("Linking copies the first channel of each group to %count% channel(s). Go on?", { count: copies }))) {
             return;
         }
         await send([...commands, { command: 'activate', args: {} }], false);
@@ -489,10 +497,10 @@ export default class extends Controller {
         const target = Number(event.target.elements.target.value);
         const name = (c) => channelLabel(c, store.state);
         if (source === target || (source < 8) !== (target < 8)) {
-            this.showError('Copy an input to another input, or an output to another output.');
+            this.showError(t("Copy an input to another input, or an output to another output."));
             return;
         }
-        if (!this.requireState() || !window.confirm(`Copy every setting of ${name(source)} to ${name(target)}?`)) {
+        if (!this.requireState() || !window.confirm(t("Copy every setting of %source% to %target%?", { source: name(source), target: name(target) }))) {
             return;
         }
         await send([{ command: 'copyChannel', args: { source, target } }], false);
@@ -507,7 +515,7 @@ export default class extends Controller {
     async upload() {
         const file = this.fileTarget.files[0];
         this.fileTarget.value = '';
-        if (!file || !this.requireState() || !window.confirm(`Send every setting of ${file.name} to the device?`)) {
+        if (!file || !this.requireState() || !window.confirm(t("Send every setting of %file% to the device?", { file: file.name }))) {
             return;
         }
         try {
@@ -528,7 +536,7 @@ export default class extends Controller {
             const response = await fetch('/api/download');
             if (!response.ok) {
                 const body = await response.json().catch(() => ({}));
-                throw new Error(body.error ?? `Download failed (${response.status}).`);
+                throw new Error(body.error ?? t("Download failed (%status%).", { status: response.status }));
             }
             const disposition = response.headers.get('Content-Disposition') ?? '';
             const link = document.createElement('a');

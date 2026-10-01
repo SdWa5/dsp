@@ -1,0 +1,26 @@
+# Adapted from sdwa5-3d/.gitlab-ci.yml and its Composer test job.
+# This application uses locked dependencies and needs no deployment or registry credentials.
+stages:
+  - phpunit
+
+phpunit:
+  stage: phpunit
+  image: composer:2
+  before_script:
+    - composer install --prefer-dist --no-progress --no-interaction
+  script:
+    - composer cs
+    - composer lint
+    - composer stan
+    - composer test
+  rules:
+    - exists:
+        - phpunit.dist.xml
+  allow_failure: false
+
+js:
+  stage: phpunit
+  image: node:24
+  script:
+    - node --test assets/tests/*.test.js
+  allow_failure: false

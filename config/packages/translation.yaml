@@ -1,0 +1,7 @@
+framework:
+    default_locale: en
+    # The browser editor's languages, picked by App\EventListener\LocaleListener
+    enabled_locales: [en, de]
+    translator:
+        default_path: '%kernel.project_dir%/translations'
+        fallbacks: [en]

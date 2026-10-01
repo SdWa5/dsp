@@ -92,6 +92,9 @@ per input and output with the EQ curve, live meters and the File, Device, Channe
 editor talks to the bridge through the JSON API below. A ddev with another `project_tld` needs its host names in
 `TRACKDSP_TRUSTED_HOSTS` in `.env.local`, or the app answers 400 "Untrusted Host".
 
+- Help > Language chooses English, Deutsch or Automatic. A choice is remembered for this browser. Automatic
+  uses `TRACKDSP_LOCALE=en` or `de` from `.env.local`, then the browser language, then English. The CLI and
+  messages returned by the bridge and API stay in English. See [docs/editor.md](docs/editor.md).
 - File > Open preset file sends every setting of a trackdsp JSON file, or of a `.prs` file saved by the vendor
   editor, to the device. A `.prs` file carries no test tone, delay unit and EQ bypass, so those stay as they are.
   Save preset file writes JSON. In demo mode this sets up a preset without a device.

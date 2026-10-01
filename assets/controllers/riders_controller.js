@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { api, on, status, store, updateStatus } from '../lib/device.js';
 import { channelLabel } from '../lib/channels.js';
@@ -52,7 +53,7 @@ export default class extends Controller {
             const running = settings.has(channel);
             button.classList.toggle('is-on', running);
             button.setAttribute('aria-pressed', running ? 'true' : 'false');
-            button.textContent = running ? 'Rider on' : 'Rider';
+            button.textContent = running ? t("Rider on") : t('Rider');
             button.disabled = !online;
         }
         for (const info of this.infoTargets) {
@@ -62,18 +63,18 @@ export default class extends Controller {
             info.hidden = !rider;
             info.dataset.state = now?.status ?? '';
             if (rider) {
-                const state = STATES[now?.status] ?? 'Starting';
+                const state = t(STATES[now?.status] ?? 'Starting');
                 const gain = null === (now?.gain ?? null) ? '' : ` ${now.gain > 0 ? '+' : ''}${now.gain.toFixed(1)} dB`;
                 info.textContent = `${state}${gain}`;
-                info.title = `Target ${rider.target} dB, gain ${rider.min}..${rider.max} dB, ${rider.slew} dB/s`
-                    + (null === (now?.average ?? null) ? '' : `, level ${now.average.toFixed(1)} dB`);
+                info.title = t("Target %target% dB, gain %min%..%max% dB, %slew% dB/s", { target: rider.target, min: rider.min, max: rider.max, slew: rider.slew })
+                    + (null === (now?.average ?? null) ? '' : t(", level %level% dB", { level: now.average.toFixed(1) }));
             }
         }
     }
 
     renderTitle() {
         if (this.hasTitleTarget) {
-            this.titleTarget.textContent = `Gain rider · ${channelLabel(this.channel, store.state)}`;
+            this.titleTarget.textContent = t("Gain rider · %channel%", { channel: channelLabel(this.channel, store.state) });
         }
     }
 
@@ -89,7 +90,7 @@ export default class extends Controller {
         this.boost();
         this.stopTarget.hidden = !rider;
         this.errorTarget.textContent = '';
-        this.submitTarget.textContent = rider ? 'Update rider' : 'Start rider';
+        this.submitTarget.textContent = rider ? t("Update rider") : t("Start rider");
         this.renderTitle();
         this.dialogTarget.showModal();
     }

@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n.js';
 import BoundController from '../lib/bound_controller.js';
 import { isChanged } from '../lib/defaults.js';
 import { getDefaults, store } from '../lib/device.js';
@@ -30,7 +31,7 @@ export default class extends BoundController {
         this.element.classList.toggle('is-on', on);
         this.element.classList.toggle('is-unknown', null === value);
         this.element.setAttribute('aria-pressed', on ? 'true' : 'false');
-        this.element.title = null === value ? 'Unknown: the device does not report this value' : byGain ? 'Muted by its gain at the lowest step' : '';
+        this.element.title = null === value ? t("Unknown: the device does not report this value") : byGain ? t("Muted by its gain at the lowest step") : '';
         if (this.textOnValue) {
             this.element.textContent = on ? this.textOnValue : this.textOffValue;
         }

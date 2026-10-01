@@ -1,0 +1,269 @@
+# The browser editor. The keys of messages.de.yaml must match these (TranslationTest).
+editor:
+    menu:
+        label: Menu
+        file: File
+        open_file: Open preset file…
+        open_file_hint: Send every setting to the device (.json, or .prs of the vendor editor)
+        save_file: Save preset file
+        save_file_hint: The live settings as JSON
+        device: Device
+        connection: Connection…
+        connection_hint: Scan, connect, disconnect
+        store: Store preset…
+        recall: Recall preset…
+        factory: Factory default (F00)
+        refresh: Read from device
+        idip: Setting ID/IP…
+        working: Working Status…
+        lock: Lock…
+        channels: Channels
+        names: Channel names…
+        link: Link…
+        link_hint: Channels that move together
+        copy: Copy…
+        sub: Sub Control…
+        groups: Group Control…
+        tools: Tools
+        tone: Test tone…
+        riders: Gain riders
+        riders_hint: On the Gain page, per input
+        autoeq: Auto EQ
+        autoeq_hint: Measure and correct the outputs
+        help: Help
+        rs232: RS232 code table
+        about: About
+        language: Language
+        language_auto: Automatic (server/browser)
+    link_view:
+        title: Link display (channel tabs and Link dialog)
+        code: Group code (L1, L2 …)
+        shape: Icon per group
+        colour: Colour per group
+        placement: Placement of linked channels
+        normal: In channel order
+        side: Side by side
+        stacked: Stacked per link group
+    bar:
+        id: ID
+        theme: Colour theme
+        theme_auto: Auto
+        offline: Offline
+    tabs:
+        pages: Pages
+        channels: Channels
+        gain: Gain
+        gate: Gate
+        comp: Comp
+        delay: Delay
+        matrix: Matrix
+        aux: Aux
+        autoeq: Auto EQ
+    foot:
+        number: Number
+        name: Name
+        store: Store
+        recall: Recall
+
+# Widget labels and explanatory text use their English source as message IDs.
+"\"auto\" connects to the first device found, USB before the network. Disconnect frees the device's connection, and the vendor editor may take it at once.": "\"auto\" connects to the first device found, USB before the network. Disconnect frees the device's connection, and the vendor editor may take it at once."
+"%channel% delay": "%channel% delay"
+"%channel% gain": "%channel% gain"
+"%channel% name": "%channel% name"
+"%filter% frequency": "%filter% frequency"
+"%filter% slope": "%filter% slope"
+"%label% value": "%label% value"
+"%output% from %input%": "%output% from %input%"
+"%row% with %column%": "%row% with %column%"
+". These command numbers do not apply over USB or TCP.": ". These command numbers do not apply over USB or TCP."
+"0/1/2, mask hi, mask lo": "0/1/2, mask hi, mask lo"
+"00, channel, 0–4": "00, channel, 0–4"
+"1:1.1 with the threshold at +20 dB never compresses and keeps the gain exact.": "1:1.1 with the threshold at +20 dB never compresses and keeps the gain exact."
+": free control software for the Thomann t.racks 8x8 Matrix DSP over USB (HID) and TCP port 9761.": ": free control software for the Thomann t.racks 8x8 Matrix DSP over USB (HID) and TCP port 9761."
+"A cell links its row and column channel, and linked channels form a group, which lights as a block. A lit cell takes the column channel out of its group. The lowest channel of a group is copied to the others. The rows and columns follow the placement below.": "A cell links its row and column channel, and linked channels form a group, which lights as a block. A lit cell takes the column channel out of its group. The lowest channel of a group is copied to the others. The rows and columns follow the placement below."
+"A recall replaces all live settings.": "A recall replaces all live settings."
+"About": "About"
+"Allow a highest gain above 0 dB": "Allow a highest gain above 0 dB"
+"Apply": "Apply"
+"Apply and verify": "Apply and verify"
+"At compressor ratio 1:1.0 the 8x8 applies every gain but 0 dB more strongly than set and adds the spectrum mirrored at 24 kHz.": "At compressor ratio 1:1.0 the 8x8 applies every gain but 0 dB more strongly than set and adds the spectrum mirrored at 24 kHz."
+"Attack": "Attack"
+"AutoMix Setting": "AutoMix Setting"
+"AutoMix slope": "AutoMix slope"
+"Aux compressor": "Aux compressor"
+"Aux compressor threshold": "Aux compressor threshold"
+"Aux gain": "Aux gain"
+"Aux gain step / mute / volume": "Aux gain step / mute / volume"
+"Aux name": "Aux name"
+"Aux source selection": "Aux source selection"
+"Averaging time": "Averaging time"
+"Backups": "Backups"
+"Band": "Band"
+"Band %band% %field%": "Band %band% %field%"
+"Band 1 to %band%": "Band 1 to %band%"
+"Band 1 to 7 (all)": "Band 1 to 7 (all)"
+"Bands": "Bands"
+"Bands to use": "Bands to use"
+"Bypass": "Bypass"
+"Camera": "Camera"
+"Camera Setting": "Camera Setting"
+"Capture device": "Capture device"
+"Channel Name": "Channel Name"
+"Close": "Close"
+"Connect": "Connect"
+"Connection": "Connection"
+"Copies every setting of an input to an input, or of an output to an output.": "Copies every setting of an input to an input, or of an output to an output."
+"Copy": "Copy"
+"Copy channel": "Copy channel"
+"Curves shown": "Curves shown"
+"Data": "Data"
+"Deepest cut": "Deepest cut"
+"Default device": "Default device"
+"Delay": "Delay"
+"Delay unit": "Delay unit"
+"Device ID": "Device ID"
+"Disconnect": "Disconnect"
+"Double-click: back to the default": "Double-click: back to the default"
+"Drag a point: frequency and gain. Wheel on a point: Q.": "Drag a point: frequency and gain. Wheel on a point: Q."
+"EQ Bypass": "EQ Bypass"
+"EQ Reset": "EQ Reset"
+"EQ curve": "EQ curve"
+"EQ overview": "EQ overview"
+"Echo": "Echo"
+"Effect": "Effect"
+"Effect Setting": "Effect Setting"
+"Effect/Camera/AutoMix on/off": "Effect/Camera/AutoMix on/off"
+"End session": "End session"
+"Every session starts with a backup. Revert restores all PEQ bands of the outputs the backup names.": "Every session starts with a backup. Revert restores all PEQ bands of the outputs the backup names."
+"Exact gain": "Exact gain"
+"F:0/U:1, number, 0": "F:0/U:1, number, 0"
+"Fastest change": "Fastest change"
+"Fit": "Fit"
+"Fitting again with other limits needs no new measurement.": "Fitting again with other limits needs no new measurement."
+"Fix with 1:1.1 at +20 dB:": "Fix with 1:1.1 at +20 dB:"
+"Flat": "Flat"
+"Freq": "Freq"
+"Frequency": "Frequency"
+"From": "From"
+"Function": "Function"
+"Gain": "Gain"
+"Gain rider": "Gain rider"
+"Gain rider: keeps the input at a target level": "Gain rider: keeps the input at a target level"
+"Gain step up/down": "Gain step up/down"
+"Group Control": "Group Control"
+"HighPass": "HighPass"
+"Highest gain": "Highest gain"
+"Hold below": "Hold below"
+"IP address": "IP address"
+"In group %group%": "In group %group%"
+"In/Out, channel, 0/1": "In/Out, channel, 0/1"
+"In:0/Out:1, channel, up:0/down:1": "In:0/Out:1, channel, up:0/down:1"
+"Input": "Input"
+"Inverse": "Inverse"
+"Keep level": "Keep level"
+"Knee": "Knee"
+"Largest boost": "Largest boost"
+"Leave alone within": "Leave alone within"
+"Level": "Level"
+"Levels are meter levels in dB, on the scale of the compressor threshold. Hold below compares the level before the gain, so a quiet source after a loud one still gets raised.": "Levels are meter levels in dB, on the scale of the compressor threshold. Hold below compares the level before the gain, so a quiet source after a loud one still gets raised."
+"Load…": "Load…"
+"Lock": "Lock"
+"LowPass": "LowPass"
+"Lowest gain": "Lowest gain"
+"Mag": "Mag"
+"Measure": "Measure"
+"Measured": "Measured"
+"Memorize keeps the live settings through a power cycle. Forget starts with the last recalled preset. The device does not report this value.": "Memorize keeps the live settings through a power cycle. Forget starts with the last recalled preset. The device does not report this value."
+"Mic calibration": "Mic calibration"
+"Mic on input": "Mic on input"
+"Mode": "Mode"
+"Moves the gain to the level the output had at 1:1.0 (modelled, within 0.5 dB up to +9 dB set; above about +6 dB it stops at +12 dB)": "Moves the gain to the level the output had at 1:1.0 (modelled, within 0.5 dB up to +9 dB set; above about +6 dB it stops at +12 dB)"
+"Mute": "Mute"
+"Name": "Name"
+"Narrowest Q": "Narrowest Q"
+"Noise before recording": "Noise before recording"
+"Normal": "Normal"
+"Not affiliated with Thomann. The protocol is described in": "Not affiliated with Thomann. The protocol is described in"
+"Off": "Off"
+"On": "On"
+"Out group %group%": "Out group %group%"
+"Output": "Output"
+"Outputs to correct": "Outputs to correct"
+"Pause after a manual change": "Pause after a manual change"
+"Phase": "Phase"
+"PreDelay": "PreDelay"
+"Predelay": "Predelay"
+"Predicted": "Predicted"
+"Preset": "Preset"
+"Put the mic where the audience listens and record one position after the other. Three to five positions around the listening area give a correction that holds for the whole room.": "Put the mic where the audience listens and record one position after the other. Three to five positions around the listening area give a correction that holds for the whole room."
+"RS232 Code Table": "RS232 Code Table"
+"RS232/485 remote control, manual chapter 6.1. 115200 baud, 8N1, at least 200 ms between packets. A packet is": "RS232/485 remote control, manual chapter 6.1. 115200 baud, 8N1, at least 200 ms between packets. A packet is"
+"Ratio": "Ratio"
+"Read Aux": "Read Aux"
+"Read gain / mute / preset / sub / level": "Read gain / mute / preset / sub / level"
+"Recall": "Recall"
+"Recall preset": "Recall preset"
+"Record position": "Record position"
+"Record verify position": "Record verify position"
+"Reflect": "Reflect"
+"Release": "Release"
+"Remove": "Remove"
+"Repeat": "Repeat"
+"Reverb": "Reverb"
+"Revert to backup": "Revert to backup"
+"Rider": "Rider"
+"Scan": "Scan"
+"Seconds per position": "Seconds per position"
+"Select": "Select"
+"Selected band": "Selected band"
+"Selected band %field%": "Selected band %field%"
+"Set": "Set"
+"Set / read FBQ": "Set / read FBQ"
+"Set / read matrix": "Set / read matrix"
+"Setting ID/IP": "Setting ID/IP"
+"Setup": "Setup"
+"Sine frequency": "Sine frequency"
+"Slope": "Slope"
+"Slot": "Slot"
+"Solid: inputs, dashed: outputs. A switch only shows or hides a curve, the EQ of the channel stays as it is.": "Solid: inputs, dashed: outputs. A switch only shows or hides a curve, the EQ of the channel stays as it is."
+"Source": "Source"
+"Start rider": "Start rider"
+"Start session": "Start session"
+"Starting takes a backup of the device. A recording plays the device's pink noise on every routed output, with the chosen bands bypassed and the gain riders paused. Keep the level safe.": "Starting takes a backup of the device. A recording plays the device's pink noise on every routed output, with the chosen bands bypassed and the gain riders paused. Keep the level safe."
+"Stop rider": "Stop rider"
+"Store": "Store"
+"Store preset": "Store preset"
+"Sub Control": "Sub Control"
+"Sub volume %, step, mute": "Sub volume %, step, mute"
+"Swap rows and columns": "Swap rows and columns"
+"Target": "Target"
+"Target level": "Target level"
+"Test Tone": "Test Tone"
+"Test tone source": "Test tone source"
+"The IP address can only be read. It is changed on the device.": "The IP address can only be read. It is changed on the device."
+"The front panel PIN is not available yet. Setting and removing it will follow once it has been tested on the device.": "The front panel PIN is not available yet. Setting and removing it will follow once it has been tested on the device."
+"The gain then acts as set, so the output gets louder or quieter by the exaggeration": "The gain then acts as set, so the output gets louder or quieter by the exaggeration"
+"The live settings replace the slot. Every store is confirmed first.": "The live settings replace the slot. Every store is confirmed first."
+"The rider moves the input gain slowly towards a target meter level. It runs in the bridge, so it keeps working without this page and after a restart. When somebody moves the gain, it pauses for the hold time.": "The rider moves the input gain slowly towards a target meter level. It runs in the bridge, so it keeps working without this page and after a restart. When somebody moves the gain, it pauses for the hold time."
+"The tone plays on every routed output. Set the source back to Analog Input when done.": "The tone plays on every routed output. Set the source back to Analog Input when done."
+"Threshold": "Threshold"
+"Tilt": "Tilt"
+"Tilt %tilt% dB per octave": "Tilt %tilt% dB per octave"
+"Time": "Time"
+"To": "To"
+"Type": "Type"
+"Type a value into a field in the chosen unit, or add ms, m or ft.": "Type a value into a field in the chosen unit, or add ms, m or ft."
+"Unit": "Unit"
+"Upload WAV…": "Upload WAV…"
+"Verified": "Verified"
+"Volume In / Out": "Volume In / Out"
+"Which inputs feed each output": "Which inputs feed each output"
+"Which outputs each input feeds": "Which outputs each input feeds"
+"Working Status": "Working Status"
+"Working status": "Working status"
+"arecord is missing on the server, so this page cannot record. Record the pink noise yourself and upload the WAV files in step 2.": "arecord is missing on the server, so this page cannot record. Record the pink noise yourself and upload the WAV files in step 2."
+"auto, 192.168.68.10, usb or demo": "auto, 192.168.68.10, usb or demo"
+"channel, HI, LO (280 = 0 dB)": "channel, HI, LO (280 = 0 dB)"
+"none": "none"
+"output, input, 0/1": "output, input, 0/1"
+"⚠ 1:1.0 exaggerates the gain": "⚠ 1:1.0 exaggerates the gain"

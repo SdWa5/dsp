@@ -1,0 +1,268 @@
+editor:
+    menu:
+        label: Menü
+        file: Datei
+        open_file: Preset-Datei öffnen…
+        open_file_hint: Alle Einstellungen ans Gerät senden (.json oder .prs des Hersteller-Editors)
+        save_file: Preset-Datei speichern
+        save_file_hint: Die aktuellen Einstellungen als JSON
+        device: Gerät
+        connection: Verbindung…
+        connection_hint: Suchen, verbinden, trennen
+        store: Preset speichern…
+        recall: Preset laden…
+        factory: Werkseinstellung (F00)
+        refresh: Vom Gerät lesen
+        idip: ID/IP einstellen…
+        working: Betriebsstatus…
+        lock: Sperre…
+        channels: Kanäle
+        names: Kanalnamen…
+        link: Link…
+        link_hint: Kanäle, die sich gemeinsam bewegen
+        copy: Kopieren…
+        sub: Sub Control…
+        groups: Group Control…
+        tools: Werkzeuge
+        tone: Testton…
+        riders: Gain-Rider
+        riders_hint: Auf der Gain-Seite, pro Eingang
+        autoeq: Auto-EQ
+        autoeq_hint: Die Ausgänge messen und korrigieren
+        help: Hilfe
+        rs232: RS232-Codetabelle
+        about: Über
+        language: Sprache
+        language_auto: Automatisch (Server/Browser)
+    link_view:
+        title: Link-Anzeige (Kanal-Tabs und Link-Dialog)
+        code: Gruppencode (L1, L2 …)
+        shape: Symbol pro Gruppe
+        colour: Farbe pro Gruppe
+        placement: Anordnung verknüpfter Kanäle
+        normal: In Kanalreihenfolge
+        side: Nebeneinander
+        stacked: Pro Link-Gruppe gestapelt
+    bar:
+        id: ID
+        theme: Farbschema
+        theme_auto: Auto
+        offline: Offline
+    tabs:
+        pages: Seiten
+        channels: Kanäle
+        gain: Gain
+        gate: Gate
+        comp: Comp
+        delay: Delay
+        matrix: Matrix
+        aux: Aux
+        autoeq: Auto-EQ
+    foot:
+        number: Nummer
+        name: Name
+        store: Speichern
+        recall: Laden
+
+# Widget labels and explanatory text use their English source as message IDs.
+"\"auto\" connects to the first device found, USB before the network. Disconnect frees the device's connection, and the vendor editor may take it at once.": "„auto“ verbindet das erste gefundene Gerät. USB hat Vorrang vor dem Netzwerk. Trennen gibt die Geräteverbindung frei. Der Hersteller-Editor kann sie anschließend übernehmen."
+"%channel% delay": "%channel% Delay"
+"%channel% gain": "%channel% Gain"
+"%channel% name": "%channel% Name"
+"%filter% frequency": "%filter% Frequenz"
+"%filter% slope": "%filter% Flankensteilheit"
+"%label% value": "%label% Wert"
+"%output% from %input%": "%output% von %input%"
+"%row% with %column%": "%row% mit %column%"
+". These command numbers do not apply over USB or TCP.": ". Diese Befehlsnummern gelten nicht für USB oder TCP."
+"0/1/2, mask hi, mask lo": "0/1/2, Maske hi, Maske lo"
+"00, channel, 0–4": "00, Kanal, 0–4"
+"1:1.1 with the threshold at +20 dB never compresses and keeps the gain exact.": "1:1.1 bei einer Schwelle von +20 dB komprimiert nicht und hält den Gain exakt."
+": free control software for the Thomann t.racks 8x8 Matrix DSP over USB (HID) and TCP port 9761.": " steuert den Thomann t.racks 8x8 Matrix DSP über USB (HID) und TCP-Port 9761 als freie Software."
+"A cell links its row and column channel, and linked channels form a group, which lights as a block. A lit cell takes the column channel out of its group. The lowest channel of a group is copied to the others. The rows and columns follow the placement below.": "Eine Zelle verknüpft ihren Zeilen- und Spaltenkanal. Verknüpfte Kanäle bilden eine Gruppe, die als Block leuchtet. Eine leuchtende Zelle entfernt den Spaltenkanal aus seiner Gruppe. Der niedrigste Kanal einer Gruppe wird auf die anderen kopiert. Zeilen und Spalten folgen der unten gewählten Anordnung."
+"A recall replaces all live settings.": "Laden ersetzt alle aktuellen Einstellungen."
+"About": "Über"
+"Allow a highest gain above 0 dB": "Einen höchsten Gain über 0 dB erlauben"
+"Apply": "Anwenden"
+"Apply and verify": "Anwenden und überprüfen"
+"At compressor ratio 1:1.0 the 8x8 applies every gain but 0 dB more strongly than set and adds the spectrum mirrored at 24 kHz.": "Bei Kompressorverhältnis 1:1.0 wendet der 8x8 jeden Gain außer 0 dB stärker an als eingestellt und fügt das bei 24 kHz gespiegelte Spektrum hinzu."
+"Attack": "Ansprechzeit"
+"AutoMix Setting": "AutoMix-Einstellungen"
+"AutoMix slope": "AutoMix-Flankensteilheit"
+"Aux compressor": "Aux-Kompressor"
+"Aux compressor threshold": "Aux-Kompressorschwelle"
+"Aux gain": "Aux-Gain"
+"Aux gain step / mute / volume": "Aux-Gain-Schritt / Mute / Lautstärke"
+"Aux name": "Aux-Name"
+"Aux source selection": "Aux-Quellenauswahl"
+"Averaging time": "Mittelungsdauer"
+"Backups": "Sicherungen"
+"Band": "Band"
+"Band %band% %field%": "Band %band% %field%"
+"Band 1 to %band%": "Band 1 bis %band%"
+"Band 1 to 7 (all)": "Band 1 bis 7 (alle)"
+"Bands": "Bänder"
+"Bands to use": "Zu verwendende Bänder"
+"Bypass": "Bypass"
+"Camera": "Camera"
+"Camera Setting": "Camera-Einstellungen"
+"Capture device": "Aufnahmegerät"
+"Channel Name": "Kanalname"
+"Close": "Schließen"
+"Connect": "Verbinden"
+"Connection": "Verbindung"
+"Copies every setting of an input to an input, or of an output to an output.": "Kopiert alle Einstellungen eines Eingangs auf einen Eingang oder eines Ausgangs auf einen Ausgang."
+"Copy": "Kopieren"
+"Copy channel": "Kanal kopieren"
+"Curves shown": "Angezeigte Kurven"
+"Data": "Daten"
+"Deepest cut": "Maximale Absenkung"
+"Default device": "Standardgerät"
+"Delay": "Delay"
+"Delay unit": "Delay-Einheit"
+"Device ID": "Geräte-ID"
+"Disconnect": "Trennen"
+"Double-click: back to the default": "Doppelklicken setzt den Standardwert zurück."
+"Drag a point: frequency and gain. Wheel on a point: Q.": "Ziehen eines Punkts ändert Frequenz und Gain. Das Mausrad am Punkt ändert Q."
+"EQ Bypass": "EQ-Bypass"
+"EQ Reset": "EQ zurücksetzen"
+"EQ curve": "EQ-Kurve"
+"EQ overview": "EQ-Übersicht"
+"Echo": "Echo"
+"Effect": "Effekt"
+"Effect Setting": "Effekteinstellungen"
+"Effect/Camera/AutoMix on/off": "Effekt/Camera/AutoMix ein/aus"
+"End session": "Sitzung beenden"
+"Every session starts with a backup. Revert restores all PEQ bands of the outputs the backup names.": "Jede Sitzung beginnt mit einer Sicherung. Wiederherstellen setzt alle PEQ-Bänder der in der Sicherung genannten Ausgänge zurück."
+"Exact gain": "Exakter Gain"
+"F:0/U:1, number, 0": "F:0/U:1, Nummer, 0"
+"Fastest change": "Maximale Änderung"
+"Fit": "Anpassen"
+"Fitting again with other limits needs no new measurement.": "Erneutes Anpassen mit anderen Grenzen benötigt keine neue Messung."
+"Fix with 1:1.1 at +20 dB:": "Korrektur mit 1:1.1 bei +20 dB"
+"Flat": "Linear"
+"Freq": "Freq"
+"Frequency": "Frequenz"
+"From": "Von"
+"Function": "Funktion"
+"Gain": "Gain"
+"Gain rider": "Gain-Rider"
+"Gain rider: keeps the input at a target level": "Der Gain-Rider hält den Eingang auf einem Zielpegel."
+"Gain step up/down": "Gain erhöhen/verringern"
+"Group Control": "Group Control"
+"HighPass": "Hochpass"
+"Highest gain": "Höchster Gain"
+"Hold below": "Halten unter"
+"IP address": "IP-Adresse"
+"In group %group%": "Eingangsgruppe %group%"
+"In/Out, channel, 0/1": "In/Out, Kanal, 0/1"
+"In:0/Out:1, channel, up:0/down:1": "In:0/Out:1, Kanal, erhöhen:0/verringern:1"
+"Input": "Eingang"
+"Inverse": "Invertiert"
+"Keep level": "Pegel beibehalten"
+"Knee": "Knee"
+"Largest boost": "Maximale Anhebung"
+"Leave alone within": "Toleranz"
+"Level": "Pegel"
+"Levels are meter levels in dB, on the scale of the compressor threshold. Hold below compares the level before the gain, so a quiet source after a loud one still gets raised.": "Die Pegel sind Meter-Pegel in dB auf der Skala der Kompressorschwelle. Halten unter vergleicht den Pegel vor dem Gain. So wird eine leise Quelle nach einer lauten weiterhin angehoben."
+"Load…": "Laden…"
+"Lock": "Sperre"
+"LowPass": "Tiefpass"
+"Lowest gain": "Niedrigster Gain"
+"Mag": "Betrag"
+"Measure": "Messen"
+"Measured": "Gemessen"
+"Memorize keeps the live settings through a power cycle. Forget starts with the last recalled preset. The device does not report this value.": "Merken erhält die aktuellen Einstellungen beim Ausschalten. Vergessen startet mit dem zuletzt geladenen Preset. Das Gerät meldet diesen Wert nicht zurück."
+"Mic calibration": "Mikrofonkalibrierung"
+"Mic on input": "Mikrofon an Eingang"
+"Mode": "Modus"
+"Moves the gain to the level the output had at 1:1.0 (modelled, within 0.5 dB up to +9 dB set; above about +6 dB it stops at +12 dB)": "Passt den Gain an den vorherigen Pegel bei 1:1.0 an (modelliert, innerhalb 0,5 dB bis +9 dB eingestellt; oberhalb etwa +6 dB auf +12 dB begrenzt)."
+"Mute": "Mute"
+"Name": "Name"
+"Narrowest Q": "Maximale Güte Q"
+"Noise before recording": "Rauschen vor Aufnahme"
+"Normal": "Normal"
+"Not affiliated with Thomann. The protocol is described in": "Keine Verbindung zu Thomann. Die Protokollbeschreibung steht in"
+"Off": "Aus"
+"On": "Ein"
+"Out group %group%": "Ausgangsgruppe %group%"
+"Output": "Ausgang"
+"Outputs to correct": "Zu korrigierende Ausgänge"
+"Pause after a manual change": "Pause nach manueller Änderung"
+"Phase": "Phase"
+"PreDelay": "Vorverzögerung"
+"Predelay": "Vorverzögerung"
+"Predicted": "Vorhergesagt"
+"Preset": "Preset"
+"Put the mic where the audience listens and record one position after the other. Three to five positions around the listening area give a correction that holds for the whole room.": "Das Mikrofon im Hörbereich aufstellen und die Positionen nacheinander aufnehmen. Drei bis fünf Positionen im Hörbereich ergeben eine Korrektur für den ganzen Raum."
+"RS232 Code Table": "RS232-Codetabelle"
+"RS232/485 remote control, manual chapter 6.1. 115200 baud, 8N1, at least 200 ms between packets. A packet is": "RS232/485-Fernsteuerung, Handbuch Kapitel 6.1. 115200 Baud, 8N1, mindestens 200 ms zwischen Paketen. Ein Paket lautet"
+"Ratio": "Verhältnis"
+"Read Aux": "Aux lesen"
+"Read gain / mute / preset / sub / level": "Gain / Mute / Preset / Sub / Pegel lesen"
+"Recall": "Laden"
+"Recall preset": "Preset laden"
+"Record position": "Position aufnehmen"
+"Record verify position": "Kontrollposition aufnehmen"
+"Reflect": "Reflexion"
+"Release": "Abklingzeit"
+"Remove": "Entfernen"
+"Repeat": "Wiederholung"
+"Reverb": "Hall"
+"Revert to backup": "Sicherung wiederherstellen"
+"Rider": "Rider"
+"Scan": "Suchen"
+"Seconds per position": "Sekunden pro Position"
+"Select": "Auswahl"
+"Selected band": "Ausgewähltes Band"
+"Selected band %field%": "Ausgewähltes Band %field%"
+"Set": "Einstellen"
+"Set / read FBQ": "FBQ einstellen / lesen"
+"Set / read matrix": "Matrix einstellen / lesen"
+"Setting ID/IP": "ID/IP einstellen"
+"Setup": "Einrichtung"
+"Sine frequency": "Sinusfrequenz"
+"Slope": "Flankensteilheit"
+"Slot": "Speicherplatz"
+"Solid: inputs, dashed: outputs. A switch only shows or hides a curve, the EQ of the channel stays as it is.": "Durchgezogene Linien zeigen Eingänge. Gestrichelte Linien zeigen Ausgänge. Ein Schalter zeigt oder verbirgt nur eine Kurve. Der EQ des Kanals bleibt unverändert."
+"Source": "Quelle"
+"Start rider": "Rider starten"
+"Start session": "Sitzung starten"
+"Starting takes a backup of the device. A recording plays the device's pink noise on every routed output, with the chosen bands bypassed and the gain riders paused. Keep the level safe.": "Der Start sichert das Gerät. Eine Aufnahme spielt das rosa Rauschen des Geräts auf allen verbundenen Ausgängen. Die gewählten Bänder werden umgangen und die Gain-Rider pausiert. Auf einen sicheren Pegel achten."
+"Stop rider": "Rider stoppen"
+"Store": "Speichern"
+"Store preset": "Preset speichern"
+"Sub Control": "Sub Control"
+"Sub volume %, step, mute": "Sub-Lautstärke %, Schritt, Mute"
+"Swap rows and columns": "Zeilen und Spalten tauschen"
+"Target": "Ziel"
+"Target level": "Zielpegel"
+"Test Tone": "Testton"
+"Test tone source": "Testtonquelle"
+"The IP address can only be read. It is changed on the device.": "Die IP-Adresse kann nur gelesen werden. Sie wird am Gerät geändert."
+"The front panel PIN is not available yet. Setting and removing it will follow once it has been tested on the device.": "Die PIN der Frontblende ist noch nicht verfügbar. Einstellen und Entfernen folgen nach dem Test am Gerät."
+"The gain then acts as set, so the output gets louder or quieter by the exaggeration": "Der Gain wirkt dann wie eingestellt. Der Ausgang wird um die übermäßige Verstärkung lauter oder leiser."
+"The live settings replace the slot. Every store is confirmed first.": "Die aktuellen Einstellungen ersetzen den Speicherplatz. Jeder Speichervorgang wird vorher bestätigt."
+"The rider moves the input gain slowly towards a target meter level. It runs in the bridge, so it keeps working without this page and after a restart. When somebody moves the gain, it pauses for the hold time.": "Der Rider bewegt den Eingangs-Gain langsam zu einem Zielpegel. Er läuft in der Bridge und arbeitet ohne diese Seite sowie nach einem Neustart weiter. Eine manuelle Gain-Änderung pausiert ihn für die Haltezeit."
+"The tone plays on every routed output. Set the source back to Analog Input when done.": "Der Ton spielt auf jedem verbundenen Ausgang. Anschließend die Quelle auf Analogeingang zurückstellen."
+"Threshold": "Schwelle"
+"Tilt": "Neigung"
+"Tilt %tilt% dB per octave": "Neigung %tilt% dB pro Oktave"
+"Time": "Zeit"
+"To": "Bis"
+"Type": "Typ"
+"Type a value into a field in the chosen unit, or add ms, m or ft.": "Einen Wert in der gewählten Einheit eingeben oder ms, m oder ft anhängen."
+"Unit": "Einheit"
+"Upload WAV…": "WAV hochladen…"
+"Verified": "Überprüft"
+"Volume In / Out": "Lautstärke In / Out"
+"Which inputs feed each output": "Welche Eingänge jeden Ausgang versorgen"
+"Which outputs each input feeds": "Welche Ausgänge jeder Eingang versorgt"
+"Working Status": "Betriebsstatus"
+"Working status": "Betriebsstatus"
+"arecord is missing on the server, so this page cannot record. Record the pink noise yourself and upload the WAV files in step 2.": "Auf dem Server fehlt arecord. Diese Seite kann deshalb nicht aufnehmen. Rosa Rauschen selbst aufnehmen und die WAV-Dateien in Schritt 2 hochladen."
+"auto, 192.168.68.10, usb or demo": "auto, 192.168.68.10, usb oder demo"
+"channel, HI, LO (280 = 0 dB)": "Kanal, HI, LO (280 = 0 dB)"
+"none": "keine"
+"output, input, 0/1": "Ausgang, Eingang, 0/1"
+"⚠ 1:1.0 exaggerates the gain": "⚠ 1:1.0 verstärkt den Gain übermäßig"

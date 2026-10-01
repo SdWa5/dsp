@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { api, store } from '../lib/device.js';
 import { channelLabel } from '../lib/channels.js';
@@ -61,7 +62,7 @@ export default class extends Controller {
         for (const name of ['bands', 'mic_channel', 'seconds', 'settle']) {
             body[name] = Number(form.elements[name].value);
         }
-        if (await this.step('Taking the backup…', 'autoeq/start', body)) {
+        if (await this.step(t("Taking the backup…"), 'autoeq/start', body)) {
             this.load();
         }
     }
@@ -77,8 +78,8 @@ export default class extends Controller {
     async recording(verify) {
         const session = this.session;
         let left = Math.ceil(session.settle + session.seconds);
-        const what = verify ? 'Verify recording with the bands on' : `Recording position ${this.positions().length + 1}`;
-        const tick = () => this.say(`${what}: pink noise is playing, ${left} s left…`);
+        const what = verify ? t("Verify recording with the bands on") : t("Recording position %position%", { position: this.positions().length + 1 });
+        const tick = () => this.say(t("%what%: pink noise is playing, %seconds% s left…", { what, seconds: left }));
         tick();
         this.timer = setInterval(() => { left = Math.max(0, left - 1); tick(); }, 1000);
         let done = false;
@@ -103,14 +104,14 @@ export default class extends Controller {
         const files = [...this.wavTarget.files];
         this.wavTarget.value = '';
         for (const file of files) {
-            const verify = Boolean(this.session?.applied) && window.confirm(`Is ${file.name} a verify recording, made with the bands on?`);
-            await this.step(`Analysing ${file.name}…`, `autoeq/upload?name=${encodeURIComponent(file.name.replace(/\.wav$/i, ''))}${verify ? '&verify=1' : ''}`, file);
+            const verify = Boolean(this.session?.applied) && window.confirm(t("Is %file% a verify recording, made with the bands on?", { file: file.name }));
+            await this.step(t("Analysing %file%…", { file: file.name }), `autoeq/upload?name=${encodeURIComponent(file.name.replace(/\.wav$/i, ''))}${verify ? '&verify=1' : ''}`, file);
         }
     }
 
     remove(event) {
         const index = Number(event.params.index);
-        this.step('Removing…', 'autoeq/remove', { index });
+        this.step(t("Removing…"), 'autoeq/remove', { index });
     }
 
     chooseCalibration() {
@@ -121,12 +122,12 @@ export default class extends Controller {
         const file = this.calibrationFileTarget.files[0];
         this.calibrationFileTarget.value = '';
         if (file) {
-            await this.step(`Loading ${file.name}…`, 'autoeq/calibration', file);
+            await this.step(t("Loading %file%…", { file: file.name }), 'autoeq/calibration', file);
         }
     }
 
     removeCalibration() {
-        this.step('Removing the calibration…', 'autoeq/calibration', '');
+        this.step(t("Removing the calibration…"), 'autoeq/calibration', '');
     }
 
     async fit(event = null) {
@@ -136,29 +137,29 @@ export default class extends Controller {
         for (const name of FIT_FIELDS) {
             body[name] = 'target' === name ? form.elements[name].value : Number(form.elements[name].value);
         }
-        await this.step('Fitting…', 'autoeq/fit', body);
+        await this.step(t("Fitting…"), 'autoeq/fit', body);
     }
 
     apply() {
         const bands = this.session?.fit?.result?.bands ?? [];
         const outputs = this.outputNames();
-        if (window.confirm(`Write ${bands.length} band${1 === bands.length ? '' : 's'} to ${outputs}? The backup ${this.session.backup} can undo it.`)) {
-            this.step('Writing the bands…', 'autoeq/apply');
+        if (window.confirm(t("Write %count% band(s) to %outputs%? The backup %backup% can undo it.", { count: bands.length, outputs, backup: this.session.backup }))) {
+            this.step(t("Writing the bands…"), 'autoeq/apply');
         }
     }
 
     async revert(event) {
         const backup = event.params.backup ?? this.session?.backup;
-        if (backup && window.confirm(`Restore the PEQ from ${backup}?`)) {
-            if (await this.step('Restoring the backup…', 'autoeq/revert', event.params.backup ? { backup } : {})) {
-                this.say(`Restored from ${backup}.`);
+        if (backup && window.confirm(t("Restore the PEQ from %backup%?", { backup }))) {
+            if (await this.step(t("Restoring the backup…"), 'autoeq/revert', event.params.backup ? { backup } : {})) {
+                this.say(t("Restored from %backup%.", { backup }));
             }
         }
     }
 
     async discard() {
-        if (window.confirm('End the session? Its recordings are deleted, the backups stay.')) {
-            this.step('Ending the session…', 'autoeq/discard');
+        if (window.confirm(t("End the session? Its recordings are deleted, the backups stay."))) {
+            this.step(t("Ending the session…"), 'autoeq/discard');
         }
     }
 
@@ -242,11 +243,11 @@ export default class extends Controller {
         if (!active) {
             return;
         }
-        this.recordTarget.textContent = `Record position ${this.positions().length + 1}`;
+        this.recordTarget.textContent = t("Record position %position%", { position: this.positions().length + 1 });
         this.recordTarget.disabled = this.busy || !this.recorder;
         this.verifyTarget.hidden = !session.applied;
         this.verifyTarget.disabled = this.busy || !this.recorder;
-        this.calibrationTarget.textContent = session.calibration ?? 'none';
+        this.calibrationTarget.textContent = session.calibration ?? t("none");
         this.calibrationRemoveTarget.hidden = null === session.calibration;
         this.recordingsTarget.replaceChildren(...session.recordings.map((r, i) => this.recordingItem(r, i)));
         this.renderLabels();
@@ -255,10 +256,9 @@ export default class extends Controller {
         }
         this.resultTarget.hidden = false;
         this.verifiedLegendTarget.hidden = !fit.verified;
-        this.statsTarget.textContent = `Deviation from the target ${fit.rms_before} dB RMS (peak ${fit.peak_before} dB) before, `
-            + `${fit.rms_after} dB RMS (peak ${fit.peak_after} dB) predicted after.`;
+        this.statsTarget.textContent = t("Deviation from the target %rms_before% dB RMS (peak %peak_before% dB) before, %rms_after% dB RMS (peak %peak_after% dB) predicted after.", { rms_before: fit.rms_before, peak_before: fit.peak_before, rms_after: fit.rms_after, peak_after: fit.peak_after });
         this.bandsTarget.replaceChildren(...(0 === fit.bands.length
-            ? [this.row(['–', 'Already within the tolerance, no bands needed.', '', ''])]
+            ? [this.row(['–', t("Already within the tolerance, no bands needed."), '', ''])]
             : fit.bands.map((b, i) => this.row([String(i + 1), hz(b.hz), `${signed(b.db)} dB`, b.q_value.toFixed(2)]))));
         this.applyTarget.disabled = this.busy || 0 === fit.bands.length;
         this.draw();
@@ -269,10 +269,10 @@ export default class extends Controller {
         if (!session || !this.hasSummaryTarget) {
             return;
         }
-        this.summaryTarget.textContent = `${this.outputNames()} · bands 1 to ${session.bands} · mic on input ${session.mic_channel} of ${session.device}`;
+        this.summaryTarget.textContent = t("%outputs% · bands 1 to %bands% · mic on input %input% of %device%", { outputs: this.outputNames(), bands: session.bands, input: session.mic_channel, device: session.device });
         this.applyNoteTarget.textContent = session.applied
-            ? `Applied to ${this.outputNames()}. Record a verify position with the bands on to compare the result with the prediction.`
-            : `Writes the fitted bands to ${this.outputNames()}. The other bands stay as they are. The backup ${session.backup} can undo it.`;
+            ? t("Applied to %outputs%. Record a verify position with the bands on to compare the result with the prediction.", { outputs: this.outputNames() })
+            : t("Writes the fitted bands to %outputs%. The other bands stay as they are. The backup %backup% can undo it.", { outputs: this.outputNames(), backup: session.backup });
     }
 
     renderDevices() {
@@ -292,7 +292,7 @@ export default class extends Controller {
     renderBackups() {
         const backups = this.backupList ?? [];
         this.backupsTarget.replaceChildren(...(0 === backups.length
-            ? [Object.assign(document.createElement('li'), { textContent: 'No backups yet.' })]
+            ? [Object.assign(document.createElement('li'), { textContent: t("No backups yet.") })]
             : backups.map((b) => this.backupItem(b))));
     }
 
@@ -304,18 +304,18 @@ export default class extends Controller {
         if (recording.verify) {
             const badge = document.createElement('span');
             badge.className = 'badge';
-            badge.textContent = 'verify';
+            badge.textContent = t("verify");
             item.append(' ', badge);
         }
-        item.append(' ', this.button('Remove', 'autoeq#remove', { index }));
+        item.append(' ', this.button(t("Remove"), 'autoeq#remove', { index }));
         return item;
     }
 
     backupItem(backup) {
         const item = document.createElement('li');
         const time = new Date(backup.time * 1000).toLocaleString();
-        const outputs = backup.outputs.map((o) => channelLabel(o, store.state)).join(', ') || 'all outputs';
-        item.append(`${time} · ${outputs} `, this.button('Revert', 'autoeq#revert', { backup: backup.file }));
+        const outputs = backup.outputs.map((o) => channelLabel(o, store.state)).join(', ') || t("all outputs");
+        item.append(`${time} · ${outputs} `, this.button(t("Revert"), 'autoeq#revert', { backup: backup.file }));
         item.title = backup.file;
         return item;
     }
