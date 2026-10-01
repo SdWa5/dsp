@@ -19,10 +19,6 @@
 - Offline mode like the vendor editor: check whether a preset can be set up in the browser editor without a
   device and handed to the real device later. The bridge target `demo` simulates a device, but the editor
   offers no obvious way to start from it
-- EQ overview on the Gain page, as the vendor editor has it. One graph shows the EQ curve of every input and
-  output at once, with an on/off switch for each EQ. Check in the vendor editor whether its switch only hides
-  the curve or bypasses the EQ, which the configuration keeps in the EQ bypass bits of the footer, and do the
-  same. The channel tabs already draw one curve each from `assets/lib/eq.js`
 - Tooltips on hover for the controls of the browser editor, above all for abbreviations such as FBQ, HPF, LPF,
   PEQ, Q and the Sub and Group control. Say what the control does in one sentence, and name the unit where a
   value has one

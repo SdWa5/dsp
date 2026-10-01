@@ -1,4 +1,19 @@
 {% import 'editor/_widgets.html.twig' as w %}
+<div class="strips eq-overview" data-controller="collapse eqoverview" data-collapse-key-value="gain.eq">
+    <h2 class="strips__title">{{ w.fold('EQ overview') }}</h2>
+    <canvas class="eq-overview__plot" data-eqoverview-target="canvas"></canvas>
+    <div class="eq-overview__switches" role="group" aria-label="Curves shown">
+        {% for side in ['inputs', 'outputs'] %}
+            <span class="eq-overview__side">
+                {% for i in 0..7 %}
+                    <label class="eq-overview__switch eq-overview__switch--{{ side }}"><input type="checkbox" value="{{ side }}.{{ i }}" checked
+                        data-eqoverview-target="show" data-action="change->eqoverview#toggle">{{ w.ch(('outputs' == side ? 8 : 0) + i) }}</label>
+                {% endfor %}
+            </span>
+        {% endfor %}
+    </div>
+    <p class="eq-overview__note">Solid: inputs, dashed: outputs. A switch only shows or hides a curve, the EQ of the channel stays as it is.</p>
+</div>
 <div class="gain-layout">
 <div class="gain-layout__channels">
 <div data-controller="riders" data-riders-defaults-value="{{ rider_defaults|json_encode }}">

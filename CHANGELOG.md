@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0] - 2026-10-01
+
+### Added
+
+- EQ overview at the top of the Gain page: the EQ curves of every input (solid) and output (dashed) in one plot, from `eqoverview_controller.js`. A switch per channel shows or hides its curve and only changes the plot, as in the vendor editor. The hidden curves are kept in the browser, and the panel folds
+
+### Removed
+
+- The TODO item for an EQ overview on the Gain page
+
 ## [0.22.0] - 2026-10-01
 
 ### Added

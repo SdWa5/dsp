@@ -142,6 +142,19 @@ final class EditorControllerTest extends WebTestCase
         self::assertSame('outputs0', self::page()->filter('.chtab.is-split')->attr('data-page'));
     }
 
+    public function testEqOverviewHasASwitchPerChannelAndSendsNothing(): void
+    {
+        $overview = self::page()->filter('section[data-page=gain] [data-controller~=eqoverview]');
+        self::assertCount(1, $overview);
+        $paths = $overview->filter('[data-eqoverview-target=show]')->each(static fn (Crawler $n): string => (string) $n->attr('value'));
+        self::assertCount(16, $paths);
+        foreach ($paths as $path) {
+            self::assertTrue(self::has($path.'.peq'), $path);
+        }
+        // Showing a curve is a view setting, never a write to the device
+        self::assertCount(0, $overview->filter('[data-toggle-send-value], [data-fader-send-value]'));
+    }
+
     public function testEveryBindingIsAStatePath(): void
     {
         $paths = [];

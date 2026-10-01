@@ -201,6 +201,16 @@ input[type=text], input[type=number], select { background: var(--field); color: 
     background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px;
 }
 .strips__title { flex-basis: 100%; margin: 0; padding: 2px; text-align: center; font-size: 13px; background: var(--title); border-radius: 3px; }
+/* Gain page: EQ overview, one curve per channel. The swatch of a switch is its curve's colour and dash */
+.eq-overview { flex-direction: column; }
+.eq-overview__plot { width: 100%; height: 260px; background: var(--screen); border-radius: 4px; }
+.eq-overview__switches { display: flex; flex-wrap: wrap; gap: 6px 24px; }
+.eq-overview__side { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.eq-overview__switch { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.eq-overview__switch::after { content: ''; order: -1; width: 16px; height: 0; border-top: 3px solid var(--curve); }
+.eq-overview__switch--outputs::after { border-top-style: dashed; }
+.eq-overview__note { margin: 0; color: var(--muted); font-size: 12px; }
+.eq-overview.is-collapsed > :not(.strips__title) { display: none; }
 /* Gain page: Sub Control next to the channel strips, wrapping below them when the window is narrow */
 .gain-layout { display: flex; flex-wrap: wrap; gap: 0 10px; align-items: flex-start; }
 .gain-layout__channels { flex: 1 1 600px; min-width: 0; }
