@@ -1,14 +1,16 @@
 import { Controller } from '@hotwired/stimulus';
 import { send, store } from '../lib/device.js';
-import { EXACT_RATIO, EXACT_THRESHOLD, exaggeratesGain, heardGain } from '../lib/scale.js';
+import { EXACT_RATIO, EXACT_THRESHOLD, exaggeratesGain, format, heardGain } from '../lib/scale.js';
 
 /**
  * Warns on an output strip while the output runs at compressor 1:1.0 with a gain other than 0 dB, and offers
  * 1:1.1 from +20 dB, which keeps the gain exact: either with the gain as set ("Exact gain"), or with the gain
- * moved to the level the output had at 1:1.0 ("Keep level"). Values: path ("outputs.3"), channel (11).
+ * moved to the level the output had at 1:1.0 ("Keep level"). Each button names the gain it sets.
+ * Values: path ("outputs.3"), channel (11).
  */
 export default class extends Controller {
     static values = { path: String, channel: Number };
+    static targets = ['exact', 'keep'];
 
     connect() {
         this.unsubscribe = store.subscribe(() => this.render());
@@ -20,7 +22,13 @@ export default class extends Controller {
     }
 
     render() {
-        this.element.hidden = !exaggeratesGain(store.get(this.pathValue));
+        const output = store.get(this.pathValue);
+        this.element.hidden = !exaggeratesGain(output);
+        if (this.element.hidden) {
+            return;
+        }
+        this.exactTarget.textContent = `(${format('gain', output.gain)})`;
+        this.keepTarget.textContent = `(${format('gain', heardGain(output.gain))})`;
     }
 
     exact() {

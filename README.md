@@ -135,7 +135,8 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   signal always runs from In to Out.
 - An output at compressor ratio 1:1.0 with a gain other than 0 dB is flagged on its strip. Two buttons set 1:1.1
   from +20 dB, one keeping the gain value ("Exact gain") and one moving the gain to the level heard before
-  ("Keep level"). The Auto EQ page and `trackdsp:autoeq` warn about it before measuring.
+  ("Keep level"). Each button names the gain it sets. The Auto EQ page and `trackdsp:autoeq` warn about it before
+  measuring.
 - Every page with more than one panel folds them down to their title: the panels of the Gain page, the steps of
   the Auto EQ page, and on the channel and Aux pages the EQ curve, the band table and each group beside it. Folded
   panels are kept in the browser. All channel pages fold together, so a folded HighPass stays folded on every

@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.34.1] - 2026-10-01
+
+### Fixed
+
+- The two 1:1.0 fix buttons looked alike. Each now names the gain it sets, for example "Exact gain (-6.0dB)" and "Keep level (-8.0dB)"
+
 ## [0.34.0] - 2026-10-01
 
 ### Added

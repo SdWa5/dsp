@@ -184,6 +184,17 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(0, $overview->filter('[data-toggle-send-value], [data-fader-send-value]'));
     }
 
+    public function testGainWarningButtonsNameTheGainTheySet(): void
+    {
+        $warnings = self::page()->filter('[data-controller~=gainwarning]');
+        // One per output on the Comp page and on the Gain page
+        self::assertCount(16, $warnings);
+        $warnings->each(static function (Crawler $warning): void {
+            self::assertCount(1, $warning->filter('[data-action="gainwarning#exact"] [data-gainwarning-target=exact]'));
+            self::assertCount(1, $warning->filter('[data-action="gainwarning#keepLevel"] [data-gainwarning-target=keep]'));
+        });
+    }
+
     public function testEveryBindingIsAStatePath(): void
     {
         $paths = [];
