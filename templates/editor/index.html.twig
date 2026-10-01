@@ -71,9 +71,9 @@
                     </div>
                     <input type="file" accept=".json,.prs,application/json" hidden data-editor-target="file" data-action="change->editor#upload">
                 </nav>
-                <span class="bar__id">{{ 'editor.bar.id'|trans }} {{ w.value('device_id') }}</span>
+                <span class="bar__id" title="{{ 'editor.tip.device_id'|trans }}">{{ 'editor.bar.id'|trans }} {{ w.value('device_id') }}</span>
                 <button type="button" class="theme" data-editor-target="theme" data-action="editor#theme" title="{{ 'editor.bar.theme'|trans }}">{{ 'editor.bar.theme_auto'|trans }}</button>
-                <button type="button" class="online" data-editor-target="online" data-action="editor#open" data-editor-dialog-param="connect">{{ 'editor.bar.offline'|trans }}</button>
+                <button type="button" class="online" data-editor-target="online" data-action="editor#open" data-editor-dialog-param="connect" title="{{ 'editor.tip.bar.online'|trans }}">{{ 'editor.bar.offline'|trans }}</button>
             </div>
             <div class="tabs" role="tablist" aria-label="{{ 'editor.tabs.pages'|trans }}">
                 {% for page in ['gain', 'gate', 'comp', 'delay', 'matrix', 'aux', 'autoeq'] %}

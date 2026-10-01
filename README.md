@@ -131,7 +131,7 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
 - Hovering a control shows what it does and its unit, in English or German. Every fader, switch and list shows
   the same tooltip on every page and in every dialog. Every section and dialog title says what the section holds,
   and the ones with abbreviations spell them out, for example FBQ, HPF, LPF, PEQ, Sub Control and Group Control.
-  The preset number, the preset name and the Store and Recall buttons in the footer have tooltips as well.
+  The device ID and the connection button in the top bar and every element of the footer have tooltips as well.
 - The store and recall dialogs show which user slots are empty. An empty slot cannot be recalled.
 - A fader value can be typed, with or without its unit ("-6", "2k", "200ms", "1:4"). A double click on a gain
   or delay fader sets it back to 0 dB or no delay.
