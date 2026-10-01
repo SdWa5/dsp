@@ -116,10 +116,10 @@
         </main>
 
         <footer class="editor__foot">
-            <span class="pill"><b>{{ 'editor.foot.number'|trans }}</b> <span data-editor-target="number">–</span></span>
-            <span class="pill"><b>{{ 'editor.foot.name'|trans }}</b> {{ w.value('preset_name') }}</span>
-            <button type="button" class="big" data-action="editor#open" data-editor-dialog-param="store">{{ 'editor.foot.store'|trans }}</button>
-            <button type="button" class="big" data-action="editor#open" data-editor-dialog-param="recall">{{ 'editor.foot.recall'|trans }}</button>
+            <span class="pill" title="{{ 'editor.tip.foot.number'|trans }}"><b>{{ 'editor.foot.number'|trans }}</b> <span data-editor-target="number">–</span></span>
+            <span class="pill" title="{{ 'editor.tip.foot.name'|trans }}"><b>{{ 'editor.foot.name'|trans }}</b> {{ w.value('preset_name') }}</span>
+            <button type="button" class="big" data-action="editor#open" data-editor-dialog-param="store" title="{{ 'editor.tip.panel.store'|trans }}">{{ 'editor.foot.store'|trans }}</button>
+            <button type="button" class="big" data-action="editor#open" data-editor-dialog-param="recall" title="{{ 'editor.tip.panel.recall'|trans }}">{{ 'editor.foot.recall'|trans }}</button>
             <span class="editor__error" data-editor-target="error" role="status"></span>
         </footer>
 

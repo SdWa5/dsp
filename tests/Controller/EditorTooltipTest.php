@@ -72,6 +72,19 @@ final class EditorTooltipTest extends WebTestCase
         });
     }
 
+    #[DataProvider('locales')]
+    public function testEveryFooterElementHasATooltip(string $locale): void
+    {
+        $page = $this->page($locale);
+        $tips = $this->tips($locale);
+        $foot = $page->filter('.editor__foot > .pill, .editor__foot > button');
+        self::assertCount(4, $foot);
+        self::assertSame(
+            [$tips['editor.tip.foot.number'], $tips['editor.tip.foot.name'], $tips['editor.tip.panel.store'], $tips['editor.tip.panel.recall']],
+            $foot->each(static fn (Crawler $n): ?string => $n->attr('title')),
+        );
+    }
+
     private function page(string $locale): Crawler
     {
         $client = self::createClient();

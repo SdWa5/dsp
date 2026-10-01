@@ -118,6 +118,9 @@ editor:
         tone_mode: "Source of the test tone: the analog inputs, pink or white noise, or a sine."
         tone_freq: "Frequency of the sine, in Hz."
         device_id: "The ID of the device for RS232/485 control, 1 to 254."
+        foot:
+            number: "The preset the device last recalled or stored, U01 to U20 or F00 for the factory default. It shows – until the device reports one."
+            name: "The name of the live settings, from the preset last recalled or stored. Store suggests it for the slot."
         eq_bypass: "Switches off the EQ of this channel. The bands keep their values."
         eq_reset: "Sets every band of this channel back to 0 dB at its default frequency."
         band:
