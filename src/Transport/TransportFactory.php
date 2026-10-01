@@ -24,6 +24,7 @@ final readonly class TransportFactory
         private string $demoConfigPath,
         private float $timeout = 1.0,
         private ?Discovery $discovery = null,
+        private ?string $factoryConfigPath = null,
     ) {
     }
 
@@ -34,7 +35,7 @@ final readonly class TransportFactory
         return match (true) {
             '' === $target, 'usb' === $target => new HidrawTransport($this->locator->first()),
             str_starts_with($target, 'usb:') => new HidrawTransport(substr($target, 4)),
-            'demo' === $target => DemoTransport::fromFile($this->demoConfigPath),
+            'demo' === $target => DemoTransport::fromFile($this->demoConfigPath, $this->factoryConfigPath),
             'auto' === $target => $this->open($this->discover()),
             default => $this->tcp($target),
         };

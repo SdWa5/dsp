@@ -148,6 +148,8 @@ publishes state and meters. In ddev it runs by itself, the first time on the sim
 dialog of the editor, or `POST /api/connect` with `{"target":"usb"}`, switches it to an 8x8 on the laptop's USB.
 It keeps that choice in `var/bridge.target.json` and starts on it again after a restart. While it is on the
 simulated device, the editor shows "Demo" instead of "Online" and a banner saying that nothing reaches an 8x8.
+The simulated device keeps stored presets in memory until the bridge restarts, and a recall of F00 restores the
+factory default from `resources/factory_config.bin`.
 
 ```bash
 bin/console trackdsp:bridge -t 192.168.68.10                  # outside ddev

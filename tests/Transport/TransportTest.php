@@ -19,6 +19,7 @@ use PHPUnit\Framework\TestCase;
 final class TransportTest extends TestCase
 {
     private const DEMO = __DIR__.'/../../resources/demo_config.bin';
+    private const FACTORY = __DIR__.'/../../resources/factory_config.bin';
 
     private ?string $sysfs = null;
 
@@ -142,6 +143,27 @@ final class TransportTest extends TestCase
         $levels = \App\Client\Matrix::parseMeters($dsp->metersRaw());
         self::assertCount(17, $levels);
         self::assertSame([], array_filter($levels, static fn (float $db): bool => $db < -40.05 || $db > -9.95), 'Demo meters move between -40 and -10 dB');
+    }
+
+    public function testDemoRecallsTheFactoryDefault(): void
+    {
+        $factory = substr((string) file_get_contents(self::FACTORY), 0, Device::CONFIG_SIZE);
+        $dsp = (new TransportFactory(new HidrawLocator('/nonexistent'), self::DEMO, factoryConfigPath: self::FACTORY))->connect('demo');
+        self::assertNotSame($factory, substr($dsp->config(), 0, Device::CONFIG_SIZE));
+
+        $dsp->write(Commands::loadPreset(0));
+
+        self::assertSame($factory, substr($dsp->config(), 0, Device::CONFIG_SIZE));
+    }
+
+    public function testDemoWithoutFactoryConfigKeepsItsSettingsOnF00(): void
+    {
+        $dsp = new \App\Client\Matrix(DemoTransport::fromFile(self::DEMO), 0.01);
+        $before = $dsp->config();
+
+        $dsp->write(Commands::loadPreset(0));
+
+        self::assertSame($before, $dsp->config());
     }
 
     public function testDemoStoresPresetName(): void

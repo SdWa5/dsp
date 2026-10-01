@@ -17,11 +17,14 @@ final class DemoTransport implements TransportInterface
     /** @var list<Frame> */
     private array $queue = [];
     private DeviceState $state;
-    /** @var array<int, string> preset number 1..20 => stored configuration */
+    /** @var array<int, string> preset number 0 (F00, the factory default) and 1..20 => stored configuration */
     private array $stored = [];
     private int $tick = 0;
 
-    public function __construct(string $config, int $activePreset = 2)
+    /**
+     * @param string|null $factoryConfig the configuration a recall of F00 restores, without it F00 changes nothing
+     */
+    public function __construct(string $config, int $activePreset = 2, ?string $factoryConfig = null)
     {
         if (\strlen($config) < Device::CONFIG_SIZE) {
             throw new \LengthException('Demo configuration must be 1277 bytes.');
@@ -30,16 +33,26 @@ final class DemoTransport implements TransportInterface
         $names[$activePreset - 1] = rtrim(substr($config, 2, 14), " \x00");
         $this->state = new DeviceState($config, null, $names, $activePreset, '192.168.68.10');
         $this->stored[$activePreset] = substr($config, 0, Device::CONFIG_SIZE);
+        if (null !== $factoryConfig) {
+            if (\strlen($factoryConfig) < Device::CONFIG_SIZE) {
+                throw new \LengthException('Factory configuration must be 1277 bytes.');
+            }
+            $this->stored[0] = substr($factoryConfig, 0, Device::CONFIG_SIZE);
+        }
     }
 
-    public static function fromFile(string $path): self
+    public static function fromFile(string $path, ?string $factoryPath = null): self
     {
-        $config = @file_get_contents($path);
-        if (false === $config) {
-            throw new TransportException(\sprintf('Cannot read demo configuration %s.', $path));
-        }
+        $read = static function (string $file, string $what): string {
+            $config = @file_get_contents($file);
+            if (false === $config) {
+                throw new TransportException(\sprintf('Cannot read %s %s.', $what, $file));
+            }
 
-        return new self($config);
+            return $config;
+        };
+
+        return new self($read($path, 'demo configuration'), factoryConfig: null === $factoryPath ? null : $read($factoryPath, 'factory configuration'));
     }
 
     public function send(Frame $frame): void

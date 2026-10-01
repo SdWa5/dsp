@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.33.1] - 2026-10-01
+
+### Fixed
+
+- Factory default (F00) in demo mode: the simulated device now restores `resources/factory_config.bin`. Before, it only changed the preset number and kept every setting
+
 ## [0.33.0] - 2026-10-01
 
 ### Added

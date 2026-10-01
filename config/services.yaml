@@ -38,6 +38,8 @@ services:
     App\Transport\TransportFactory:
         arguments:
             $demoConfigPath: '%trackdsp.demo_config%'
+            # The demo restores it on a recall of F00
+            $factoryConfigPath: '%trackdsp.factory_config%'
             $timeout: '%trackdsp.timeout%'
 
     App\Discovery\Discovery:
