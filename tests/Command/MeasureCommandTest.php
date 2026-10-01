@@ -335,7 +335,8 @@ final class MeasureCommandTest extends KernelTestCase
         $status = $client->request('status');
         self::assertIsArray($status);
         self::assertIsArray($status['riders']);
-        self::assertSame([1], array_column($status['riders'], 'channel'));
+        // The demo links In1 and In2, so the rider on In2 comes back for both
+        self::assertSame([0, 1], array_column($status['riders'], 'channel'));
         self::assertFileDoesNotExist(Playback::restoreFile((string) $this->bridge?->socket));
 
         $tester = $this->measure(['--restore' => true, '--socket' => $this->bridge?->socket]);

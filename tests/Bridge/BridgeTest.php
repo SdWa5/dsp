@@ -254,13 +254,14 @@ final class BridgeTest extends TestCase
 
     public function testRidersRideTheGainAndSurviveARestart(): void
     {
+        // The demo links In1 and In2, so a rider on In1 is the rider of both
         $file = sys_get_temp_dir().'/trackdsp-test-'.bin2hex(random_bytes(4)).'.riders.json';
         $this->restart($file);
         try {
             $before = $this->state()['inputs'][0]['gain'];
             $answer = $this->request('ride', ['channel' => 0, 'settings' => ['target' => -80, 'silence' => -90, 'min' => -40, 'slew' => 50, 'average' => 0.05, 'deadband' => 0]]);
             self::assertTrue($answer['ok'], (string) json_encode($answer));
-            self::assertSame([0], array_column($answer['result']['riders'], 'channel'));
+            self::assertSame([0, 1], array_column($answer['result']['riders'], 'channel'));
             self::assertEquals(-80, $answer['result']['riders'][0]['target']);
 
             // The rider works without any subscriber, the bridge polls the meters for it
@@ -282,7 +283,7 @@ final class BridgeTest extends TestCase
             self::assertContains($riders[0]['status'], ['riding', 'limit', 'steady']);
 
             $this->restart($file);
-            self::assertSame([0], array_column($this->request('status')['result']['riders'], 'channel'));
+            self::assertSame([0, 1], array_column($this->request('status')['result']['riders'], 'channel'));
 
             self::assertSame([], $this->request('unride', ['channel' => 0])['result']['riders']);
             self::assertSame([], json_decode((string) file_get_contents($file), true));
@@ -293,14 +294,15 @@ final class BridgeTest extends TestCase
 
     public function testARiderRidesItsLinkGroupAsOne(): void
     {
-        // In1 and In2 linked, In2 starting 3 dB below In1
-        $frames = array_map(self::hex(...), [Commands::link(0, 0b11), Commands::link(1, 0), Commands::gain(1, $this->state()['inputs'][0]['gain'] - 30)]);
+        // In3 and In4 linked, In4 starting 3 dB below In3
+        $frames = array_map(self::hex(...), [Commands::link(2, 0b1100), Commands::link(3, 0), Commands::gain(3, $this->state()['inputs'][2]['gain'] - 30)]);
         self::assertTrue($this->request('write', ['frames' => $frames])['ok']);
-        $before = $this->state()['inputs'][0]['gain'];
+        $before = $this->state()['inputs'][2]['gain'];
         $settings = ['target' => -80, 'silence' => -90, 'min' => -40, 'slew' => 50, 'average' => 0.05, 'deadband' => 0];
-        self::assertTrue($this->request('ride', ['channel' => 0, 'settings' => $settings])['ok']);
-        // A second rider in the same group stands by instead of fighting the first
-        self::assertTrue($this->request('ride', ['channel' => 1, 'settings' => $settings])['ok']);
+        // Started on In4, the rider is the rider of the group: both inputs get the settings
+        $riders = $this->request('ride', ['channel' => 3, 'settings' => $settings])['result']['riders'];
+        self::assertSame([2, 3], array_column($riders, 'channel'));
+        self::assertSame([-80, -80], array_map(intval(...), array_column($riders, 'target')));
 
         fwrite($this->client, '{"id":99,"op":"subscribe"}'."\n");
         $riders = null;
@@ -312,14 +314,55 @@ final class BridgeTest extends TestCase
                 }
             }
             $inputs = $this->state()['inputs'];
-        } while (($inputs[0]['gain'] >= $before || $inputs[0]['gain'] !== $inputs[1]['gain']) && microtime(true) < $deadline);
+        } while (($inputs[2]['gain'] >= $before || $inputs[2]['gain'] !== $inputs[3]['gain']) && microtime(true) < $deadline);
 
-        self::assertLessThan($before, $inputs[0]['gain']);
-        self::assertSame($inputs[0]['gain'], $inputs[1]['gain']);
+        self::assertLessThan($before, $inputs[2]['gain']);
+        self::assertSame($inputs[2]['gain'], $inputs[3]['gain']);
         self::assertIsArray($riders);
-        self::assertSame([0, 1], $riders[0]['members']);
+        self::assertSame([2, 3], $riders[0]['members']);
         self::assertContains($riders[0]['status'], ['riding', 'limit', 'steady']);
-        self::assertSame(['linked', [], 0], [$riders[1]['status'], $riders[1]['members'], $riders[1]['lead']]);
+        self::assertSame(['linked', [], 2], [$riders[1]['status'], $riders[1]['members'], $riders[1]['lead']]);
+    }
+
+    public function testRidersOfALinkGroupShareTheirSettings(): void
+    {
+        $settings = ['target' => -80, 'silence' => -90, 'min' => -40, 'slew' => 50, 'average' => 0.05, 'deadband' => 0];
+        // The demo links In3 and In4, so they start apart here
+        $this->request('write', ['frames' => array_map(self::hex(...), [Commands::link(2, 0b100), Commands::link(3, 0b1000)])]);
+        $this->request('ride', ['channel' => 2, 'settings' => $settings]);
+        $this->request('ride', ['channel' => 3, 'settings' => ['target' => -20] + $settings]);
+
+        // Linked afterwards, the rider on the lowest input wins
+        $this->request('write', ['frames' => array_map(self::hex(...), [Commands::link(2, 0b1100), Commands::link(3, 0)])]);
+        $deadline = microtime(true) + 5;
+        do {
+            iterator_to_array($this->messages(10), false);
+            $targets = array_column($this->request('status')['result']['riders'], 'target', 'channel');
+        } while (-80 != $targets[3] && microtime(true) < $deadline);
+        self::assertEquals([2 => -80, 3 => -80], $targets);
+
+        // A change or a stop on any member applies to the group
+        $riders = $this->request('ride', ['channel' => 3, 'settings' => ['target' => -30] + $settings])['result']['riders'];
+        self::assertEquals([2 => -30, 3 => -30], array_column($riders, 'target', 'channel'));
+        self::assertSame([], $this->request('unride', ['channel' => 3])['result']['riders']);
+    }
+
+    public function testFactoryDefaultStopsTheRiders(): void
+    {
+        $file = sys_get_temp_dir().'/trackdsp-test-'.bin2hex(random_bytes(4)).'.riders.json';
+        $this->restart($file);
+        try {
+            $this->request('ride', ['channel' => 0, 'settings' => []]);
+            // A user preset keeps them
+            $this->request('write', ['frames' => [self::hex(Commands::loadPreset(1))]]);
+            self::assertSame([0, 1], array_column($this->request('status')['result']['riders'], 'channel'));
+
+            $this->request('write', ['frames' => [self::hex(Commands::loadPreset(0))]]);
+            self::assertSame([], $this->request('status')['result']['riders']);
+            self::assertSame([], json_decode((string) file_get_contents($file), true));
+        } finally {
+            @unlink($file);
+        }
     }
 
     public function testRejectsBadRiders(): void

@@ -49,6 +49,9 @@ Linked channels: the vendor editor sends mute, phase, Line/Mic and +48V to every
 gain, EQ, filters and the rest to the operated channel only (✓). Whether the 8x8 then copies those to the
 linked channels by itself is not measured. The trackdsp editor therefore sends every channel setting to every
 channel of the group, the channel name excepted, so a link group works the same on the device and in demo mode.
+Linking copies the master to every new slave (`2A`), and to a slave that moves to another group as well. The
+demo copies the name with the rest, and whether the 8x8 does is not measured, so the editor writes each new
+slave's own name back right after the copy.
 
 ### Commands
 

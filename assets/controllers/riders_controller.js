@@ -2,6 +2,7 @@ import { t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { api, on, status, store, updateStatus } from '../lib/device.js';
 import { channelId, channelLabel } from '../lib/channels.js';
+import { linkedMembers } from '../lib/link.js';
 
 const STATES = {
     waiting: 'Waiting for the device',
@@ -18,8 +19,9 @@ const FIELDS = ['target', 'min', 'max', 'slew', 'average', 'silence', 'deadband'
 /**
  * The gain riders of the inputs, which run in the bridge: a Rider button and a status line per input,
  * and the settings dialog. Settings come with the bridge status, what they do right now with the meters.
- * A rider on a linked input rides its link group as one. The members show which rider rides them, and a second
- * rider in the same group stands by.
+ * A rider on a linked input rides its link group as one. The bridge gives every member the same settings, so
+ * starting, changing or stopping it on any member does so for the whole group. The title names the group, and
+ * the members show which input leads it.
  */
 export default class extends Controller {
     static targets = ['button', 'info', 'dialog', 'form', 'title', 'stop', 'submit', 'error'];
@@ -86,7 +88,8 @@ export default class extends Controller {
 
     renderTitle() {
         if (this.hasTitleTarget) {
-            this.titleTarget.textContent = t("Gain rider · %channel%", { channel: channelLabel(this.channel, store.state) });
+            const members = linkedMembers(store.state?.inputs ?? [], this.channel);
+            this.titleTarget.textContent = t("Gain rider · %channel%", { channel: members.map((m) => channelLabel(m, store.state)).join(' + ') });
         }
     }
 

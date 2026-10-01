@@ -14,12 +14,25 @@ test('members and groups', () => {
     assert.deepEqual(linkGroups(channels), [1, 1, 2, 2, 0, 0, 0, 0]);
 });
 
-test('linking copies the master to the new slave first', () => {
-    const commands = linkCommands(side(), [1, 1, 0, 0, 0, 0, 0, 0], 8);
+test('linking copies the master to the new slave first and keeps the slave\'s name', () => {
+    const channels = side();
+    channels[1].name = 'Main R';
+    const commands = linkCommands(channels, [1, 1, 0, 0, 0, 0, 0, 0], 8);
     assert.deepEqual(commands, [
         { command: 'copyChannel', args: { source: 8, target: 9 } },
+        { command: 'channelName', args: { channel: 9, name: 'Main R' } },
         { command: 'link', args: { channel: 8, flags: 3 } },
         { command: 'link', args: { channel: 9, flags: 0 } },
+    ]);
+});
+
+test('a slave that moves to another group gets the new master copied', () => {
+    // In1 + In2 and In3 + In4 become In1 + In2 + In4: In4 keeps its flags 0, but its master changes
+    assert.deepEqual(linkCommands(side(0b11, 0, 0b1100, 0), [1, 1, 0, 1, 0, 0, 0, 0], 0), [
+        { command: 'copyChannel', args: { source: 0, target: 3 } },
+        { command: 'channelName', args: { channel: 3, name: '' } },
+        { command: 'link', args: { channel: 0, flags: 0b1011 } },
+        { command: 'link', args: { channel: 2, flags: 0b100 } },
     ]);
 });
 

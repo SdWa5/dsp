@@ -16,10 +16,18 @@ gain where it is.
 A rider on a linked input rides its whole link group as one. It takes the power mean of the members' meters,
 so a stereo pair with panned material keeps its balance, and writes the same gain to every member. A member
 whose gain differs when the rider starts is set to the rider's gain. A change to any member's gain by somebody
-else pauses the rider, and once the pause ends the other members follow that gain. Where two riders sit in one
-link group, the one on the lowest input rides it and the other stands by, so they never take each other's
-writes for manual changes. The status line of the leading rider names its members ("Riding -3.4 dB · In3+In4"),
-and every other member reads "Ridden with In3". Unlinking the group lets a rider that stood by start afresh.
+else pauses the rider, and once the pause ends the other members follow that gain.
+
+The rider is one for the whole group. Starting, changing or stopping it on any member does so for every member,
+which all show **Rider on** with the same settings, and the dialog title names the group ("Gain rider · In3 +
+In4"). The rider on the lowest input rides, and the others stand by, so they never take each other's writes for
+manual changes. Inputs linked after their riders started take the settings of the rider on the lowest input, and
+a member without a rider gets one. Unlinked again, every member keeps riding on its own with those settings. The
+status line of the leading rider names its members ("Riding -3.4 dB · In3+In4"), and every other member reads
+"Ridden with In3".
+
+Recalling the factory default (F00) stops every rider, so the factory gains stay as they are. A user preset
+keeps them.
 
 ```bash
 bin/console trackdsp:ride in1                              # ride In1 towards -18 dB

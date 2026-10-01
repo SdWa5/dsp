@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.0] - 2026-10-01
+
+### Changed
+
+- A gain rider is one for its link group: starting, changing or stopping it on any member does so for every member, which all show "Rider on" with the same settings. Inputs linked after their riders started take the settings of the rider on the lowest input. The dialog title names the group
+- Recalling the factory default (F00) stops every gain rider. A user preset keeps them
+- Linking keeps each channel's own name, and the confirmation says so
+
+### Fixed
+
+- A linked channel that moved to another link group kept its old settings, because its flags stayed 0 and no copy of the new master was sent
+
 ## [0.40.0] - 2026-10-01
 
 ### Added

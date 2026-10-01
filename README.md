@@ -141,7 +141,9 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   A switch per channel shows or hides its curve, kept in the browser. It changes nothing on the device.
 - The Gain page also carries Sub Control next to the channel strips and Group Control below them, the same
   controls as in their dialogs.
-- The Gain page starts and shows the gain riders. A rider on a linked input rides its link group as one. The Auto EQ page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
+- The Gain page starts and shows the gain riders. A rider on a linked input rides its link group as one, and
+  starting, changing or stopping it on any member does so for the whole group. Factory default stops the riders.
+  The Auto EQ page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
 - The corner button of the matrix swaps rows and columns, so the inputs become the rows. The choice is kept in the
   browser. The In headers sit on the left or at the top and the Out headers on the right or at the bottom, so the
   signal always runs from In to Out. Next to the matrix, a routing graph draws the inputs and the Aux on the left,
