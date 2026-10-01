@@ -99,8 +99,8 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   "Out1 (Main L)" in lists. A name that only repeats the ID is left out.
 - The channel tabs show a dot for a muted channel, a hollow one for a channel whose gain mutes it, and the link
   group. The Channels menu and the Link dialog set how a link group shows on the tabs and in the Link matrix, kept
-  in the browser. The code (L1, L2, ..., on by default), a shape per group (circle, square, triangle, diamond) and a
-  colour per group combine freely, and code and shape stand next to each other. The placement of linked channels is
+  in the browser. The code (L1, L2, ..., on by default), an icon per group (circle, square, triangle, diamond) and a
+  colour per group combine freely, and code and icon stand next to each other. The placement of linked channels is
   in channel order, side by side, or stacked per link group in one column.
 - The Link dialog is a channel x channel matrix per side. A cell links its row and column channel, linked channels
   form a group that lights as a block, and a lit cell takes the column channel out of its group. The lowest
