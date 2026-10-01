@@ -26,6 +26,7 @@
             {% if options.bit is defined %} data-toggle-bit-value="{{ options.bit }}"{% endif %}
             {% if options.on is defined %} data-toggle-text-on-value="{{ options.on }}" data-toggle-text-off-value="{{ label }}"{% endif %}
             {% if options.enabled is defined %} data-toggle-enabled-value="{{ options.enabled }}"{% endif %}
+            {% if options.muted_by is defined %} data-toggle-muted-by-value="{{ options.muted_by }}"{% endif %}
             {% if options.aria is defined %} aria-label="{{ options.aria }}"{% endif %}>{{ label }}</button>
 {% endmacro %}
 

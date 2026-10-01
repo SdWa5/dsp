@@ -142,7 +142,7 @@ final class EditorControllerTest extends WebTestCase
                 continue;
             }
             foreach ($node->attributes as $attribute) {
-                if (preg_match('/^data-[a-z]+-(bind|enabled|path)-value$/', $attribute->name)) {
+                if (preg_match('/^data-[a-z]+-(bind|enabled|path|muted-by)-value$/', $attribute->name)) {
                     $paths[$attribute->value] = true;
                 }
             }

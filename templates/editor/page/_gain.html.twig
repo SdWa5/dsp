@@ -17,7 +17,7 @@
                 <span class="rider-info" data-riders-target="info" data-channel="{{ i }}"></span>
                 {{ w.toggle('Normal', p ~ '.phase', [{command: 'phase', args: {channel: i, inverted: '@' ~ p ~ '.phase'}}], 'inputs:' ~ i, {on: 'Inverse'}) }}
                 {{ w.choice('Mode', p ~ '.mode', [{command: 'inputMode', args: {channel: i, mode: '@' ~ p ~ '.mode'}}], labels.INPUT_MODES, 'inputs:' ~ i) }}
-                {{ w.toggle('Mute', p ~ '.mute', [{command: 'mute', args: {channel: i, on: '@' ~ p ~ '.mute'}}], 'inputs:' ~ i, {class: 'toggle--mute'}) }}
+                {{ w.toggle('Mute', p ~ '.mute', [{command: 'mute', args: {channel: i, on: '@' ~ p ~ '.mute'}}], 'inputs:' ~ i, {class: 'toggle--mute', muted_by: p ~ '.gain'}) }}
                 {{ w.toggle('+48V', p ~ '.phantom', [{command: 'phantom', args: {channel: i, on: '@' ~ p ~ '.phantom'}}], 'inputs:' ~ i, {class: 'toggle--phantom', enabled: p ~ '.mode'}) }}
             </div>
         {% endfor %}
@@ -57,7 +57,7 @@
                 {{ w.meter(8 + i) }}
             </div>
             {{ w.toggle('Normal', p ~ '.phase', [{command: 'phase', args: {channel: 8 + i, inverted: '@' ~ p ~ '.phase'}}], 'outputs:' ~ i, {on: 'Inverse'}) }}
-            {{ w.toggle('Mute', p ~ '.mute', [{command: 'mute', args: {channel: 8 + i, on: '@' ~ p ~ '.mute'}}], 'outputs:' ~ i, {class: 'toggle--mute'}) }}
+            {{ w.toggle('Mute', p ~ '.mute', [{command: 'mute', args: {channel: 8 + i, on: '@' ~ p ~ '.mute'}}], 'outputs:' ~ i, {class: 'toggle--mute', muted_by: p ~ '.gain'}) }}
         </div>
     {% endfor %}
 </div>

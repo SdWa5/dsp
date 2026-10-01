@@ -27,7 +27,7 @@
                 {{ w.meter(channel) }}
             </div>
             {{ w.toggle('Normal', p ~ '.phase', [{command: 'phase', args: {channel: channel, inverted: '@' ~ p ~ '.phase'}}], link, {on: 'Inverse'}) }}
-            {{ w.toggle('Mute', p ~ '.mute', [{command: 'mute', args: {channel: channel, on: '@' ~ p ~ '.mute'}}], link, {class: 'toggle--mute'}) }}
+            {{ w.toggle('Mute', p ~ '.mute', [{command: 'mute', args: {channel: channel, on: '@' ~ p ~ '.mute'}}], link, {class: 'toggle--mute', muted_by: p ~ '.gain'}) }}
             {% if input %}
                 {{ w.choice('Mode', p ~ '.mode', [{command: 'inputMode', args: {channel: channel, mode: '@' ~ p ~ '.mode'}}], labels.INPUT_MODES, link) }}
                 {{ w.toggle('+48V', p ~ '.phantom', [{command: 'phantom', args: {channel: channel, on: '@' ~ p ~ '.phantom'}}], link, {class: 'toggle--phantom', enabled: p ~ '.mode'}) }}
