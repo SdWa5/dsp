@@ -71,9 +71,9 @@
                     </div>
                     <input type="file" accept=".json,.prs,application/json" hidden data-editor-target="file" data-action="change->editor#upload">
                 </nav>
-                <span class="bar__id">{{ 'editor.bar.id'|trans }} {{ w.value('device_id') }}</span>
+                <span class="bar__id" title="{{ 'editor.tip.device_id'|trans }}">{{ 'editor.bar.id'|trans }} {{ w.value('device_id') }}</span>
                 <button type="button" class="theme" data-editor-target="theme" data-action="editor#theme" title="{{ 'editor.bar.theme'|trans }}">{{ 'editor.bar.theme_auto'|trans }}</button>
-                <button type="button" class="online" data-editor-target="online" data-action="editor#open" data-editor-dialog-param="connect">{{ 'editor.bar.offline'|trans }}</button>
+                <button type="button" class="online" data-editor-target="online" data-action="editor#open" data-editor-dialog-param="connect" title="{{ 'editor.tip.bar.online'|trans }}">{{ 'editor.bar.offline'|trans }}</button>
             </div>
             <div class="tabs" role="tablist" aria-label="{{ 'editor.tabs.pages'|trans }}">
                 {% for page in ['gain', 'gate', 'comp', 'delay', 'matrix', 'aux', 'autoeq'] %}
@@ -116,10 +116,10 @@
         </main>
 
         <footer class="editor__foot">
-            <span class="pill"><b>{{ 'editor.foot.number'|trans }}</b> <span data-editor-target="number">–</span></span>
-            <span class="pill"><b>{{ 'editor.foot.name'|trans }}</b> {{ w.value('preset_name') }}</span>
-            <button type="button" class="big" data-action="editor#open" data-editor-dialog-param="store">{{ 'editor.foot.store'|trans }}</button>
-            <button type="button" class="big" data-action="editor#open" data-editor-dialog-param="recall">{{ 'editor.foot.recall'|trans }}</button>
+            <span class="pill" title="{{ 'editor.tip.foot.number'|trans }}"><b>{{ 'editor.foot.number'|trans }}</b> <span data-editor-target="number">–</span></span>
+            <span class="pill" title="{{ 'editor.tip.foot.name'|trans }}"><b>{{ 'editor.foot.name'|trans }}</b> {{ w.value('preset_name') }}</span>
+            <button type="button" class="big" data-action="editor#open" data-editor-dialog-param="store" title="{{ 'editor.tip.panel.store'|trans }}">{{ 'editor.foot.store'|trans }}</button>
+            <button type="button" class="big" data-action="editor#open" data-editor-dialog-param="recall" title="{{ 'editor.tip.panel.recall'|trans }}">{{ 'editor.foot.recall'|trans }}</button>
             <span class="editor__error" data-editor-target="error" role="status"></span>
         </footer>
 

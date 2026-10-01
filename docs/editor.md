@@ -41,14 +41,16 @@ A widget macro (`fader`, `toggle`, `choice` in `templates/editor/_widgets.html.t
 state path without side, index and `aux`. So `outputs.3.comp.ratio` and `aux.comp.ratio` both show
 `editor.tip.comp.ratio`, and `sub.0.gain` shows `editor.tip.sub.gain`. A path without a key renders no title.
 `options.tip` names another key. Panels (`fold()`), dialog titles (`dialog()`), the band table headers and the
-filter controls name their key under `editor.tip.panel` or `editor.tip` directly. A tooltip says what the control
+filter controls name their key under `editor.tip.panel` or `editor.tip` directly. The footer pills use
+`editor.tip.foot`, and its Store and Recall buttons show the tooltip of the dialog they open. In the top bar the ID
+shows `editor.tip.device_id` and the connection button `editor.tip.bar.online`. A tooltip says what the control
 does in one sentence and names the unit where the value has one.
 
 A fader with a default puts the double-click hint after its tooltip. The toggle controller keeps the tooltip and
 puts a state message, such as an unknown value or a mute by the gain, on its own line above it.
 
 `EditorTooltipTest` checks that every `editor.tip` text appears on some control in both languages, and that one
-key serves the same control on every page and in the dialogs.
+key serves the same control on every page and in the dialogs. It also checks the top bar status and every footer element.
 
 `TranslationTest` checks matching catalogue keys and interpolation parameters. `EditorLocaleTest` checks English
 and German rendering and that translated labels preserve protocol values. `LocaleListenerTest` checks precedence.

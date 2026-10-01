@@ -117,6 +117,11 @@ editor:
         tone_mode: "Quelle des Testtons: die analogen Eingänge, rosa oder weißes Rauschen oder ein Sinus."
         tone_freq: "Frequenz des Sinus, in Hz."
         device_id: "Die ID des Geräts für die Steuerung über RS232/485, 1 bis 254."
+        bar:
+            online: "Zeigt, ob der Editor das Gerät erreicht. Demo bedeutet das simulierte Gerät. Ein Klick öffnet die Verbindung, um das Gerät zu wählen oder zu trennen."
+        foot:
+            number: "Das Preset, das das Gerät zuletzt geladen oder gespeichert hat, U01 bis U20 oder F00 für die Werkseinstellung. Bis das Gerät eines meldet, steht hier –."
+            name: "Der Name der Live-Einstellungen aus dem zuletzt geladenen oder gespeicherten Preset. Speichern schlägt ihn für den Platz vor."
         eq_bypass: "Schaltet den EQ dieses Kanals ab. Die Bänder behalten ihre Werte."
         eq_reset: "Setzt jedes Band dieses Kanals auf 0 dB bei seiner Standardfrequenz zurück."
         band:

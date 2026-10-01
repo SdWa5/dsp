@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.44.1] - 2026-10-01
+
+### Fixed
+
+- The footer shows tooltips on the preset number, the preset name and the Store and Recall buttons, in English and German
+- The top bar shows tooltips on the device ID and the Online, Offline or Demo button
+
 ## [0.44.0] - 2026-10-01
 
 ### Added
