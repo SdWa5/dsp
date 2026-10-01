@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Automation\RiderSettings;
 use App\Bridge\BridgeClient;
 use App\Bridge\BridgeException;
 use App\Bridge\CommandMap;
@@ -147,7 +148,9 @@ final class ApiController
 
     /**
      * Sends every setting of a preset file (request body) to the device: a trackdsp JSON file or a .prs file of
-     * the vendor editor, told apart by the vendor magic.
+     * the vendor editor, told apart by the vendor magic. The gain riders of the file then replace the running
+     * ones, after the gains they start from. A file without riders, as every vendor file and a trackdsp file from
+     * before 0.43.0, stops them, as a recall of a user preset stored without riders does.
      */
     #[Route('/upload', methods: ['POST'])]
     public function upload(Request $request): JsonResponse
@@ -159,28 +162,44 @@ final class ApiController
                     ? Device::fromVendorPreset($file, (string) file_get_contents($this->factoryConfig))
                     : Device::fromJson($file);
                 $frames = $device->allFrames();
+                $riders = Device::isVendorPreset($file) ? [] : (json_decode($file, true, 64, \JSON_THROW_ON_ERROR)['riders'] ?? []);
+                if (!\is_array($riders) || !array_is_list($riders)) {
+                    throw new \InvalidArgumentException('"riders" must be a list.');
+                }
+                // Checked before the first write, so a bad rider leaves the device as it is
+                foreach ($riders as $settings) {
+                    $channel = \is_array($settings) ? $settings['channel'] ?? null : null;
+                    if (!\is_int($channel) || $channel < 0 || $channel > 7) {
+                        throw new \InvalidArgumentException('every rider needs a "channel", an input index 0..7.');
+                    }
+                    RiderSettings::fromArray($channel, $settings);
+                }
             } catch (\JsonException|\InvalidArgumentException|\LengthException|\OutOfRangeException $e) {
                 // Out of range: a value in the file that no command can carry, e.g. a gain above +12 dB
                 throw new BridgeException('Not a valid preset file: '.$e->getMessage(), 400, $e);
             }
+            $result = $this->bridge->request('write', ['frames' => array_map(self::hex(...), $frames)]);
+            $this->bridge->request('riders', ['riders' => $riders]);
 
-            return $this->bridge->request('write', ['frames' => array_map(self::hex(...), $frames)]);
+            return $result;
         });
     }
 
     /**
-     * The live state as a preset file.
+     * The live state as a preset file, with the settings of the running gain riders.
      */
     #[Route('/download', methods: ['GET'])]
     public function download(): Response
     {
         try {
             $state = $this->bridge->request('state');
+            $status = $this->bridge->request('status');
         } catch (BridgeException $e) {
             return self::error($e);
         }
+        $riders = \is_array($status) && \is_array($status['riders'] ?? null) ? $status['riders'] : [];
         $json = json_encode(
-            ['format' => Device::FILE_FORMAT, 'version' => Device::FILE_VERSION, 'device' => $state],
+            ['format' => Device::FILE_FORMAT, 'version' => Device::FILE_VERSION, 'device' => $state, 'riders' => $riders],
             \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_THROW_ON_ERROR,
         );
         $name = \is_array($state) && \is_string($state['preset_name'] ?? null) && '' !== trim($state['preset_name']) ? trim($state['preset_name']) : 'preset';

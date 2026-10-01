@@ -97,6 +97,7 @@ One JSON object per line in each direction.
 | `subscribe` | – | `true`, then events |
 | `ride` | `channel` (input 0..7), `settings` (`target`, `min`, `max`, `slew`, `average`, `silence`, `deadband`, `hold`, `boost`, missing keys take the defaults) | status. Starts the rider, or replaces the settings of a running one |
 | `unride` | `channel` | status. The gain stays where it is |
+| `riders` | `riders`: list of rider settings, each with its `channel` | status. Replaces every running rider, as opening a preset file does. An empty list stops them all |
 
 Error codes are `invalid` (bad request) and `offline` (no device connection).
 A subscribed client receives `{"event": "status"|"state"|"meters", "data": ...}`. Right after `subscribe`
@@ -145,7 +146,8 @@ running) or 504 (no answer from the bridge in time).
 ### Preset files
 
 `/api/download` returns the live state as a preset file, `{"format": "trackdsp-8x8", "version": 1, "device":
-{...}}`, where `device.raw` is the 1277 byte configuration in hex and `device.groups` the group control.
+{...}, "riders": [...]}`, where `device.raw` is the 1277 byte configuration in hex, `device.groups` the group control
+and `riders` the running gain riders with their settings.
 `/api/upload` turns a preset file into write frames (`Device::allFrames()`) and queues them like any write. An
 upload writes every setting a command can write:
 
@@ -157,6 +159,10 @@ upload writes every setting a command can write:
   and EQ bypass
 - Sub control, Group control (only when the file has `groups`) and the delay unit
 - one final activate
+
+After the frames, an upload replaces the running gain riders with the ones in the file (`riders` op). A file
+without riders, a vendor `.prs` file or one saved before 0.43.0, stops them. A rider with a bad setting is
+refused with 400 before anything is written.
 
 An upload leaves out the test tone, because it can start noise, the working status and the device ID, which
 belong to the unit rather than the preset, and the preset name in the header, which only storing a preset

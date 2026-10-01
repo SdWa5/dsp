@@ -122,6 +122,36 @@ final class ApiControllerTest extends WebTestCase
         self::assertStringContainsString('Gain raw value', (string) $browser->getResponse()->getContent());
     }
 
+    public function testAPresetFileCarriesTheGainRiders(): void
+    {
+        $browser = self::browser();
+        self::json($browser, 'POST', '/api/ride', ['channel' => 2, 'settings' => ['target' => -24]]);
+        $browser->request('GET', '/api/download');
+        $file = json_decode((string) $browser->getResponse()->getContent(), true);
+        // The demo links In3 and In4, so the rider is one for both
+        self::assertSame([2, 3], array_column($file['riders'], 'channel'));
+        self::assertEquals([-24, -24], array_column($file['riders'], 'target'));
+
+        self::json($browser, 'POST', '/api/unride', ['channel' => 2]);
+        $browser->request('POST', '/api/upload', server: ['HTTP_X_TRACKDSP' => '1'], content: (string) json_encode($file));
+        self::assertSame(200, $browser->getResponse()->getStatusCode(), (string) $browser->getResponse()->getContent());
+        self::assertSame([2, 3], array_column(self::json($browser, 'GET', '/api/status')['riders'], 'channel'));
+
+        // A bad rider refuses the whole file, before anything is written
+        $bad = $file;
+        $bad['riders'][0]['target'] = 'loud';
+        $bad['device']['raw'] = '';
+        $browser->request('POST', '/api/upload', server: ['HTTP_X_TRACKDSP' => '1'], content: (string) json_encode($bad));
+        self::assertSame(400, $browser->getResponse()->getStatusCode());
+        self::assertSame([2, 3], array_column(self::json($browser, 'GET', '/api/status')['riders'], 'channel'));
+
+        // A file without riders, as from before 0.43.0, stops them
+        unset($file['riders']);
+        $browser->request('POST', '/api/upload', server: ['HTTP_X_TRACKDSP' => '1'], content: (string) json_encode($file));
+        self::assertSame(200, $browser->getResponse()->getStatusCode());
+        self::assertSame([], self::json($browser, 'GET', '/api/status')['riders']);
+    }
+
     public function testUploadsAVendorPresetFile(): void
     {
         $browser = self::browser();
