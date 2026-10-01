@@ -8,6 +8,7 @@ use App\Measurement\Interrupt;
 use App\Measurement\Playback;
 use App\Measurement\RecorderFactory;
 use App\Measurement\Response;
+use App\Measurement\Solo;
 use App\Measurement\Spectrum;
 use App\Measurement\TestTone;
 use App\Measurement\WavReader;
@@ -63,6 +64,28 @@ final class AutoEq
         }
 
         return $state;
+    }
+
+    /**
+     * What makes a measurement of these outputs misleading: an output at compressor 1:1.0 with a gain other than
+     * 0 dB adds the spectrum mirrored at 24 kHz, which the fit would try to correct (Solo::exaggeratedGain()).
+     *
+     * @param array<mixed> $state
+     * @param list<int>    $outputs
+     *
+     * @return list<string>
+     */
+    public static function warnings(array $state, array $outputs): array
+    {
+        $warnings = [];
+        foreach ($outputs as $channel) {
+            $output = $state['outputs'][$channel - Channel::INPUTS] ?? null;
+            if (\is_array($output) && null !== ($warning = Solo::exaggeratedGain($channel, $output))) {
+                $warnings[] = $warning.' Set Limit, or 1:1.1 from +20 dB, before measuring.';
+            }
+        }
+
+        return $warnings;
     }
 
     /**

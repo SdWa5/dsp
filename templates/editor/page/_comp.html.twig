@@ -4,6 +4,7 @@
         <div class="strip">
             <h3 class="strip__title">{{ w.ch(8 + i) }}</h3>
             {{ include('editor/page/_compressor.html.twig', {p: 'outputs.' ~ i, channel: 8 + i, meter: 8 + i}) }}
+            {{ w.gain_warning(i) }}
         </div>
     {% endfor %}
 </div>

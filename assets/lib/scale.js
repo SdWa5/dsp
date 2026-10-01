@@ -4,6 +4,9 @@ export const GAIN_MAX = 400;
 export const GAIN_UNITY = 280;
 /** Gain raw 0 mutes the channel, although the vendor editor shows it as -60 dB. */
 export const GAIN_MUTED = 0;
+/** Compressor 1:1.1 from +20 dB: never works below the output ceiling and keeps the gain exact (Solo::EXACT_RATIO). */
+export const EXACT_RATIO = 1;
+export const EXACT_THRESHOLD = 220;
 export const FREQ_STEPS = 300;
 export const FREQ_BASE = 19.6875;
 export const PEQ_GAIN_UNITY = 120;
@@ -187,4 +190,12 @@ export const parsers = {
 export function parse(name, text, state = null, labels = null) {
     const value = (parsers[name] ?? parsers.raw)(String(text), state, labels);
     return null === value || Number.isNaN(value) ? null : Math.round(value);
+}
+
+/**
+ * An output at compressor ratio 1:1.0 with a gain other than 0 dB: the 8x8 applies the gain more strongly than
+ * set and adds the spectrum mirrored at 24 kHz (Solo::exaggeratedGain()).
+ */
+export function exaggeratesGain(output) {
+    return 0 === output?.comp?.ratio && undefined !== output.gain && GAIN_UNITY !== output.gain;
 }

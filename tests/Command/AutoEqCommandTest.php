@@ -4,6 +4,8 @@ namespace App\Tests\Command;
 
 use App\AutoEq\FittedBand;
 use App\Bridge\BridgeClient;
+use App\Measurement\Playback;
+use App\Protocol\Commands;
 use App\Protocol\Scale;
 use App\Tests\Support\BridgeProcess;
 use App\Tests\Support\Signals;
@@ -149,6 +151,20 @@ final class AutoEqCommandTest extends KernelTestCase
 
         self::assertSame(Command::FAILURE, $tester->getStatusCode());
         self::assertSame($before, self::out1Peq($client));
+    }
+
+    public function testWarnsAboutAGainAtCompressor1To1(): void
+    {
+        $client = $this->client();
+        $client->request('write', ['frames' => [
+            Playback::hex(Commands::compressor(8, 0, 0, 10, 10, 180)),
+            Playback::hex(Commands::gain(8, Scale::dbToGain(-6.0))),
+        ]]);
+
+        $tester = $this->autoEq(['outputs' => 'out1', '--socket' => $this->bridge?->socket, '--device' => 'trackdsp-test-none', '--settle' => '0', '--seconds' => '1']);
+
+        self::assertStringContainsString('compressor at 1:1.0', $tester->getDisplay());
+        self::assertStringContainsString('Set Limit, or 1:1.1 from +20 dB, before measuring.', $tester->getDisplay());
     }
 
     public function testAFailedRecordingRestoresToneAndBands(): void

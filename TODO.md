@@ -77,10 +77,6 @@
   other's writes for manual changes and pause each other
 - The rack's output panel has a broken connection on output 8 (found 2026-09-29). Until it is repaired, measure
   with `--reference-output=out6`. Afterwards repeat B1 of `docs/measurements.md` against Out8
-- Flag an output at compressor ratio 1:1.0 with a gain other than 0 dB in the browser editor and in the auto EQ,
-  as `trackdsp:measure` does. The 8x8 then applies the gain more strongly than set and adds the spectrum
-  mirrored at 24 kHz, which the auto EQ would try to fit. Offer Limit or 1:1.1 from +20 dB instead, which keep
-  the gain exact and add no image
 - Measure the 8x8's PEQ shapes against the RBJ filters the fitter assumes. Include the allpass types and the
   phase of the HPF and LPF types, because the phase step of the system tuning predicts with them
 - The PEQ fitter wastes bands on overlapping corrections. On Tecnare L (2026-09-29) it cut 477 Hz by 9 dB

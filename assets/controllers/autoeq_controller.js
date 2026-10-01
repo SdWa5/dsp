@@ -22,7 +22,7 @@ const hz = (v) => (v >= 1000 ? `${(v / 1000).toFixed(2)} kHz` : `${v.toFixed(0)}
 export default class extends Controller {
     static targets = ['status', 'setup', 'devices', 'recorderNote', 'measure', 'summary', 'recordings', 'record', 'wav',
         'calibration', 'calibrationRemove', 'calibrationFile', 'fitCard', 'fitForm', 'fitButton', 'result', 'plot',
-        'verifiedLegend', 'stats', 'bands', 'applyCard', 'applyNote', 'apply', 'verify', 'revert', 'backups'];
+        'verifiedLegend', 'stats', 'bands', 'applyCard', 'applyNote', 'apply', 'verify', 'revert', 'backups', 'warnings'];
 
     connect() {
         this.session = null;
@@ -164,7 +164,13 @@ export default class extends Controller {
 
     /** One API call that answers with the session. True when it worked. */
     step(message, path, body = {}) {
-        return this.run(message, async () => this.show((await api(path, body)).session));
+        return this.run(message, async () => {
+            const data = await api(path, body);
+            if (undefined !== data.warnings) {
+                this.warn(data.warnings);
+            }
+            this.show(data.session);
+        });
     }
 
     async run(message, work) {
@@ -190,6 +196,11 @@ export default class extends Controller {
             this.element.classList.remove('is-busy');
             this.render();
         }
+    }
+
+    /** Warnings about the chosen outputs: they stay until the next start or recording answers. */
+    warn(warnings) {
+        this.warningsTarget.replaceChildren(...warnings.map((text) => Object.assign(document.createElement('li'), { textContent: text })));
     }
 
     say(message, error = false) {

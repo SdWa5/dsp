@@ -5,6 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24.0] - 2026-10-01
+
+### Added
+
+- Warning on the output strips of the Comp and Gain page while an output runs at compressor ratio 1:1.0 with a gain other than 0 dB, with a button that sets 1:1.1 from +20 dB (`gainwarning_controller.js`, `exaggeratesGain()` in `scale.js`)
+- `warnings` in the answers of `/api/autoeq/start` and `/api/autoeq/record`, listed on the Auto EQ page, and the same warnings printed by `trackdsp:autoeq` before it measures (`AutoEq::warnings()`)
+
+### Changed
+
+- `Solo::exaggeratedGain()` holds the 1:1.0 check that `trackdsp:measure` already used, and `Solo::EXACT_RATIO`/`EXACT_THRESHOLD` are public
+
+### Removed
+
+- The TODO item for flagging an output at compressor ratio 1:1.0 with a gain
+
 ## [0.23.0] - 2026-10-01
 
 ### Added

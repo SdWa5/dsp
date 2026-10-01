@@ -78,3 +78,13 @@ test('typed values parse back to raw values', () => {
         assert.equal(S.parse(fmt, S.format(fmt, raw)), raw, fmt);
     }
 });
+
+test('an output at 1:1.0 with a gain other than 0 dB exaggerates it', () => {
+    const output = (ratio, gain) => ({ gain, comp: { ratio, threshold: 180 } });
+    assert.equal(S.exaggeratesGain(output(0, 300)), true);
+    assert.equal(S.exaggeratesGain(output(0, S.GAIN_MUTED)), true);
+    assert.equal(S.exaggeratesGain(output(0, S.GAIN_UNITY)), false);
+    assert.equal(S.exaggeratesGain(output(S.EXACT_RATIO, 300)), false);
+    assert.equal(S.exaggeratesGain(output(15, 300)), false);
+    assert.equal(S.exaggeratesGain(null), false);
+});
