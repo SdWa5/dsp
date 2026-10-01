@@ -99,6 +99,25 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(2, self::page()->filter('dialog#dialog-sub [data-fader-bind-value^="sub."]'));
     }
 
+    public function testMatrixHasBothOrientations(): void
+    {
+        $tables = self::page()->filter('section[data-page=matrix] table.matrix');
+        self::assertCount(2, $tables);
+        [$normal, $swapped] = [$tables->eq(0), $tables->eq(1)];
+        self::assertNull($normal->attr('hidden'));
+        self::assertNotNull($swapped->attr('hidden'));
+        self::assertCount(8, $normal->filter('tbody tr'));
+        self::assertCount(9, $swapped->filter('tbody tr'));
+        foreach ([$normal, $swapped] as $table) {
+            self::assertCount(72, $table->filter('.toggle--cell'));
+            self::assertSame('editor#swapMatrix', $table->filter('.matrix__corner')->attr('data-action'));
+        }
+        // Row In3 of the swapped table holds bit 2 of every output
+        $row = $swapped->filter('tbody tr')->eq(2)->filter('.toggle--cell');
+        self::assertSame('outputs.7.route', $row->last()->attr('data-toggle-bind-value'));
+        self::assertSame(['2'], array_values(array_unique($row->each(static fn (Crawler $n): string => (string) $n->attr('data-toggle-bit-value')))));
+    }
+
     public function testEveryBindingIsAStatePath(): void
     {
         $paths = [];

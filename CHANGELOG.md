@@ -5,6 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0] - 2026-10-01
+
+### Added
+
+- The corner cell of the matrix is a button that swaps rows and columns, with the inputs as rows. The choice is kept in the browser
+- `assets/lib/prefs.js` for view preferences kept in the browser, with tests
+
+### Changed
+
+- The theme choice goes through `assets/lib/prefs.js`, under the same storage key as before
+
+### Removed
+
+- The TODO item for the matrix swap
+
 ## [0.19.0] - 2026-10-01
 
 ### Added

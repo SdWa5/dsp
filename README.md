@@ -107,6 +107,8 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
 - The Gain page also carries Sub Control next to the channel strips and Group Control below them, the same
   controls as in their dialogs.
 - The Gain page starts and shows the gain riders, and the Auto EQ page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
+- The corner button of the matrix swaps rows and columns, so the inputs become the rows. The choice is kept in the
+  browser.
 - The theme button switches between auto, light and dark. The choice is kept in the browser.
 
 ### Bridge and JSON API

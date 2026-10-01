@@ -26,9 +26,6 @@
 - Make the link display configurable in the browser editor. Today a link group is marked by its code (L1, L2,
   ...). Offer a colour per group, and linked channels arranged next to each other as columns, as further
   options. Colour alone does not read for everyone, so keep the code or a shape next to it
-- Make the `Out ＼ In` corner cell of the matrix a button that swaps rows and columns
-  (`templates/editor/page/_matrix.html.twig`). The In header then sits on the top or on the left, and the Out
-  header on the right or on the bottom
 - Make the sections of the browser editor collapsible
 - Vendor preset files: the file format of the vendor editor is unknown. Capture a file saved by the vendor
   editor in the win11 VM, then decide whether trackdsp reads and writes it

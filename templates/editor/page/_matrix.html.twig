@@ -1,24 +1,47 @@
 {% import 'editor/_widgets.html.twig' as w %}
+{#
+ # Outputs as rows (the vendor editor's layout) or, swapped, inputs as rows. Both tables are rendered and the
+ # corner button shows one of them. Every cell carries its own binding, so the two stay in step through the store.
+ #}
+{% macro cell(o, i) %}
+    {% import 'editor/_widgets.html.twig' as w %}
+    {% set p = 'outputs.' ~ o %}
+    <td>{{ w.toggle('', p ~ '.route', [{command: 'routing', args: {channel: 8 + o, mask: '@' ~ p ~ '.route'}}], null, {bit: i, class: 'toggle--cell', aria: 'Out' ~ (o + 1) ~ ' from ' ~ (i < 8 ? 'In' ~ (i + 1) : 'Aux')}) }}</td>
+{% endmacro %}
 <div class="matrix-wrap">
-    <table class="matrix">
-        <caption>Which inputs feed each output</caption>
-        <thead>
-            <tr>
-                <th scope="col"><span class="matrix__corner">Out ＼ In</span></th>
-                {% for i in 0..8 %}<th scope="col">{{ w.ch(i < 8 ? i : 18) }}</th>{% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for o in 0..7 %}
-                {% set p = 'outputs.' ~ o %}
-                {% set send = [{command: 'routing', args: {channel: 8 + o, mask: '@' ~ p ~ '.route'}}] %}
+    {% for swapped in [false, true] %}
+        <table class="matrix" data-editor-target="matrix" data-swapped="{{ swapped ? 1 : 0 }}"{{ swapped ? ' hidden' }}>
+            <caption>{{ swapped ? 'Which outputs each input feeds' : 'Which inputs feed each output' }}</caption>
+            <thead>
                 <tr>
-                    <th scope="row">{{ w.ch(8 + o) }}</th>
-                    {% for i in 0..8 %}
-                        <td>{{ w.toggle('', p ~ '.route', send, null, {bit: i, class: 'toggle--cell', aria: 'Out' ~ (o + 1) ~ ' from ' ~ (i < 8 ? 'In' ~ (i + 1) : 'Aux')}) }}</td>
-                    {% endfor %}
+                    <th scope="col">
+                        <button type="button" class="matrix__corner" data-action="editor#swapMatrix"
+                                title="Swap rows and columns">{{ swapped ? 'In ＼ Out' : 'Out ＼ In' }}</button>
+                    </th>
+                    {% if swapped %}
+                        {% for o in 0..7 %}<th scope="col">{{ w.ch(8 + o) }}</th>{% endfor %}
+                    {% else %}
+                        {% for i in 0..8 %}<th scope="col">{{ w.ch(i < 8 ? i : 18) }}</th>{% endfor %}
+                    {% endif %}
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                {% if swapped %}
+                    {% for i in 0..8 %}
+                        <tr>
+                            <th scope="row">{{ w.ch(i < 8 ? i : 18) }}</th>
+                            {% for o in 0..7 %}{{ _self.cell(o, i) }}{% endfor %}
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    {% for o in 0..7 %}
+                        <tr>
+                            <th scope="row">{{ w.ch(8 + o) }}</th>
+                            {% for i in 0..8 %}{{ _self.cell(o, i) }}{% endfor %}
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+            </tbody>
+        </table>
+    {% endfor %}
 </div>

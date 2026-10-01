@@ -5,10 +5,10 @@ import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel, channelParts } from '../lib/channels.js';
 import { linkCommands, linkGroups, linkedMembers } from '../lib/link.js';
 import { GAIN_MUTED, presetLabel, presetSlotInfo } from '../lib/scale.js';
+import { readPref, writePref } from '../lib/prefs.js';
 
 const THEMES = ['auto', 'light', 'dark'];
 const changedText = (count) => `${count} ${1 === count ? 'setting differs' : 'settings differ'} from the factory default`;
-const THEME_KEY = 'trackdsp-theme';
 
 /**
  * The editor frame: tabs, connection state, menus and the dialogs that do more than set one value
@@ -16,16 +16,12 @@ const THEME_KEY = 'trackdsp-theme';
  */
 export default class extends Controller {
     static targets = ['tab', 'page', 'online', 'banner', 'bannerText', 'number', 'error', 'dialog', 'status', 'target', 'slots',
-        'storeName', 'linkGroup', 'file', 'scanButton', 'scanStatus', 'found', 'theme'];
+        'storeName', 'linkGroup', 'file', 'scanButton', 'scanStatus', 'found', 'theme', 'matrix'];
 
     connect() {
-        let theme = 'auto';
-        try {
-            theme = window.localStorage.getItem(THEME_KEY) ?? 'auto';
-        } catch {
-            // Storage may be blocked, the theme then follows the system
-        }
+        const theme = readPref('theme', 'auto');
         this.applyTheme(THEMES.includes(theme) ? theme : 'auto');
+        this.showMatrix(readPref('matrix-swapped', false));
         this.offs = [
             on('status', () => this.showStatus()),
             on('error', (message) => this.showError(message)),
@@ -139,11 +135,22 @@ export default class extends Controller {
     theme() {
         const next = THEMES[(THEMES.indexOf(this.currentTheme) + 1) % THEMES.length];
         this.applyTheme(next);
-        try {
-            window.localStorage.setItem(THEME_KEY, next);
-        } catch {
-            // Only this visit then
-        }
+        writePref('theme', next);
+    }
+
+    /** Inputs as rows instead of outputs, kept per browser. */
+    swapMatrix() {
+        const swapped = !this.matrixSwapped;
+        this.showMatrix(swapped);
+        writePref('matrix-swapped', swapped);
+        this.matrixTargets.find((table) => !table.hidden)?.querySelector('.matrix__corner')?.focus();
+    }
+
+    showMatrix(swapped) {
+        this.matrixSwapped = swapped;
+        this.matrixTargets.forEach((table) => {
+            table.hidden = swapped !== ('1' === table.dataset.swapped);
+        });
     }
 
     applyTheme(theme) {

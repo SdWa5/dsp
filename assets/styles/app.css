@@ -288,7 +288,8 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .matrix thead th .ch { flex-direction: column; align-items: center; gap: 0; }
 .matrix thead th .ch__name { font-size: 11px; }
 .matrix tbody th { position: sticky; left: 0; z-index: 1; text-align: left; }
-.matrix__corner { color: var(--muted); font-size: 11px; }
+.matrix__corner { padding: 2px 4px; color: var(--muted); font: inherit; font-size: 11px; background: none; border: 1px dashed var(--panel-edge); border-radius: 3px; cursor: pointer; }
+.matrix__corner:hover { color: inherit; border-style: solid; }
 .matrix td { padding: 0; }
 .toggle--cell { display: block; width: 100%; min-width: 58px; height: 34px; border-radius: 4px; }
 .toggle--cell.is-on::after { content: '●'; }
