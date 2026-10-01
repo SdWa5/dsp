@@ -1,18 +1,28 @@
 {#
  # Widget macros. Every widget binds to a state path ("inputs.0.gain") and sends commands built from
  # templates in which "@path" arguments are read from the state. link = "inputs:0" also writes to the
- # channels linked with In1.
+ # channels linked with In1. A widget whose state path has a tooltip under editor.tip (see tip()) shows it on hover,
+ # options.tip names another key.
  #}
 
+{# The tooltip of a state path: "outputs.3.comp.ratio" looks up editor.tip.comp.ratio, an empty string when there is none #}
+{% macro tip(bind, key = null) -%}
+    {%- set key = 'editor.tip.' ~ (key ?? bind|split('.')|filter(s => s not in ['inputs', 'outputs', 'aux'] and not (s matches '/^\\d+$/'))|join('.')) -%}
+    {%- set text = key|trans -%}
+    {#- Raw here, the attribute that prints it escapes it once -#}
+    {{- (text != key ? text : '')|raw -}}
+{%- endmacro %}
+
 {% macro fader(title, bind, send, min, max, fmt, link = null, options = {}) %}
-    <div class="fader{{ options.class is defined ? ' ' ~ options.class }}" data-controller="fader"
+    {% set tip = _self.tip(bind, options.tip ?? null)|trim %}
+    <div{% if tip %} title="{{ tip }}"{% endif %} class="fader{{ options.class is defined ? ' ' ~ options.class }}" data-controller="fader"
          data-fader-bind-value="{{ bind }}" data-fader-send-value="{{ send|json_encode }}"
          data-fader-fmt-value="{{ fmt }}"{% if link %} data-fader-link-value="{{ link }}"{% endif %}
          {% if options.enabled is defined %} data-fader-enabled-value="{{ options.enabled }}"{% endif %}
          {% if options.default is defined %} data-fader-default-value="{{ options.default }}"{% endif %}>
         {% if title %}<span class="fader__title">{{ title|trans }}</span>{% endif %}
         <input type="range" min="{{ min }}" max="{{ max }}" step="1" aria-label="{{ options.label|default(title ?: bind)|trans }}"
-               {% if options.default is defined %} title="{{ "Double-click: back to the default"|trans }}"{% endif %}
+               {% if options.default is defined %} title="{{ (tip ? tip ~ ' ') ~ "Double-click: back to the default"|trans }}"{% endif %}
                data-fader-target="input" data-action="input->fader#input wheel->fader#wheel dblclick->fader#reset">
         <input type="text" class="fader__value" inputmode="decimal" aria-label="{{ '%label% value'|trans({'%label%': options.label|default(title ?: bind)|trans}) }}"
                data-fader-target="label" data-action="change->fader#typed keydown->fader#key focus->fader#focus blur->fader#blur">
@@ -21,7 +31,8 @@
 
 {% macro toggle(label, bind, send, link = null, options = {}) %}
     {% set label = label is same as(label|striptags) ? label|trans : label %}
-    <button type="button" class="toggle{{ options.class is defined ? ' ' ~ options.class }}" data-controller="toggle"
+    {% set tip = _self.tip(bind, options.tip ?? null)|trim %}
+    <button type="button"{% if tip %} title="{{ tip }}"{% endif %} class="toggle{{ options.class is defined ? ' ' ~ options.class }}" data-controller="toggle"
             data-action="toggle#click" data-toggle-bind-value="{{ bind }}" data-toggle-send-value="{{ send|json_encode }}"
             {% if link %} data-toggle-link-value="{{ link }}"{% endif %}
             {% if options.bit is defined %} data-toggle-bit-value="{{ options.bit }}"{% endif %}
@@ -32,7 +43,8 @@
 {% endmacro %}
 
 {% macro choice(label, bind, send, items, link = null, options = {}) %}
-    <select class="choice" aria-label="{{ label|trans }}" data-controller="choice" data-action="choice#change"
+    {% set tip = _self.tip(bind, options.tip ?? null)|trim %}
+    <select{% if tip %} title="{{ tip }}"{% endif %} class="choice" aria-label="{{ label|trans }}" data-controller="choice" data-action="choice#change"
             data-choice-bind-value="{{ bind }}" data-choice-send-value="{{ send|json_encode }}"
             {% if link %} data-choice-link-value="{{ link }}"{% endif %}
             {% if options.enabled is defined %} data-choice-enabled-value="{{ options.enabled }}"{% endif %}>
@@ -68,9 +80,9 @@
     <option value="{{ value ?? index }}" data-controller="channel" data-channel-index-value="{{ index }}">{{ id }}</option>
 {%- endmacro %}
 
-{# The title of a panel with data-controller="collapse": a button that folds the panel #}
-{% macro fold(label) -%}
-    <button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true">{{ label|trans }}</button>
+{# The title of a panel with data-controller="collapse": a button that folds the panel. tip: a key under editor.tip.panel #}
+{% macro fold(label, tip = null) -%}
+    <button type="button"{% if tip %} title="{{ ('editor.tip.panel.' ~ tip)|trans }}"{% endif %} class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true">{{ label|trans }}</button>
 {%- endmacro %}
 
 {# Shown while output o (0..7) runs at compressor 1:1.0 with a gain other than 0 dB, with the fix #}

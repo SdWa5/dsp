@@ -1,6 +1,7 @@
 {% import 'editor/_widgets.html.twig' as w %}
-{% macro dialog(id, title) %}
-    <header class="dialog__head"><h2>{{ title|trans }}</h2><button type="button" class="dialog__close" data-action="editor#close" aria-label="{{ "Close"|trans }}">×</button></header>
+{# tip: a key under editor.tip.panel whose text shows on hover over the title #}
+{% macro dialog(id, title, tip = null) %}
+    <header class="dialog__head"><h2{% if tip %} title="{{ ('editor.tip.panel.' ~ tip)|trans }}"{% endif %}>{{ title|trans }}</h2><button type="button" class="dialog__close" data-action="editor#close" aria-label="{{ "Close"|trans }}">×</button></header>
 {% endmacro %}
 
 <dialog class="dialog" id="dialog-connect" data-editor-target="dialog">
@@ -123,7 +124,7 @@
 
 {% for key, title in {sub: 'Sub Control', groups: 'Group Control'} %}
     <dialog class="dialog dialog--wide" id="dialog-{{ key }}" data-editor-target="dialog">
-        {{ _self.dialog(key, title) }}
+        {{ _self.dialog(key, title, key) }}
         {{ include('editor/_subgroup.html.twig', {key: key}) }}
     </dialog>
 {% endfor %}
@@ -137,7 +138,7 @@
     {% set m = 'aux.' ~ key %}
     {% set send = [{command: 'mixFunction', args: {channel: spec[1], attack: '@' ~ m ~ '.attack', release: '@' ~ m ~ '.release', threshold: '@' ~ m ~ '.threshold', select: '@' ~ m ~ '.select', on: '@' ~ m ~ '.on'}}] %}
     <dialog class="dialog dialog--wide" id="dialog-{{ key }}" data-editor-target="dialog">
-        {{ _self.dialog(key, spec[0]) }}
+        {{ _self.dialog(key, spec[0], key) }}
         {% if 'automix' == key %}
             <label>{{ "Slope"|trans }} {{ w.choice('AutoMix slope', 'aux.automix_slope', [{command: 'autoMixSlope', args: {index: '@aux.automix_slope'}}], labels.AUTOMIX_SLOPES) }}</label>
         {% endif %}
@@ -156,7 +157,7 @@
 {% endfor %}
 
 <dialog class="dialog dialog--wide" id="dialog-effect" data-editor-target="dialog">
-    {{ _self.dialog('effect', 'Effect Setting') }}
+    {{ _self.dialog('effect', 'Effect Setting', 'effect') }}
     {% set e = 'aux.effect' %}
     {% set echo = [{command: 'echo', args: {predelay: '@' ~ e ~ '.echo_predelay', delay: '@' ~ e ~ '.echo_delay', repeat: '@' ~ e ~ '.echo_repeat', level: '@' ~ e ~ '.echo'}}] %}
     {% set reverb = [{command: 'reverb', args: {predelay: '@' ~ e ~ '.rev_predelay', reflect: '@' ~ e ~ '.reflect', time: '@' ~ e ~ '.time', level: '@' ~ e ~ '.reverb'}}] %}

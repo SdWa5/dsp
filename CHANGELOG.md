@@ -5,6 +5,22 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.33.0] - 2026-10-01
+
+### Added
+
+- Tooltips on the controls of the browser editor in English and German, with what a control does and its unit. A widget finds its tooltip by its state path (`editor.tip.*`), so a fader shows the same one on every page and in every dialog
+- Tooltips on the panels and dialogs whose names are abbreviations or vendor terms: FBQ, HPF, LPF, PEQ, Selected band, Sub Control, Group Control, AutoMix, Effect, Camera and the Aux compressor and source
+- `EditorTooltipTest` checks that every tooltip text reaches a control in both languages
+
+### Changed
+
+- A switch keeps its tooltip when the device reports no value or the gain mutes the channel. The state message goes on a line above it
+
+### Removed
+
+- The TODO item for tooltips
+
 ## [0.32.0] - 2026-10-01
 
 ### Added
