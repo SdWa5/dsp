@@ -63,6 +63,21 @@ compressors at once: `--ratio` (`4`, `1:4` or `limit`), `--threshold` (-90..20 d
 in ms, `--knee` (0..255). At least one value must be given. Every value left out keeps what the device holds
 for that compressor, so `--threshold=-10` changes only the threshold.
 
+At ratio 1:1.0, the factory setting, the 8x8 applies every output gain but 0 dB more strongly than set and adds
+the spectrum mirrored at 24 kHz (see [Solo](#solo)). The browser editor flags such an output on its strip on the
+Comp page and the Gain page, with two buttons that set 1:1.1 from +20 dB. That never compresses below the output
+ceiling and keeps the gain exact. The other compressor values stay as they are.
+
+- **Exact gain** keeps the gain value, so the output now plays at the level its fader shows. An output set to
+  -6 dB that played at -8.2 dB gets 2.2 dB louder.
+- **Keep level** first moves the gain to the level the output had at 1:1.0, from the model
+  10 · log10((A² + A⁴) / 2) of [measurements.md](measurements.md#output-gain-at-compressor-ratio-110). The model
+  lies within 0.5 dB of the measurement up to +9 dB set. Above about +6 dB set that level lies beyond +12 dB, and
+  the gain stops at +12 dB. A muted gain stays muted.
+
+A gain that differs only in its value cannot fix 1:1.0 on its own, because the 8x8 also mirrors the signal at
+24 kHz there, and that image is only gone at exactly 0 dB.
+
 ## Auto EQ
 
 The auto EQ runs from the **Auto EQ** page of the browser editor or from `trackdsp:autoeq`. Both do the same
@@ -72,6 +87,11 @@ measurement and the same fit, described below.
 
 The page leads through four steps. Every step is one request to `/api/autoeq`, and the session lives in
 `var/autoeq/session.json`, so a reload of the page loses nothing.
+
+Start and every recording answer with `warnings` about the chosen outputs, which the page lists above the steps
+until the next answer. An output at compressor ratio 1:1.0 with a gain other than 0 dB is warned about, because
+the fit would try to correct its exaggerated gain and its image above 24 kHz. `trackdsp:autoeq` prints the same
+warnings before it measures. Neither refuses to measure.
 
 1. **Setup.** Choose the outputs, the capture device (preselected from `TRACKDSP_CAPTURE_DEVICE`), the mic
    input, the seconds per position, the noise before each recording and the bands to use. Starting saves a

@@ -33,8 +33,8 @@ use App\Protocol\Scale;
 final readonly class Solo
 {
     /** Ratio 1:1.1 from +20 dB: the compressor never works below the output ceiling, and the gain is exact. */
-    private const EXACT_RATIO = 1;
-    private const EXACT_THRESHOLD = 220;
+    public const EXACT_RATIO = 1;
+    public const EXACT_THRESHOLD = 220;
 
     /**
      * @param list<int>                                 $played   output channels that play, the reference included
@@ -173,11 +173,8 @@ final readonly class Solo
                     '%s has its compressor on (%s from %.1f dB), which can hold the level down.',
                     Channel::label($channel), Labels::COMP_RATIOS[$ratio] ?? (string) $ratio, Scale::thresholdToDb(self::int($comp, 'threshold', 180)),
                 );
-            } elseif (!\in_array($channel, $exactGain, true) && Scale::GAIN_UNITY !== ($gain = self::int($channels[$channel], 'gain', Scale::GAIN_UNITY))) {
-                $warnings[] = \sprintf(
-                    '%s is set to %+.1f dB with its compressor at 1:1.0, where the 8x8 exaggerates every gain but 0 dB and adds the spectrum mirrored at 24 kHz.',
-                    Channel::label($channel), Scale::gainToDb($gain),
-                );
+            } elseif (!\in_array($channel, $exactGain, true) && null !== ($warning = self::exaggeratedGain($channel, $channels[$channel]))) {
+                $warnings[] = $warning;
             }
         }
         $controls = [];
@@ -213,6 +210,27 @@ final readonly class Solo
         }
 
         return $warnings;
+    }
+
+    /**
+     * The warning for an output at compressor ratio 1:1.0 with a gain other than 0 dB, null for any other output.
+     * The 8x8 then applies the gain more strongly than set and adds the spectrum mirrored at 24 kHz
+     * (docs/measurements.md). Limit, or 1:1.1 from +20 dB (EXACT_RATIO, EXACT_THRESHOLD), keep the gain exact.
+     *
+     * @param array<mixed> $output an output of the device state
+     */
+    public static function exaggeratedGain(int $channel, array $output): ?string
+    {
+        $comp = \is_array($output['comp'] ?? null) ? $output['comp'] : [];
+        $gain = self::int($output, 'gain', Scale::GAIN_UNITY);
+        if (0 !== self::int($comp, 'ratio') || Scale::GAIN_UNITY === $gain) {
+            return null;
+        }
+
+        return \sprintf(
+            '%s is set to %+.1f dB with its compressor at 1:1.0, where the 8x8 exaggerates every gain but 0 dB and adds the spectrum mirrored at 24 kHz.',
+            Channel::label($channel), Scale::gainToDb($gain),
+        );
     }
 
     /**

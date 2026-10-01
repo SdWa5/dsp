@@ -30,3 +30,23 @@ export function changedPaths(node, defaultNode, prefix = '') {
     }
     return paths;
 }
+
+// Editable settings of each function page. Auto EQ owns output PEQ bands and their bypass state.
+const PAGE_PATHS = {
+    gain: /^(?:(?:inputs|outputs)\.\d+\.(?:gain|phase|mute)$|inputs\.\d+\.mode$|(?:sub|groups)\.)/,
+    gate: /^inputs\.\d+\.gate\./,
+    comp: /^outputs\.\d+\.comp\./,
+    delay: /^(?:outputs\.\d+\.delay$|delay_unit$)/,
+    matrix: /^outputs\.\d+\.route$/,
+    aux: /^aux\./,
+    autoeq: /^outputs\.\d+\.(?:peq\.|eq_bypass$)/,
+};
+
+/**
+ * Changed factory-backed settings per function page. Shared controls use the same change paths.
+ * View preferences and values without a reported default never mark a page. Scan the state once per update.
+ */
+export function pageChanges(state, defaults) {
+    const paths = changedPaths(state, defaults);
+    return Object.fromEntries(Object.entries(PAGE_PATHS).map(([page, pattern]) => [page, paths.filter((path) => pattern.test(path))]));
+}

@@ -59,3 +59,122 @@ export function linkCommands(channels, groups, base) {
     }
     return [...copies, ...links];
 }
+
+/**
+ * Display order of the channel indices with the members of a link group next to each other. A group takes the
+ * place of its lowest member. groups: group number per index, as linkGroups returns it.
+ */
+export function linkOrder(groups) {
+    const order = [];
+    groups.forEach((group, i) => {
+        if (order.includes(i)) {
+            return;
+        }
+        order.push(...(0 === group ? [i] : groups.flatMap((g, k) => (g === group ? [k] : []))));
+    });
+    return order;
+}
+
+/** The channels in link order, one array per link group and one per channel alone: [[0, 4], [1], [2, 3, 7], …]. */
+export function linkUnits(groups) {
+    const units = [];
+    for (const i of linkOrder(groups)) {
+        const unit = 0 === groups[i] ? undefined : units.find((u) => groups[u[0]] === groups[i]);
+        if (unit) {
+            unit.push(i);
+        } else {
+            units.push([i]);
+        }
+    }
+    return units;
+}
+
+/**
+ * The mark of link group `group` (1..) for the display settings: the code, the group's shape (circle, square,
+ * triangle, diamond), both next to each other, or nothing. 0 has no mark.
+ */
+export function linkMark(view, group) {
+    if (group < 1) {
+        return '';
+    }
+    const code = view.code ? `L${group}` : '';
+    return view.shape ? `${code}<span class="link-shape" data-shape="${group}" aria-hidden="true"></span>` : code;
+}
+
+/** Where linked channels go: in DOM order, next to each other, or one above the other in one column. */
+export const PLACEMENTS = ['normal', 'side', 'stacked'];
+
+/**
+ * Link display settings from what a browser stored: {code, colour, shape, placement}. Before 0.25.0 the placement
+ * was the checkbox `columns`, which becomes 'side'. Before 0.30.0 a group showed its shape whenever the code was
+ * off, so a stored code: false turns the shape on.
+ */
+export function linkView(stored) {
+    const value = stored && 'object' === typeof stored ? stored : {};
+    return {
+        code: value.code ?? true,
+        colour: value.colour ?? false,
+        shape: value.shape ?? false === value.code,
+        placement: PLACEMENTS.includes(value.placement) ? value.placement : true === value.columns ? 'side' : 'normal',
+    };
+}
+
+/**
+ * Grid cells of one side's eight channels for a placement: {columns, rows, cells}, where cells[i] is
+ * {column, row, span} (1-based). 'stacked' gives each link group one column with its members one above the
+ * other; a channel alone, and the last member of a shorter group, spans the remaining rows.
+ */
+export function linkLayout(groups, placement) {
+    if ('normal' === placement) {
+        return { columns: 8, rows: 1, cells: groups.map((_g, i) => ({ column: i + 1, row: 1, span: 1 })) };
+    }
+    if ('side' === placement) {
+        const order = linkOrder(groups);
+        return { columns: 8, rows: 1, cells: groups.map((_g, i) => ({ column: order.indexOf(i) + 1, row: 1, span: 1 })) };
+    }
+    const units = linkUnits(groups);
+    const rows = Math.max(...units.map((u) => u.length));
+    const cells = new Array(groups.length);
+    units.forEach((unit, column) => {
+        unit.forEach((i, row) => {
+            cells[i] = { column: column + 1, row: row + 1, span: row === unit.length - 1 ? rows - row : 1 };
+        });
+    });
+    return { columns: units.length, rows, cells };
+}
+
+/** Group numbers 1.. in the order of each group's lowest member, a group of one becomes 0, as linkGroups numbers them. */
+export function normalizeGroups(groups) {
+    const numbers = new Map();
+    return groups.map((group) => {
+        if (0 === group || groups.filter((g) => g === group).length < 2) {
+            return 0;
+        }
+        if (!numbers.has(group)) {
+            numbers.set(group, numbers.size + 1);
+        }
+        return numbers.get(group);
+    });
+}
+
+/**
+ * A click on cell (row, column) of the Link matrix. An empty cell links the two channels, merging their groups.
+ * A lit cell takes the column channel out of its group. groups: group number per index, as linkGroups returns it.
+ */
+export function toggleLink(groups, row, column) {
+    if (row === column) {
+        return normalizeGroups(groups);
+    }
+    const next = [...groups];
+    if (0 !== groups[row] && groups[row] === groups[column]) {
+        next[column] = 0;
+        return normalizeGroups(next);
+    }
+    const group = groups[row] || groups[column] || Math.max(0, ...groups) + 1;
+    groups.forEach((g, i) => {
+        if (i === row || i === column || (0 !== g && (g === groups[row] || g === groups[column]))) {
+            next[i] = group;
+        }
+    });
+    return normalizeGroups(next);
+}

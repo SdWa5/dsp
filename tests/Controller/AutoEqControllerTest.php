@@ -4,6 +4,8 @@ namespace App\Tests\Controller;
 
 use App\AutoEq\FittedBand;
 use App\Bridge\BridgeClient;
+use App\Measurement\Playback;
+use App\Protocol\Commands;
 use App\Protocol\Scale;
 use App\Tests\Support\BridgeProcess;
 use App\Tests\Support\FakeRecorderFactory;
@@ -87,6 +89,24 @@ final class AutoEqControllerTest extends WebTestCase
         return array_values(array_filter($state['outputs'][0]['peq'], 'is_array'));
     }
 
+    public function testWarnsAboutAGainAtCompressor1To1(): void
+    {
+        $this->client()->request('write', ['frames' => [
+            Playback::hex(Commands::compressor(8, 0, 0, 10, 10, 180)),
+            Playback::hex(Commands::gain(8, Scale::dbToGain(-6.0))),
+        ]]);
+
+        try {
+            $warnings = $this->call('POST', '/api/autoeq/start', ['outputs' => [8], 'seconds' => 2, 'settle' => 0])['warnings'];
+            self::assertCount(1, $warnings);
+            self::assertStringContainsString('Out1 is set to -6.0 dB with its compressor at 1:1.0', $warnings[0]);
+            self::assertSame($warnings, $this->call('POST', '/api/autoeq/record')['warnings']);
+        } finally {
+            // The bridge serves every test of this class
+            $this->client()->request('write', ['frames' => [Playback::hex(Commands::gain(8, Scale::GAIN_UNITY))]]);
+        }
+    }
+
     public function testMeasuresFitsAppliesAndReverts(): void
     {
         $before = $this->out1Peq();
@@ -96,7 +116,9 @@ final class AutoEqControllerTest extends WebTestCase
         self::assertSame('default', $index['devices'][0]['id']);
         self::assertSame('default', $index['device']);
 
-        $session = $this->call('POST', '/api/autoeq/start', ['outputs' => [8], 'bands' => 5, 'seconds' => 2, 'settle' => 0])['session'];
+        $start = $this->call('POST', '/api/autoeq/start', ['outputs' => [8], 'bands' => 5, 'seconds' => 2, 'settle' => 0]);
+        self::assertSame([], $start['warnings']);
+        $session = $start['session'];
         self::assertSame(['Out1'], $session['labels']);
         self::assertSame('default', $session['device']);
         self::assertMatchesRegularExpression('/^backup-\d{8}-\d{6}\.json$/', $session['backup']);

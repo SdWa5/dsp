@@ -185,6 +185,27 @@ configuration onto blank, `FF` and factory bases and compares every writable bit
 The factory reset read-out is `resources/factory_config.bin`.
 Group control is read with `6C 00` (8 × gain %, mute, mask).
 
+### Vendor preset file (`.prs`, 1278 bytes)
+
+The vendor editor saves a preset as the configuration without its first two bytes and without footer bytes 48..62.
+Measured on one file, `tests/fixtures/vendor/SdWa5_Default_Preset_3_DSPs.prs`:
+
+| File offset | Size | Content | Configuration offset |
+|---|---|---|---|
+| 0 | 16 | magic `**8x8MatrixV010*` | – |
+| 16 | 14 | preset name | 2 |
+| 30 | 8 × 62 | inputs | 16 |
+| 526 | 94 | Aux | 512 |
+| 620 | 8 × 76 | outputs | 606 |
+| 1228 | 48 | footer 0..47 (mutes, band bypass, sub control) | 1214 |
+| 1276 | 2 | CR LF | – |
+
+So the file carries neither the test tone, nor the delay unit, nor the EQ bypass. `Device::fromVendorPreset()`
+builds the configuration as `FF FF`, file bytes 16..1275 and the factory configuration for the rest, then sets those
+three to unknown, so that an upload leaves them on the device as they are. The editor's "Open preset file" takes
+such a file as well as a trackdsp JSON file, told apart by the magic. Whether a file saved with EQ bypass on still
+lacks it has not been checked with a second sample, and trackdsp does not write `.prs` files.
+
 ### Still open
 
 - +48V (probably input block byte 8) and working status: the location is not confirmed, the app remembers the value it set.

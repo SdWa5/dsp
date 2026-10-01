@@ -1,98 +1,111 @@
 {% import 'editor/_widgets.html.twig' as w %}
 {% macro dialog(id, title) %}
-    <header class="dialog__head"><h2>{{ title }}</h2><button type="button" class="dialog__close" data-action="editor#close" aria-label="Close">×</button></header>
+    <header class="dialog__head"><h2>{{ title|trans }}</h2><button type="button" class="dialog__close" data-action="editor#close" aria-label="{{ "Close"|trans }}">×</button></header>
 {% endmacro %}
 
 <dialog class="dialog" id="dialog-connect" data-editor-target="dialog">
     {{ _self.dialog('connect', 'Connection') }}
     <p class="dialog__status" data-editor-target="status">–</p>
     <form class="dialog__form" data-action="editor#connectTo">
-        <label>Target <input type="text" name="target" data-editor-target="target" placeholder="auto, 192.168.68.10, usb or demo" required></label>
+        <label>{{ "Target"|trans }} <input type="text" name="target" data-editor-target="target" placeholder="{{ "auto, 192.168.68.10, usb or demo"|trans }}" required></label>
         <div class="dialog__buttons">
-            <button type="button" class="big" data-action="editor#scan" data-editor-target="scanButton">Scan</button>
-            <button type="submit" class="big">Connect</button>
-            <button type="button" class="big" data-action="editor#disconnectDevice">Disconnect</button>
+            <button type="button" class="big" data-action="editor#scan" data-editor-target="scanButton">{{ "Scan"|trans }}</button>
+            <button type="submit" class="big">{{ "Connect"|trans }}</button>
+            <button type="button" class="big" data-action="editor#disconnectDevice">{{ "Disconnect"|trans }}</button>
         </div>
     </form>
     <p class="dialog__note" data-editor-target="scanStatus" hidden></p>
     <ul class="found" data-editor-target="found"></ul>
-    <p class="dialog__note">"auto" connects to the first device found, USB before the network. Disconnect frees the device's
-        connection, and the vendor editor may take it at once.</p>
+    <p class="dialog__note">{{ "\"auto\" connects to the first device found, USB before the network. Disconnect frees the device's connection, and the vendor editor may take it at once."|trans }}</p>
 </dialog>
 
 <dialog class="dialog" id="dialog-store" data-editor-target="dialog">
     {{ _self.dialog('store', 'Store preset') }}
     <form class="dialog__form" data-action="editor#store">
-        <label>Slot <select name="number" data-editor-target="slots" data-first="1"></select></label>
-        <label>Name <input type="text" name="name" maxlength="14" required data-editor-target="storeName"></label>
-        <p class="dialog__note">The live settings replace the slot. Every store is confirmed first.</p>
-        <div class="dialog__buttons"><button type="submit" class="big">Store</button></div>
+        <label>{{ "Slot"|trans }} <select name="number" data-editor-target="slots" data-first="1"></select></label>
+        <label>{{ "Name"|trans }} <input type="text" name="name" maxlength="14" required data-editor-target="storeName"></label>
+        <p class="dialog__note">{{ "The live settings replace the slot. Every store is confirmed first."|trans }}</p>
+        <div class="dialog__buttons"><button type="submit" class="big">{{ "Store"|trans }}</button></div>
     </form>
 </dialog>
 
 <dialog class="dialog" id="dialog-recall" data-editor-target="dialog">
     {{ _self.dialog('recall', 'Recall preset') }}
     <form class="dialog__form" data-action="editor#recall">
-        <label>Preset <select name="number" data-editor-target="slots" data-first="0"></select></label>
-        <p class="dialog__note">A recall replaces all live settings.</p>
-        <div class="dialog__buttons"><button type="submit" class="big">Recall</button></div>
+        <label>{{ "Preset"|trans }} <select name="number" data-editor-target="slots" data-first="0"></select></label>
+        <p class="dialog__note">{{ "A recall replaces all live settings."|trans }}</p>
+        <div class="dialog__buttons"><button type="submit" class="big">{{ "Recall"|trans }}</button></div>
     </form>
 </dialog>
 
-<dialog class="dialog" id="dialog-link" data-editor-target="dialog">
+<dialog class="dialog dialog--wide" id="dialog-link" data-editor-target="dialog">
     {{ _self.dialog('link', 'Link') }}
     <form class="dialog__form" data-action="editor#link">
-        <p class="dialog__note">Channels with the same group number are linked. The first channel of a group is copied to the others.</p>
+        <p class="dialog__note">{{ "A cell links its row and column channel, and linked channels form a group, which lights as a block. A lit cell takes the column channel out of its group. The lowest channel of a group is copied to the others. The rows and columns follow the placement below."|trans }}</p>
+        <div class="link-matrices">
         {% for side, prefix in {inputs: 'In', outputs: 'Out'} %}
-            <div class="link-grid">
-                {% for i in 0..7 %}
-                    <label>{{ w.ch('inputs' == side ? i : 8 + i) }}
-                        <select name="{{ side }}-{{ i }}" data-editor-target="linkGroup" data-side="{{ side }}" data-index="{{ i }}">
-                            <option value="0">–</option>
-                            {% for g in 1..4 %}<option value="{{ g }}">{{ g }}</option>{% endfor %}
-                        </select>
-                    </label>
-                {% endfor %}
+            {% set base = 'inputs' == side ? 0 : 8 %}
+            <div class="matrix-wrap">
+            <table class="matrix link-matrix" data-editor-target="linkMatrix" data-side="{{ side }}">
+                <thead>
+                    <tr><th></th>{% for k in 0..7 %}<th scope="col" data-index="{{ k }}">{{ w.ch(base + k) }}</th>{% endfor %}</tr>
+                </thead>
+                <tbody>
+                    {% for i in 0..7 %}
+                        <tr data-index="{{ i }}">
+                            <th scope="row" data-index="{{ i }}">{{ w.ch(base + i) }}</th>
+                            {% for k in 0..7 %}
+                                <td data-index="{{ k }}"><button type="button" class="toggle toggle--cell link-cell" data-side="{{ side }}" data-row="{{ i }}" data-column="{{ k }}"
+                                        aria-label="{{ '%row% with %column%'|trans({'%row%': prefix ~ (i + 1), '%column%': prefix ~ (k + 1)}) }}"{{ i == k ? ' disabled' }} data-action="editor#linkCell"></button></td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             </div>
         {% endfor %}
-        <div class="dialog__buttons"><button type="submit" class="big">Apply</button></div>
+        </div>
+        <fieldset class="link-view">
+            {{ include('editor/_linkview.html.twig', {name: 'link-dialog-placement', heading: 'link-view__heading', check: 'check'}) }}
+        </fieldset>
+        <div class="dialog__buttons"><button type="submit" class="big">{{ "Apply"|trans }}</button></div>
     </form>
 </dialog>
 
 <dialog class="dialog" id="dialog-copy" data-editor-target="dialog">
     {{ _self.dialog('copy', 'Copy channel') }}
     <form class="dialog__form" data-action="editor#copy">
-        <label>From <select name="source">{% for c in 0..15 %}{{ w.ch_option(c) }}{% endfor %}</select></label>
-        <label>To <select name="target">{% for c in 0..15 %}{{ w.ch_option(c) }}{% endfor %}</select></label>
-        <p class="dialog__note">Copies every setting of an input to an input, or of an output to an output.</p>
-        <div class="dialog__buttons"><button type="submit" class="big">Copy</button></div>
+        <label>{{ "From"|trans }} <select name="source">{% for c in 0..15 %}{{ w.ch_option(c) }}{% endfor %}</select></label>
+        <label>{{ "To"|trans }} <select name="target">{% for c in 0..15 %}{{ w.ch_option(c) }}{% endfor %}</select></label>
+        <p class="dialog__note">{{ "Copies every setting of an input to an input, or of an output to an output."|trans }}</p>
+        <div class="dialog__buttons"><button type="submit" class="big">{{ "Copy"|trans }}</button></div>
     </form>
 </dialog>
 
 <dialog class="dialog" id="dialog-lock" data-editor-target="dialog">
     {{ _self.dialog('lock', 'Lock') }}
-    <p>The front panel PIN is not available yet. Setting and removing it will follow once it has been tested on the device.</p>
+    <p>{{ "The front panel PIN is not available yet. Setting and removing it will follow once it has been tested on the device."|trans }}</p>
 </dialog>
 
 <dialog class="dialog" id="dialog-working" data-editor-target="dialog">
     {{ _self.dialog('working', 'Working Status') }}
-    <p class="dialog__note">Memorize keeps the live settings through a power cycle. Forget starts with the last recalled preset. The device does not report this value.</p>
+    <p class="dialog__note">{{ "Memorize keeps the live settings through a power cycle. Forget starts with the last recalled preset. The device does not report this value."|trans }}</p>
     {{ w.choice('Working status', 'working_status', [{command: 'workingStatus', args: {mode: '@working_status'}}], labels.WORKING_STATUS) }}
 </dialog>
 
 <dialog class="dialog" id="dialog-idip" data-editor-target="dialog">
     {{ _self.dialog('idip', 'Setting ID/IP') }}
-    <label>Device ID {{ w.choice('Device ID', 'device_id', [{command: 'deviceId', args: {id: '@device_id'}}], device_ids) }}</label>
-    <p>IP address {{ w.value('ip') }}</p>
-    <p class="dialog__note">The IP address can only be read. It is changed on the device.</p>
+    <label>{{ "Device ID"|trans }} {{ w.choice('Device ID', 'device_id', [{command: 'deviceId', args: {id: '@device_id'}}], device_ids) }}</label>
+    <p>{{ "IP address"|trans }} {{ w.value('ip') }}</p>
+    <p class="dialog__note">{{ "The IP address can only be read. It is changed on the device."|trans }}</p>
 </dialog>
 
 <dialog class="dialog" id="dialog-tone" data-editor-target="dialog">
     {{ _self.dialog('tone', 'Test Tone') }}
     {% set tone = [{command: 'testTone', args: {mode: '@tone_mode', freqIndex: '@tone_freq'}}] %}
-    <label>Source {{ w.choice('Test tone source', 'tone_mode', tone, labels.TONE_MODES) }}</label>
-    <label>Sine frequency {{ w.choice('Sine frequency', 'tone_freq', tone, labels.TONE_FREQUENCIES) }}</label>
-    <p class="dialog__note">The tone plays on every routed output. Set the source back to Analog Input when done.</p>
+    <label>{{ "Source"|trans }} {{ w.choice('Test tone source', 'tone_mode', tone, labels.TONE_MODES) }}</label>
+    <label>{{ "Sine frequency"|trans }} {{ w.choice('Sine frequency', 'tone_freq', tone, labels.TONE_FREQUENCIES) }}</label>
+    <p class="dialog__note">{{ "The tone plays on every routed output. Set the source back to Analog Input when done."|trans }}</p>
 </dialog>
 
 <dialog class="dialog dialog--wide" id="dialog-names" data-editor-target="dialog">
@@ -101,37 +114,17 @@
         {% for side, prefix in {inputs: 'In', outputs: 'Out'} %}
             {% for i in 0..7 %}
                 {% set channel = 'inputs' == side ? i : 8 + i %}
-                <label>{{ prefix }}{{ i + 1 }} {{ w.text(prefix ~ (i + 1) ~ ' name', side ~ '.' ~ i ~ '.name', [{command: 'channelName', args: {channel: channel, name: '@' ~ side ~ '.' ~ i ~ '.name'}}], 8) }}</label>
+                <label>{{ prefix }}{{ i + 1 }} {{ w.text('%channel% name'|trans({'%channel%': prefix ~ (i + 1)}), side ~ '.' ~ i ~ '.name', [{command: 'channelName', args: {channel: channel, name: '@' ~ side ~ '.' ~ i ~ '.name'}}], 8) }}</label>
             {% endfor %}
         {% endfor %}
         <label>Aux {{ w.text('Aux name', 'aux.name', [{command: 'channelName', args: {channel: 18, name: '@aux.name'}}], 8) }}</label>
     </div>
 </dialog>
 
-{% for key, spec in {sub: ['Sub Control', 2], groups: ['Group Control', 8]} %}
+{% for key, title in {sub: 'Sub Control', groups: 'Group Control'} %}
     <dialog class="dialog dialog--wide" id="dialog-{{ key }}" data-editor-target="dialog">
-        {{ _self.dialog(key, spec[0]) }}
-        <div class="strips">
-            {% for k in 0..(spec[1] - 1) %}
-                {% set p = key ~ '.' ~ k %}
-                {% set outputs = 'sub' == key ? 1 == k : k >= 4 %}
-                {% if 'sub' == key %}
-                    {% set send = [{command: 'subControl', args: {io: k, gainPercent: '@' ~ p ~ '.gain', muted: '@' ~ p ~ '.mute', mask: '@' ~ p ~ '.mask', extra: '@sub_extra.' ~ k}}] %}
-                    {% set title = outputs ? 'Output' : 'Input' %}
-                {% else %}
-                    {% set send = [{command: 'group', args: {index: k, gainPercent: '@' ~ p ~ '.gain', muted: '@' ~ p ~ '.mute', mask: '@' ~ p ~ '.mask'}}] %}
-                    {% set title = (outputs ? 'Out group ' ~ (k - 3) : 'In group ' ~ (k + 1)) %}
-                {% endif %}
-                <div class="strip">
-                    <h3 class="strip__title">{{ title }}</h3>
-                    {{ w.fader('', p ~ '.gain', send, 0, 100, 'percent', null, {label: title ~ ' gain'}) }}
-                    {{ w.toggle('Mute', p ~ '.mute', send, null, {class: 'toggle--mute'}) }}
-                    {% for b in 0..7 %}
-                        {{ w.toggle(w.ch(outputs ? 8 + b : b), p ~ '.mask', send, null, {bit: b, class: 'toggle--route'}) }}
-                    {% endfor %}
-                </div>
-            {% endfor %}
-        </div>
+        {{ _self.dialog(key, title) }}
+        {{ include('editor/_subgroup.html.twig', {key: key}) }}
     </dialog>
 {% endfor %}
 
@@ -146,14 +139,14 @@
     <dialog class="dialog dialog--wide" id="dialog-{{ key }}" data-editor-target="dialog">
         {{ _self.dialog(key, spec[0]) }}
         {% if 'automix' == key %}
-            <label>Slope {{ w.choice('AutoMix slope', 'aux.automix_slope', [{command: 'autoMixSlope', args: {index: '@aux.automix_slope'}}], labels.AUTOMIX_SLOPES) }}</label>
+            <label>{{ "Slope"|trans }} {{ w.choice('AutoMix slope', 'aux.automix_slope', [{command: 'autoMixSlope', args: {index: '@aux.automix_slope'}}], labels.AUTOMIX_SLOPES) }}</label>
         {% endif %}
         <div class="strip__row">
             {{ w.fader('Threshold', m ~ '.threshold', send, 0, 180, 'threshold') }}
             {{ w.fader('Attack', m ~ '.attack', send, 0, 998, 'ms') }}
             {{ w.fader('Release', m ~ '.release', send, 0, 2999, 'ms') }}
             <fieldset class="group">
-                <legend>Select</legend>
+                <legend>{{ "Select"|trans }}</legend>
                 {% for i in 0..7 %}
                     {{ w.toggle(w.ch(i), m ~ '.select', send, null, {bit: i, class: 'toggle--route'}) }}
                 {% endfor %}
@@ -182,29 +175,28 @@
 
 <dialog class="dialog dialog--wide" id="dialog-help" data-editor-target="dialog">
     {{ _self.dialog('help', 'RS232 Code Table') }}
-    <p>RS232/485 remote control, manual chapter 6.1. 115200 baud, 8N1, at least 200 ms between packets.
-        A packet is <code>7B 7D ID CMD D1 D2 D3 7D 7B</code>. These command numbers do not apply over USB or TCP.</p>
+    <p>{{ "RS232/485 remote control, manual chapter 6.1. 115200 baud, 8N1, at least 200 ms between packets. A packet is"|trans }} <code>7B 7D ID CMD D1 D2 D3 7D 7B</code>{{ ". These command numbers do not apply over USB or TCP."|trans }}</p>
     <table class="table">
-        <thead><tr><th>CMD</th><th>Function</th><th>Data</th></tr></thead>
+        <thead><tr><th>CMD</th><th>{{ "Function"|trans }}</th><th>{{ "Data"|trans }}</th></tr></thead>
         <tbody>
-            <tr><td>40 / 43</td><td>Recall preset</td><td>F:0/U:1, number, 0</td></tr>
-            <tr><td>41 / 54</td><td>Gain step up/down</td><td>In:0/Out:1, channel, up:0/down:1</td></tr>
-            <tr><td>42</td><td>Mute</td><td>In/Out, channel, 0/1</td></tr>
-            <tr><td>44 / 45</td><td>Volume In / Out</td><td>channel, HI, LO (280 = 0 dB)</td></tr>
-            <tr><td>46 / 47 / 4C</td><td>Sub volume %, step, mute</td><td>In/Out, …</td></tr>
-            <tr><td>48 / 49 / 4A / 4B / 4D</td><td>Read gain / mute / preset / sub / level</td><td>…</td></tr>
-            <tr><td>4E / 4F</td><td>Set / read matrix</td><td>output, input, 0/1</td></tr>
-            <tr><td>51 / 52 / 53</td><td>Aux gain step / mute / volume</td><td>02, …</td></tr>
-            <tr><td>55</td><td>Effect/Camera/AutoMix on/off</td><td>02, 0/1/2, 0/1</td></tr>
-            <tr><td>56</td><td>Aux source selection</td><td>0/1/2, mask hi, mask lo</td></tr>
-            <tr><td>57 / 5E</td><td>Set / read FBQ</td><td>00, channel, 0–4</td></tr>
-            <tr><td>58 / 59 / 5B / 5C</td><td>Read Aux</td><td>…</td></tr>
+            <tr><td>40 / 43</td><td>{{ "Recall preset"|trans }}</td><td>{{ "F:0/U:1, number, 0"|trans }}</td></tr>
+            <tr><td>41 / 54</td><td>{{ "Gain step up/down"|trans }}</td><td>{{ "In:0/Out:1, channel, up:0/down:1"|trans }}</td></tr>
+            <tr><td>42</td><td>{{ "Mute"|trans }}</td><td>{{ "In/Out, channel, 0/1"|trans }}</td></tr>
+            <tr><td>44 / 45</td><td>{{ "Volume In / Out"|trans }}</td><td>{{ "channel, HI, LO (280 = 0 dB)"|trans }}</td></tr>
+            <tr><td>46 / 47 / 4C</td><td>{{ "Sub volume %, step, mute"|trans }}</td><td>In/Out, …</td></tr>
+            <tr><td>48 / 49 / 4A / 4B / 4D</td><td>{{ "Read gain / mute / preset / sub / level"|trans }}</td><td>…</td></tr>
+            <tr><td>4E / 4F</td><td>{{ "Set / read matrix"|trans }}</td><td>{{ "output, input, 0/1"|trans }}</td></tr>
+            <tr><td>51 / 52 / 53</td><td>{{ "Aux gain step / mute / volume"|trans }}</td><td>02, …</td></tr>
+            <tr><td>55</td><td>{{ "Effect/Camera/AutoMix on/off"|trans }}</td><td>02, 0/1/2, 0/1</td></tr>
+            <tr><td>56</td><td>{{ "Aux source selection"|trans }}</td><td>{{ "0/1/2, mask hi, mask lo"|trans }}</td></tr>
+            <tr><td>57 / 5E</td><td>{{ "Set / read FBQ"|trans }}</td><td>{{ "00, channel, 0–4"|trans }}</td></tr>
+            <tr><td>58 / 59 / 5B / 5C</td><td>{{ "Read Aux"|trans }}</td><td>…</td></tr>
         </tbody>
     </table>
 </dialog>
 
 <dialog class="dialog" id="dialog-about" data-editor-target="dialog">
     {{ _self.dialog('about', 'About') }}
-    <p><b>trackdsp</b>: free control software for the Thomann t.racks 8x8 Matrix DSP over USB (HID) and TCP port 9761.</p>
-    <p>Not affiliated with Thomann. The protocol is described in <code>docs/protocol.md</code>.</p>
+    <p><b>trackdsp</b>{{ ": free control software for the Thomann t.racks 8x8 Matrix DSP over USB (HID) and TCP port 9761."|trans }}</p>
+    <p>{{ "Not affiliated with Thomann. The protocol is described in"|trans }} <code>docs/protocol.md</code>.</p>
 </dialog>

@@ -1,14 +1,18 @@
+import { languageCookie, t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { api, getDefaults, listen, on, send, status, store } from '../lib/device.js';
-import { changedPaths } from '../lib/defaults.js';
+import { changedPaths, pageChanges } from '../lib/defaults.js';
 import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel, channelParts } from '../lib/channels.js';
-import { linkCommands, linkGroups, linkedMembers } from '../lib/link.js';
+import { linkCommands, linkGroups, linkedMembers, linkLayout, linkMark, linkUnits, linkView, toggleLink } from '../lib/link.js';
 import { GAIN_MUTED, presetLabel, presetSlotInfo } from '../lib/scale.js';
+import { readPref, writePref } from '../lib/prefs.js';
 
 const THEMES = ['auto', 'light', 'dark'];
-const changedText = (count) => `${count} ${1 === count ? 'setting differs' : 'settings differ'} from the factory default`;
-const THEME_KEY = 'trackdsp-theme';
+/** How the channel tabs show link groups, each switched on its own in the Channels menu. */
+const changedText = (count) => t(1 === count
+    ? "%count% setting differs from the factory default"
+    : "%count% settings differ from the factory default", { count });
 
 /**
  * The editor frame: tabs, connection state, menus and the dialogs that do more than set one value
@@ -16,16 +20,14 @@ const THEME_KEY = 'trackdsp-theme';
  */
 export default class extends Controller {
     static targets = ['tab', 'page', 'online', 'banner', 'bannerText', 'number', 'error', 'dialog', 'status', 'target', 'slots',
-        'storeName', 'linkGroup', 'file', 'scanButton', 'scanStatus', 'found', 'theme'];
+        'storeName', 'linkMatrix', 'file', 'scanButton', 'scanStatus', 'found', 'theme', 'matrix', 'linkView', 'linkPlacement', 'chtabs'];
 
     connect() {
-        let theme = 'auto';
-        try {
-            theme = window.localStorage.getItem(THEME_KEY) ?? 'auto';
-        } catch {
-            // Storage may be blocked, the theme then follows the system
-        }
+        const theme = readPref('theme', 'auto');
         this.applyTheme(THEMES.includes(theme) ? theme : 'auto');
+        this.showMatrix(readPref('matrix-swapped', false));
+        this.linkViewSettings = linkView(readPref('link-view', {}));
+        this.showLinkViewSettings();
         this.offs = [
             on('status', () => this.showStatus()),
             on('error', (message) => this.showError(message)),
@@ -79,7 +81,7 @@ export default class extends Controller {
         this.bannerTarget.hidden = '' === banner;
         if (this.hasStatusTarget) {
             const info = status.info ? ` (${status.info})` : '';
-            this.statusTarget.textContent = online ? `Connected to ${status.target}${info}.` : banner;
+            this.statusTarget.textContent = online ? t("Connected to %target%%info%.", { target: status.target, info }) : banner;
         }
     }
 
@@ -88,11 +90,13 @@ export default class extends Controller {
         for (const number of this.numberTargets) {
             number.textContent = presetLabel(state?.active_preset);
         }
+        this.placeChannelTabs(state);
+        const pages = pageChanges(state, getDefaults());
         for (const tab of this.tabTargets) {
             if (tab.dataset.side) {
                 this.showChannelTab(tab, state);
-            } else if ('aux' === tab.dataset.page) {
-                const count = state ? changedPaths(state.aux, getDefaults().aux).length : 0;
+            } else {
+                const count = pages[tab.dataset.page]?.length ?? 0;
                 tab.classList.toggle('is-changed', count > 0);
                 tab.title = count > 0 ? changedText(count) : '';
             }
@@ -110,17 +114,22 @@ export default class extends Controller {
         const titles = [channelLabel(channel, state)];
         if (state?.[side]?.[index]?.mute) {
             marks.push('<span class="chtab__mute" aria-hidden="true"></span>');
-            titles.push('muted');
+            titles.push(t("muted"));
         } else if (GAIN_MUTED === state?.[side]?.[index]?.gain) {
             marks.push('<span class="chtab__mute is-gain" aria-hidden="true"></span>');
-            titles.push('muted by its gain');
+            titles.push(t("muted by its gain"));
         }
         if (state) {
             const group = linkGroups(state[side])[index];
             const members = linkedMembers(state[side], index);
+            const { code, colour } = this.linkViewSettings;
+            tab.dataset.group = colour && group > 0 ? String(group) : '';
+            const mark = linkMark(this.linkViewSettings, group);
+            if ('' !== mark) {
+                marks.push(`<span class="chtab__link${code ? '' : ' chtab__link--bare'}">${mark}</span>`);
+            }
             if (group > 0) {
-                marks.push(`<span class="chtab__link">L${group}</span>`);
-                titles.push(`linked with ${members.filter((m) => m !== index).map((m) => channelId(('outputs' === side ? 8 : 0) + m)).join(', ')}`);
+                titles.push(t("linked with %channels%", { channels: members.filter((m) => m !== index).map((m) => channelId(('outputs' === side ? 8 : 0) + m)).join(', ') }));
             }
             const count = changedPaths(state[side]?.[index], getDefaults()[side]?.[index]).length;
             if (count > 0) {
@@ -136,14 +145,156 @@ export default class extends Controller {
         tab.title = titles.join(', ');
     }
 
+    /** The channel tabs placed by the link placement (normal, side by side or stacked). The DOM order stays. */
+    placeChannelTabs(state) {
+        const placement = null === state ? 'normal' : this.linkViewSettings.placement;
+        const [inputs, outputs] = ['inputs', 'outputs'].map((side) => linkLayout(linkGroups(state?.[side] ?? []), placement));
+        const offset = { inputs: 0, outputs: inputs.columns };
+        const rows = Math.max(inputs.rows, outputs.rows);
+        this.chtabsTargets.forEach((box) => {
+            box.style.setProperty('--chtab-columns', String(inputs.columns + outputs.columns));
+            box.classList.toggle('is-stacked', rows > 1);
+        });
+        for (const tab of this.tabTargets.filter((t) => t.dataset.side)) {
+            const side = tab.dataset.side;
+            const layout = 'inputs' === side ? inputs : outputs;
+            const cell = layout.cells[Number(tab.dataset.index)];
+            // A side with fewer rows than the other lets its last cells reach the bottom
+            const span = cell.row + cell.span - 1 === layout.rows ? rows - cell.row + 1 : cell.span;
+            tab.style.gridColumn = String(offset[side] + cell.column);
+            tab.style.gridRow = `${cell.row} / span ${span}`;
+            // The gap between the inputs and the outputs goes before the first output column
+            tab.classList.toggle('is-split', 'outputs' === side && 1 === cell.column);
+        }
+    }
+
+    /**
+     * The Link matrix of each side from the groups being edited: a cell is lit while its row and column channel
+     * share a group, with the group code, shape or colour as on the channel tabs. The rows and columns follow the
+     * placement, and "stacked" turns each link group into a block with one header that names its members.
+     */
+    showLinkDialog() {
+        const { colour, placement } = this.linkViewSettings;
+        for (const table of this.linkMatrixTargets) {
+            const groups = this.linkDraft[table.dataset.side];
+            this.placeLinkMatrix(table, groups, placement);
+            for (const cell of table.querySelectorAll('.link-cell')) {
+                const [row, column] = [Number(cell.dataset.row), Number(cell.dataset.column)];
+                const group = row !== column && groups[row] === groups[column] ? groups[row] : 0;
+                cell.classList.toggle('is-on', group > 0);
+                cell.setAttribute('aria-pressed', String(group > 0));
+                cell.dataset.group = colour && group > 0 ? String(group) : '';
+                // Without code and shape a lit cell shows the dot of the routing matrix
+                cell.innerHTML = linkMark(this.linkViewSettings, group);
+            }
+        }
+    }
+
+    /** Orders the rows and columns of one Link matrix by the placement, and merges the headers of a group when stacked. */
+    placeLinkMatrix(table, groups, placement) {
+        const units = 'normal' === placement ? groups.map((_g, i) => [i]) : linkUnits(groups);
+        const order = units.flat();
+        const stacked = 'stacked' === placement;
+        const base = 'inputs' === table.dataset.side ? 0 : 8;
+        const head = table.tHead.rows[0];
+        const body = table.tBodies[0];
+        const byIndex = (cells) => order.map((i) => cells.find((c) => Number(c.dataset.index) === i));
+        const columnHeads = [...head.cells].slice(1);
+        const rowHeads = [...body.rows].map((row) => row.cells[0]);
+        for (const heads of [columnHeads, rowHeads]) {
+            // Every channel label back to its own header first, then a stacked group gathers them in its first one
+            const labels = heads.flatMap((th) => [...th.querySelectorAll(':scope > .ch')]);
+            for (const label of labels) {
+                heads.find((th) => Number(th.dataset.index) === Number(label.dataset.channelIndexValue) - base).append(label);
+            }
+            for (const th of heads) {
+                th.hidden = false;
+                th.colSpan = 1;
+                th.rowSpan = 1;
+                th.classList.remove('is-merged');
+            }
+            for (const unit of stacked ? units.filter((u) => u.length > 1) : []) {
+                const [first, ...rest] = unit.map((i) => heads.find((th) => Number(th.dataset.index) === i));
+                first.classList.add('is-merged');
+                first[columnHeads === heads ? 'colSpan' : 'rowSpan'] = unit.length;
+                for (const th of rest) {
+                    first.append(...th.querySelectorAll(':scope > .ch'));
+                    th.hidden = true;
+                }
+            }
+        }
+        head.append(...byIndex(columnHeads));
+        body.append(...byIndex([...body.rows]));
+        // A gap before every group but the first, when stacked
+        const starts = new Set(stacked ? units.slice(1).map((u) => u[0]) : []);
+        for (const row of body.rows) {
+            row.classList.toggle('is-unit-start', starts.has(Number(row.dataset.index)));
+            const cells = byIndex([...row.cells].slice(1));
+            row.append(...cells);
+            cells.forEach((cell) => cell.classList.toggle('is-unit-start', starts.has(Number(cell.dataset.index))));
+        }
+        columnHeads.forEach((th) => th.classList.toggle('is-unit-start', starts.has(Number(th.dataset.index))));
+    }
+
+    linkCell(event) {
+        const { side, row, column } = event.currentTarget.dataset;
+        this.linkDraft[side] = toggleLink(this.linkDraft[side], Number(row), Number(column));
+        this.showLinkDialog();
+    }
+
+    /** The link display settings on every copy of their controls, in the Channels menu and in the Link dialog. */
+    showLinkViewSettings() {
+        this.linkViewTargets.forEach((box) => {
+            box.checked = Boolean(this.linkViewSettings[box.value]);
+        });
+        this.linkPlacementTargets.forEach((radio) => {
+            radio.checked = radio.value === this.linkViewSettings.placement;
+        });
+    }
+
+    linkView(event) {
+        this.linkViewSettings[event.target.value] = event.target.checked;
+        this.changeLinkView();
+    }
+
+    linkPlacement(event) {
+        this.linkViewSettings.placement = event.target.value;
+        this.changeLinkView();
+    }
+
+    changeLinkView() {
+        writePref('link-view', this.linkViewSettings);
+        this.showLinkViewSettings();
+        this.showState();
+        if (this.linkDraft) {
+            this.showLinkDialog();
+        }
+    }
+
+    language(event) {
+        document.cookie = languageCookie(event.target.value, 'https:' === window.location.protocol);
+        window.location.reload();
+    }
+
     theme() {
         const next = THEMES[(THEMES.indexOf(this.currentTheme) + 1) % THEMES.length];
         this.applyTheme(next);
-        try {
-            window.localStorage.setItem(THEME_KEY, next);
-        } catch {
-            // Only this visit then
-        }
+        writePref('theme', next);
+    }
+
+    /** Inputs as rows instead of outputs, kept per browser. */
+    swapMatrix() {
+        const swapped = !this.matrixSwapped;
+        this.showMatrix(swapped);
+        writePref('matrix-swapped', swapped);
+        this.matrixTargets.find((table) => !table.hidden)?.querySelector('.matrix__corner')?.focus();
+    }
+
+    showMatrix(swapped) {
+        this.matrixSwapped = swapped;
+        this.matrixTargets.forEach((table) => {
+            table.hidden = swapped !== ('1' === table.dataset.swapped);
+        });
     }
 
     applyTheme(theme) {
@@ -154,8 +305,8 @@ export default class extends Controller {
             document.documentElement.dataset.theme = theme;
         }
         if (this.hasThemeTarget) {
-            this.themeTarget.textContent = { auto: 'Auto', light: 'Light', dark: 'Dark' }[theme];
-            this.themeTarget.title = `Colour theme: ${theme}. Click to change.`;
+            this.themeTarget.textContent = { auto: t('Auto'), light: t("Light"), dark: t("Dark") }[theme];
+            this.themeTarget.title = t("Colour theme %theme%. Click to change.", { theme: this.themeTarget.textContent });
         }
     }
 
@@ -182,9 +333,8 @@ export default class extends Controller {
         }
         if ('link' === event.params.dialog && state) {
             const groups = { inputs: linkGroups(state.inputs), outputs: linkGroups(state.outputs) };
-            for (const select of this.linkGroupTargets) {
-                select.value = String(groups[select.dataset.side][Number(select.dataset.index)]);
-            }
+            this.linkDraft = groups;
+            this.showLinkDialog();
         }
         dialog.showModal();
     }
@@ -231,14 +381,14 @@ export default class extends Controller {
     async scan() {
         this.scanButtonTarget.disabled = true;
         this.scanStatusTarget.hidden = false;
-        this.scanStatusTarget.textContent = 'Searching USB and the network…';
+        this.scanStatusTarget.textContent = t("Searching USB and the network…");
         this.foundTarget.replaceChildren();
         try {
             const result = await api('discover');
-            const networks = result.networks.join(', ') || 'no network';
+            const networks = result.networks.join(', ') || t("no network");
             this.scanStatusTarget.textContent = 0 === result.devices.length
-                ? `No DSP found on USB or on ${networks}.`
-                : `Found on USB and ${networks}:`;
+                ? t("No DSP found on USB or on %networks%.", { networks })
+                : t("Found on USB and %networks%.", { networks });
             this.foundTarget.replaceChildren(...result.devices.map((device) => this.foundItem(device)));
         } catch (error) {
             this.scanStatusTarget.textContent = error.message;
@@ -252,7 +402,7 @@ export default class extends Controller {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'toggle';
-        button.textContent = device.connected ? `${device.target} (connected)` : `Connect ${device.target}`;
+        button.textContent = device.connected ? t("%target% (connected)", { target: device.target }) : t("Connect %target%", { target: device.target });
         button.disabled = Boolean(device.connected);
         button.addEventListener('click', () => {
             this.targetTarget.value = device.target;
@@ -284,7 +434,7 @@ export default class extends Controller {
 
     requireState() {
         if (null === store.state) {
-            this.showError('Not connected to the device.');
+            this.showError(t("Not connected to the device."));
             return false;
         }
         return true;
@@ -296,8 +446,8 @@ export default class extends Controller {
         const number = Number(form.elements.number.value);
         const name = form.elements.name.value.trim();
         const info = presetSlotInfo(store.state, number);
-        const warning = false !== info.stored && info.name ? ` It replaces "${info.name}".` : '';
-        if (!this.requireState() || !window.confirm(`Store the live settings as ${presetLabel(number)} "${name}"?${warning}`)) {
+        const warning = false !== info.stored && info.name ? ' '+t("It replaces \"%name%\".", { name: info.name }) : '';
+        if (!this.requireState() || !window.confirm(t("Store the live settings as %preset% \"%name%\"?%warning%", { preset: presetLabel(number), name, warning }))) {
             return;
         }
         send([{ command: 'presetName', args: { name } }, { command: 'storePreset', args: { number } }], false);
@@ -307,14 +457,14 @@ export default class extends Controller {
     recall(event) {
         event.preventDefault();
         const number = Number(event.target.elements.number.value);
-        if (this.requireState() && window.confirm(`Recall ${presetLabel(number)}? It replaces all live settings.`)) {
+        if (this.requireState() && window.confirm(t("Recall %preset%? It replaces all live settings.", { preset: presetLabel(number) }))) {
             send([{ command: 'loadPreset', args: { number } }], false);
             event.target.closest('dialog').close();
         }
     }
 
     factory() {
-        if (this.requireState() && window.confirm('Recall the factory default F00? It replaces all live settings.')) {
+        if (this.requireState() && window.confirm(t("Recall the factory default F00? It replaces all live settings."))) {
             send([{ command: 'loadPreset', args: { number: 0 } }], false);
         }
     }
@@ -327,15 +477,14 @@ export default class extends Controller {
         const state = store.state;
         const commands = [];
         for (const [side, base] of [['inputs', 0], ['outputs', 8]]) {
-            const groups = this.linkGroupTargets.filter((s) => s.dataset.side === side).map((s) => Number(s.value));
-            commands.push(...linkCommands(state[side], groups, base));
+            commands.push(...linkCommands(state[side], this.linkDraft[side], base));
         }
         if (0 === commands.length) {
             event.target.closest('dialog').close();
             return;
         }
         const copies = commands.filter((c) => 'copyChannel' === c.command).length;
-        if (copies > 0 && !window.confirm(`Linking copies the first channel of each group to ${copies} channel(s). Go on?`)) {
+        if (copies > 0 && !window.confirm(t("Linking copies the first channel of each group to %count% channel(s). Go on?", { count: copies }))) {
             return;
         }
         await send([...commands, { command: 'activate', args: {} }], false);
@@ -349,10 +498,10 @@ export default class extends Controller {
         const target = Number(event.target.elements.target.value);
         const name = (c) => channelLabel(c, store.state);
         if (source === target || (source < 8) !== (target < 8)) {
-            this.showError('Copy an input to another input, or an output to another output.');
+            this.showError(t("Copy an input to another input, or an output to another output."));
             return;
         }
-        if (!this.requireState() || !window.confirm(`Copy every setting of ${name(source)} to ${name(target)}?`)) {
+        if (!this.requireState() || !window.confirm(t("Copy every setting of %source% to %target%?", { source: name(source), target: name(target) }))) {
             return;
         }
         await send([{ command: 'copyChannel', args: { source, target } }], false);
@@ -367,11 +516,12 @@ export default class extends Controller {
     async upload() {
         const file = this.fileTarget.files[0];
         this.fileTarget.value = '';
-        if (!file || !this.requireState() || !window.confirm(`Send every setting of ${file.name} to the device?`)) {
+        if (!file || !this.requireState() || !window.confirm(t("Send every setting of %file% to the device?", { file: file.name }))) {
             return;
         }
         try {
-            await api('upload', await file.text());
+            // As a Blob: a vendor .prs file is binary and would not survive a text round trip
+            await api('upload', file);
             this.refresh();
         } catch (error) {
             this.showError(error.message);
@@ -387,7 +537,7 @@ export default class extends Controller {
             const response = await fetch('/api/download');
             if (!response.ok) {
                 const body = await response.json().catch(() => ({}));
-                throw new Error(body.error ?? `Download failed (${response.status}).`);
+                throw new Error(body.error ?? t("Download failed (%status%).", { status: response.status }));
             }
             const disposition = response.headers.get('Content-Disposition') ?? '';
             const link = document.createElement('a');

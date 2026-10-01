@@ -122,6 +122,28 @@ final class ApiControllerTest extends WebTestCase
         self::assertStringContainsString('Gain raw value', (string) $browser->getResponse()->getContent());
     }
 
+    public function testUploadsAVendorPresetFile(): void
+    {
+        $browser = self::browser();
+        $before = self::json($browser, 'GET', '/api/state');
+        $file = (string) file_get_contents(__DIR__.'/../fixtures/vendor/SdWa5_Default_Preset_3_DSPs.prs');
+
+        $browser->request('POST', '/api/upload', server: ['HTTP_X_TRACKDSP' => '1', 'CONTENT_TYPE' => 'application/octet-stream'], content: $file);
+
+        self::assertSame(200, $browser->getResponse()->getStatusCode(), (string) $browser->getResponse()->getContent());
+        $after = self::json($browser, 'GET', '/api/state');
+        self::assertSame('LoopInL', $after['inputs'][0]['name']);
+        self::assertSame('DSP3_R', $after['outputs'][7]['name']);
+        self::assertSame(0b01010100, $after['outputs'][0]['route']);
+        // The file carries no EQ bypass and no delay unit, so the device keeps its own
+        self::assertSame($before['delay_unit'], $after['delay_unit']);
+        self::assertSame(array_column($before['outputs'], 'eq_bypass'), array_column($after['outputs'], 'eq_bypass'));
+
+        $browser->request('POST', '/api/upload', server: ['HTTP_X_TRACKDSP' => '1'], content: substr($file, 0, 500));
+        self::assertSame(400, $browser->getResponse()->getStatusCode());
+        self::assertStringContainsString('vendor preset file has 1278 bytes', (string) $browser->getResponse()->getContent());
+    }
+
     public function testConnectDisconnectRefresh(): void
     {
         $browser = self::browser();

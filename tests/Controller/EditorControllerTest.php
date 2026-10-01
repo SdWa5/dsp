@@ -88,6 +88,102 @@ final class EditorControllerTest extends WebTestCase
         self::assertSame('15', $page->filter('select[name=target] option')->last()->attr('value'));
     }
 
+    public function testGainPageCarriesSubAndGroupControl(): void
+    {
+        $gain = self::page()->filter('section[data-page=gain]');
+        // The same widgets as in the dialogs, bound to the same paths
+        self::assertCount(2, $gain->filter('[data-fader-bind-value^="sub."]'));
+        self::assertCount(8, $gain->filter('[data-fader-bind-value^="groups."]'));
+        self::assertCount(8 * 8, $gain->filter('.toggle--route[data-toggle-bind-value^="groups."]'));
+        self::assertCount(0, $gain->filter('[data-controller~=riders] [data-fader-bind-value^="sub."]'), 'Sub Control sits outside the rider scope.');
+        self::assertCount(2, self::page()->filter('dialog#dialog-sub [data-fader-bind-value^="sub."]'));
+    }
+
+    public function testMatrixHasBothOrientations(): void
+    {
+        $tables = self::page()->filter('section[data-page=matrix] table.matrix');
+        self::assertCount(2, $tables);
+        [$normal, $swapped] = [$tables->eq(0), $tables->eq(1)];
+        self::assertNull($normal->attr('hidden'));
+        self::assertNotNull($swapped->attr('hidden'));
+        self::assertCount(8, $normal->filter('tbody tr'));
+        self::assertCount(9, $swapped->filter('tbody tr'));
+        foreach ([$normal, $swapped] as $table) {
+            self::assertCount(72, $table->filter('.toggle--cell'));
+            self::assertSame('editor#swapMatrix', $table->filter('.matrix__corner')->attr('data-action'));
+        }
+        // The signal runs from In to Out: In headers left or on top, Out headers right or at the bottom
+        self::assertSame('In1', $normal->filter('thead th')->first()->filter('.ch__id')->text());
+        self::assertSame('Out1', $normal->filter('tbody tr')->first()->filter('th')->last()->filter('.ch__id')->text());
+        self::assertSame('In1', $swapped->filter('tbody tr')->first()->filter('th')->first()->filter('.ch__id')->text());
+        self::assertCount(8, $swapped->filter('tfoot th .ch'));
+        // Row In3 of the swapped table holds bit 2 of every output
+        $row = $swapped->filter('tbody tr')->eq(2)->filter('.toggle--cell');
+        self::assertSame('outputs.7.route', $row->last()->attr('data-toggle-bind-value'));
+        self::assertSame(['2'], array_values(array_unique($row->each(static fn (Crawler $n): string => (string) $n->attr('data-toggle-bit-value')))));
+    }
+
+    public function testFoldablePanelsHaveOneToggleAndAKeyOfTheirOwn(): void
+    {
+        $panels = self::page()->filter('[data-controller~=collapse]');
+        $keys = $panels->each(static fn (Crawler $n): string => (string) $n->attr('data-collapse-key-value'));
+        self::assertContains('gain.input', $keys);
+        self::assertContains('gain.groups', $keys);
+        self::assertContains('autoeq.fit', $keys);
+        self::assertContains('channel.hpf', $keys);
+        self::assertContains('aux.automix', $keys);
+        // Within a page two panels never fold together. The channel pages share their keys on purpose
+        self::page()->filter('section[data-page]')->each(static function (Crawler $page): void {
+            $keys = $page->filter('[data-controller~=collapse]')->each(static fn (Crawler $n): string => (string) $n->attr('data-collapse-key-value'));
+            self::assertSame($keys, array_unique($keys), 'Two panels would fold together on '.$page->attr('data-page'));
+        });
+        self::assertCount(16, self::page()->filter('[data-collapse-key-value="channel.curve"]'));
+        $panels->each(static function (Crawler $panel): void {
+            self::assertCount(1, $panel->filter('[data-collapse-target=toggle]'));
+            self::assertSame('true', $panel->filter('[data-collapse-target=toggle]')->attr('aria-expanded'));
+        });
+        // The dialogs show the same strips without a fold
+        self::assertCount(0, self::page()->filter('dialog [data-controller~=collapse]'));
+    }
+
+    public function testLinkDisplayOptions(): void
+    {
+        // The same settings in the Channels menu and below the Link matrices, each copy with a radio group of its own
+        foreach (['.menu' => 'link-placement', '#dialog-link' => 'link-dialog-placement'] as $scope => $name) {
+            $boxes = self::page()->filter($scope.' input[data-editor-target=linkView]');
+            self::assertSame(['code', 'shape', 'colour'], $boxes->each(static fn (Crawler $n): string => (string) $n->attr('value')));
+            $radios = self::page()->filter($scope.' input[data-editor-target=linkPlacement]');
+            self::assertSame(['normal', 'side', 'stacked'], $radios->each(static fn (Crawler $n): string => (string) $n->attr('value')));
+            self::assertSame([$name], array_values(array_unique($radios->each(static fn (Crawler $n): string => (string) $n->attr('name')))));
+        }
+        // The Link dialog is one channel x channel matrix per side, with the diagonal disabled
+        $matrices = self::page()->filter('#dialog-link table.link-matrix');
+        self::assertSame(['inputs', 'outputs'], $matrices->each(static fn (Crawler $n): string => (string) $n->attr('data-side')));
+        $outputs = $matrices->eq(1);
+        self::assertCount(64, $outputs->filter('.link-cell'));
+        self::assertCount(8, $outputs->filter('.link-cell[disabled]'));
+        self::assertSame('Out1', $outputs->filter('thead th .ch__id')->first()->text());
+        // Headers and cells carry their channel, so the editor can order and merge them by the placement
+        self::assertSame(['0', '1', '2', '3', '4', '5', '6', '7'], $outputs->filter('tbody th')->each(static fn (Crawler $n): string => (string) $n->attr('data-index')));
+        self::assertSame('Out3 with Out5', $outputs->filter('tbody tr')->eq(2)->filter('.link-cell')->eq(4)->attr('aria-label'));
+        self::assertSame('editor#linkCell', $outputs->filter('.link-cell')->first()->attr('data-action'));
+        // The gap between inputs and outputs starts at Out1 until the tabs are reordered
+        self::assertSame('outputs0', self::page()->filter('.chtab.is-split')->attr('data-page'));
+    }
+
+    public function testEqOverviewHasASwitchPerChannelAndSendsNothing(): void
+    {
+        $overview = self::page()->filter('section[data-page=gain] [data-controller~=eqoverview]');
+        self::assertCount(1, $overview);
+        $paths = $overview->filter('[data-eqoverview-target=show]')->each(static fn (Crawler $n): string => (string) $n->attr('value'));
+        self::assertCount(16, $paths);
+        foreach ($paths as $path) {
+            self::assertTrue(self::has($path.'.peq'), $path);
+        }
+        // Showing a curve is a view setting, never a write to the device
+        self::assertCount(0, $overview->filter('[data-toggle-send-value], [data-fader-send-value]'));
+    }
+
     public function testEveryBindingIsAStatePath(): void
     {
         $paths = [];
@@ -96,7 +192,7 @@ final class EditorControllerTest extends WebTestCase
                 continue;
             }
             foreach ($node->attributes as $attribute) {
-                if (preg_match('/^data-[a-z]+-(bind|enabled|path)-value$/', $attribute->name)) {
+                if (preg_match('/^data-[a-z]+-(bind|enabled|path|muted-by)-value$/', $attribute->name)) {
                     $paths[$attribute->value] = true;
                 }
             }

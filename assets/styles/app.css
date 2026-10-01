@@ -110,6 +110,9 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .menu__list button { display: flex; flex-direction: column; background: none; border: 0; padding: 6px 14px; text-align: left; cursor: pointer; }
 .menu__list button:hover, .menu__list button:focus-visible { background: var(--title); }
 .menu__list small { color: var(--muted); font-size: 11px; }
+.menu__heading { padding: 4px 14px 0; color: var(--muted); font-size: 11px; }
+.menu__check { display: flex; align-items: center; gap: 6px; padding: 4px 14px; cursor: pointer; white-space: nowrap; }
+.menu__check:hover { background: var(--title); }
 .menu__list hr { width: 100%; margin: 4px 0; border: 0; border-top: 1px solid var(--panel-edge); }
 .bar__id { font-weight: 700; color: var(--muted); white-space: nowrap; }
 .theme { border: 1px solid var(--button-edge); border-radius: 12px; padding: 2px 10px; background: var(--button); cursor: pointer; }
@@ -128,13 +131,15 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 }
 .tab:hover { background: #ffffff14; }
 .tab.is-active { color: var(--accent); border-bottom-color: var(--accent); }
-.chtabs { display: grid; grid-template-columns: repeat(16, minmax(64px, 1fr)); gap: 3px; padding: 4px 8px 5px; background: var(--head-2); }
+.chtabs { display: grid; grid-template-columns: repeat(var(--chtab-columns, 16), minmax(64px, 1fr)); gap: 3px; padding: 4px 8px 5px; background: var(--head-2); }
 .chtab {
     position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 38px; padding: 2px 4px;
     border: 1px solid #ffffff22; border-radius: 4px; background: #ffffff0d; color: var(--head-text); cursor: pointer; overflow: hidden;
 }
 .chtab--outputs { background: #0000001f; }
-.chtab:nth-child(9) { margin-left: 6px; }
+.chtab.is-split { margin-left: 6px; }
+/* Stacked per link group: the tabs of a column share its height */
+.chtabs.is-stacked .chtab { min-height: 30px; }
 .chtab:hover { background: #ffffff1f; }
 .chtab.is-active { border-color: var(--accent); color: var(--accent); background: #7cfc0014; }
 .chtab__id { font-size: 13px; }
@@ -145,7 +150,22 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .chtab__marks { display: contents; }
 .chtab__mute { position: absolute; top: 4px; left: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--mute); }
 .chtab__mute.is-gain { background: none; box-shadow: inset 0 0 0 1.5px var(--mute); }
-.chtab__link { position: absolute; top: 2px; right: 3px; font-size: 9px; font-weight: 700; padding: 0 3px; border-radius: 6px; background: #ffffff33; color: var(--head-text); }
+.chtab__link { position: absolute; top: 2px; right: 3px; display: flex; align-items: center; gap: 2px; font-size: 9px; font-weight: 700; padding: 0 3px; border-radius: 6px; background: #ffffff33; color: var(--head-text); }
+/* Colour per link group (Channels menu): a tinted tab with a coloured top edge and badge */
+[data-group='1'] { --group: #4fc3f7; }
+[data-group='2'] { --group: #ffb74d; }
+[data-group='3'] { --group: #ce93d8; }
+[data-group='4'] { --group: #f48fb1; }
+.chtab[data-group]:not([data-group='']) { box-shadow: inset 0 3px 0 var(--group); background: color-mix(in srgb, var(--group) 18%, transparent); }
+.chtab[data-group]:not([data-group='']) .chtab__link { background: var(--group); color: #111; }
+/* Shape per group: circle, square, triangle, diamond, so groups differ without colour too. Next to the code or alone */
+.chtab__link--bare { top: 4px; right: 4px; padding: 0; background: none; }
+.chtab[data-group]:not([data-group='']) .chtab__link--bare { background: none; color: var(--head-text); }
+.link-shape { display: inline-block; width: 8px; height: 8px; background: currentColor; }
+.link-cell .link-shape { width: 10px; height: 10px; }
+.link-shape[data-shape='1'] { border-radius: 50%; }
+.link-shape[data-shape='3'] { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.link-shape[data-shape='4'] { transform: rotate(45deg) scale(0.85); }
 /* Differs from the factory default: a corner triangle bottom left, a shape that reads without colour */
 .chtab__changed, .tab.is-changed::after {
     position: absolute; bottom: 0; left: 0; width: 0; height: 0; border-style: solid; border-width: 9px 0 0 9px;
@@ -186,6 +206,27 @@ input[type=text], input[type=number], select { background: var(--field); color: 
     background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px;
 }
 .strips__title { flex-basis: 100%; margin: 0; padding: 2px; text-align: center; font-size: 13px; background: var(--title); border-radius: 3px; }
+/* An output at compressor 1:1.0 with a gain: the warning and its fix, in the strip */
+.gain-warning { display: flex; flex-direction: column; gap: 4px; padding: 4px; border-radius: 3px; background: var(--warn-bg); color: var(--warn-text); font-size: 11px; }
+.gain-warning[hidden] { display: none; }
+.gain-warning__buttons { display: flex; gap: 4px; }
+.gain-warning__buttons .toggle { flex: 1; }
+.autoeq__warnings { margin: 0; padding: 8px 12px 8px 28px; border-radius: 4px; background: var(--warn-bg); color: var(--warn-text); }
+.autoeq__warnings:empty { display: none; }
+/* Gain page: EQ overview, one curve per channel. The swatch of a switch is its curve's colour and dash */
+.eq-overview { flex-direction: column; }
+.eq-overview__plot { width: 100%; height: 260px; background: var(--screen); border-radius: 4px; }
+.eq-overview__switches { display: flex; flex-wrap: wrap; gap: 6px 24px; }
+.eq-overview__side { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.eq-overview__switch { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.eq-overview__switch::after { content: ''; order: -1; width: 16px; height: 0; border-top: 3px solid var(--curve); }
+.eq-overview__switch--outputs::after { border-top-style: dashed; }
+.eq-overview__note { margin: 0; color: var(--muted); font-size: 12px; }
+.eq-overview.is-collapsed > :not(.strips__title) { display: none; }
+/* Gain page: Sub Control next to the channel strips, wrapping below them when the window is narrow */
+.gain-layout { display: flex; flex-wrap: wrap; gap: 0 10px; align-items: flex-start; }
+.gain-layout__channels { flex: 1 1 600px; min-width: 0; }
+.strips--side { flex: 0 1 auto; }
 /* A strip is as wide as its controls and grows to fill the row, up to a limit */
 .strip {
     flex: 1 0 auto; display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 104px; max-width: 300px; padding: 4px 6px 8px;
@@ -281,10 +322,13 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .matrix { border-collapse: separate; border-spacing: 3px; margin: 0 auto; }
 .matrix caption { caption-side: bottom; padding-top: 6px; color: var(--muted); }
 .matrix th { padding: 4px 8px; font-weight: 400; background: var(--title); border-radius: 3px; white-space: nowrap; }
-.matrix thead th .ch { flex-direction: column; align-items: center; gap: 0; }
-.matrix thead th .ch__name { font-size: 11px; }
+.matrix :is(thead, tfoot) th .ch { flex-direction: column; align-items: center; gap: 0; }
+.matrix :is(thead, tfoot) th .ch__name { font-size: 11px; }
 .matrix tbody th { position: sticky; left: 0; z-index: 1; text-align: left; }
-.matrix__corner { color: var(--muted); font-size: 11px; }
+/* Out row headers sit at the right edge, so they stick there */
+.matrix tbody th.matrix__end { left: auto; right: 0; }
+.matrix__corner { padding: 2px 4px; color: var(--muted); font: inherit; font-size: 11px; background: none; border: 1px dashed var(--panel-edge); border-radius: 3px; cursor: pointer; }
+.matrix__corner:hover { color: inherit; border-style: solid; }
 .matrix td { padding: 0; }
 .toggle--cell { display: block; width: 100%; min-width: 58px; height: 34px; border-radius: 4px; }
 .toggle--cell.is-on::after { content: '●'; }
@@ -317,6 +361,17 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .card__title small { font-weight: 400; color: var(--muted); }
 details.card > summary { cursor: pointer; border-bottom: 0; }
 details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
+/* A foldable panel (collapse_controller.js): the title is a button, the rest goes when folded */
+.fold { display: inline-flex; align-items: center; gap: 8px; padding: 0; color: inherit; font: inherit; background: none; border: 0; cursor: pointer; }
+.fold::before { content: '▾'; display: inline-block; width: 1em; transition: transform 0.15s; }
+.is-collapsed .fold::before { transform: rotate(-90deg); }
+.fold:focus-visible { outline: 2px solid var(--head); outline-offset: 2px; }
+.strips.is-collapsed > :not(.strips__title), .card.is-collapsed > :not(.card__title) { display: none; }
+.card.is-collapsed > .card__title { border-bottom: 0; }
+/* Channel and Aux pages: the curve, the band table and each group beside it */
+.fold-panel { display: flex; flex-direction: column; gap: 4px; }
+.fold-panel__title { margin: 0; font-size: 13px; }
+.fold-panel.is-collapsed > :not(.fold-panel__title), .group.is-collapsed > :not(legend) { display: none; }
 .card__body { display: flex; flex-direction: column; gap: 10px; padding: 10px 12px 12px; }
 .step { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--head); color: var(--head-text); font-size: 12px; }
 .checks { display: flex; flex-wrap: wrap; gap: 6px 16px; }
@@ -364,13 +419,29 @@ details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
 .dialog__note { color: var(--muted); margin: 0 0 8px; }
 .dialog__error { color: var(--mute); font-weight: 600; margin: 0; }
 .dialog__error:empty { display: none; }
-.link-grid, .names { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 12px; }
-.link-grid label, .names label { display: flex; gap: 6px; align-items: center; justify-content: space-between; }
+/* The gap belongs between cells, so a name stays next to its own control */
+.names { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 24px; }
+.names label { display: flex; gap: 6px; align-items: center; }
+/* Link dialog: one channel x channel matrix per side, a group lights as a block in its colour */
+.link-matrices { display: flex; flex-wrap: wrap; gap: 12px; }
+.link-matrices .matrix-wrap { flex: 1 1 420px; padding: 4px; }
+.link-cell { min-width: 44px; height: 30px; font-size: 11px; font-weight: 700; }
+.link-cell:disabled { visibility: hidden; }
+.link-cell { display: inline-flex; align-items: center; justify-content: center; gap: 3px; }
+.link-cell.is-on:not(:empty)::after { content: none; }
+/* Stacked: a link group is a block with one header naming its members, and a gap before each further group */
+.link-matrix th.is-merged .ch { display: flex; }
+.link-matrix th.is-merged { vertical-align: middle; }
+.link-matrix tr.is-unit-start > * { padding-top: 10px; }
+.link-matrix :is(td, th).is-unit-start { padding-left: 10px; }
+.link-view { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin: 0; padding: 8px 0 0; border: 0; }
+.link-view__heading { flex-basis: 100%; color: var(--muted); font-size: 11px; }
+.link-cell.is-on[data-group]:not([data-group='']) { background: var(--group); border-color: var(--group); color: #111; }
 .table { border-collapse: collapse; width: 100%; }
 .table th, .table td { border: 1px solid var(--panel-edge); padding: 3px 6px; text-align: left; }
 
 @media (max-width: 900px) {
-    .chtabs { grid-template-columns: repeat(16, 72px); }
+    .chtabs { grid-template-columns: repeat(var(--chtab-columns, 16), 72px); }
 }
 
 @media (max-width: 700px) {

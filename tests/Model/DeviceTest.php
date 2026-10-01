@@ -248,4 +248,65 @@ final class DeviceTest extends TestCase
 
         Device::parse(str_repeat("\x00", 100));
     }
+
+    private static function vendorFile(): string
+    {
+        return (string) file_get_contents(__DIR__.'/../fixtures/vendor/SdWa5_Default_Preset_3_DSPs.prs');
+    }
+
+    private static function factory(): string
+    {
+        return (string) file_get_contents(__DIR__.'/../../resources/factory_config.bin');
+    }
+
+    public function testReadsAVendorPresetFile(): void
+    {
+        $file = self::vendorFile();
+        self::assertTrue(Device::isVendorPreset($file));
+        self::assertFalse(Device::isVendorPreset('{"format":"trackdsp-8x8"}'));
+
+        $d = Device::fromVendorPreset($file, self::factory());
+
+        self::assertSame('Default Preset', $d->presetName);
+        self::assertSame(['LoopInL', 'LoopInR', 'Con1L', 'Con1R', 'Con2L', 'Con2R', 'Con3L', 'Con3R'], array_map(static fn (InputChannel $c): string => $c->name, $d->inputs));
+        self::assertSame(['BusL', 'BusR', 'SubBR', 'SubFH', 'DSP2_L', 'DSP2_R', 'DSP3_L', 'DSP3_R'], array_map(static fn (OutputChannel $c): string => $c->name, $d->outputs));
+        self::assertSame('Aux', $d->aux->name);
+        // Out1 takes the left channels In3, In5, In7 and Out2 the right ones
+        self::assertSame(0b01010100, $d->outputs[0]->route);
+        self::assertSame(0b10101000, $d->outputs[1]->route);
+        self::assertSame(370, $d->outputs[2]->gain);
+        self::assertSame(240, $d->outputs[2]->delay);
+        // In1+In2, In3+In4, … are linked
+        self::assertSame([3, 0, 12, 0, 48, 0, 192, 0], array_map(static fn (InputChannel $c): int => $c->link, $d->inputs));
+    }
+
+    public function testAVendorPresetLeavesWhatItDoesNotCarry(): void
+    {
+        $d = Device::fromVendorPreset(self::vendorFile(), self::factory());
+
+        self::assertNull($d->toneMode);
+        self::assertNull($d->delayUnit);
+        self::assertNull($d->aux->eqBypass);
+        foreach ([...$d->inputs, ...$d->outputs] as $channel) {
+            self::assertNull($channel->eqBypass);
+        }
+        $opcodes = array_map(static fn (Frame $f): ?Opcode => $f->opcode(), $d->allFrames());
+        self::assertNotContains(Opcode::EqBypass, $opcodes);
+        self::assertNotContains(Opcode::DelayUnit, $opcodes);
+    }
+
+    public function testRejectsAWrongVendorPresetFile(): void
+    {
+        $file = self::vendorFile();
+        foreach (['magic' => 'x'.substr($file, 1), 'short' => substr($file, 0, 1000), 'long' => $file.'tail'] as $case => $broken) {
+            try {
+                Device::fromVendorPreset($broken, self::factory());
+                self::fail('Accepted a file that is '.$case);
+            } catch (\InvalidArgumentException|\LengthException) {
+                self::addToAssertionCount(1);
+            }
+        }
+        // Without the trailing CR LF the file is still whole
+        self::assertSame('Default Preset', Device::fromVendorPreset(substr($file, 0, -2), self::factory())->presetName);
+    }
 }

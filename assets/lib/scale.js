@@ -1,9 +1,13 @@
+import { t } from './i18n.js';
 // Value scales of the device, the same formulas as App\Protocol\Scale.
 
 export const GAIN_MAX = 400;
 export const GAIN_UNITY = 280;
 /** Gain raw 0 mutes the channel, although the vendor editor shows it as -60 dB. */
 export const GAIN_MUTED = 0;
+/** Compressor 1:1.1 from +20 dB: never works below the output ceiling and keeps the gain exact (Solo::EXACT_RATIO). */
+export const EXACT_RATIO = 1;
+export const EXACT_THRESHOLD = 220;
 export const FREQ_STEPS = 300;
 export const FREQ_BASE = 19.6875;
 export const PEQ_GAIN_UNITY = 120;
@@ -88,7 +92,7 @@ const signed = (v) => (v > 0 ? `+${v.toFixed(1)}` : v.toFixed(1));
  */
 export const formats = {
     raw: (v) => String(v),
-    gain: (v) => (GAIN_MUTED === v ? 'Muted' : `${signed(gainToDb(v))}dB`),
+    gain: (v) => (GAIN_MUTED === v ? t("Muted") : `${signed(gainToDb(v))}dB`),
     hz: (v) => formatHz(indexToHz(v)),
     // The editor rounds Q to one decimal and shows two: 25 = 1.70, 32 = 2.50
     q: (v) => (Math.round(indexToQ(v) * 10) / 10).toFixed(2),
@@ -135,10 +139,12 @@ export function presetSlotInfo(state, number) {
     const slot = presetSlot(number);
     const name = (state?.preset_names?.[slot] ?? '').trim();
     const stored = 0 === number ? true : (state?.preset_stored?.[slot] ?? null);
-    const shown = false === stored ? '(empty)' : name || '(no name)';
+    const shown = false === stored ? t("(empty)") : name || t("(no name)");
 
     return { name, stored, text: `${presetLabel(number)}  ${shown}` };
 }
+
+const tMuted = () => t('Muted').toLowerCase();
 
 const number = (text) => {
     const value = parseFloat(String(text).trim().replace(',', '.'));
@@ -151,7 +157,7 @@ const number = (text) => {
  */
 export const parsers = {
     raw: (t) => number(t),
-    gain: (t) => (/^\s*mute/i.test(t) ? GAIN_MUTED : null === number(t) ? null : dbToGain(number(t))),
+    gain: (t) => ((/^\s*mute/i.test(t) || String(t).trim().toLowerCase() === tMuted()) ? GAIN_MUTED : null === number(t) ? null : dbToGain(number(t))),
     hz: (t) => (null === number(t) ? null : hzToIndex(/k/i.test(t) ? number(t) * 1000 : number(t))),
     q: (t) => (null === number(t) ? null : qToIndex(number(t))),
     peq: (t) => (null === number(t) ? null : dbToPeqGain(number(t))),
@@ -187,4 +193,26 @@ export const parsers = {
 export function parse(name, text, state = null, labels = null) {
     const value = (parsers[name] ?? parsers.raw)(String(text), state, labels);
     return null === value || Number.isNaN(value) ? null : Math.round(value);
+}
+
+/**
+ * An output at compressor ratio 1:1.0 with a gain other than 0 dB: the 8x8 applies the gain more strongly than
+ * set and adds the spectrum mirrored at 24 kHz (Solo::exaggeratedGain()).
+ */
+export function exaggeratesGain(output) {
+    return 0 === output?.comp?.ratio && undefined !== output.gain && GAIN_UNITY !== output.gain;
+}
+
+/**
+ * Gain raw value that gives, at an exact compressor setting, the level a gain had at ratio 1:1.0. There every
+ * second sample gets the gain twice, so the level is 10·log10((A² + A⁴) / 2) for the gain A as a factor
+ * (docs/measurements.md, within 0.5 dB of the measurement up to +9 dB set). Clamped to -60..+12 dB, a muted
+ * gain stays muted.
+ */
+export function heardGain(raw) {
+    if (GAIN_MUTED === raw) {
+        return GAIN_MUTED;
+    }
+    const a = 10 ** (gainToDb(raw) / 20);
+    return Math.max(1, dbToGain(10 * Math.log10((a ** 2 + a ** 4) / 2)));
 }

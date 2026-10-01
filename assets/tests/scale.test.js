@@ -78,3 +78,25 @@ test('typed values parse back to raw values', () => {
         assert.equal(S.parse(fmt, S.format(fmt, raw)), raw, fmt);
     }
 });
+
+test('an output at 1:1.0 with a gain other than 0 dB exaggerates it', () => {
+    const output = (ratio, gain) => ({ gain, comp: { ratio, threshold: 180 } });
+    assert.equal(S.exaggeratesGain(output(0, 300)), true);
+    assert.equal(S.exaggeratesGain(output(0, S.GAIN_MUTED)), true);
+    assert.equal(S.exaggeratesGain(output(0, S.GAIN_UNITY)), false);
+    assert.equal(S.exaggeratesGain(output(S.EXACT_RATIO, 300)), false);
+    assert.equal(S.exaggeratesGain(output(15, 300)), false);
+    assert.equal(S.exaggeratesGain(null), false);
+});
+
+test('the level a gain had at 1:1.0 becomes the exact gain', () => {
+    assert.equal(S.gainToDb(S.heardGain(S.dbToGain(-6))), -8);
+    assert.equal(S.gainToDb(S.heardGain(S.dbToGain(-20))), -23);
+    assert.equal(S.gainToDb(S.heardGain(S.dbToGain(3))), 4.8);
+    assert.equal(S.heardGain(S.GAIN_UNITY), S.GAIN_UNITY);
+    // Above about +6 dB the level lies beyond the gain range
+    assert.equal(S.heardGain(S.dbToGain(12)), S.GAIN_MAX);
+    assert.equal(S.heardGain(S.GAIN_MUTED), S.GAIN_MUTED);
+    // The lowest gains stay one step above mute
+    assert.equal(S.heardGain(1), 1);
+});

@@ -70,7 +70,7 @@ final class AutoEqController
             $this->autoEq->backup($state, $outputs, $stamp);
             $this->autoEq->saveSession($session);
 
-            return ['session' => $session->toPublic()];
+            return ['session' => $session->toPublic(), 'warnings' => AutoEq::warnings($state, $outputs)];
         });
     }
 
@@ -87,9 +87,10 @@ final class AutoEqController
             set_time_limit($session->seconds + (int) ceil($session->settle) + 60);
             $n = \count($session->recordings) + 1;
             $path = $this->autoEq->path(\sprintf('measure-%s-%d.wav', $session->id, $n));
-            $this->autoEq->record($this->autoEq->state(), $session->outputs, $verify ? 0 : $session->bands, $session->device, $session->micChannel, $session->seconds, $session->settle, $path);
+            $state = $this->autoEq->state();
+            $this->autoEq->record($state, $session->outputs, $verify ? 0 : $session->bands, $session->device, $session->micChannel, $session->seconds, $session->settle, $path);
 
-            return $this->add($session, $path, ($verify ? 'Verify ' : 'Position ').$n, $verify);
+            return [...$this->add($session, $path, ($verify ? 'Verify ' : 'Position ').$n, $verify), 'warnings' => AutoEq::warnings($state, $session->outputs)];
         });
     }
 

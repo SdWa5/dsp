@@ -1,7 +1,7 @@
 {
     "name": "gitiglitzer/trackdsp",
     "description": "Editor, CLI and library for the Thomann t.racks 8x8 Matrix DSP over USB-HID or LAN",
-    "version": "0.18.2",
+    "version": "0.32.0",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
@@ -19,6 +19,7 @@
         "symfony/process": "7.4.*",
         "symfony/runtime": "7.4.*",
         "symfony/stimulus-bundle": "^3.5",
+        "symfony/translation": "7.4.*",
         "symfony/twig-bundle": "7.4.*",
         "symfony/yaml": "7.4.*"
     },
@@ -79,10 +80,12 @@
         "cs-fix": "php-cs-fixer fix",
         "ci": [
             "@cs",
+            "@lint",
             "@stan",
             "@test",
             "@test-js"
-        ]
+        ],
+        "lint": "bin/console lint:yaml translations config/packages/translation.yaml config/packages/asset_mapper.yaml .gitlab-ci.yml"
     },
     "conflict": {
         "symfony/symfony": "*"

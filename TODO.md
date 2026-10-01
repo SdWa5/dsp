@@ -16,23 +16,17 @@
 - Browser editor: check every page and dialog against the device, with a harmless round trip per control
 - PHPUnit group `device` with read-only checks and reversible writes over LAN and USB
 - Packaging: `trackdsp:serve`, FrankenPHP static binary, installer, desktop entry
-- Offline mode like the vendor editor: check whether a preset can be set up in the browser editor without a
-  device and handed to the real device later. The bridge target `demo` simulates a device, but the editor
-  offers no obvious way to start from it
-- EQ overview on the Gain page, as the vendor editor has it. One graph shows the EQ curve of every input and
-  output at once, with an on/off switch for each EQ. Check in the vendor editor whether its switch only hides
-  the curve or bypasses the EQ, which the configuration keeps in the EQ bypass bits of the footer, and do the
-  same. The channel tabs already draw one curve each from `assets/lib/eq.js`
-- Make the link display configurable in the browser editor. Today a link group is marked by its code (L1, L2,
-  ...). Offer a colour per group, and linked channels arranged next to each other as columns, as further
-  options. Colour alone does not read for everyone, so keep the code or a shape next to it
-- Show Sub control and Group control on the Gain page too. Sub control goes next to the channel controls and
-  Group control below them
-- Make the sections of the browser editor collapsible
-- Vendor preset files: the file format of the vendor editor is unknown. Capture a file saved by the vendor
-  editor in the win11 VM, then decide whether trackdsp reads and writes it
-- Localization of the browser editor and the command line, primarily to add German. Collect the user-facing
-  strings into Symfony Translation catalogues, with English as the source and a German catalogue first
+- Tooltips on hover for the controls of the browser editor, above all for abbreviations such as FBQ, HPF, LPF,
+  PEQ, Q and the Sub and Group control. Say what the control does in one sentence, and name the unit where a
+  value has one
+- Matrix page: next to the matrix, the routing as the vendor editor draws it, with the inputs and the Aux in a
+  column on the left, the outputs in a column on the right, and a line for every connection
+- Vendor preset files: trackdsp reads `.prs` (docs/protocol.md). Save a second sample in the vendor editor with
+  EQ bypass on, a test tone and another delay unit, to confirm that the file leaves them out. Then decide
+  whether trackdsp writes `.prs`, and check such a file by loading it in the vendor editor
+- Localization of the CLI. The browser editor has English and German catalogues in `translations/`
+- Localization of messages returned by the bridge and API, including Auto EQ warnings and recording names.
+  Return message codes and parameters so the browser can translate them without changing CLI output
 - Remove `legacy/python/` once the rewrite has reached parity
 - The meters light their red top at 0 dB, which on the calibrated scale lies 12.5 to 14.8 dB below the output
   ceiling. For programme with a crest factor of 12 to 15 dB that is about where its peaks reach the ceiling,
@@ -84,10 +78,6 @@
   other's writes for manual changes and pause each other
 - The rack's output panel has a broken connection on output 8 (found 2026-09-29). Until it is repaired, measure
   with `--reference-output=out6`. Afterwards repeat B1 of `docs/measurements.md` against Out8
-- Flag an output at compressor ratio 1:1.0 with a gain other than 0 dB in the browser editor and in the auto EQ,
-  as `trackdsp:measure` does. The 8x8 then applies the gain more strongly than set and adds the spectrum
-  mirrored at 24 kHz, which the auto EQ would try to fit. Offer Limit or 1:1.1 from +20 dB instead, which keep
-  the gain exact and add no image
 - Measure the 8x8's PEQ shapes against the RBJ filters the fitter assumes. Include the allpass types and the
   phase of the HPF and LPF types, because the phase step of the system tuning predicts with them
 - The PEQ fitter wastes bands on overlapping corrections. On Tecnare L (2026-09-29) it cut 477 Hz by 9 dB

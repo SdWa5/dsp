@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { on } from '../lib/device.js';
 
@@ -35,6 +36,6 @@ export default class extends Controller {
         this.element.style.setProperty('--level', fraction(db).toFixed(3));
         this.element.style.setProperty('--peak', fraction(this.peak).toFixed(3));
         this.element.classList.toggle('is-hot', now - this.hotAt < HOT_MS);
-        this.element.title = db > -90 ? `${db.toFixed(1)} dB, peak ${this.peak.toFixed(1)} dB` : '';
+        this.element.title = db > -90 ? t('%level% dB, peak %peak% dB', { level: db.toFixed(1), peak: this.peak.toFixed(1) }) : '';
     }
 }

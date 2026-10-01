@@ -16,6 +16,8 @@ jobs:
       - uses: ramsey/composer-install@v3
       - name: Coding standard
         run: composer cs
+      - name: Translation and configuration syntax
+        run: composer lint
       - name: Static analysis
         run: composer stan
       - name: Tests

@@ -3,6 +3,9 @@ framework:
         # The paths to make available to the asset mapper.
         paths:
             - assets/
+        # Node tests are not public assets and may use imports unavailable in browsers.
+        excluded_patterns:
+            - '%kernel.project_dir%/assets/tests/**'
         missing_import_mode: strict
 
 when@prod:

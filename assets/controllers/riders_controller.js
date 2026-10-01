@@ -1,3 +1,4 @@
+import { t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { api, on, status, store, updateStatus } from '../lib/device.js';
 import { channelLabel } from '../lib/channels.js';
@@ -10,6 +11,8 @@ const STATES = {
     riding: 'Riding',
     limit: 'At its limit',
 };
+// The bridge refuses a highest gain above 0 dB unless boosts are allowed (RiderSettings)
+const MAX_GAIN = 12;
 const FIELDS = ['target', 'min', 'max', 'slew', 'average', 'silence', 'deadband', 'hold'];
 
 /**
@@ -50,7 +53,7 @@ export default class extends Controller {
             const running = settings.has(channel);
             button.classList.toggle('is-on', running);
             button.setAttribute('aria-pressed', running ? 'true' : 'false');
-            button.textContent = running ? 'Rider on' : 'Rider';
+            button.textContent = running ? t("Rider on") : t('Rider');
             button.disabled = !online;
         }
         for (const info of this.infoTargets) {
@@ -60,18 +63,18 @@ export default class extends Controller {
             info.hidden = !rider;
             info.dataset.state = now?.status ?? '';
             if (rider) {
-                const state = STATES[now?.status] ?? 'Starting';
+                const state = t(STATES[now?.status] ?? 'Starting');
                 const gain = null === (now?.gain ?? null) ? '' : ` ${now.gain > 0 ? '+' : ''}${now.gain.toFixed(1)} dB`;
                 info.textContent = `${state}${gain}`;
-                info.title = `Target ${rider.target} dB, gain ${rider.min}..${rider.max} dB, ${rider.slew} dB/s`
-                    + (null === (now?.average ?? null) ? '' : `, level ${now.average.toFixed(1)} dB`);
+                info.title = t("Target %target% dB, gain %min%..%max% dB, %slew% dB/s", { target: rider.target, min: rider.min, max: rider.max, slew: rider.slew })
+                    + (null === (now?.average ?? null) ? '' : t(", level %level% dB", { level: now.average.toFixed(1) }));
             }
         }
     }
 
     renderTitle() {
         if (this.hasTitleTarget) {
-            this.titleTarget.textContent = `Gain rider · ${channelLabel(this.channel, store.state)}`;
+            this.titleTarget.textContent = t("Gain rider · %channel%", { channel: channelLabel(this.channel, store.state) });
         }
     }
 
@@ -84,15 +87,26 @@ export default class extends Controller {
             form.elements[field].value = values[field];
         }
         form.elements.boost.checked = Boolean(values.boost);
+        this.boost();
         this.stopTarget.hidden = !rider;
         this.errorTarget.textContent = '';
-        this.submitTarget.textContent = rider ? 'Update rider' : 'Start rider';
+        this.submitTarget.textContent = rider ? t("Update rider") : t("Start rider");
         this.renderTitle();
         this.dialogTarget.showModal();
     }
 
     close() {
         this.dialogTarget.close();
+    }
+
+    /** Highest gain follows "Allow a highest gain above 0 dB": up to +12 dB with it, 0 dB without. */
+    boost() {
+        const { boost, max } = this.formTarget.elements;
+        const ceiling = boost.checked ? MAX_GAIN : 0;
+        max.max = String(ceiling);
+        if (Number(max.value) > ceiling) {
+            max.value = String(ceiling);
+        }
     }
 
     async save(event) {

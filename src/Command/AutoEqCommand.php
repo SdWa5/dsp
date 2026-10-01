@@ -177,6 +177,9 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
         $settle = self::number($input, 'settle');
         $positions = max(1, self::integer($input, 'positions'));
         $device = (string) self::optional($input, 'device');
+        if ([] !== ($warnings = AutoEq::warnings($state, $outputs))) {
+            $io->warning($warnings);
+        }
         $io->warning('Pink noise starts now on every routed output. Keep the level safe.');
         $files = [];
         for ($p = 1; $p <= $positions; ++$p) {

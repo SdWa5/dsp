@@ -1,44 +1,52 @@
 {#
  # PEQ editor of one channel. p = state path, channel = channel index, filters = with HPF/LPF.
+ # The curve, the band table and every group fold. Their keys start with "aux" or "channel", so all channel
+ # pages fold together.
  #}
+{% import 'editor/_widgets.html.twig' as w %}
+{% set fold = 'aux' == p ? 'aux' : 'channel' %}
 <div class="peq" data-controller="peq" data-peq-path-value="{{ p }}" data-peq-channel-value="{{ channel }}">
     <div class="peq__bar">
-        <label><input type="radio" name="view-{{ channel }}" checked data-action="peq#togglePhase"> Mag</label>
-        <label><input type="radio" name="view-{{ channel }}" data-peq-target="phase" data-action="peq#togglePhase"> Phase</label>
-        <span class="peq__hint">Drag a point: frequency and gain. Wheel on a point: Q.</span>
-        <button type="button" class="toggle" data-peq-target="eqBypass" data-action="peq#eqBypass">EQ Bypass</button>
-        <button type="button" class="toggle" data-action="peq#reset">EQ Reset</button>
+        <label><input type="radio" name="view-{{ channel }}" checked data-action="peq#togglePhase"> {{ "Mag"|trans }}</label>
+        <label><input type="radio" name="view-{{ channel }}" data-peq-target="phase" data-action="peq#togglePhase"> {{ "Phase"|trans }}</label>
+        <span class="peq__hint">{{ "Drag a point: frequency and gain. Wheel on a point: Q."|trans }}</span>
+        <button type="button" class="toggle" data-peq-target="eqBypass" data-action="peq#eqBypass">{{ "EQ Bypass"|trans }}</button>
+        <button type="button" class="toggle" data-action="peq#reset">{{ "EQ Reset"|trans }}</button>
     </div>
-    <canvas class="peq__curve" data-peq-target="canvas"
-            data-action="pointerdown->peq#pointerdown pointermove->peq#pointermove pointerup->peq#pointerup pointercancel->peq#pointerup wheel->peq#wheel"></canvas>
+    <div class="fold-panel" data-controller="collapse" data-collapse-key-value="{{ fold }}.curve">
+        <h3 class="fold-panel__title">{{ w.fold('EQ curve') }}</h3>
+        <canvas class="peq__curve" data-peq-target="canvas"
+                data-action="pointerdown->peq#pointerdown pointermove->peq#pointermove pointerup->peq#pointerup pointercancel->peq#pointerup wheel->peq#wheel"></canvas>
+    </div>
     <div class="peq__panel">
-        <div class="peq__table-wrap">
+        <div class="peq__table-wrap fold-panel" data-controller="collapse" data-collapse-key-value="{{ fold }}.bands">
+        <h3 class="fold-panel__title">{{ w.fold('Bands') }}</h3>
         <table class="peq__table">
-            <thead><tr><th>PEQ</th><th>Frequency</th><th>Q</th><th>Gain</th><th>Type</th><th>Bypass</th></tr></thead>
+            <thead><tr><th>PEQ</th><th>{{ "Frequency"|trans }}</th><th>Q</th><th>{{ "Gain"|trans }}</th><th>{{ "Type"|trans }}</th><th>{{ "Bypass"|trans }}</th></tr></thead>
             <tbody>
             {% for b in 0..(bands - 1) %}
                 <tr data-peq-target="row">
                     <td><button type="button" class="band" data-peq-target="select" data-action="peq#select" data-peq-band-param="{{ b }}">{{ b + 1 }}</button></td>
                     {% for field in ['freq', 'q', 'gain'] %}
-                        <td><input type="text" inputmode="decimal" aria-label="Band {{ b + 1 }} {{ field }}" data-peq-target="{{ field }}"
+                        <td><input type="text" inputmode="decimal" aria-label="{{ 'Band %band% %field%'|trans({'%band%': b + 1, '%field%': {'freq': 'Frequency', 'q': 'Q', 'gain': 'Gain'}[field]|trans}) }}" data-peq-target="{{ field }}"
                                    data-action="change->peq#edit keydown->peq#step" data-peq-band-param="{{ b }}" data-peq-field-param="{{ field }}"></td>
                     {% endfor %}
-                    <td><select aria-label="Band {{ b + 1 }} type" data-peq-target="type" data-action="peq#edit" data-peq-band-param="{{ b }}" data-peq-field-param="type">
+                    <td><select aria-label="{{ 'Band %band% %field%'|trans({'%band%': b + 1, '%field%': 'Type'|trans}) }}" data-peq-target="type" data-action="peq#edit" data-peq-band-param="{{ b }}" data-peq-field-param="type">
                         {% for value, text in labels.PEQ_TYPES %}<option value="{{ value }}">{{ text }}</option>{% endfor %}
                     </select></td>
-                    <td><button type="button" class="toggle toggle--bypass" data-peq-target="bypass" data-action="peq#toggleBypass" data-peq-band-param="{{ b }}">Bypass</button></td>
+                    <td><button type="button" class="toggle toggle--bypass" data-peq-target="bypass" data-action="peq#toggleBypass" data-peq-band-param="{{ b }}">{{ "Bypass"|trans }}</button></td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
         </div>
         <div class="group-stack">
-        <fieldset class="group group--params">
-            <legend>Selected band</legend>
+        <fieldset class="group group--params" data-controller="collapse" data-collapse-key-value="{{ fold }}.selected">
+            <legend>{{ w.fold('Selected band') }}</legend>
             {% for name, spec in {Freq: ['freq', 300], Q: ['q', 100], Gain: ['gain', 240]} %}
                 <div class="fader fader--h">
-                    <span class="fader__title">{{ name }}</span>
-                    <input type="range" min="0" max="{{ spec[1] }}" aria-label="Selected band {{ name }}" data-peq-target="param{{ name }}"
+                    <span class="fader__title">{{ name|trans }}</span>
+                    <input type="range" min="0" max="{{ spec[1] }}" aria-label="{{ 'Selected band %field%'|trans({'%field%': name|trans}) }}" data-peq-target="param{{ name }}"
                            data-action="input->peq#param" data-peq-field-param="{{ spec[0] }}">
                     <output class="fader__value" data-peq-target="param{{ name }}Label">–</output>
                 </div>
@@ -46,20 +54,20 @@
         </fieldset>
         {% if filters %}
             {% for kind, title in {hpf: 'HighPass', lpf: 'LowPass'} %}
-                <fieldset class="group group--filter">
-                    <legend>{{ title }}</legend>
+                <fieldset class="group group--filter" data-controller="collapse" data-collapse-key-value="{{ fold }}.{{ kind }}">
+                    <legend>{{ w.fold(title) }}</legend>
                     <div class="fader fader--h">
-                        <input type="range" min="0" max="300" aria-label="{{ title }} frequency" data-kind="{{ kind }}" data-peq-target="filterFreq"
+                        <input type="range" min="0" max="300" aria-label="{{ '%filter% frequency'|trans({'%filter%': title|trans}) }}" data-kind="{{ kind }}" data-peq-target="filterFreq"
                                data-action="input->peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="freq">
                         <output class="fader__value" data-peq-target="filterFreqLabel">–</output>
                     </div>
                     <div class="group__row">
-                        <label>Slope
-                            <select aria-label="{{ title }} slope" data-peq-target="filterSlope" data-action="peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="slope">
+                        <label>{{ "Slope"|trans }}
+                            <select aria-label="{{ '%filter% slope'|trans({'%filter%': title|trans}) }}" data-peq-target="filterSlope" data-action="peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="slope">
                                 {% for value, text in labels.SLOPES|slice(1, null, true) %}<option value="{{ value }}">{{ text }}</option>{% endfor %}
                             </select>
                         </label>
-                        <button type="button" class="toggle toggle--bypass" data-peq-target="filterBypass" data-action="peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="bypass">Bypass</button>
+                        <button type="button" class="toggle toggle--bypass" data-peq-target="filterBypass" data-action="peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="bypass">{{ "Bypass"|trans }}</button>
                     </div>
                 </fieldset>
             {% endfor %}

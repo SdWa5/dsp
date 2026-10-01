@@ -5,6 +5,229 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.32.0] - 2026-10-01
+
+### Added
+
+- Every function page tab shows a corner triangle and a changed-setting count when its controls differ from factory defaults.
+- The Auto EQ tab tracks output PEQ settings and bypass state even without a measurement session.
+- Page-mark tests cover each page, reset to defaults, unknown values and display preferences.
+
+### Fixed
+
+- Node test files are excluded from AssetMapper so test-only imports cannot break public asset serving.
+
+## [0.31.0] - 2026-10-01
+
+### Added
+
+- The browser editor supports English and German through Symfony Translation catalogues.
+- Help > Language offers English, Deutsch and Automatic with a persistent browser cookie.
+- The editor chooses its language from the menu cookie, `TRACKDSP_LOCALE`, the browser header, then English.
+- Locale precedence, catalogue parity, translated rendering and browser translation helpers have regression tests.
+- Translation YAML checks run in CI. A GitLab test configuration is adapted from the sibling Symfony project.
+
+### Changed
+
+- Browser control labels, confirmations, connection messages and rider status use the selected language.
+- The translated muted-gain display also parses back to mute.
+
+## [0.30.1] - 2026-10-01
+
+### Changed
+
+- "Shape per group" in the link display settings is now "Icon per group"
+
+## [0.30.0] - 2026-10-01
+
+### Added
+
+- "Shape per group" in the link display settings, combinable with the code, which then shows the code and the shape next to each other (`linkMark()` in `link.js`)
+- The link display settings below the two Link matrices too, in step with the Channels menu (`_linkview.html.twig`)
+- Stacked placement in the Link dialog: each link group is a block with one header naming its members, with a gap before each further group (`linkUnits()` in `link.js`)
+
+### Changed
+
+- The Link matrices follow the placement after every click and every settings change, not only when the dialog opens
+- A colour per group without the code no longer brings a shape along. A browser that stored the code switched off gets the shape switched on
+
+## [0.29.0] - 2026-10-01
+
+### Added
+
+- "Keep level" next to the 1:1.0 fix on the output strips: it moves the gain to the level the output had at 1:1.0 before it sets 1:1.1 from +20 dB (`heardGain()` in `scale.js`)
+
+### Changed
+
+- The 1:1.0 fix button is now "Exact gain", and the warning names the setting both buttons use
+
+## [0.28.0] - 2026-10-01
+
+### Added
+
+- TODO item for change marks on every page tab
+
+### Changed
+
+- The Link dialog is a channel x channel matrix per side instead of a dropdown per channel. A cell links its row and column channel and merges their groups, a lit cell takes the column channel out of its group (`toggleLink()`, `normalizeGroups()` in `link.js`). A group lights as a block with its code, colour or shape, and with the placement side by side or stacked its members are moved next to each other when the dialog opens
+
+### Removed
+
+- `groupsFromPartners()` and `partnersFromGroups()`, which only the dropdowns used
+
+## [0.27.0] - 2026-10-01
+
+### Added
+
+- "Open preset file" also reads a `.prs` file saved by the vendor editor (`Device::fromVendorPreset()`). `/api/upload` tells it from a trackdsp JSON file by its magic. The file carries no test tone, delay unit and EQ bypass, so the upload leaves them on the device as they are
+- The vendor file layout in `docs/protocol.md`, and the sample file as `tests/fixtures/vendor/SdWa5_Default_Preset_3_DSPs.prs`
+- TODO item for showing the routing as a graph next to the matrix
+
+### Changed
+
+- `Device::$delayUnit` may be null for unknown, and `allFrames()` then sends no delay unit
+- The editor uploads the chosen file as it is instead of as text, so a binary file arrives intact
+
+### Removed
+
+- The TODO item for an offline mode: the editor starts in demo mode, and opening a preset file there sets it up without a device
+
+## [0.26.0] - 2026-10-01
+
+### Added
+
+- Folds on the channel and Aux pages: the EQ curve, the band table, and each group beside it (Selected band, HighPass, LowPass, FBQ, Gain, Comp, AutoMix, Effect, Camera, Select). The channel pages share their fold keys, so they fold together
+
+## [0.25.0] - 2026-10-01
+
+### Added
+
+- Placement of linked channels in the Channels menu: in channel order, side by side, or stacked per link group, where the members of a group share one column of the channel tabs (`linkLayout()` in `link.js`)
+- The Link dialog shows the group code, colour and shape like the channel tabs and arranges its cells by the same placement
+
+### Changed
+
+- Link dialog: each dropdown lists the other seven channels of its side with their names, and links chain into groups (`groupsFromPartners()`, `partnersFromGroups()`). This replaces the group numbers of 0.24.1
+- A stored "Linked channels side by side" becomes the placement "side by side" (`linkView()`)
+
+## [0.24.2] - 2026-10-01
+
+### Changed
+
+- Matrix: the Out headers sit on the right (outputs as rows) or at the bottom (inputs as rows), so the In headers are always left or on top and the signal runs from In to Out. The corner button moves with them
+
+## [0.24.1] - 2026-10-01
+
+### Changed
+
+- Link dialog: the dropdowns name the link groups L1-L4 like the channel tab badges, and the note says they pick a group, not a channel
+
+## [0.24.0] - 2026-10-01
+
+### Added
+
+- Warning on the output strips of the Comp and Gain page while an output runs at compressor ratio 1:1.0 with a gain other than 0 dB, with a button that sets 1:1.1 from +20 dB (`gainwarning_controller.js`, `exaggeratesGain()` in `scale.js`)
+- `warnings` in the answers of `/api/autoeq/start` and `/api/autoeq/record`, listed on the Auto EQ page, and the same warnings printed by `trackdsp:autoeq` before it measures (`AutoEq::warnings()`)
+
+### Changed
+
+- `Solo::exaggeratedGain()` holds the 1:1.0 check that `trackdsp:measure` already used, and `Solo::EXACT_RATIO`/`EXACT_THRESHOLD` are public
+
+### Removed
+
+- The TODO item for flagging an output at compressor ratio 1:1.0 with a gain
+
+## [0.23.0] - 2026-10-01
+
+### Added
+
+- EQ overview at the top of the Gain page: the EQ curves of every input (solid) and output (dashed) in one plot, from `eqoverview_controller.js`. A switch per channel shows or hides its curve and only changes the plot, as in the vendor editor. The hidden curves are kept in the browser, and the panel folds
+
+### Removed
+
+- The TODO item for an EQ overview on the Gain page
+
+## [0.22.0] - 2026-10-01
+
+### Added
+
+- Link display options in the Channels menu, each on its own and kept in the browser: the group code (L1, L2 …), a colour per group, and linked channels side by side on the channel tabs. A colour without the code comes with a shape per group
+- `linkOrder()` in `assets/lib/link.js`, the tab order with linked channels next to each other
+
+### Changed
+
+- The gap between the input and the output tabs goes before the first output shown, rather than before the ninth tab
+
+### Removed
+
+- The TODO item for a configurable link display
+
+## [0.21.2] - 2026-10-01
+
+### Added
+
+- A TODO item for tooltips on the controls of the browser editor, above all for abbreviations
+
+### Fixed
+
+- The rider dialog's highest gain follows "Allow a highest gain above 0 dB": up to +12 dB with it and 0 dB without, and a higher value drops to 0 dB when the box is cleared. Before, the form took a boost that the bridge then refused
+
+## [0.21.1] - 2026-10-01
+
+### Changed
+
+- A Mute button lights up while its channel's gain is at raw 0, on the Gain page, the channel pages and the Aux page. Only the display changes, the mute flag is not written
+
+## [0.21.0] - 2026-10-01
+
+### Added
+
+- Foldable panels: Input, Output, Sub Control and Group Control on the Gain page and the four steps of the Auto EQ page fold down to their title, from `collapse_controller.js`. Folded panels are kept in the browser
+- `fold` macro in `templates/editor/_widgets.html.twig` for the title button of a foldable panel
+
+### Removed
+
+- The TODO item for collapsible sections
+
+## [0.20.0] - 2026-10-01
+
+### Added
+
+- The corner cell of the matrix is a button that swaps rows and columns, with the inputs as rows. The choice is kept in the browser
+- `assets/lib/prefs.js` for view preferences kept in the browser, with tests
+
+### Changed
+
+- The theme choice goes through `assets/lib/prefs.js`, under the same storage key as before
+
+### Removed
+
+- The TODO item for the matrix swap
+
+## [0.19.0] - 2026-10-01
+
+### Added
+
+- Sub Control next to the channel strips and Group Control below them on the Gain page
+
+### Changed
+
+- The Sub and Group Control strips come from one partial, `templates/editor/_subgroup.html.twig`, for the dialogs and the Gain page
+
+### Removed
+
+- The TODO item for Sub and Group control on the Gain page
+
+## [0.18.3] - 2026-10-01
+
+### Added
+
+- A TODO item for a button in the matrix corner that swaps rows and columns
+
+### Fixed
+
+- In the Link and Names dialogs a channel name now sits next to its control, and the gap of 24px falls between the cells
+
 ## [0.18.2] - 2026-10-01
 
 ### Added

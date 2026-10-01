@@ -92,19 +92,50 @@ per input and output with the EQ curve, live meters and the File, Device, Channe
 editor talks to the bridge through the JSON API below. A ddev with another `project_tld` needs its host names in
 `TRACKDSP_TRUSTED_HOSTS` in `.env.local`, or the app answers 400 "Untrusted Host".
 
+- Help > Language chooses English, Deutsch or Automatic. A choice is remembered for this browser. Automatic
+  uses `TRACKDSP_LOCALE=en` or `de` from `.env.local`, then the browser language, then English. The CLI and
+  messages returned by the bridge and API stay in English. See [docs/editor.md](docs/editor.md).
+- File > Open preset file sends every setting of a trackdsp JSON file, or of a `.prs` file saved by the vendor
+  editor, to the device. A `.prs` file carries no test tone, delay unit and EQ bypass, so those stay as they are.
+  Save preset file writes JSON. In demo mode this sets up a preset without a device.
 - A named channel shows its name next to its ID wherever the ID appears, for example "Out1 Main L" or
   "Out1 (Main L)" in lists. A name that only repeats the ID is left out.
 - The channel tabs show a dot for a muted channel, a hollow one for a channel whose gain mutes it, and the link
-  group (L1, L2, ...).
+  group. The Channels menu and the Link dialog set how a link group shows on the tabs and in the Link matrix, kept
+  in the browser. The code (L1, L2, ..., on by default), an icon per group (circle, square, triangle, diamond) and a
+  colour per group combine freely, and code and icon stand next to each other. The placement of linked channels is
+  in channel order, side by side, or stacked per link group in one column.
+- The Link dialog is a channel x channel matrix per side. A cell links its row and column channel, linked channels
+  form a group that lights as a block, and a lit cell takes the column channel out of its group. The lowest
+  channel of a group is copied to the others. The rows and columns follow the placement after every click, and
+  stacked turns each group into a block with one header naming its members. The display settings sit below the
+  two matrices as well.
 - Every setting that differs from the factory default (`resources/factory_config.bin`) has a bar on its left
-  edge, and its channel tab or the Aux tab a corner triangle. Both are shapes, so they read without colour.
+  edge. Every page tab and channel tab shows a corner triangle when its settings differ. The tooltip counts
+  the changed settings. Auto EQ tracks output PEQ bands and EQ bypass. The marks clear when values return to
+  their defaults and read without colour.
 - The store and recall dialogs show which user slots are empty. An empty slot cannot be recalled.
 - A fader value can be typed, with or without its unit ("-6", "2k", "200ms", "1:4"). A double click on a gain
   or delay fader sets it back to 0 dB or no delay.
 - A gain at its lowest step shows as "Muted", because raw 0 mutes the channel although the vendor editor shows
-  it as -60 dB. Typing "mute" sets it. -59.5 dB is the lowest gain that passes signal.
+  it as -60 dB. Typing "mute" sets it. -59.5 dB is the lowest gain that passes signal. The channel's Mute button lights up then as well,
+  without setting the mute flag.
 - The meters hold their peak for 1.5 s and light a red top for 2 s after reaching 0 dB.
+- The Gain page starts with an EQ overview, the EQ curves of every input (solid) and output (dashed) in one plot.
+  A switch per channel shows or hides its curve, kept in the browser. It changes nothing on the device.
+- The Gain page also carries Sub Control next to the channel strips and Group Control below them, the same
+  controls as in their dialogs.
 - The Gain page starts and shows the gain riders, and the Auto EQ page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
+- The corner button of the matrix swaps rows and columns, so the inputs become the rows. The choice is kept in the
+  browser. The In headers sit on the left or at the top and the Out headers on the right or at the bottom, so the
+  signal always runs from In to Out.
+- An output at compressor ratio 1:1.0 with a gain other than 0 dB is flagged on its strip. Two buttons set 1:1.1
+  from +20 dB, one keeping the gain value ("Exact gain") and one moving the gain to the level heard before
+  ("Keep level"). The Auto EQ page and `trackdsp:autoeq` warn about it before measuring.
+- Every page with more than one panel folds them down to their title: the panels of the Gain page, the steps of
+  the Auto EQ page, and on the channel and Aux pages the EQ curve, the band table and each group beside it. Folded
+  panels are kept in the browser. All channel pages fold together, so a folded HighPass stays folded on every
+  channel.
 - The theme button switches between auto, light and dark. The choice is kept in the browser.
 
 ### Bridge and JSON API
@@ -171,7 +202,7 @@ file_put_contents('preset.json', $device->toJson());    // same file format as t
 | `App\Protocol` | frame codec, opcodes, channel indices, scales, value labels, command builders |
 | `App\Transport` | TCP, hidraw and demo transports, hidraw discovery, target factory |
 | `App\Client` | `Matrix`: request/reply matching, retries with session re-init, reads and writes |
-| `App\Model` | the configuration as objects, JSON preset files, upload frames, `DeviceState` for applying writes, link groups |
+| `App\Model` | the configuration as objects, JSON and vendor `.prs` preset files, upload frames, `DeviceState` for applying writes, link groups |
 | `App\Bridge` | the bridge loop, write queue, command allow-list and the socket client |
 | `App\Discovery` | device search on USB and on the local networks |
 | `App\Automation` | the gain rider |
