@@ -97,7 +97,8 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   messages returned by the bridge and API stay in English. See [docs/editor.md](docs/editor.md).
 - File > Open preset file sends every setting of a trackdsp JSON file, or of a `.prs` file saved by the vendor
   editor, to the device. A `.prs` file carries no test tone, delay unit and EQ bypass, so those stay as they are.
-  Save preset file writes JSON. In demo mode this sets up a preset without a device.
+  Save preset file writes JSON, including the running gain riders, which opening the file brings back. In demo
+  mode this sets up a preset without a device.
 - A named channel shows its name next to its ID wherever the ID appears, for example "Out1 Main L" or
   "Out1 (Main L)" in lists. A name that only repeats the ID is left out.
 - The channel tabs show a dot for a muted channel, a hollow one for a channel whose gain mutes it, and the link

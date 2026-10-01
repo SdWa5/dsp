@@ -477,6 +477,30 @@ final class Bridge
                 $this->logger->info('Gain rider on {channel}: {settings}', ['channel' => $channel, 'settings' => json_encode($this->riders[$channel]->settings()->toArray())]);
 
                 return $this->status();
+            case 'riders':
+                // Replaces every rider, as a preset file brings its own: [{"channel": 0, "target": -18, ...}, ...]
+                $list = $request['riders'] ?? null;
+                if (!\is_array($list) || !array_is_list($list)) {
+                    throw new BridgeException('"riders" must be a list of rider settings.', 400);
+                }
+                $riders = [];
+                foreach ($list as $settings) {
+                    $channel = \is_array($settings) ? $settings['channel'] ?? null : null;
+                    if (!\is_int($channel) || $channel < 0 || $channel > 7) {
+                        throw new BridgeException('Every rider needs a "channel", an input index 0..7.', 400);
+                    }
+                    try {
+                        $riders[$channel] = new GainRider(RiderSettings::fromArray($channel, $settings));
+                    } catch (\InvalidArgumentException $e) {
+                        throw new BridgeException($e->getMessage(), 400, $e);
+                    }
+                }
+                ksort($riders);
+                $this->riders = $riders;
+                $this->saveRiders();
+                $this->statusDirty = true;
+
+                return $this->status();
             case 'unride':
                 foreach ($this->inputLinks()->members(self::riderChannel($request)) as $member) {
                     unset($this->riders[$member]);

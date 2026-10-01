@@ -32,6 +32,10 @@ back exactly those, which take the preset's gains as they come. A slot stored wi
 bridge keeps the riders of every slot in its riders file next to the running ones, so they survive a restart.
 A preset stored in the vendor editor or on the front panel carries no riders.
 
+A preset file carries its riders as well. Save preset file writes the running riders into the JSON, and Open preset
+file replaces the running riders with the ones in the file. A file without riders, a vendor `.prs` file or one
+saved before 0.43.0, stops them.
+
 ```bash
 bin/console trackdsp:ride in1                              # ride In1 towards -18 dB
 bin/console trackdsp:ride in1 --level=-20 --min=-12 --max=0   # a second call changes the settings
