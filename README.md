@@ -104,7 +104,8 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   group. The Channels menu and the Link dialog set how a link group shows on the tabs and in the Link matrix, kept
   in the browser. The code (L1, L2, ..., on by default), an icon per group (circle, square, triangle, diamond) and a
   colour per group combine freely, and code and icon stand next to each other. The placement of linked channels is
-  in channel order, side by side, or stacked per link group in one column.
+  in channel order, side by side, or stacked per link group in one column. Stacked puts a header with the group's
+  code, icon and colour above each group column, and the members share the column height equally.
 - The Link dialog is a channel x channel matrix per side. A cell links its row and column channel, linked channels
   form a group that lights as a block, and a lit cell takes the column channel out of its group. The lowest
   channel of a group is copied to the others. The rows and columns follow the placement after every click, and

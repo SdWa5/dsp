@@ -4,7 +4,7 @@ import { api, getDefaults, listen, on, send, status, store } from '../lib/device
 import { changedPaths, pageChanges } from '../lib/defaults.js';
 import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel, channelParts } from '../lib/channels.js';
-import { linkCommands, linkGroups, linkedMembers, linkLayout, linkMark, linkUnits, linkView, toggleLink } from '../lib/link.js';
+import { lcm, linkCommands, linkGroups, linkedMembers, linkLayout, linkMark, linkUnits, linkView, toggleLink } from '../lib/link.js';
 import { GAIN_MUTED, presetLabel, presetSlotInfo } from '../lib/scale.js';
 import { readPref, writePref } from '../lib/prefs.js';
 
@@ -124,7 +124,8 @@ export default class extends Controller {
             const members = linkedMembers(state[side], index);
             const { code, colour } = this.linkViewSettings;
             tab.dataset.group = colour && group > 0 ? String(group) : '';
-            const mark = linkMark(this.linkViewSettings, group);
+            // Stacked, the group's header above the column carries the mark
+            const mark = 'stacked' === this.linkViewSettings.placement && members.length > 1 ? '' : linkMark(this.linkViewSettings, group);
             if ('' !== mark) {
                 marks.push(`<span class="chtab__link${code ? '' : ' chtab__link--bare'}">${mark}</span>`);
             }
@@ -145,26 +146,61 @@ export default class extends Controller {
         tab.title = titles.join(', ');
     }
 
-    /** The channel tabs placed by the link placement (normal, side by side or stacked). The DOM order stays. */
+    /**
+     * The channel tabs placed by the link placement (normal, side by side or stacked). The DOM order stays.
+     * Stacked: every link group gets a header with its code, icon and colour above its column, and its members
+     * share the column height equally, both sides on one common row count.
+     */
     placeChannelTabs(state) {
         const placement = null === state ? 'normal' : this.linkViewSettings.placement;
-        const [inputs, outputs] = ['inputs', 'outputs'].map((side) => linkLayout(linkGroups(state?.[side] ?? []), placement));
-        const offset = { inputs: 0, outputs: inputs.columns };
-        const rows = Math.max(inputs.rows, outputs.rows);
+        const groups = { inputs: linkGroups(state?.inputs ?? []), outputs: linkGroups(state?.outputs ?? []) };
+        const layouts = { inputs: linkLayout(groups.inputs, placement), outputs: linkLayout(groups.outputs, placement) };
+        const offset = { inputs: 0, outputs: layouts.inputs.columns };
+        const rows = lcm(layouts.inputs.rows, layouts.outputs.rows);
+        const units = { inputs: linkUnits(groups.inputs), outputs: linkUnits(groups.outputs) };
+        const header = 'stacked' === placement && Object.values(units).some((side) => side.some((u) => u.length > 1)) ? 1 : 0;
         this.chtabsTargets.forEach((box) => {
-            box.style.setProperty('--chtab-columns', String(inputs.columns + outputs.columns));
+            box.style.setProperty('--chtab-columns', String(layouts.inputs.columns + layouts.outputs.columns));
             box.classList.toggle('is-stacked', rows > 1);
+            box.style.gridTemplateRows = rows > 1 ? `${header ? 'auto ' : ''}repeat(${rows}, 1fr)` : '';
         });
         for (const tab of this.tabTargets.filter((t) => t.dataset.side)) {
             const side = tab.dataset.side;
-            const layout = 'inputs' === side ? inputs : outputs;
-            const cell = layout.cells[Number(tab.dataset.index)];
-            // A side with fewer rows than the other lets its last cells reach the bottom
-            const span = cell.row + cell.span - 1 === layout.rows ? rows - cell.row + 1 : cell.span;
+            const cell = layouts[side].cells[Number(tab.dataset.index)];
+            const scale = rows / layouts[side].rows;
+            // A channel alone reaches up into the header row, a group member starts below it
+            const alone = cell.span === layouts[side].rows;
             tab.style.gridColumn = String(offset[side] + cell.column);
-            tab.style.gridRow = `${cell.row} / span ${span}`;
+            tab.style.gridRow = alone ? `1 / span ${header + rows}` : `${header + (cell.row - 1) * scale + 1} / span ${cell.span * scale}`;
             // The gap between the inputs and the outputs goes before the first output column
             tab.classList.toggle('is-split', 'outputs' === side && 1 === cell.column);
+        }
+        // The headers change only with the groups and the display settings, not with every state update
+        const key = JSON.stringify([header, units, this.linkViewSettings]);
+        if (key === this.groupHeadKey) {
+            return;
+        }
+        this.groupHeadKey = key;
+        this.chtabsTargets.forEach((box) => box.querySelectorAll('.chtab-group').forEach((old) => old.remove()));
+        if (header) {
+            const { colour } = this.linkViewSettings;
+            for (const side of ['inputs', 'outputs']) {
+                units[side].forEach((unit, column) => {
+                    if (unit.length < 2) {
+                        return;
+                    }
+                    const group = groups[side][unit[0]];
+                    const head = document.createElement('span');
+                    head.className = 'chtab-group' + ('outputs' === side && 0 === column ? ' is-split' : '');
+                    head.dataset.group = colour ? String(group) : '';
+                    head.style.gridColumn = String(offset[side] + column + 1);
+                    head.style.gridRow = '1';
+                    head.title = t('Linked: %channels%', { channels: unit.map((i) => channelId(('outputs' === side ? 8 : 0) + i)).join(', ') });
+                    // Without code and icon the header is a bare bracket over the group
+                    head.innerHTML = linkMark(this.linkViewSettings, group);
+                    this.chtabsTargets.forEach((box) => box.append(head.cloneNode(true)));
+                });
+            }
         }
     }
 

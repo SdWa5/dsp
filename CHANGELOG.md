@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.34.0] - 2026-10-01
+
+### Added
+
+- Stacked channel tabs: each link group column gets a header with the group's code, icon and colour, and its hover text names the members
+
+### Changed
+
+- Stacked channel tabs: the members of a group share the column height equally, on a common row count for inputs and outputs (`lcm()` in `assets/lib/link.js`). A group member shows its link mark in the header instead of on its tab
+
 ## [0.33.1] - 2026-10-01
 
 ### Fixed
