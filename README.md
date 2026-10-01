@@ -168,6 +168,7 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
 The web editor reaches the device through `trackdsp:bridge`, which owns the connection, merges fast writes and
 publishes state and meters. In ddev it runs by itself, the first time on the simulated device. The connect
 dialog of the editor, or `POST /api/connect` with `{"target":"usb"}`, switches it to an 8x8 on the laptop's USB.
+Its Demo button switches it back to the simulated device, which the dialog's target field does not offer.
 It keeps that choice in `var/bridge.target.json` and starts on it again after a restart. While it is on the
 simulated device, the editor shows "Demo" instead of "Online" and a banner saying that nothing reaches an 8x8.
 The simulated device keeps stored presets in memory until the bridge restarts, and a recall of F00 restores the

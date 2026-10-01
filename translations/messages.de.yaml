@@ -8,7 +8,7 @@ editor:
         save_file_hint: Die aktuellen Einstellungen als JSON
         device: Gerät
         connection: Verbindung…
-        connection_hint: Suchen, verbinden, trennen
+        connection_hint: Suchen, verbinden, Demo, trennen
         store: Preset speichern…
         recall: Preset laden…
         factory: Werkseinstellung (F00)
@@ -117,6 +117,7 @@ editor:
         tone_mode: "Quelle des Testtons: die analogen Eingänge, rosa oder weißes Rauschen oder ein Sinus."
         tone_freq: "Frequenz des Sinus, in Hz."
         device_id: "Die ID des Geräts für die Steuerung über RS232/485, 1 bis 254."
+        demo: "Verbindet mit dem simulierten Gerät, um den Editor ohne 8x8 auszuprobieren. Nichts erreicht ein Gerät."
         bar:
             online: "Zeigt, ob der Editor das Gerät erreicht. Demo bedeutet das simulierte Gerät. Ein Klick öffnet die Verbindung, um das Gerät zu wählen oder zu trennen."
         foot:
@@ -154,7 +155,7 @@ editor:
             gain: "Gain, Polarität, Mute und bei einem Eingang Modus und +48V dieses Kanals."
             aux_gain: "Gain des Aux, mit seiner Pegelanzeige."
             routing_graph: "Das Routing der Matrix als Graph, von den Eingängen und dem Aux links zu den Ausgängen rechts."
-            connect: "Gerät wählen, über USB oder das Netzwerk, oder die Verbindung trennen."
+            connect: "Gerät wählen, über USB oder das Netzwerk, den Editor am simulierten Gerät ausprobieren oder die Verbindung trennen."
             store: "Speichert die Live-Einstellungen und die laufenden Gain-Rider auf einem Presetplatz des Geräts."
             recall: "Lädt ein Preset des Geräts. Es ersetzt alle Live-Einstellungen und die Gain-Rider."
             link: "Verknüpft Eingänge oder Ausgänge zu Gruppen. Eine Änderung an einem Kanal einer Gruppe gilt für alle ihre Kanäle."
@@ -230,6 +231,7 @@ editor:
 "Default device": "Standardgerät"
 "Delay": "Delay"
 "Delay unit": "Delay-Einheit"
+"Demo": "Demo"
 "Device ID": "Geräte-ID"
 "Disconnect": "Trennen"
 "Double-click: back to the default": "Doppelklicken setzt den Standardwert zurück."
@@ -375,7 +377,7 @@ editor:
 "Working Status": "Betriebsstatus"
 "Working status": "Betriebsstatus"
 "arecord is missing on the server, so this page cannot record. Record the pink noise yourself and upload the WAV files in step 2.": "Auf dem Server fehlt arecord. Diese Seite kann deshalb nicht aufnehmen. Rosa Rauschen selbst aufnehmen und die WAV-Dateien in Schritt 2 hochladen."
-"auto, 192.168.68.10, usb or demo": "auto, 192.168.68.10, usb oder demo"
+"auto, 192.168.68.10 or usb": "auto, 192.168.68.10 oder usb"
 "channel, HI, LO (280 = 0 dB)": "Kanal, HI, LO (280 = 0 dB)"
 "none": "keine"
 "output, input, 0/1": "Ausgang, Eingang, 0/1"

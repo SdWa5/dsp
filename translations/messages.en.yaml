@@ -9,7 +9,7 @@ editor:
         save_file_hint: The live settings as JSON
         device: Device
         connection: Connection…
-        connection_hint: Scan, connect, disconnect
+        connection_hint: Scan, connect, demo, disconnect
         store: Store preset…
         recall: Recall preset…
         factory: Factory default (F00)
@@ -118,6 +118,7 @@ editor:
         tone_mode: "Source of the test tone: the analog inputs, pink or white noise, or a sine."
         tone_freq: "Frequency of the sine, in Hz."
         device_id: "The ID of the device for RS232/485 control, 1 to 254."
+        demo: "Connects to the simulated device, to try the editor without an 8x8. Nothing reaches a device."
         bar:
             online: "Shows whether the editor reaches the device. Demo means the simulated device. A click opens the connection, to choose the device or disconnect."
         foot:
@@ -155,7 +156,7 @@ editor:
             gain: "Gain, polarity, mute and, on an input, mode and +48V of this channel."
             aux_gain: "Gain of the Aux, with its meter."
             routing_graph: "The routing of the matrix as a graph, from the inputs and the Aux on the left to the outputs on the right."
-            connect: "Choose the device, over USB or the network, or disconnect from it."
+            connect: "Choose the device, over USB or the network, try the editor on the simulated device, or disconnect."
             store: "Stores the live settings and the running gain riders in a preset slot of the device."
             recall: "Loads a preset of the device, which replaces all live settings and the gain riders."
             link: "Links inputs or outputs into groups. A change to one channel of a group goes to every channel of it."
@@ -231,6 +232,7 @@ editor:
 "Default device": "Default device"
 "Delay": "Delay"
 "Delay unit": "Delay unit"
+"Demo": "Demo"
 "Device ID": "Device ID"
 "Disconnect": "Disconnect"
 "Double-click: back to the default": "Double-click: back to the default"
@@ -376,7 +378,7 @@ editor:
 "Working Status": "Working Status"
 "Working status": "Working status"
 "arecord is missing on the server, so this page cannot record. Record the pink noise yourself and upload the WAV files in step 2.": "arecord is missing on the server, so this page cannot record. Record the pink noise yourself and upload the WAV files in step 2."
-"auto, 192.168.68.10, usb or demo": "auto, 192.168.68.10, usb or demo"
+"auto, 192.168.68.10 or usb": "auto, 192.168.68.10 or usb"
 "channel, HI, LO (280 = 0 dB)": "channel, HI, LO (280 = 0 dB)"
 "none": "none"
 "output, input, 0/1": "output, input, 0/1"
