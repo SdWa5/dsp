@@ -25,6 +25,10 @@ final class Device
     public const FOOTER_BASE = 1214;
     public const FILE_FORMAT = 'trackdsp-8x8';
     public const FILE_VERSION = 1;
+    /** Start of a preset file saved by the vendor editor (.prs) */
+    public const VENDOR_MAGIC = '**8x8MatrixV010*';
+    /** A vendor file holds configuration bytes 2..1261: everything up to footer byte 47 */
+    public const VENDOR_BODY = 1260;
 
     /** @var list<InputChannel> */
     public array $inputs;
@@ -41,7 +45,8 @@ final class Device
     public array $subExtra = [0, 0];
     public ?int $toneMode = null;
     public int $toneFreq = 17;
-    public int $delayUnit = 0;
+    /** null: unknown (a vendor preset file does not carry it), so an upload leaves the device's unit alone */
+    public ?int $delayUnit = 0;
     public ?int $workingStatus = null;
     public int $deviceId = 1;
     public string $ip = '';
@@ -160,6 +165,41 @@ final class Device
         );
     }
 
+    public static function isVendorPreset(string $file): bool
+    {
+        return str_starts_with($file, self::VENDOR_MAGIC);
+    }
+
+    /**
+     * A preset file saved by the vendor editor: the magic, then configuration bytes 2..1261 (name, channels, footer
+     * up to the sub control) and CR LF. It lacks the test tone, the delay unit and the EQ bypass (footer 48..62),
+     * so those stay null and an upload leaves them on the device as they are. Read from one sample file
+     * (docs/protocol.md), so a file with EQ bypass on has not been checked yet.
+     *
+     * @param string $factoryConfig the factory configuration, which fills the bytes the file lacks
+     */
+    public static function fromVendorPreset(string $file, string $factoryConfig): self
+    {
+        if (!self::isVendorPreset($file)) {
+            throw new \InvalidArgumentException('Not a preset file of the vendor editor.');
+        }
+        $body = substr($file, \strlen(self::VENDOR_MAGIC));
+        if (\strlen($body) < self::VENDOR_BODY || '' !== rtrim(substr($body, self::VENDOR_BODY), "\r\n")) {
+            throw new \LengthException(\sprintf('A vendor preset file has %d bytes, this one %d.', \strlen(self::VENDOR_MAGIC) + self::VENDOR_BODY + 2, \strlen($file)));
+        }
+        if (\strlen($factoryConfig) < self::CONFIG_SIZE) {
+            throw new \LengthException('The factory configuration is too short.');
+        }
+        $d = self::parse("\xFF\xFF".substr($body, 0, self::VENDOR_BODY).substr($factoryConfig, 2 + self::VENDOR_BODY, self::CONFIG_SIZE - 2 - self::VENDOR_BODY));
+        foreach ([...$d->inputs, ...$d->outputs, $d->aux] as $channel) {
+            $channel->eqBypass = null;
+        }
+        $d->toneMode = null;
+        $d->delayUnit = null;
+
+        return $d;
+    }
+
     /**
      * Restores the configuration from the raw hex and the remembered values that are not part of it.
      */
@@ -194,7 +234,9 @@ final class Device
             $d->toneMode = null === $dd['tone_mode'] ? null : (int) $dd['tone_mode'];
         }
         $d->toneFreq = (int) ($dd['tone_freq'] ?? $d->toneFreq);
-        $d->delayUnit = (int) ($dd['delay_unit'] ?? $d->delayUnit);
+        if (\array_key_exists('delay_unit', $dd)) {
+            $d->delayUnit = null === $dd['delay_unit'] ? null : (int) $dd['delay_unit'];
+        }
         if (\array_key_exists('working_status', $dd)) {
             $d->workingStatus = null === $dd['working_status'] ? null : (int) $dd['working_status'];
         }
@@ -299,7 +341,9 @@ final class Device
         foreach ($this->groups as $index => $g) {
             $frames[] = Commands::group($index, $g->gain, $g->mute, $g->mask);
         }
-        $frames[] = Commands::delayUnit($this->delayUnit);
+        if (null !== $this->delayUnit) {
+            $frames[] = Commands::delayUnit($this->delayUnit);
+        }
         $frames[] = Commands::activate();
 
         return $frames;

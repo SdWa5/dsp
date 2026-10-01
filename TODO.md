@@ -16,14 +16,14 @@
 - Browser editor: check every page and dialog against the device, with a harmless round trip per control
 - PHPUnit group `device` with read-only checks and reversible writes over LAN and USB
 - Packaging: `trackdsp:serve`, FrankenPHP static binary, installer, desktop entry
-- Offline mode like the vendor editor: check whether a preset can be set up in the browser editor without a
-  device and handed to the real device later. The bridge target `demo` simulates a device, but the editor
-  offers no obvious way to start from it
 - Tooltips on hover for the controls of the browser editor, above all for abbreviations such as FBQ, HPF, LPF,
   PEQ, Q and the Sub and Group control. Say what the control does in one sentence, and name the unit where a
   value has one
-- Vendor preset files: the file format of the vendor editor is unknown. Capture a file saved by the vendor
-  editor in the win11 VM, then decide whether trackdsp reads and writes it
+- Matrix page: next to the matrix, the routing as the vendor editor draws it, with the inputs and the Aux in a
+  column on the left, the outputs in a column on the right, and a line for every connection
+- Vendor preset files: trackdsp reads `.prs` (docs/protocol.md). Save a second sample in the vendor editor with
+  EQ bypass on, a test tone and another delay unit, to confirm that the file leaves them out. Then decide
+  whether trackdsp writes `.prs`, and check such a file by loading it in the vendor editor
 - Localization of the browser editor and the command line, primarily to add German. Collect the user-facing
   strings into Symfony Translation catalogues, with English as the source and a German catalogue first
 - Remove `legacy/python/` once the rewrite has reached parity

@@ -8,6 +8,7 @@ use App\Bridge\CommandMap;
 use App\Discovery\Discovery;
 use App\Model\Device;
 use App\Protocol\Frame;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,6 +26,8 @@ final class ApiController
     public function __construct(
         private readonly BridgeClient $bridge,
         private readonly Discovery $discovery,
+        #[Autowire('%trackdsp.factory_config%')]
+        private readonly string $factoryConfig,
     ) {
     }
 
@@ -143,14 +146,19 @@ final class ApiController
     }
 
     /**
-     * Sends every setting of a preset file (request body) to the device.
+     * Sends every setting of a preset file (request body) to the device: a trackdsp JSON file or a .prs file of
+     * the vendor editor, told apart by the vendor magic.
      */
     #[Route('/upload', methods: ['POST'])]
     public function upload(Request $request): JsonResponse
     {
         return $this->call(function () use ($request): mixed {
             try {
-                $frames = Device::fromJson($request->getContent())->allFrames();
+                $file = $request->getContent();
+                $device = Device::isVendorPreset($file)
+                    ? Device::fromVendorPreset($file, (string) file_get_contents($this->factoryConfig))
+                    : Device::fromJson($file);
+                $frames = $device->allFrames();
             } catch (\JsonException|\InvalidArgumentException|\LengthException|\OutOfRangeException $e) {
                 // Out of range: a value in the file that no command can carry, e.g. a gain above +12 dB
                 throw new BridgeException('Not a valid preset file: '.$e->getMessage(), 400, $e);

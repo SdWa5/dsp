@@ -475,7 +475,8 @@ export default class extends Controller {
             return;
         }
         try {
-            await api('upload', await file.text());
+            // As a Blob: a vendor .prs file is binary and would not survive a text round trip
+            await api('upload', file);
             this.refresh();
         } catch (error) {
             this.showError(error.message);

@@ -15,7 +15,7 @@
                     <div class="menu__item">
                         <button type="button" class="menu__title">File</button>
                         <div class="menu__list">
-                            <button type="button" data-action="editor#openFile">Open preset file…<small>Send every setting to the device</small></button>
+                            <button type="button" data-action="editor#openFile">Open preset file…<small>Send every setting to the device (.json, or .prs of the vendor editor)</small></button>
                             <button type="button" data-action="editor#saveFile">Save preset file<small>The live settings as JSON</small></button>
                         </div>
                     </div>
@@ -68,7 +68,7 @@
                             {{ _self.item('About', 'about') }}
                         </div>
                     </div>
-                    <input type="file" accept=".json,application/json" hidden data-editor-target="file" data-action="change->editor#upload">
+                    <input type="file" accept=".json,.prs,application/json" hidden data-editor-target="file" data-action="change->editor#upload">
                 </nav>
                 <span class="bar__id">ID {{ w.value('device_id') }}</span>
                 <button type="button" class="theme" data-editor-target="theme" data-action="editor#theme" title="Colour theme">Auto</button>

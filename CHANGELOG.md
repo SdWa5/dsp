@@ -5,6 +5,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.27.0] - 2026-10-01
+
+### Added
+
+- "Open preset file" also reads a `.prs` file saved by the vendor editor (`Device::fromVendorPreset()`). `/api/upload` tells it from a trackdsp JSON file by its magic. The file carries no test tone, delay unit and EQ bypass, so the upload leaves them on the device as they are
+- The vendor file layout in `docs/protocol.md`, and the sample file as `tests/fixtures/vendor/SdWa5_Default_Preset_3_DSPs.prs`
+- TODO item for showing the routing as a graph next to the matrix
+
+### Changed
+
+- `Device::$delayUnit` may be null for unknown, and `allFrames()` then sends no delay unit
+- The editor uploads the chosen file as it is instead of as text, so a binary file arrives intact
+
+### Removed
+
+- The TODO item for an offline mode: the editor starts in demo mode, and opening a preset file there sets it up without a device
+
 ## [0.26.0] - 2026-10-01
 
 ### Added

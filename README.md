@@ -92,6 +92,9 @@ per input and output with the EQ curve, live meters and the File, Device, Channe
 editor talks to the bridge through the JSON API below. A ddev with another `project_tld` needs its host names in
 `TRACKDSP_TRUSTED_HOSTS` in `.env.local`, or the app answers 400 "Untrusted Host".
 
+- File > Open preset file sends every setting of a trackdsp JSON file, or of a `.prs` file saved by the vendor
+  editor, to the device. A `.prs` file carries no test tone, delay unit and EQ bypass, so those stay as they are.
+  Save preset file writes JSON. In demo mode this sets up a preset without a device.
 - A named channel shows its name next to its ID wherever the ID appears, for example "Out1 Main L" or
   "Out1 (Main L)" in lists. A name that only repeats the ID is left out.
 - The channel tabs show a dot for a muted channel, a hollow one for a channel whose gain mutes it, and the link
@@ -190,7 +193,7 @@ file_put_contents('preset.json', $device->toJson());    // same file format as t
 | `App\Protocol` | frame codec, opcodes, channel indices, scales, value labels, command builders |
 | `App\Transport` | TCP, hidraw and demo transports, hidraw discovery, target factory |
 | `App\Client` | `Matrix`: request/reply matching, retries with session re-init, reads and writes |
-| `App\Model` | the configuration as objects, JSON preset files, upload frames, `DeviceState` for applying writes, link groups |
+| `App\Model` | the configuration as objects, JSON and vendor `.prs` preset files, upload frames, `DeviceState` for applying writes, link groups |
 | `App\Bridge` | the bridge loop, write queue, command allow-list and the socket client |
 | `App\Discovery` | device search on USB and on the local networks |
 | `App\Automation` | the gain rider |
