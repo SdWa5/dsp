@@ -42,6 +42,11 @@
                             <hr>
                             {{ _self.item('Sub Control…', 'sub') }}
                             {{ _self.item('Group Control…', 'groups') }}
+                            <hr>
+                            <span class="menu__heading">Link display on the channel tabs</span>
+                            {% for key, label in {code: 'Group code (L1, L2 …)', colour: 'Colour per group', columns: 'Linked channels side by side'} %}
+                                <label class="menu__check"><input type="checkbox" value="{{ key }}" data-editor-target="linkView" data-action="change->editor#linkView"> {{ label }}</label>
+                            {% endfor %}
                         </div>
                     </div>
                     <div class="menu__item">
@@ -74,7 +79,7 @@
             <div class="chtabs" role="tablist" aria-label="Channels">
                 {% for side, prefix in {inputs: 'In', outputs: 'Out'} %}
                     {% for i in 0..7 %}
-                        <button type="button" role="tab" class="chtab chtab--{{ side }}" data-editor-target="tab" data-page="{{ side }}{{ i }}"
+                        <button type="button" role="tab" class="chtab chtab--{{ side }}{{ 'outputs' == side and 0 == i ? ' is-split' }}" data-editor-target="tab" data-page="{{ side }}{{ i }}"
                                 data-side="{{ side }}" data-index="{{ i }}"
                                 data-action="editor#tab" data-editor-page-param="{{ side }}{{ i }}">
                             <b class="chtab__id">{{ prefix }}{{ i + 1 }}</b><span class="chtab__name"></span><span class="chtab__marks"></span>

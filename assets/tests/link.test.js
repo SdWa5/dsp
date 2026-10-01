@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { linkCommands, linkedMembers, linkGroups } from '../lib/link.js';
+import { linkCommands, linkedMembers, linkGroups, linkOrder } from '../lib/link.js';
 
 // An unlinked channel holds its own bit (factory default 1, 2, 4 …), a slave holds 0
 const side = (...links) => [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ link: links[i] ?? 1 << i }));
@@ -29,4 +29,11 @@ test('unlinking clears the flags only', () => {
         { command: 'link', args: { channel: 1, flags: 2 } },
     ]);
     assert.deepEqual(linkCommands(side(0b11, 0), [1, 1, 0, 0, 0, 0, 0, 0], 0), []);
+});
+
+test('linked channels are ordered next to each other', () => {
+    assert.deepEqual(linkOrder([0, 0, 0, 0, 0, 0, 0, 0]), [0, 1, 2, 3, 4, 5, 6, 7]);
+    // In1 + In5 and In3 + In8: each group takes the place of its lowest member
+    assert.deepEqual(linkOrder([1, 0, 2, 0, 1, 0, 0, 2]), [0, 4, 1, 2, 7, 3, 5, 6]);
+    assert.deepEqual(linkOrder(linkGroups(side(0, 0, 0b111))), [0, 1, 2, 3, 4, 5, 6, 7]);
 });

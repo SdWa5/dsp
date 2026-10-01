@@ -5,6 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.22.0] - 2026-10-01
+
+### Added
+
+- Link display options in the Channels menu, each on its own and kept in the browser: the group code (L1, L2 …), a colour per group, and linked channels side by side on the channel tabs. A colour without the code comes with a shape per group
+- `linkOrder()` in `assets/lib/link.js`, the tab order with linked channels next to each other
+
+### Changed
+
+- The gap between the input and the output tabs goes before the first output shown, rather than before the ninth tab
+
+### Removed
+
+- The TODO item for a configurable link display
+
 ## [0.21.2] - 2026-10-01
 
 ### Added

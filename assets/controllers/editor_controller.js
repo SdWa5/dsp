@@ -3,11 +3,13 @@ import { api, getDefaults, listen, on, send, status, store } from '../lib/device
 import { changedPaths } from '../lib/defaults.js';
 import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel, channelParts } from '../lib/channels.js';
-import { linkCommands, linkGroups, linkedMembers } from '../lib/link.js';
+import { linkCommands, linkGroups, linkedMembers, linkOrder } from '../lib/link.js';
 import { GAIN_MUTED, presetLabel, presetSlotInfo } from '../lib/scale.js';
 import { readPref, writePref } from '../lib/prefs.js';
 
 const THEMES = ['auto', 'light', 'dark'];
+/** How the channel tabs show link groups, each switched on its own in the Channels menu. */
+const LINK_VIEW = { code: true, colour: false, columns: false };
 const changedText = (count) => `${count} ${1 === count ? 'setting differs' : 'settings differ'} from the factory default`;
 
 /**
@@ -16,12 +18,16 @@ const changedText = (count) => `${count} ${1 === count ? 'setting differs' : 'se
  */
 export default class extends Controller {
     static targets = ['tab', 'page', 'online', 'banner', 'bannerText', 'number', 'error', 'dialog', 'status', 'target', 'slots',
-        'storeName', 'linkGroup', 'file', 'scanButton', 'scanStatus', 'found', 'theme', 'matrix'];
+        'storeName', 'linkGroup', 'file', 'scanButton', 'scanStatus', 'found', 'theme', 'matrix', 'linkView'];
 
     connect() {
         const theme = readPref('theme', 'auto');
         this.applyTheme(THEMES.includes(theme) ? theme : 'auto');
         this.showMatrix(readPref('matrix-swapped', false));
+        this.linkViewSettings = { ...LINK_VIEW, ...readPref('link-view', {}) };
+        this.linkViewTargets.forEach((box) => {
+            box.checked = Boolean(this.linkViewSettings[box.value]);
+        });
         this.offs = [
             on('status', () => this.showStatus()),
             on('error', (message) => this.showError(message)),
@@ -84,6 +90,7 @@ export default class extends Controller {
         for (const number of this.numberTargets) {
             number.textContent = presetLabel(state?.active_preset);
         }
+        this.orderChannelTabs(state);
         for (const tab of this.tabTargets) {
             if (tab.dataset.side) {
                 this.showChannelTab(tab, state);
@@ -114,8 +121,13 @@ export default class extends Controller {
         if (state) {
             const group = linkGroups(state[side])[index];
             const members = linkedMembers(state[side], index);
+            const { code, colour } = this.linkViewSettings;
+            tab.dataset.group = colour && group > 0 ? String(group) : '';
+            if (group > 0 && (code || colour)) {
+                // Without the code the group gets a shape of its own, so it does not rest on colour alone
+                marks.push(code ? `<span class="chtab__link">L${group}</span>` : `<span class="chtab__link chtab__link--shape" data-shape="${group}" aria-hidden="true"></span>`);
+            }
             if (group > 0) {
-                marks.push(`<span class="chtab__link">L${group}</span>`);
                 titles.push(`linked with ${members.filter((m) => m !== index).map((m) => channelId(('outputs' === side ? 8 : 0) + m)).join(', ')}`);
             }
             const count = changedPaths(state[side]?.[index], getDefaults()[side]?.[index]).length;
@@ -130,6 +142,26 @@ export default class extends Controller {
             box.innerHTML = html;
         }
         tab.title = titles.join(', ');
+    }
+
+    /** Members of a link group next to each other, when that is switched on. The DOM order stays. */
+    orderChannelTabs(state) {
+        const columns = this.linkViewSettings.columns && null !== state;
+        for (const [side, base] of [['inputs', 0], ['outputs', 8]]) {
+            const order = columns ? linkOrder(linkGroups(state[side] ?? [])) : [0, 1, 2, 3, 4, 5, 6, 7];
+            for (const tab of this.tabTargets.filter((t) => t.dataset.side === side)) {
+                const position = order.indexOf(Number(tab.dataset.index));
+                tab.style.order = columns ? String(base + position) : '';
+                // The gap between the inputs and the outputs goes before the first output shown
+                tab.classList.toggle('is-split', 'outputs' === side && 0 === position);
+            }
+        }
+    }
+
+    linkView(event) {
+        this.linkViewSettings[event.target.value] = event.target.checked;
+        writePref('link-view', this.linkViewSettings);
+        this.showState();
     }
 
     theme() {

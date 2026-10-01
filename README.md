@@ -95,7 +95,9 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
 - A named channel shows its name next to its ID wherever the ID appears, for example "Out1 Main L" or
   "Out1 (Main L)" in lists. A name that only repeats the ID is left out.
 - The channel tabs show a dot for a muted channel, a hollow one for a channel whose gain mutes it, and the link
-  group (L1, L2, ...).
+  group. The Channels menu sets how a link group shows, each option on its own and kept in the browser: the code
+  (L1, L2, ..., on by default), a colour per group, and linked channels side by side. A colour without the code
+  comes with a shape per group (circle, square, triangle, diamond), so it reads without colour too.
 - Every setting that differs from the factory default (`resources/factory_config.bin`) has a bar on its left
   edge, and its channel tab or the Aux tab a corner triangle. Both are shapes, so they read without colour.
 - The store and recall dialogs show which user slots are empty. An empty slot cannot be recalled.

@@ -23,9 +23,6 @@
   output at once, with an on/off switch for each EQ. Check in the vendor editor whether its switch only hides
   the curve or bypasses the EQ, which the configuration keeps in the EQ bypass bits of the footer, and do the
   same. The channel tabs already draw one curve each from `assets/lib/eq.js`
-- Make the link display configurable in the browser editor. Today a link group is marked by its code (L1, L2,
-  ...). Offer a colour per group, and linked channels arranged next to each other as columns, as further
-  options. Colour alone does not read for everyone, so keep the code or a shape next to it
 - Tooltips on hover for the controls of the browser editor, above all for abbreviations such as FBQ, HPF, LPF,
   PEQ, Q and the Sub and Group control. Say what the control does in one sentence, and name the unit where a
   value has one

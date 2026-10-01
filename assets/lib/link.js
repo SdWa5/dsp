@@ -59,3 +59,18 @@ export function linkCommands(channels, groups, base) {
     }
     return [...copies, ...links];
 }
+
+/**
+ * Display order of the channel indices with the members of a link group next to each other. A group takes the
+ * place of its lowest member. groups: group number per index, as linkGroups returns it.
+ */
+export function linkOrder(groups) {
+    const order = [];
+    groups.forEach((group, i) => {
+        if (order.includes(i)) {
+            return;
+        }
+        order.push(...(0 === group ? [i] : groups.flatMap((g, k) => (g === group ? [k] : []))));
+    });
+    return order;
+}

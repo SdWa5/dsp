@@ -134,6 +134,14 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(0, self::page()->filter('dialog [data-controller~=collapse]'));
     }
 
+    public function testLinkDisplayOptions(): void
+    {
+        $boxes = self::page()->filter('input[data-editor-target=linkView]');
+        self::assertSame(['code', 'colour', 'columns'], $boxes->each(static fn (Crawler $n): string => (string) $n->attr('value')));
+        // The gap between inputs and outputs starts at Out1 until the tabs are reordered
+        self::assertSame('outputs0', self::page()->filter('.chtab.is-split')->attr('data-page'));
+    }
+
     public function testEveryBindingIsAStatePath(): void
     {
         $paths = [];
