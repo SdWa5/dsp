@@ -65,3 +65,8 @@
     {%- set id = index < 8 ? 'In' ~ (index + 1) : (index < 16 ? 'Out' ~ (index - 7) : 'Aux') -%}
     <option value="{{ value ?? index }}" data-controller="channel" data-channel-index-value="{{ index }}">{{ id }}</option>
 {%- endmacro %}
+
+{# The title of a panel with data-controller="collapse": a button that folds the panel #}
+{% macro fold(label) -%}
+    <button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true">{{ label }}</button>
+{%- endmacro %}

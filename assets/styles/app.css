@@ -322,6 +322,13 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .card__title small { font-weight: 400; color: var(--muted); }
 details.card > summary { cursor: pointer; border-bottom: 0; }
 details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
+/* A foldable panel (collapse_controller.js): the title is a button, the rest goes when folded */
+.fold { display: inline-flex; align-items: center; gap: 8px; padding: 0; color: inherit; font: inherit; background: none; border: 0; cursor: pointer; }
+.fold::before { content: '▾'; display: inline-block; width: 1em; transition: transform 0.15s; }
+.is-collapsed .fold::before { transform: rotate(-90deg); }
+.fold:focus-visible { outline: 2px solid var(--head); outline-offset: 2px; }
+.strips.is-collapsed > :not(.strips__title), .card.is-collapsed > :not(.card__title) { display: none; }
+.card.is-collapsed > .card__title { border-bottom: 0; }
 .card__body { display: flex; flex-direction: column; gap: 10px; padding: 10px 12px 12px; }
 .step { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--head); color: var(--head-text); font-size: 12px; }
 .checks { display: flex; flex-wrap: wrap; gap: 6px 16px; }

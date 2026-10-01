@@ -118,6 +118,22 @@ final class EditorControllerTest extends WebTestCase
         self::assertSame(['2'], array_values(array_unique($row->each(static fn (Crawler $n): string => (string) $n->attr('data-toggle-bit-value')))));
     }
 
+    public function testFoldablePanelsHaveOneToggleAndAUniqueKey(): void
+    {
+        $panels = self::page()->filter('[data-controller~=collapse]');
+        $keys = $panels->each(static fn (Crawler $n): string => (string) $n->attr('data-collapse-key-value'));
+        self::assertContains('gain.input', $keys);
+        self::assertContains('gain.groups', $keys);
+        self::assertContains('autoeq.fit', $keys);
+        self::assertSame($keys, array_unique($keys), 'Two panels would fold together.');
+        $panels->each(static function (Crawler $panel): void {
+            self::assertCount(1, $panel->filter('[data-collapse-target=toggle]'));
+            self::assertSame('true', $panel->filter('[data-collapse-target=toggle]')->attr('aria-expanded'));
+        });
+        // The dialogs show the same strips without a fold
+        self::assertCount(0, self::page()->filter('dialog [data-controller~=collapse]'));
+    }
+
     public function testEveryBindingIsAStatePath(): void
     {
         $paths = [];

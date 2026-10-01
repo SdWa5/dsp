@@ -6,8 +6,8 @@
 <div class="autoeq" data-controller="autoeq">
     <p class="autoeq__status" data-autoeq-target="status" role="status" hidden></p>
 
-    <section class="card" data-autoeq-target="setup">
-        <h2 class="card__title"><span class="step">1</span> Setup</h2>
+    <section class="card" data-autoeq-target="setup" data-controller="collapse" data-collapse-key-value="autoeq.setup">
+        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">1</span> Setup</button></h2>
         <form class="card__body" data-action="autoeq#start">
             <fieldset class="group">
                 <legend>Outputs to correct</legend>
@@ -32,8 +32,8 @@
         </form>
     </section>
 
-    <section class="card" data-autoeq-target="measure" hidden>
-        <h2 class="card__title"><span class="step">2</span> Measure <small data-autoeq-target="summary"></small></h2>
+    <section class="card" data-autoeq-target="measure" hidden data-controller="collapse" data-collapse-key-value="autoeq.measure">
+        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">2</span> Measure <small data-autoeq-target="summary"></small></button></h2>
         <div class="card__body">
             <p class="dialog__note">Put the mic where the audience listens and record one position after the other. Three to five positions
                 around the listening area give a correction that holds for the whole room.</p>
@@ -51,8 +51,8 @@
         </div>
     </section>
 
-    <section class="card" data-autoeq-target="fitCard" hidden>
-        <h2 class="card__title"><span class="step">3</span> Fit</h2>
+    <section class="card" data-autoeq-target="fitCard" hidden data-controller="collapse" data-collapse-key-value="autoeq.fit">
+        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">3</span> Fit</button></h2>
         <form class="card__body" data-autoeq-target="fitForm" data-action="autoeq#fit">
             <div class="form-grid">
                 <label>Target <select name="target">
@@ -83,8 +83,8 @@
         </form>
     </section>
 
-    <section class="card" data-autoeq-target="applyCard" hidden>
-        <h2 class="card__title"><span class="step">4</span> Apply and verify</h2>
+    <section class="card" data-autoeq-target="applyCard" hidden data-controller="collapse" data-collapse-key-value="autoeq.apply">
+        <h2 class="card__title"><button type="button" class="fold" data-collapse-target="toggle" data-action="collapse#toggle" aria-expanded="true"><span class="step">4</span> Apply and verify</button></h2>
         <div class="card__body">
             <p class="dialog__note" data-autoeq-target="applyNote"></p>
             <div class="dialog__buttons dialog__buttons--start">

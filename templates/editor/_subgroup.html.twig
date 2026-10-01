@@ -1,8 +1,9 @@
 {# Sub Control (key 'sub', 2 strips) or Group Control (key 'groups', 8 strips), in its dialog and on the Gain page.
-   heading: an optional panel title, the dialog has its own head. class: extra classes for the panel. #}
+   heading: an optional panel title that also makes the panel foldable, the dialog has its own head. class: extra classes for the panel. #}
 {% import 'editor/_widgets.html.twig' as w %}
-<div class="strips {{ class|default('') }}">
-    {% if heading|default(null) %}<h2 class="strips__title">{{ heading }}</h2>{% endif %}
+{% set heading = heading|default(null) %}
+<div class="strips {{ class|default('') }}"{% if heading %} data-controller="collapse" data-collapse-key-value="gain.{{ key }}"{% endif %}>
+    {% if heading %}<h2 class="strips__title">{{ w.fold(heading) }}</h2>{% endif %}
     {% for k in 0..('sub' == key ? 1 : 7) %}
         {% set p = key ~ '.' ~ k %}
         {% set outputs = 'sub' == key ? 1 == k : k >= 4 %}

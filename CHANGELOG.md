@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.0] - 2026-10-01
+
+### Added
+
+- Foldable panels: Input, Output, Sub Control and Group Control on the Gain page and the four steps of the Auto EQ page fold down to their title, from `collapse_controller.js`. Folded panels are kept in the browser
+- `fold` macro in `templates/editor/_widgets.html.twig` for the title button of a foldable panel
+
+### Removed
+
+- The TODO item for collapsible sections
+
 ## [0.20.0] - 2026-10-01
 
 ### Added
