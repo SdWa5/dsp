@@ -413,7 +413,8 @@ export default class extends Controller {
         this.closeMenu();
         const dialog = this.dialogTargets.find((d) => d.id === `dialog-${event.params.dialog}`);
         const state = store.state;
-        if ('connect' === event.params.dialog && status.target) {
+        // The simulated device has a button of its own, so its target never shows in the field
+        if ('connect' === event.params.dialog && status.target && !status.demo) {
             this.targetTarget.value = status.target;
         }
         if (['store', 'recall'].includes(event.params.dialog)) {
@@ -466,6 +467,12 @@ export default class extends Controller {
     connectTo(event) {
         event.preventDefault();
         this.switchTarget(this.targetTarget.value.trim());
+    }
+
+    /** Switches the bridge to the simulated device, without a target typed into the field. */
+    connectDemo() {
+        this.targetTarget.value = '';
+        this.switchTarget('demo');
     }
 
     /** Searches USB and the local networks and lists what it finds, one click connects. */

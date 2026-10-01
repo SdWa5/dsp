@@ -90,6 +90,17 @@ final class EditorControllerTest extends WebTestCase
         self::assertSame('15', $page->filter('select[name=target] option')->last()->attr('value'));
     }
 
+    public function testConnectDialogHasADemoButton(): void
+    {
+        $dialog = self::page()->filter('dialog#dialog-connect');
+        $demo = $dialog->filter('button[data-action="editor#connectDemo"]');
+        self::assertCount(1, $demo);
+        self::assertSame('button', $demo->attr('type'));
+        self::assertSame('Demo', $demo->text());
+        // The simulated device is no target to type
+        self::assertStringNotContainsString('demo', (string) $dialog->filter('input[name=target]')->attr('placeholder'));
+    }
+
     public function testGainPageCarriesSubAndGroupControl(): void
     {
         $gain = self::page()->filter('section[data-page=gain]');

@@ -8,10 +8,11 @@
     {{ _self.dialog('connect', 'Connection', 'connect') }}
     <p class="dialog__status" data-editor-target="status">–</p>
     <form class="dialog__form" data-action="editor#connectTo">
-        <label>{{ "Target"|trans }} <input type="text" name="target" data-editor-target="target" placeholder="{{ "auto, 192.168.68.10, usb or demo"|trans }}" required></label>
+        <label>{{ "Target"|trans }} <input type="text" name="target" data-editor-target="target" placeholder="{{ "auto, 192.168.68.10 or usb"|trans }}" required></label>
         <div class="dialog__buttons">
             <button type="button" class="big" data-action="editor#scan" data-editor-target="scanButton">{{ "Scan"|trans }}</button>
             <button type="submit" class="big">{{ "Connect"|trans }}</button>
+            <button type="button" class="big" data-action="editor#connectDemo" title="{{ 'editor.tip.demo'|trans }}">{{ "Demo"|trans }}</button>
             <button type="button" class="big" data-action="editor#disconnectDevice">{{ "Disconnect"|trans }}</button>
         </div>
     </form>

@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.45.0] - 2026-10-01
+
+### Added
+
+- Demo button in the connection dialog, which switches the bridge to the simulated device, with a tooltip in English and German
+
+### Changed
+
+- The target field of the connection dialog no longer names `demo` in its placeholder, and it stays empty while the bridge is on the simulated device
+- The connection menu hint and the dialog tooltip name the demo
+
 ## [0.44.1] - 2026-10-01
 
 ### Fixed
