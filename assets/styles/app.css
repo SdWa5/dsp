@@ -26,6 +26,7 @@
     --warn-bg: #ffe08a;
     --warn-text: #3a2d00;
     --changed: #c2185b;
+    --changed-text: #fff;
     --fader-accent: #4b5563;
     --fader-height: 190px;
     color-scheme: light;
@@ -51,6 +52,7 @@
         --rider-text: #40c4ff;
         --limit-text: #ffb74d;
         --changed: #ff6ec7;
+        --changed-text: #1b1b1b;
         --fader-accent: #7d8aa0;
         color-scheme: dark;
     }
@@ -75,6 +77,7 @@
     --rider-text: #40c4ff;
     --limit-text: #ffb74d;
     --changed: #ff6ec7;
+    --changed-text: #1b1b1b;
     --fader-accent: #7d8aa0;
     color-scheme: dark;
 }
@@ -171,12 +174,15 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .link-shape[data-shape='1'] { border-radius: 50%; }
 .link-shape[data-shape='3'] { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
 .link-shape[data-shape='4'] { transform: rotate(45deg) scale(0.85); }
-/* Differs from the factory default: a corner triangle bottom left, a shape that reads without colour */
-.chtab__changed, .tab.is-changed::after {
+/* Differs from the factory default: a corner triangle bottom left on a channel tab, a count on a page tab */
+.chtab__changed {
     position: absolute; bottom: 0; left: 0; width: 0; height: 0; border-style: solid; border-width: 9px 0 0 9px;
     border-color: transparent transparent transparent var(--changed); content: '';
 }
-.tab.is-changed { position: relative; }
+.tab__count {
+    display: inline-block; min-width: 16px; margin-left: 5px; padding: 0 4px; border-radius: 8px; background: var(--changed);
+    color: var(--changed-text); font-size: 10px; line-height: 16px; text-align: center; vertical-align: 1px;
+}
 
 .banner {
     display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 0 0 10px; padding: 8px 12px; border-radius: 4px;

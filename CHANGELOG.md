@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.35.0] - 2026-10-01
+
+### Changed
+
+- Page tabs show their changed-setting count as a badge next to the name instead of a corner triangle. Before, the count was only in the hover text
+
 ## [0.34.1] - 2026-10-01
 
 ### Fixed

@@ -78,7 +78,7 @@
             <div class="tabs" role="tablist" aria-label="{{ 'editor.tabs.pages'|trans }}">
                 {% for page in ['gain', 'gate', 'comp', 'delay', 'matrix', 'aux', 'autoeq'] %}
                     <button type="button" role="tab" class="tab" data-editor-target="tab" data-page="{{ page }}"
-                            data-action="editor#tab" data-editor-page-param="{{ page }}">{{ ('editor.tabs.' ~ page)|trans }}</button>
+                            data-action="editor#tab" data-editor-page-param="{{ page }}">{{ ('editor.tabs.' ~ page)|trans }}<span class="tab__count" hidden></span></button>
                 {% endfor %}
             </div>
             <div class="chtabs" role="tablist" aria-label="{{ 'editor.tabs.channels'|trans }}" data-editor-target="chtabs">

@@ -73,6 +73,8 @@ final class EditorControllerTest extends WebTestCase
         self::assertSame('t.racks 8x8 Matrix Editor', $page->filter('title')->text());
         self::assertCount(23, $page->filter('section.page'));
         self::assertCount(7, $page->filter('.tab'));
+        // The changed-setting count stays hidden until the state arrives
+        self::assertCount(7, $page->filter('.tab > .tab__count[hidden]'));
         self::assertCount(16, $page->filter('.chtab'));
         self::assertCount(19, $page->filter('dialog'));
         foreach ($page->filter('[data-editor-dialog-param]')->each(static fn (Crawler $n): string => (string) $n->attr('data-editor-dialog-param')) as $dialog) {

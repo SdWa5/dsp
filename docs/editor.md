@@ -64,8 +64,9 @@ ddev exec composer ci
 
 ## Page change marks
 
-Every function tab uses the same corner triangle as the channel tabs. Its tooltip counts the settings that
-differ from `resources/factory_config.bin`. The bridge state updates the marks for hidden pages too. Restoring
+Every function tab shows the number of its settings that differ from `resources/factory_config.bin` as a badge
+next to its name, and its tooltip says the same in words. A channel tab marks a difference with a corner
+triangle. The bridge state updates the marks for hidden pages too. Restoring
 the defaults clears them. Missing or unreported values do not count. Theme, folds, link placement and graphical
 curve switches do not affect these marks.
 

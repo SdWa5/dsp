@@ -112,8 +112,8 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   stacked turns each group into a block with one header naming its members. The display settings sit below the
   two matrices as well.
 - Every setting that differs from the factory default (`resources/factory_config.bin`) has a bar on its left
-  edge. Every page tab and channel tab shows a corner triangle when its settings differ. The tooltip counts
-  the changed settings. Auto EQ tracks output PEQ bands and EQ bypass. The marks clear when values return to
+  edge. Every page tab shows the number of its changed settings as a badge, and every channel tab shows a corner
+  triangle when its settings differ. The tooltip counts the changed settings. Auto EQ tracks output PEQ bands and EQ bypass. The marks clear when values return to
   their defaults and read without colour.
 - Hovering a control shows what it does and its unit, in English or German. Every fader, switch and list shows
   the same tooltip on every page and in every dialog. The panels name their abbreviations, for example FBQ, HPF,

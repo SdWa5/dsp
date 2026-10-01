@@ -97,8 +97,11 @@ export default class extends Controller {
                 this.showChannelTab(tab, state);
             } else {
                 const count = pages[tab.dataset.page]?.length ?? 0;
+                const badge = tab.querySelector('.tab__count');
                 tab.classList.toggle('is-changed', count > 0);
                 tab.title = count > 0 ? changedText(count) : '';
+                badge.hidden = 0 === count;
+                badge.textContent = count > 0 ? String(count) : '';
             }
         }
     }
