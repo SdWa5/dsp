@@ -42,6 +42,17 @@
 
 ## Editor
 
+- Next: turn fader knobs red where the PEQ or a filter does nothing, like the gain and compressor knobs
+  (`knobMuted()` and `compActive()`, `paint()` in `fader_controller.js`). Only the knob turns red, the track keeps
+  its colour.
+  - Selected band: the knobs of Freq, Q and Gain turn red while the band is bypassed, by its own Bypass or by EQ
+    Bypass (`bandBypassed()` in `assets/lib/eq.js`), and while its gain is 0 dB. A gain of 0 dB does nothing only
+    for Peak, Low Shelf and High Shelf. Low Pass, High Pass and the two Allpass types filter at any gain, so for
+    them only the bypass counts
+  - HighPass and LowPass: the frequency knob turns red while the filter's Bypass button is active (slope 0)
+  - The PEQ sliders are plain range inputs driven by `peq_controller.js`, not fader controllers, so the rule goes
+    into its `render()` next to `paintRange()`. Whether EQ Bypass also takes out the HPF and LPF is still open
+    (Protocol section), so EQ Bypass does not turn the filter knobs red until that is measured
 - Make an active Mute button and a gain turned to the bottom tell apart at a glance. Both light the Mute button
   in the same red (`.toggle--mute.is-on`, `--mute` #ff5252), and since 0.56.0 both turn the gain knob red as
   well, so only the tooltip says which one mutes. That red is also close to the colour of a changed setting
