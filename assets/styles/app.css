@@ -430,8 +430,9 @@ details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
 .checks { display: flex; flex-wrap: wrap; gap: 6px 16px; }
 .check { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px 20px; }
-.form-grid > label { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.form-grid > label.check { justify-content: flex-start; grid-column: 1 / -1; }
+/* The field follows its label, however wide the cell */
+.form-grid > label { display: flex; align-items: center; gap: 8px; }
+.form-grid > label.check { grid-column: 1 / -1; }
 .form-grid input[type=number] { width: 80px; }
 .form-grid select { max-width: 60%; }
 .unit-input { display: inline-flex; align-items: center; gap: 4px; }
