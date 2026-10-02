@@ -114,7 +114,7 @@ Every frame the editor sent in the 143 captures (4830 frames) is rebuilt byte fo
 | Q (0–100) | 0.4 · 320^(i/100); 25 = 1.70, 32 = 2.50 | ✓ |
 | PEQ type | 0 Peak, 1 Low Shelf, 2 High Shelf, 3 Low Pass, 4 High Pass, 5 Allpass1, 6 Allpass2 | ✓ |
 | Times | ms = raw + 1 | ✓ |
-| Gate threshold | raw/2 − 90 dB | ✓ |
+| Gate threshold | raw/2 − 90 dB, 0..220 (−90..+20 dB). The vendor editor's fader ends at +20.0 dB (`tools/shots/gate_threshold_max.png`, 2026-10-02), like the compressor's | ✓ |
 | Compressor / AutoMix threshold | raw/2 − 90 dB (180 = 0 dB, 220 = +20 dB). The limiter moves the output peak 1 dB per dB | ✓, unit at the connector unconfirmed |
 | Ratio | 0 = 1:1.0 … 14 = 1:20, 15 = Limit | ✓ |
 | Delay | samples / 48 (ms) | ✓ |

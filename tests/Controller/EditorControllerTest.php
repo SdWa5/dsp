@@ -357,6 +357,16 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(0, $aux->filter('[data-controller~=gainwarning], [data-fader-link-value]'));
     }
 
+    public function testGateThresholdRunsFromMinus90ToPlus20Db(): void
+    {
+        // The vendor editor's gate threshold fader ends at +20.0 dB (tools/shots/gate_threshold_max.png)
+        $ranges = self::page()->filter('[data-fader-bind-value$=".gate.threshold"] input[type=range]')
+            ->each(static fn (Crawler $n): array => [$n->attr('min'), $n->attr('max')]);
+        // Gate page and input tab of every input
+        self::assertCount(16, $ranges);
+        self::assertSame([['0', '220']], array_values(array_unique($ranges, \SORT_REGULAR)));
+    }
+
     public function testEveryCompressorFaderTurnsRedWhileItsCompressorIsOff(): void
     {
         $faders = self::page()->filter('[data-controller=fader][data-fader-bind-value*=".comp."]');
