@@ -220,6 +220,36 @@ final class EditorControllerTest extends WebTestCase
         });
     }
 
+    public function testGateAndCompressorCurvesArePlotted(): void
+    {
+        $page = self::page();
+        // One large curve per page, which follows the strips: every strip names the channel it plots
+        foreach (['gate' => ['gate', 'inputs.0', 8], 'comp' => ['comp', 'outputs.0', 9]] as $name => [$kind, $first, $strips]) {
+            $plot = $page->filter("section[data-page=$name] [data-controller=dynamics]");
+            self::assertCount(1, $plot, $name);
+            self::assertSame($kind, $plot->attr('data-dynamics-kind-value'));
+            self::assertSame($first, $plot->attr('data-dynamics-path-value'));
+            self::assertSame('true', $plot->attr('data-dynamics-follow-value'));
+            self::assertCount(1, $plot->filter('.dynamics-panel canvas[data-dynamics-target=canvas]'));
+            $sources = $plot->filter('.strip[data-dynamics-source]')->each(static fn (Crawler $n): string => (string) $n->attr('data-dynamics-source'));
+            self::assertCount($strips, $sources, $name);
+            foreach ($sources as $source) {
+                self::assertTrue(self::has($source.'.'.$kind), $source);
+            }
+        }
+        self::assertSame('aux', $page->filter('section[data-page=comp] .strip[data-dynamics-source]')->last()->attr('data-dynamics-source'));
+        // A small curve in the Gate group of every input tab and the Comp group of every output tab
+        for ($i = 0; $i < 8; ++$i) {
+            self::assertSame(["inputs.$i"], $page->filter("section[data-page=inputs$i] fieldset[data-collapse-key-value=\"channel.gate\"] [data-dynamics-kind-value=gate]")->each(static fn (Crawler $n): string => (string) $n->attr('data-dynamics-path-value')));
+            self::assertSame(["outputs.$i"], $page->filter("section[data-page=outputs$i] fieldset[data-collapse-key-value=\"channel.comp\"] [data-dynamics-kind-value=comp]")->each(static fn (Crawler $n): string => (string) $n->attr('data-dynamics-path-value')));
+        }
+        // The Aux compressor on its tab and beside the faders of its dialog, as in the vendor's Compressor Setting
+        self::assertCount(1, $page->filter('section[data-page=aux] fieldset[data-collapse-key-value="aux.comp"] [data-controller=dynamics][data-dynamics-path-value=aux]'));
+        self::assertCount(1, $page->filter('dialog#dialog-auxcomp .dynamics-row [data-controller=dynamics][data-dynamics-path-value=aux]'));
+        // A view, never a write to the device
+        self::assertCount(0, $page->filter('.dynamics-panel [data-fader-send-value], .dynamics [data-fader-send-value]'));
+    }
+
     public function testEqOverviewHasASwitchPerChannelAndSendsNothing(): void
     {
         $overview = self::page()->filter('section[data-page=gain] [data-controller~=eqoverview]');

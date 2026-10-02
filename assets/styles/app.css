@@ -246,6 +246,22 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .eq-overview__switch--aux::after { border-top-style: dotted; }
 .eq-overview__note { margin: 0; color: var(--muted); font-size: 12px; }
 .eq-overview.is-collapsed > :not(.strips__title) { display: none; }
+/* Gate and Comp: the curve of a gate or compressor, input level against output level. The large one on the pages
+   follows the strip last touched, which is outlined */
+.dynamics-panel {
+    display: flex; flex-direction: column; gap: 6px; padding: 8px; margin-bottom: 10px;
+    background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px;
+}
+.dynamics-panel.is-collapsed > :not(.strips__title) { display: none; }
+.dynamics__plot { display: block; width: 170px; height: 170px; background: var(--screen); border-radius: 4px; }
+.dynamics__plot--page { align-self: center; width: min(100%, 480px); height: 360px; }
+.dynamics--dialog .dynamics__plot { width: 280px; height: 280px; }
+.dynamics-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+/* On a channel tab the small curve stands beside the faders, the gain warning below both */
+.group.group--dynamics { display: grid; grid-template-columns: auto auto; align-items: start; gap: 4px 8px; }
+.group--dynamics > .gain-warning { grid-column: 1 / -1; }
+.group--dynamics .dynamics__plot { margin-top: 18px; }
+.strip.is-plotted { border-color: var(--head); box-shadow: 0 0 0 1px var(--head); }
 /* Gain page: Sub Control next to the channel strips, wrapping below them when the window is narrow */
 .gain-layout { display: flex; flex-wrap: wrap; gap: 0 10px; align-items: flex-start; }
 .gain-layout__channels { flex: 1 1 600px; min-width: 0; }

@@ -1,9 +1,14 @@
 {% import 'editor/_widgets.html.twig' as w %}
-<div class="strips" data-controller="linkplace">
-    {% for i in 0..7 %}
-        <div class="strip">
-            <h3 class="strip__title">{{ w.ch(i) }}</h3>
-            {{ include('editor/page/_gate_controls.html.twig', {i: i, meter: true}) }}
-        </div>
-    {% endfor %}
+{# The curve plots the gate of the strip last touched, In1 at first #}
+<div data-controller="dynamics" data-dynamics-kind-value="gate" data-dynamics-path-value="inputs.0" data-dynamics-follow-value="true"
+     data-action="focusin->dynamics#select pointerdown->dynamics#select">
+    {{ w.dynamics_panel('Gate curve', 'gate', 'gate_curve') }}
+    <div class="strips" data-controller="linkplace">
+        {% for i in 0..7 %}
+            <div class="strip" data-dynamics-source="inputs.{{ i }}">
+                <h3 class="strip__title">{{ w.ch(i) }}</h3>
+                {{ include('editor/page/_gate_controls.html.twig', {i: i, meter: true}) }}
+            </div>
+        {% endfor %}
+    </div>
 </div>

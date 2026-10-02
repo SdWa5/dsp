@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.53.0] - 2026-10-02
+
+### Added
+
+- Gate curve above the strips of the Gate page and compressor curve above the strips of the Comp page, input level against output level with the threshold as a red dot, as in the vendor editor. The plot follows the strip touched last and folds like the other panels
+- A small curve beside the faders of the Gate group of every input tab and the Comp group of every output tab, in the Comp group of the Aux tab and beside the faders of the Aux compressor dialog
+- `assets/lib/dynamics.js`, with tests, and tooltips and titles in English and German
+
 ## [0.52.0] - 2026-10-02
 
 ### Added

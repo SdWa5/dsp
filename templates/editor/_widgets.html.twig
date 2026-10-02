@@ -70,6 +70,22 @@
     </div>
 {% endmacro %}
 
+{# The curve of a gate (kind gate, path an input) or compressor (kind comp, path an output or aux), small, in a
+   channel's Gate or Comp group or beside the Aux compressor's faders #}
+{% macro dynamics(kind, path, options = {}) %}
+    <div class="dynamics{{ options.class is defined ? ' ' ~ options.class }}" data-controller="dynamics" data-dynamics-kind-value="{{ kind }}" data-dynamics-path-value="{{ path }}">
+        <canvas class="dynamics__plot" data-dynamics-target="canvas" role="img"></canvas>
+    </div>
+{% endmacro %}
+
+{# The large curve of the Gate and Comp pages, inside the dynamics controller that follows the strips. tip: a key under editor.tip.panel #}
+{% macro dynamics_panel(title, kind, tip) %}
+    <div class="dynamics-panel" data-controller="collapse" data-collapse-key-value="{{ kind }}.curve">
+        <h2 class="strips__title">{{ _self.fold(title, tip) }}</h2>
+        <canvas class="dynamics__plot dynamics__plot--page" data-dynamics-target="canvas" role="img"></canvas>
+    </div>
+{% endmacro %}
+
 {# Channel ID with the channel's name and its link group next to it: 0..7 In1..In8, 8..15 Out1..Out8, 18 Aux.
    options: class, link (false hides the link group, as in the Link dialog, which shows the groups being edited) #}
 {% macro ch(index, options = {}) -%}

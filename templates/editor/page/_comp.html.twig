@@ -1,15 +1,20 @@
 {% import 'editor/_widgets.html.twig' as w %}
-<div class="strips" data-controller="linkplace">
-    {% for i in 0..7 %}
-        <div class="strip">
-            <h3 class="strip__title">{{ w.ch(8 + i) }}</h3>
-            {{ include('editor/page/_compressor.html.twig', {p: 'outputs.' ~ i, channel: 8 + i, meter: 8 + i, link: 'outputs:' ~ i}) }}
-            {{ w.gain_warning(i) }}
+{# The curve plots the compressor of the strip last touched, Out1 at first #}
+<div data-controller="dynamics" data-dynamics-kind-value="comp" data-dynamics-path-value="outputs.0" data-dynamics-follow-value="true"
+     data-action="focusin->dynamics#select pointerdown->dynamics#select">
+    {{ w.dynamics_panel('Compressor curve', 'comp', 'comp_curve') }}
+    <div class="strips" data-controller="linkplace">
+        {% for i in 0..7 %}
+            <div class="strip" data-dynamics-source="outputs.{{ i }}">
+                <h3 class="strip__title">{{ w.ch(8 + i) }}</h3>
+                {{ include('editor/page/_compressor.html.twig', {p: 'outputs.' ~ i, channel: 8 + i, meter: 8 + i, link: 'outputs:' ~ i}) }}
+                {{ w.gain_warning(i) }}
+            </div>
+        {% endfor %}
+        {# The Aux is in no link group, so the placement leaves it last #}
+        <div class="strip" data-dynamics-source="aux">
+            <h3 class="strip__title">{{ w.ch(18) }}</h3>
+            {{ include('editor/page/_compressor.html.twig', {p: 'aux', channel: 18, meter: 16}) }}
         </div>
-    {% endfor %}
-    {# The Aux is in no link group, so the placement leaves it last #}
-    <div class="strip">
-        <h3 class="strip__title">{{ w.ch(18) }}</h3>
-        {{ include('editor/page/_compressor.html.twig', {p: 'aux', channel: 18, meter: 16}) }}
     </div>
 </div>
