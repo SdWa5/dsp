@@ -160,6 +160,8 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   where the level lies beyond +12 dB. "Keep threshold" makes them leave the threshold as set. On a linked output
   the buttons fix the whole link group. The Auto EQ page and `trackdsp:autoeq` warn about it before
   measuring.
+- On a channel tab, EQ Bypass is red while it is on, like a band's Bypass, and every band's Bypass then shows red too,
+  with a tooltip that EQ Bypass does it. Each band keeps its own bypass, so switching EQ Bypass off brings it back.
 - Every page with more than one panel folds them down to their title: the panels of the Gain page, the steps of
   the Auto EQ page, and on the channel and Aux pages the EQ curve, the band table and each group beside it. Folded
   panels are kept in the browser. All channel pages fold together, so a folded HighPass stays folded on every

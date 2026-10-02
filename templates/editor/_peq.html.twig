@@ -10,7 +10,7 @@
         <label><input type="radio" name="view-{{ channel }}" checked data-action="peq#togglePhase"> {{ "Mag"|trans }}</label>
         <label><input type="radio" name="view-{{ channel }}" data-peq-target="phase" data-action="peq#togglePhase"> {{ "Phase"|trans }}</label>
         <span class="peq__hint">{{ "Drag a point: frequency and gain. Wheel on a point: Q."|trans }}</span>
-        <button type="button" class="toggle" title="{{ 'editor.tip.eq_bypass'|trans }}" data-peq-target="eqBypass" data-action="peq#eqBypass">{{ "EQ Bypass"|trans }}</button>
+        <button type="button" class="toggle toggle--bypass" title="{{ 'editor.tip.eq_bypass'|trans }}" data-peq-target="eqBypass" data-action="peq#eqBypass">{{ "EQ Bypass"|trans }}</button>
         <button type="button" class="toggle" title="{{ 'editor.tip.eq_reset'|trans }}" data-action="peq#reset">{{ "EQ Reset"|trans }}</button>
     </div>
     <div class="fold-panel" data-controller="collapse" data-collapse-key-value="{{ fold }}.curve">
