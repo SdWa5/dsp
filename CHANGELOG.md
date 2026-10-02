@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.47.0] - 2026-10-02
+
+### Added
+
+- Gate group on every input tab, with the threshold, attack and release of the Gate page
+- Comp and Delay groups on every output tab, with the compressor and the 1:1.0 gain warning of the Comp page and the delay and its unit of the Delay page
+- Aux compressor strip on the Comp page, after the outputs, with the Aux meter
+- Aux strip in Sub Control, between the input and the output strip, on the Gain page and in the Sub Control dialog, with the Aux gain, meter, mute and the inputs that feed the Aux
+- Tooltips for the new groups, in English and German, and the Sub Control tooltip names the Aux
+
+### Changed
+
+- The gate faders of an input sit in a template of their own, which the Gate page and the input tab share
+
 ## [0.46.1] - 2026-10-02
 
 ### Fixed

@@ -87,9 +87,12 @@ although the device answers ping. Close the vendor editor first.
 
 ### Browser editor
 
-`https://trackdsp.ddev.site` in ddev. It has the Gain, Gate, Comp, Delay, Matrix, Aux and Auto EQ pages, a tab
-per input and output with the EQ curve, live meters and the File, Device, Channels, Tools and Help menus. The
-editor talks to the bridge through the JSON API below. A ddev with another `project_tld` needs its host names in
+`https://trackdsp.ddev.site` in ddev. It has the Gain, Gate, Comp, Delay, Matrix, Aux and Auto EQ pages, a tab per
+input and output with the EQ curve, live meters and the File, Device, Channels, Tools and Help menus. The Comp page
+also holds the Aux compressor, after the outputs, and Sub Control on the Gain page and in its dialog holds the Aux
+gain, mute and input selection between its input and output strip. An input's tab also carries its gate, and an
+output's tab its compressor and delay, with the same controls as on the Gate, Comp and Delay pages. The editor
+talks to the bridge through the JSON API below. A ddev with another `project_tld` needs its host names in
 `TRACKDSP_TRUSTED_HOSTS` in `.env.local`, or the app answers 400 "Untrusted Host".
 
 - Help > Language chooses English, Deutsch or Automatic. A choice is remembered for this browser. Automatic
@@ -151,7 +154,7 @@ editor talks to the bridge through the JSON API below. A ddev with another `proj
   browser. The In headers sit on the left or at the top and the Out headers on the right or at the bottom, so the
   signal always runs from In to Out. Next to the matrix, a routing graph draws the inputs and the Aux on the left,
   the outputs on the right and a line for every connection. Hovering a channel brings out its lines.
-- An output at compressor ratio 1:1.0 with a gain other than 0 dB is flagged on its strip on the Comp page. Two
+- An output at compressor ratio 1:1.0 with a gain other than 0 dB is flagged on its strip on the Comp page and on its own tab. Two
   buttons set 1:1.1 from +20 dB, one keeping the gain value ("Exact gain") and one moving the gain to the level
   heard before ("Keep level"). Each button names the gain it sets, and "Keep level" says how far it falls short
   where the level lies beyond +12 dB. "Keep threshold" makes them leave the threshold as set. On a linked output

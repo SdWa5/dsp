@@ -204,7 +204,7 @@ final class EditorControllerTest extends WebTestCase
             'section[data-page=gain] .strips[data-collapse-key-value="gain.input"]' => 1,
             'section[data-page=gain] .strips[data-collapse-key-value="gain.output"]' => 1,
             'section[data-page=gain] .eq-overview__side' => 2,
-            'section[data-page=gain] .strip' => 16 + 10,
+            'section[data-page=gain] .strip' => 16 + 3 + 8,
             'section[data-page=gate] .strips' => 1,
             'section[data-page=comp] .strips' => 1,
             'section[data-page=delay] .strips' => 1,
@@ -238,12 +238,70 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(0, $graph->filter('[data-toggle-send-value], [data-fader-send-value]'));
     }
 
+    public function testChannelPagesCarryTheirGateCompAndDelay(): void
+    {
+        $page = self::page();
+        $binds = static fn (Crawler $section, string $panel): array => $section
+            ->filter("fieldset[data-collapse-key-value=\"channel.$panel\"] [data-fader-bind-value]")
+            ->each(static fn (Crawler $n): string => (string) $n->attr('data-fader-bind-value'));
+        for ($i = 0; $i < 8; ++$i) {
+            $input = $page->filter("section[data-page=inputs$i]");
+            self::assertSame(["inputs.$i.gate.threshold", "inputs.$i.gate.attack", "inputs.$i.gate.release"], $binds($input, 'gate'));
+            self::assertCount(0, $input->filter('fieldset[data-collapse-key-value="channel.comp"], fieldset[data-collapse-key-value="channel.delay"]'));
+            $output = $page->filter("section[data-page=outputs$i]");
+            $comp = array_map(static fn (string $v): string => "outputs.$i.comp.$v", ['threshold', 'ratio', 'knee', 'attack', 'release']);
+            self::assertSame($comp, $binds($output, 'comp'));
+            self::assertSame(["outputs.$i.delay"], $binds($output, 'delay'));
+            self::assertCount(1, $output->filter('fieldset[data-collapse-key-value="channel.delay"] select[data-choice-bind-value=delay_unit]'));
+            self::assertCount(0, $output->filter('fieldset[data-collapse-key-value="channel.gate"]'));
+            // The Gain group keeps the channel's only meter
+            self::assertCount(1, $page->filter("section[data-page=inputs$i] [data-controller=meter]"));
+            self::assertCount(1, $output->filter('[data-controller=meter]'));
+        }
+    }
+
+    public function testCompPageEndsWithTheAuxCompressor(): void
+    {
+        $strips = self::page()->filter('section[data-page=comp] .strip');
+        self::assertCount(9, $strips);
+        $aux = $strips->last();
+        self::assertSame('18', $aux->filter('.ch')->attr('data-channel-index-value'));
+        $binds = $aux->filter('[data-fader-bind-value]')->each(static fn (Crawler $n): string => (string) $n->attr('data-fader-bind-value'));
+        self::assertSame(['aux.comp.threshold', 'aux.comp.ratio', 'aux.comp.knee', 'aux.comp.attack', 'aux.comp.release'], $binds);
+        self::assertSame('16', $aux->filter('[data-controller=meter]')->attr('data-meter-index-value'));
+        self::assertCount(0, $aux->filter('[data-controller~=gainwarning], [data-fader-link-value]'));
+    }
+
+    public function testSubControlHasTheAuxBetweenInputAndOutput(): void
+    {
+        foreach (['section[data-page=gain] .strips[data-collapse-key-value="gain.sub"]', 'dialog#dialog-sub'] as $scope) {
+            $strips = self::page()->filter("$scope .strip");
+            self::assertCount(3, $strips, $scope);
+            $aux = $strips->eq(1);
+            self::assertSame('18', $aux->filter('.strip__title .ch')->attr('data-channel-index-value'), $scope);
+            self::assertSame(['aux.gain'], $aux->filter('[data-fader-bind-value]')->each(static fn (Crawler $n): string => (string) $n->attr('data-fader-bind-value')));
+            self::assertSame('16', $aux->filter('[data-controller=meter]')->attr('data-meter-index-value'));
+            self::assertCount(1, $aux->filter('.toggle--mute[data-toggle-bind-value="aux.mute"]'));
+            // The inputs that feed the Aux, as on the Aux page
+            $select = $aux->filter('.toggle--route[data-toggle-bind-value="aux.select"]');
+            self::assertSame(range(0, 7), $select->each(static fn (Crawler $n): int => (int) $n->attr('data-toggle-bit-value')));
+            self::assertSame(range(0, 7), $select->each(static fn (Crawler $n): int => (int) $n->filter('.ch')->attr('data-channel-index-value')));
+            self::assertContains('linkplace', explode(' ', (string) $aux->attr('data-controller')));
+            self::assertCount(0, $aux->filter('[data-fader-link-value], [data-toggle-link-value]'));
+        }
+    }
+
     public function testGainWarningButtonsNameTheGainTheySet(): void
     {
         $warnings = self::page()->filter('[data-controller~=gainwarning]');
-        // One per output, on the Comp page only
-        self::assertCount(8, $warnings);
+        // One per output on the Comp page, and one on each output's channel page
+        self::assertCount(16, $warnings);
         self::assertCount(8, self::page()->filter('section[data-page=comp] [data-controller~=gainwarning]'));
+        for ($o = 0; $o < 8; ++$o) {
+            $warning = self::page()->filter("section[data-page=outputs$o] [data-controller~=gainwarning]");
+            self::assertCount(1, $warning);
+            self::assertSame("outputs.$o", $warning->attr('data-gainwarning-path-value'));
+        }
         $warnings->each(static function (Crawler $warning): void {
             self::assertCount(1, $warning->filter('[data-action="gainwarning#exact"] [data-gainwarning-target=exact]'));
             self::assertCount(1, $warning->filter('[data-action="gainwarning#keepLevel"] [data-gainwarning-target=keep]'));
