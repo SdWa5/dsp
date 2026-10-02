@@ -77,6 +77,8 @@ export default class extends Controller {
             const block = document.createElement('div');
             block.className = 'link-block';
             block.dataset.group = view.colour ? String(group) : '';
+            // Caps a block of strips at the width its members can fill
+            block.style.setProperty('--members', String(members.length));
             const head = document.createElement('span');
             head.className = 'link-block__head';
             head.title = t('Linked: %channels%', { channels: unit.map((i) => channelId(('outputs' === side ? 8 : 0) + i)).join(', ') });
