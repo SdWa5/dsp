@@ -39,6 +39,8 @@
 "Muted": "Stumm"
 "Muted by its gain at the lowest step": "Durch den Gain auf der niedrigsten Stufe stumm."
 "Muted by its Mute button": "Durch den Mute-Schalter stumm."
+"%channel% Gate": "%channel% Gate"
+"%channel% Compressor": "%channel% Kompressor"
 "No DSP found on USB or on %networks%.": "Kein DSP über USB oder in %networks% gefunden."
 "No backups yet.": "Noch keine Sicherungen."
 "Not connected to %target%.": "Keine Verbindung mit %target%."

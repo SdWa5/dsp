@@ -78,6 +78,24 @@ on switch for either, so `assets/lib/meters.js` decides from the values. A gate 
 factory value). A compressor works at a ratio other than 1:1.0 with its threshold below +20 dB, the two settings
 `docs/protocol.md` names as off. A threshold below -60 or above +12 dB lies off the meter and shows no mark.
 
+## Gate and compressor curves
+
+`assets/lib/dynamics.js` computes the static curve and `dynamics_controller.js` draws it on a canvas, input level
+against output level from -100 to +20 dB on the meter scale, with a grid every 20 dB and the threshold as a red
+dot. This follows the vendor editor (`tools/shots/page_01_Gate.png`, `page_02_Comp.png`, `dlg_CompSet.png`). A
+compressor keeps the level up to its threshold and divides the level above it by its ratio, Limit holds it at the
+threshold. A gate keeps the level from its threshold up and drops to the floor below it.
+
+The plot draws a hard knee, as the vendor editor does. On the device the limiter sets in about 4 dB before its
+threshold and holds fully about 3 dB past it, and it holds a 100 Hz signal about 2.2 dB higher than a 1 kHz one
+([measurements.md](measurements.md)). The ratios match their labels in the measured static curves.
+
+The Gate and Comp pages wrap their curve and strips in one controller with `follow`. A `pointerdown` or `focusin`
+inside an element with `data-dynamics-source` plots that channel and outlines its strip (`is-plotted`). The
+curves on the channel tabs, the Aux tab and in the Aux compressor dialog are fixed to their channel. The plot is a
+view and sends nothing. A drawing happens at most once per frame and only when the threshold, the ratio or the
+title changed.
+
 ## Page change marks
 
 Every function tab shows the number of its settings that differ from `resources/factory_config.bin` as a badge

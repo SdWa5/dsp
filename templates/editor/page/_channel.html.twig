@@ -38,11 +38,13 @@
             <fieldset class="group group--dynamics" data-controller="collapse" data-collapse-key-value="channel.gate">
                 <legend>{{ w.fold('editor.tabs.gate', 'gate') }}</legend>
                 {{ include('editor/page/_gate_controls.html.twig', {i: i}) }}
+                {{ w.dynamics('gate', p) }}
             </fieldset>
         {% else %}
             <fieldset class="group group--dynamics" data-controller="collapse" data-collapse-key-value="channel.comp">
                 <legend>{{ w.fold('editor.tabs.comp', 'comp') }}</legend>
                 {{ include('editor/page/_compressor.html.twig', {p: p, channel: channel, meter: null, link: link}) }}
+                {{ w.dynamics('comp', p) }}
                 {{ w.gain_warning(i) }}
             </fieldset>
             <fieldset class="group" data-controller="collapse" data-collapse-key-value="channel.delay">

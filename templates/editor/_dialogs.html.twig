@@ -137,7 +137,11 @@
 
 <dialog class="dialog dialog--wide" id="dialog-auxcomp" data-editor-target="dialog">
     {{ _self.dialog('auxcomp', 'Aux compressor', 'aux_comp_dialog') }}
-    {{ include('editor/page/_compressor.html.twig', {p: 'aux', channel: 18, meter: 16}) }}
+    {# The faders with the curve beside them, as in the vendor's Compressor Setting dialog #}
+    <div class="dynamics-row">
+        {{ include('editor/page/_compressor.html.twig', {p: 'aux', channel: 18, meter: 16}) }}
+        {{ w.dynamics('comp', 'aux', {class: 'dynamics--dialog'}) }}
+    </div>
 </dialog>
 
 {% for key, spec in {automix: ['AutoMix Setting', 18], camera: ['Camera Setting', 19]} %}
