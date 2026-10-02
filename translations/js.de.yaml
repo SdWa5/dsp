@@ -89,6 +89,7 @@
 "none": "keine"
 "verify": "Kontrolle"
 "%level% dB, peak %peak% dB": "%level% dB, Spitze %peak% dB"
+"Limiter working": "Limiter arbeitet"
 "Gate threshold %threshold% dB": "Gate-Schwelle %threshold% dB"
 "Compressor threshold %threshold% dB": "Kompressor-Schwelle %threshold% dB"
 "Linked: %channels%": "Verknüpft: %channels%"

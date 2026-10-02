@@ -145,17 +145,25 @@ final class DemoTransport implements TransportInterface
     }
 
     /**
-     * 17 × (lo, hi, x) plus 4 trailing bytes. Every channel moves slowly between -40 and -10 dB.
+     * 17 × (lo, hi, x), the mask of limiting outputs and FF FF 00 as the device sends them. Every channel moves
+     * slowly between -40 and -10 dB, and an output whose compressor works limits while its level reaches the
+     * threshold.
      */
     private function meters(): string
     {
         ++$this->tick;
+        $outputs = $this->state->toDevice()->outputs;
         $data = '';
+        $limiting = 0;
         for ($i = 0; $i < 17; ++$i) {
-            $level = Scale::dbToMeter(-25 + 15 * sin($this->tick / 4 + $i));
-            $data .= pack('v', $level)."\x00";
+            $db = -25 + 15 * sin($this->tick / 4 + $i);
+            $data .= pack('v', Scale::dbToMeter($db))."\x00";
+            $comp = $i >= 8 && $i < 16 ? $outputs[$i - 8]->comp : null;
+            if (null !== $comp && $comp->works() && $db >= Scale::thresholdToDb($comp->threshold)) {
+                $limiting |= 1 << ($i - 8);
+            }
         }
 
-        return $data."\x00\x00\x00\x00";
+        return $data.\chr($limiting)."\xFF\xFF\x00";
     }
 }

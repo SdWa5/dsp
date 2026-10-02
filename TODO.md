@@ -164,6 +164,12 @@
 
 ## Protocol
 
+- Confirm byte 51 of the meter reply on the device, which lights the Limit lamp. Set Out1 to Limit from 0 dB,
+  play a 1 kHz test tone, raise the Out1 gain and watch `bin/trackdsp meters --raw`. Bit 0 should turn on once the
+  level reaches the threshold and hold about 3.3 s after it falls. Repeat on Out3 to Out8 and on the Aux, which has
+  no bit in the captures. Find out whether the `FF FF` behind it ever changes
+- Find what lights the vendor editor's Limit segment and the "Active" LED of its Aux compressor dialog. Run the
+  vendor editor against the device with the test above and watch both
 - Locate +48V (probably input byte 8) and the working status in the configuration
 - Presets: recall F00 (`20 00`) on the device, and find a command that deletes a stored slot. Store, recall and occupancy are confirmed on U20
 - PIN: set (`2F`), unlock (`2D`), change and unset, with the lock state from `2C` after every step. Find the recovery path first (manual chapter 6, the 4x4 projects)

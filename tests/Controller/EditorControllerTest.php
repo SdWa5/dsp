@@ -202,6 +202,18 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(0, $settings->filter('[data-toggle-send-value], [data-fader-send-value]'));
     }
 
+    public function testOnlyOutputMetersHaveTheLimitLamp(): void
+    {
+        $meters = self::page()->filter('[data-controller=meter]');
+        $meters->each(static function (Crawler $meter): void {
+            $index = (int) $meter->attr('data-meter-index-value');
+            $output = $index >= 8 && $index < 16;
+            self::assertCount($output ? 1 : 0, $meter->filter('.meter__limit'), 'Meter '.$index);
+            self::assertSame($output, str_contains((string) $meter->attr('class'), 'meter--output'));
+        });
+        self::assertGreaterThan(0, self::page()->filter('.meter__limit')->count());
+    }
+
     public function testEveryGainFaderTurnsRedWithItsMute(): void
     {
         $faders = self::page()->filter('[data-controller=fader][data-fader-bind-value$=".gain"]');

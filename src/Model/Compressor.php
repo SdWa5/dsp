@@ -31,6 +31,15 @@ final class Compressor
     }
 
     /**
+     * Whether the compressor can reduce the gain at all. 1:1.0 never compresses, and from +20 dB it never works
+     * below the output ceiling (docs/protocol.md). Mirrors compActive() in assets/lib/meters.js.
+     */
+    public function works(): bool
+    {
+        return 0 !== $this->ratio && $this->threshold < 220;
+    }
+
+    /**
      * @return array{ratio: int, knee: int, attack: int, release: int, threshold: int}
      */
     public function toArray(): array

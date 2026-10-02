@@ -27,10 +27,30 @@ final class MetersCommand extends DeviceCommand
 
             return Command::SUCCESS;
         }
-        $labels = [...array_map(Channel::label(...), range(0, 15)), 'Aux'];
-        $rows = array_map(static fn (string $label, float $db): array => [$label, \sprintf('%6.1f dB', $db)], $labels, Matrix::parseMeters($raw));
-        $io->table(['Channel', 'Level'], $rows);
+        $io->table(['Channel', 'Level', 'Limiter'], self::rows($raw));
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * One row per meter slot: In1–8, Out1–8, Aux. The Limiter column marks an output whose bit is set in byte 51 of
+     * the reply, which the captures show set while the output's limiter works. The device has not confirmed it yet.
+     *
+     * @return list<array{string, string, string}>
+     */
+    public static function rows(string $raw): array
+    {
+        $limiting = Matrix::parseLimiting($raw);
+        $rows = [];
+        foreach (Matrix::parseMeters($raw) as $slot => $db) {
+            $output = $slot >= 8 && $slot < 16;
+            $rows[] = [
+                16 === $slot ? 'Aux' : Channel::label($slot),
+                \sprintf('%6.1f dB', $db),
+                $output && 0 !== ($limiting & 1 << ($slot - 8)) ? 'LIMIT' : '',
+            ];
+        }
+
+        return $rows;
     }
 }

@@ -379,6 +379,10 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 }
 .meter::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; z-index: 1; background: transparent; }
 .meter.is-hot::before { background: #ff1744; box-shadow: 0 0 6px #ff1744; }
+/* Output meters: the Limit lamp on top and the clip strip below it, as in the vendor editor */
+.meter--output::before { top: 5px; }
+.meter__limit { position: absolute; top: 0; left: 0; right: 0; height: 4px; z-index: 1; background: #3a2a10; }
+.meter.is-limiting .meter__limit { background: var(--meter-comp); box-shadow: 0 0 6px var(--meter-comp); }
 
 .radios { display: flex; flex-direction: column; gap: 4px; }
 .radio input { position: absolute; opacity: 0; }

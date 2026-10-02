@@ -213,7 +213,7 @@ final class Bridge
                 $levels = Matrix::parseMeters($raw);
                 $this->ride($levels, self::now());
                 if ($this->subscribers() > 0) {
-                    $this->broadcast('meters', ['levels' => $levels, 'raw' => bin2hex($raw), 'riders' => $this->riderStatus(self::now())]);
+                    $this->broadcast('meters', ['levels' => $levels, 'limiting' => Matrix::parseLimiting($raw), 'raw' => bin2hex($raw), 'riders' => $this->riderStatus(self::now())]);
                 }
             }
         } catch (DspException|TransportException $e) {
