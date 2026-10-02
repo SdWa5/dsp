@@ -143,7 +143,8 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   without setting the mute flag.
 - The meters hold their peak for 1.5 s and light a red top for 2 s after reaching 0 dB.
 - The Gain page starts with an EQ overview, the EQ curves of every input (solid), output (dashed) and the Aux (dotted) in one plot.
-  A switch per channel shows or hides its curve, kept in the browser. It changes nothing on the device.
+  Mag and Phase switch the plot as on a channel tab. A switch per channel shows or hides its curve, kept in the
+  browser. It changes nothing on the device.
 - The Gain page also carries Sub Control next to the channel strips and Group Control below them, the same
   controls as in their dialogs.
 - The Gain page starts and shows the gain riders. A rider on a linked input rides its link group as one, and

@@ -12,11 +12,12 @@ const HIDDEN = 'eq-overview-hidden';
 
 /**
  * The EQ curves of every input, every output and the Aux in one plot, as the vendor editor shows them on its Gain page.
+ * Mag and Phase switch the plot between magnitude and phase, which is drawn at a tenth on the dB grid as on a channel tab.
  * A switch per channel shows or hides its curve. It only changes the plot, the EQ bypass of the channel
  * stays as it is (the curve itself is flat while the channel's EQ is bypassed, as on its tab).
  */
 export default class extends Controller {
-    static targets = ['canvas', 'show'];
+    static targets = ['canvas', 'show', 'phase'];
 
     connect() {
         const hidden = readPref(HIDDEN, []);
@@ -41,6 +42,10 @@ export default class extends Controller {
         this.schedule(true);
     }
 
+    togglePhase() {
+        this.schedule(true);
+    }
+
     /** "inputs.3" → its colour, "aux" → the Aux colour */
     color(path) {
         return 'aux' === path ? AUX_COLOR : COLORS[Number(path.split('.')[1]) % COLORS.length];
@@ -62,7 +67,8 @@ export default class extends Controller {
     draw() {
         const shown = this.showTargets.filter((box) => box.checked).map((box) => box.value);
         const channels = shown.map((path) => [path, store.get(path)]).filter(([, channel]) => channel);
-        const signature = JSON.stringify(channels.map(([path, c]) => [path, c.peq, c.hpf, c.lpf, c.eq_bypass]));
+        const phase = this.hasPhaseTarget && this.phaseTarget.checked;
+        const signature = JSON.stringify([phase, channels.map(([path, c]) => [path, c.peq, c.hpf, c.lpf, c.eq_bypass])]);
         if (signature === this.signature) {
             return;
         }
@@ -83,7 +89,8 @@ export default class extends Controller {
             g.beginPath();
             for (let i = 0; i <= n; i += 1) {
                 const f = 20 * 1000 ** (i / n);
-                const [x, y] = [plot.x(f), plot.y(Math.max(-18.5, Math.min(18.5, response(channel, f, slopes).db)))];
+                const r = response(channel, f, slopes);
+                const [x, y] = [plot.x(f), plot.y(Math.max(-18.5, Math.min(18.5, phase ? r.phase / 10 : r.db)))];
                 if (0 === i) {
                     g.moveTo(x, y);
                 } else {

@@ -195,6 +195,11 @@ final class EditorControllerTest extends WebTestCase
         foreach ($paths as $path) {
             self::assertTrue(self::has($path.'.peq'), $path);
         }
+        // Mag and Phase as on a channel tab, the overview's own pair of radios
+        $view = $overview->filter('input[type=radio][name=view-overview]');
+        self::assertCount(2, $view);
+        self::assertNotNull($view->eq(0)->attr('checked'));
+        self::assertSame('phase', $view->eq(1)->attr('data-eqoverview-target'));
         // Showing a curve is a view setting, never a write to the device
         self::assertCount(0, $overview->filter('[data-toggle-send-value], [data-fader-send-value]'));
     }
