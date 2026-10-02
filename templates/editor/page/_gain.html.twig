@@ -1,6 +1,11 @@
 {% import 'editor/_widgets.html.twig' as w %}
 <div class="strips eq-overview" data-controller="collapse eqoverview" data-collapse-key-value="gain.eq">
     <h2 class="strips__title">{{ w.fold('EQ overview', 'eq_overview') }}</h2>
+    {# Magnitude or phase, as on a channel tab. Only a view, so no drag hint #}
+    <div class="peq__bar">
+        <label><input type="radio" name="view-overview" checked data-action="eqoverview#togglePhase"> {{ "Mag"|trans }}</label>
+        <label><input type="radio" name="view-overview" data-eqoverview-target="phase" data-action="eqoverview#togglePhase"> {{ "Phase"|trans }}</label>
+    </div>
     <canvas class="eq-overview__plot" data-eqoverview-target="canvas"></canvas>
     <div class="eq-overview__switches" role="group" aria-label="{{ "Curves shown"|trans }}">
         {% for side in ['inputs', 'outputs'] %}

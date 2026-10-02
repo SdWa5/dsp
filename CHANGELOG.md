@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.49.0] - 2026-10-02
+
+### Added
+
+- Mag and Phase above the EQ overview on the Gain page, which switch every shown curve between magnitude and phase as on a channel tab. The overview stays a view, so it has no drag hint
+
 ## [0.48.0] - 2026-10-02
 
 ### Changed
