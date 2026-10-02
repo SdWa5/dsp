@@ -46,6 +46,12 @@ editor:
         stacked: Stacked per link group
         names: Group names
         no_groups: No link groups yet. Link channels above to name their group.
+    meter_view:
+        title: Meters
+        show: Show gate/comp threshold
+        show_tip: "A dashed mark on every meter: the gate threshold on the inputs, the compressor threshold on the outputs and the Aux."
+        active: Only when active
+        active_tip: "Marks a gate only while its threshold is above -90 dB, and a compressor only at a ratio other than 1:1.0 with its threshold below +20 dB."
     bar:
         id: ID
         theme: Colour theme

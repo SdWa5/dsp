@@ -45,6 +45,12 @@ editor:
         stacked: Pro Link-Gruppe gestapelt
         names: Gruppennamen
         no_groups: Noch keine Link-Gruppen. Oben Kanäle verknüpfen, um ihre Gruppe zu benennen.
+    meter_view:
+        title: Pegelanzeigen
+        show: Gate-/Comp-Schwelle anzeigen
+        show_tip: "Eine gestrichelte Marke an jeder Pegelanzeige zeigt an den Eingängen die Gate-Schwelle, an den Ausgängen und am Aux die Kompressor-Schwelle."
+        active: Nur wenn aktiv
+        active_tip: "Markiert ein Gate nur, solange seine Schwelle über -90 dB liegt, und einen Kompressor nur bei einer anderen Ratio als 1:1.0 mit einer Schwelle unter +20 dB."
     bar:
         id: ID
         theme: Farbschema

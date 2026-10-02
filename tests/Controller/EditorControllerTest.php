@@ -184,6 +184,24 @@ final class EditorControllerTest extends WebTestCase
         self::assertSame('outputs0', self::page()->filter('.chtab.is-split')->attr('data-page'));
     }
 
+    public function testEveryMeterCanMarkItsThreshold(): void
+    {
+        $meters = self::page()->filter('[data-controller=meter]');
+        self::assertGreaterThan(0, $meters->count());
+        $meters->each(static function (Crawler $meter): void {
+            $mark = $meter->filter('.meter__threshold[data-meter-target=threshold]');
+            self::assertCount(1, $mark);
+            // Hidden until the state and the settings show it
+            self::assertNotNull($mark->attr('hidden'));
+        });
+        // Show the mark and only while it works, once in the Channels menu
+        $settings = self::page()->filter('.menu [data-controller=meterview]');
+        self::assertCount(1, $settings);
+        self::assertSame(['show', 'active'], $settings->filter('input[type=checkbox]')->each(static fn (Crawler $n): string => (string) $n->attr('data-meterview-target')));
+        // A view setting, never a write to the device
+        self::assertCount(0, $settings->filter('[data-toggle-send-value], [data-fader-send-value]'));
+    }
+
     public function testEqOverviewHasASwitchPerChannelAndSendsNothing(): void
     {
         $overview = self::page()->filter('section[data-page=gain] [data-controller~=eqoverview]');

@@ -21,6 +21,12 @@
 ## Rewrite
 
 - Browser editor: check every page and dialog against the device, with a harmless round trip per control
+- (medium priority) Check that every UI feature of the vendor editor exists in trackdsp in some form. Go through
+  its screenshots in `tools/shots/` (`page_*.png` per tab, `dlg_*.png` per dialog, `main.png`) and its control
+  dumps in `captures/` (`dialogs.json`, `aux_dialogs.json`, `page_tour.json`), list every control, display and
+  menu entry and find its counterpart in the editor or the CLI. A feature without a counterpart becomes an item
+  here. On 2026-10-02 this found the curve plots of the Gate and Comp pages, the Limit segment of the output
+  meters and the Active lamp of the Aux compressor dialog
 - PHPUnit group `device` with read-only checks and reversible writes over LAN and USB
 - Packaging: `trackdsp:serve`, FrankenPHP static binary, installer, desktop entry
 - Vendor preset files: trackdsp reads `.prs` (docs/protocol.md). Save a second sample in the vendor editor with

@@ -64,7 +64,7 @@
 
 {% macro meter(index, label = null) %}
     <div class="meter" data-controller="meter" data-meter-index-value="{{ index }}" role="meter" aria-label="{{ (label ?? 'Level')|trans }}">
-        <span class="meter__bar"></span><span class="meter__peak"></span>
+        <span class="meter__bar"></span><span class="meter__peak"></span><span class="meter__threshold" data-meter-target="threshold" hidden></span>
     </div>
 {% endmacro %}
 
