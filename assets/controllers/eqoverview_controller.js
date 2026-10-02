@@ -3,12 +3,15 @@ import { getLabels, store } from '../lib/device.js';
 import { drawGrid, Plot, prepare, response } from '../lib/eq.js';
 import { readPref, writePref } from '../lib/prefs.js';
 
-// One colour per channel number: an input draws a solid line, the output of the same number a dashed one
+// One colour per channel number: an input draws a solid line, the output of the same number a dashed one.
+// The Aux has a colour of its own and a dotted line
 const COLORS = ['#ff5252', '#ffd740', '#e040fb', '#40c4ff', '#69f0ae', '#448aff', '#b0bec5', '#ffab40'];
+const AUX_COLOR = '#ff4081';
+const DASHES = { inputs: [], outputs: [6, 4], aux: [2, 3] };
 const HIDDEN = 'eq-overview-hidden';
 
 /**
- * The EQ curves of every input and output in one plot, as the vendor editor shows them on its Gain page.
+ * The EQ curves of every input, every output and the Aux in one plot, as the vendor editor shows them on its Gain page.
  * A switch per channel shows or hides its curve. It only changes the plot, the EQ bypass of the channel
  * stays as it is (the curve itself is flat while the channel's EQ is bypassed, as on its tab).
  */
@@ -38,9 +41,9 @@ export default class extends Controller {
         this.schedule(true);
     }
 
-    /** "inputs.3" → its colour */
+    /** "inputs.3" → its colour, "aux" → the Aux colour */
     color(path) {
-        return COLORS[Number(path.split('.')[1]) % COLORS.length];
+        return 'aux' === path ? AUX_COLOR : COLORS[Number(path.split('.')[1]) % COLORS.length];
     }
 
     /** At most one drawing per frame, and none when no curve changed (the store also carries unrelated values). */
@@ -76,7 +79,7 @@ export default class extends Controller {
         g.lineWidth = 1.5;
         for (const [path, channel] of channels) {
             g.strokeStyle = this.color(path);
-            g.setLineDash(path.startsWith('outputs') ? [6, 4] : []);
+            g.setLineDash(DASHES[path.split('.')[0]]);
             g.beginPath();
             for (let i = 0; i <= n; i += 1) {
                 const f = 20 * 1000 ** (i / n);

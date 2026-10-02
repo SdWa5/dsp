@@ -238,6 +238,7 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .eq-overview__switch { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
 .eq-overview__switch::after { content: ''; order: -1; width: 16px; height: 0; border-top: 3px solid var(--curve); }
 .eq-overview__switch--outputs::after { border-top-style: dashed; }
+.eq-overview__switch--aux::after { border-top-style: dotted; }
 .eq-overview__note { margin: 0; color: var(--muted); font-size: 12px; }
 .eq-overview.is-collapsed > :not(.strips__title) { display: none; }
 /* Gain page: Sub Control next to the channel strips, wrapping below them when the window is narrow */
