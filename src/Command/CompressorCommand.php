@@ -16,12 +16,13 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
- * Values that are not given keep what the compressor of each channel holds on the device.
+ * Values that are not given keep what the compressor of each channel holds on the device. The byte called knee has no
+ * option, because the vendor editor has no control for it and its meaning is unmeasured. It keeps the device's value.
  */
 #[AsCommand('trackdsp:compressor', 'Set the compressor of outputs or the Aux')]
 final class CompressorCommand extends DeviceCommand
 {
-    private const VALUES = ['ratio', 'knee', 'attack', 'release', 'threshold'];
+    private const VALUES = ['ratio', 'attack', 'release', 'threshold'];
 
     protected function configure(): void
     {
@@ -29,7 +30,6 @@ final class CompressorCommand extends DeviceCommand
         $this
             ->addArgument('channels', InputArgument::REQUIRED, 'Comma-separated outputs or aux, e.g. out1,out2')
             ->addOption('ratio', null, InputOption::VALUE_REQUIRED, 'Ratio as 1:N with N = 1, 1.1, 1.3, 1.5, 1.7, 2, 2.5, 3, 3.5, 4, 5, 6, 8, 10, 20, or "limit"')
-            ->addOption('knee', null, InputOption::VALUE_REQUIRED, 'Knee, raw value 0..255')
             ->addOption('attack', null, InputOption::VALUE_REQUIRED, 'Attack in ms (1..65536)')
             ->addOption('release', null, InputOption::VALUE_REQUIRED, 'Release in ms (1..65536)')
             ->addOption('threshold', null, InputOption::VALUE_REQUIRED, 'Threshold in dB (-90..+20)');
@@ -53,12 +53,12 @@ final class CompressorCommand extends DeviceCommand
         $device = Device::parse($dsp->config());
         foreach (self::channels($input) as $channel) {
             $current = Channel::AUX === $channel ? $device->aux->comp : $device->outputs[$channel - Channel::output(1)]->comp;
-            $values = $given + ['ratio' => $current->ratio, 'knee' => $current->knee, 'attack' => $current->attack, 'release' => $current->release, 'threshold' => $current->threshold];
-            $dsp->write(Commands::compressor($channel, $values['ratio'], $values['knee'], $values['attack'], $values['release'], $values['threshold']));
+            $values = $given + ['ratio' => $current->ratio, 'attack' => $current->attack, 'release' => $current->release, 'threshold' => $current->threshold];
+            $dsp->write(Commands::compressor($channel, $values['ratio'], $current->knee, $values['attack'], $values['release'], $values['threshold']));
             $io->writeln(\sprintf(
-                '%s: %s from %+.1f dB, attack %d ms, release %d ms, knee %d',
+                '%s: %s from %+.1f dB, attack %d ms, release %d ms',
                 Channel::label($channel), Labels::COMP_RATIOS[$values['ratio']], Scale::thresholdToDb($values['threshold']),
-                Scale::rawToMs($values['attack']), Scale::rawToMs($values['release']), $values['knee'],
+                Scale::rawToMs($values['attack']), Scale::rawToMs($values['release']),
             ));
         }
 
@@ -85,7 +85,7 @@ final class CompressorCommand extends DeviceCommand
     /**
      * Raw device values of the options given, at least one.
      *
-     * @return array{ratio?: int, knee?: int, attack?: int, release?: int, threshold?: int}
+     * @return array{ratio?: int, attack?: int, release?: int, threshold?: int}
      */
     private static function values(InputInterface $input): array
     {
@@ -97,13 +97,12 @@ final class CompressorCommand extends DeviceCommand
             }
             $values[$name] = match ($name) {
                 'ratio' => self::ratio($value),
-                'knee' => self::integer($value, 'knee', 0, 255),
                 'attack', 'release' => Scale::msToRaw(self::integer($value, $name, 1, 0x10000)),
                 'threshold' => Scale::dbToThreshold(self::decimal($value, 'threshold', -90, 20)),
             };
         }
         if ([] === $values) {
-            throw new \InvalidArgumentException('Give at least one of --ratio, --knee, --attack, --release, --threshold.');
+            throw new \InvalidArgumentException('Give at least one of --ratio, --attack, --release, --threshold.');
         }
 
         return $values;

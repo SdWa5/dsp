@@ -6,6 +6,8 @@ final class Compressor
 {
     /**
      * @param int $ratio     index into Labels::COMP_RATIOS
+     * @param int $knee      named knee since the first Python editor, meaning unmeasured. The vendor editor has no
+     *                       control for it and sends 0. This editor and the CLI send back the value the device holds
      * @param int $attack    ms = raw + 1
      * @param int $release   ms = raw + 1
      * @param int $threshold dB = raw / 2 - 90

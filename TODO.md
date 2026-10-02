@@ -164,6 +164,11 @@
 
 ## Protocol
 
+- Measure what byte 61 (Aux 85), called knee since the first Python editor, does. The vendor editor has no
+  control for it and sends 0, so the editor and the CLI no longer offer it. On the Out7 to IN5 loopback, set ratio
+  4:1 from -20 dB and run the level sweep through the threshold of the B6 method in `docs/measurements.md` with
+  the byte at 0, 12 and 255. Compare the static curves near the threshold. A softer onset that grows with the
+  byte makes it a knee, and then the editor gets the control back with the measured unit
 - Confirm byte 51 of the meter reply on the device, which lights the Limit lamp. Set Out1 to Limit from 0 dB,
   play a 1 kHz test tone, raise the Out1 gain and watch `bin/trackdsp meters --raw`. Bit 0 should turn on once the
   level reaches the threshold and hold about 3.3 s after it falls. Repeat on Out3 to Out8 and on the Aux, which has

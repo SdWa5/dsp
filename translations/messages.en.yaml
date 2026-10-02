@@ -89,7 +89,6 @@ editor:
         comp:
             threshold: "Above this level the compressor lowers the gain, in dB on the meter scale."
             ratio: "How strongly a level above the threshold is reduced. At 1:2.0, 2 dB above the threshold come out as 1 dB. Limit holds the level at the threshold."
-            knee: "How softly the compression sets in around the threshold, in dB. 0 dB is a hard knee."
             attack: "How fast the compressor reacts once the level rises above the threshold, in ms."
             release: "How fast the compressor lets go once the level falls below the threshold, in ms."
         sub:
@@ -148,7 +147,7 @@ editor:
             lpf: "Low-pass filter (LPF). It removes everything above its frequency."
             fbq: "Feedback suppression (FBQ). It finds feedback and notches it out. Close switches it off, level 1 to 4 set how strongly it acts."
             aux_comp: "Compressor of the Aux. Set opens all of its values."
-            aux_comp_dialog: "Threshold, ratio, knee, attack and release of the Aux compressor."
+            aux_comp_dialog: "Threshold, ratio, attack and release of the Aux compressor."
             automix: "AutoMix lowers the selected inputs that are not in use, so only the active microphones stay open."
             effect: "Echo and reverb on the Aux."
             camera: "Camera function of the vendor editor, set like AutoMix. What the device does with it is not documented yet."
@@ -163,7 +162,7 @@ editor:
             eq_curve: "The response of the PEQ bands and filters of this channel. Drag a point to move a band, the wheel on a point changes its Q."
             gain: "Gain, polarity, mute and, on an input, mode and +48V of this channel."
             gate: "Noise gate of this input. It closes below the threshold, attack and release set how fast it opens and closes."
-            comp: "Compressor of this output, as on the Comp page. Threshold, ratio, knee, attack and release."
+            comp: "Compressor of this output, as on the Comp page. Threshold, ratio, attack and release."
             delay: "Delay of this output, as on the Delay page. The unit applies to every output."
             aux_gain: "Gain of the Aux, with its meter."
             routing_graph: "The routing of the matrix as a graph, from the inputs and the Aux on the left to the outputs on the right."
@@ -288,7 +287,6 @@ editor:
 "Keep threshold": "Keep threshold"
 "Gate curve": "Gate curve"
 "Compressor curve": "Compressor curve"
-"Knee": "Knee"
 "Largest boost": "Largest boost"
 "Leave alone within": "Leave alone within"
 "Level": "Level"

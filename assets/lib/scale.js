@@ -100,7 +100,6 @@ export const formats = {
     threshold: (v) => `${signed(thresholdToDb(v))}dB`,
     ms: (v) => `${rawToMs(v)}ms`,
     plainMs: (v) => `${v}ms`,
-    knee: (v) => `${v}dB`,
     percent: (v) => `${v}%`,
     reverbTime: (v) => `${reverbTimeSeconds(v).toFixed(2)}s`,
     delay: (v, state) => delayLabel(v, state?.delay_unit ?? 0),
@@ -164,7 +163,6 @@ export const parsers = {
     threshold: (t) => (null === number(t) ? null : Math.round((number(t) + 90) * 2)),
     ms: (t) => (null === number(t) ? null : Math.round(number(t)) - 1),
     plainMs: (t) => number(t),
-    knee: (t) => number(t),
     percent: (t) => number(t),
     reverbTime: (t) => (null === number(t) ? null : Math.round((number(t) * 139) / 1.96)),
     delay: (t, state) => {

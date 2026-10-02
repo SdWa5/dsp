@@ -96,6 +96,9 @@ The plot draws a hard knee, as the vendor editor does. On the device the limiter
 threshold and holds fully about 3 dB past it, and it holds a 100 Hz signal about 2.2 dB higher than a 1 kHz one
 ([measurements.md](measurements.md)). The ratios match their labels in the measured static curves.
 
+The compressor has no Knee control. The vendor editor has none either and sends the byte as `00`, and nothing
+measured says what the byte does. The send arguments carry the value the device holds, so it stays untouched.
+
 The Gate and Comp pages wrap their curve and strips in one controller with `follow`. A `pointerdown` or `focusin`
 inside an element with `data-dynamics-source` plots that channel and outlines its strip (`is-plotted`). The
 curves on the channel tabs, the Aux tab and in the Aux compressor dialog are fixed to their channel. The plot is a

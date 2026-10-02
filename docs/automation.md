@@ -76,15 +76,16 @@ gain right for the moment the input is unmuted.
 ## Compressor: `trackdsp:compressor`
 
 ```bash
-bin/console trackdsp:compressor out1,out2 --ratio=4 --threshold=-6 --attack=10 --release=200 --knee=0
+bin/console trackdsp:compressor out1,out2 --ratio=4 --threshold=-6 --attack=10 --release=200
 bin/console trackdsp:compressor out1,out2 --threshold=-10
 bin/console trackdsp:compressor aux --ratio=limit --threshold=-3
 ```
 
 The 8x8 has compressors on the outputs and the Aux only. The command sets one or more values on several
 compressors at once: `--ratio` (`4`, `1:4` or `limit`), `--threshold` (-90..20 dB), `--attack` and `--release`
-in ms, `--knee` (0..255). At least one value must be given. Every value left out keeps what the device holds
-for that compressor, so `--threshold=-10` changes only the threshold.
+in ms. At least one value must be given. Every value left out keeps what the device holds for that compressor,
+so `--threshold=-10` changes only the threshold. The byte called knee has no option and always keeps the device's
+value, because the vendor editor has no control for it and its meaning is unmeasured.
 
 At ratio 1:1.0, the factory setting, the 8x8 applies every output gain but 0 dB more strongly than set and adds
 the spectrum mirrored at 24 kHz (see [Solo](#solo)). The browser editor flags such an output on its strip on the
