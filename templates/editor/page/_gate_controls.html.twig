@@ -4,7 +4,7 @@
 {% set link = 'inputs:' ~ i %}
 {% set send = [{command: 'gate', args: {channel: i, attack: '@' ~ p ~ '.gate.attack', release: '@' ~ p ~ '.gate.release', threshold: '@' ~ p ~ '.gate.threshold'}}] %}
 <div class="strip__row">
-    {{ w.fader('Threshold', p ~ '.gate.threshold', send, 0, 180, 'threshold', link) }}
+    {{ w.fader('Threshold', p ~ '.gate.threshold', send, 0, 220, 'threshold', link) }}
     <div class="strip__stack">
         {{ w.fader('Attack', p ~ '.gate.attack', send, 0, 998, 'ms', link, {class: 'fader--short'}) }}
         {{ w.fader('Release', p ~ '.gate.release', send, 0, 2999, 'ms', link, {class: 'fader--short'}) }}

@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.57.1] - 2026-10-02
+
+### Fixed
+
+- The gate threshold fader ends at +20 dB instead of 0 dB, as in the vendor editor
+
 ## [0.57.0] - 2026-10-02
 
 ### Added
