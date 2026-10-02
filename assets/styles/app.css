@@ -397,7 +397,8 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .peq__panel .group--dynamics .fader--short input[type=range] { height: calc(150px / 2 - 24px); }
 .group--params, .group--filter { gap: 6px; }
 .peq__table { border-collapse: collapse; }
-.peq__table-wrap { max-width: 100%; overflow-x: auto; }
+/* A group like the others, which still scrolls a table that is too wide (a fieldset grows to its content otherwise) */
+.peq__table-wrap { min-width: 0; max-width: 100%; overflow-x: auto; }
 .peq__table th { font-weight: 600; padding: 2px 4px; }
 .peq__table td { padding: 2px 3px; }
 .peq__table input[type=text] { width: 76px; text-align: center; }

@@ -19,8 +19,8 @@
                 data-action="pointerdown->peq#pointerdown pointermove->peq#pointermove pointerup->peq#pointerup pointercancel->peq#pointerup wheel->peq#wheel"></canvas>
     </div>
     <div class="peq__panel">
-        <div class="peq__table-wrap fold-panel" data-controller="collapse" data-collapse-key-value="{{ fold }}.bands">
-        <h3 class="fold-panel__title">{{ w.fold('Bands', 'peq') }}</h3>
+        <fieldset class="group peq__table-wrap" data-controller="collapse" data-collapse-key-value="{{ fold }}.bands">
+        <legend>{{ w.fold('Bands', 'peq') }}</legend>
         <table class="peq__table">
             <thead><tr><th title="{{ 'editor.tip.panel.peq'|trans }}">PEQ</th><th title="{{ 'editor.tip.band.freq'|trans }}">{{ "Frequency"|trans }}</th><th title="{{ 'editor.tip.band.q'|trans }}">Q</th><th title="{{ 'editor.tip.band.gain'|trans }}">{{ "Gain"|trans }}</th><th title="{{ 'editor.tip.band.type'|trans }}">{{ "Type"|trans }}</th><th title="{{ 'editor.tip.band.bypass'|trans }}">{{ "Bypass"|trans }}</th></tr></thead>
             <tbody>
@@ -39,7 +39,7 @@
             {% endfor %}
             </tbody>
         </table>
-        </div>
+        </fieldset>
         <div class="group-stack">
         <fieldset class="group group--params" data-controller="collapse" data-collapse-key-value="{{ fold }}.selected">
             <legend>{{ w.fold('Selected band', 'selected_band') }}</legend>
