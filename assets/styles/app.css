@@ -29,6 +29,7 @@
     --changed-text: #fff;
     --fader-accent: #4b5563;
     --fader-height: 190px;
+    --strip-max: 300px;
     color-scheme: light;
 }
 
@@ -221,11 +222,12 @@ input[type=text], input[type=number], select { background: var(--field); color: 
     background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px;
 }
 .strips__title { flex-basis: 100%; margin: 0; padding: 2px; text-align: center; font-size: 13px; background: var(--title); border-radius: 3px; }
-/* An output at compressor 1:1.0 with a gain: the warning and its fix, in the strip */
-.gain-warning { display: flex; flex-direction: column; gap: 4px; padding: 4px; border-radius: 3px; background: var(--warn-bg); color: var(--warn-text); font-size: 11px; }
+/* An output at compressor 1:1.0 with a gain: the warning and its fix, in the strip. It takes the width the
+   controls give the strip and widens it by nothing, and a button that does not fit goes to a line of its own */
+.gain-warning { display: flex; flex-direction: column; gap: 4px; padding: 4px; border-radius: 3px; background: var(--warn-bg); color: var(--warn-text); font-size: 11px; contain: inline-size; }
 .gain-warning[hidden] { display: none; }
-.gain-warning__buttons { display: flex; gap: 4px; }
-.gain-warning__buttons .toggle { flex: 1; }
+.gain-warning__buttons { display: flex; flex-wrap: wrap; gap: 4px; }
+.gain-warning__buttons .toggle { flex: 1 1 auto; }
 .autoeq__warnings { margin: 0; padding: 8px 12px 8px 28px; border-radius: 4px; background: var(--warn-bg); color: var(--warn-text); }
 .autoeq__warnings:empty { display: none; }
 /* Gain page: EQ overview, one curve per channel. The swatch of a switch is its curve's colour and dash */
@@ -244,7 +246,7 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .strips--side { flex: 0 1 auto; }
 /* A strip is as wide as its controls and grows to fill the row, up to a limit */
 .strip {
-    flex: 1 0 auto; display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 104px; max-width: 300px; padding: 4px 6px 8px;
+    flex: 1 0 auto; display: flex; flex-direction: column; align-items: stretch; gap: 4px; min-width: 104px; max-width: var(--strip-max); padding: 4px 6px 8px;
     background: var(--panel-2); border: 1px solid var(--panel-edge); border-radius: 4px;
 }
 .strip__title { margin: 0; padding: 2px 4px; text-align: center; font-size: 13px; background: var(--title); border-radius: 3px; min-width: 0; }
@@ -274,7 +276,11 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .link-block__head { display: flex; align-items: center; justify-content: center; gap: 3px; min-height: 12px; margin: 0 -3px; padding: 1px 4px; font-size: 9px; font-weight: 700; border-radius: 3px 3px 0 0; background: var(--title); }
 .link-block[data-group]:not([data-group='']) > .link-block__head { background: var(--group); color: #111; }
 .link-block .ch__link { display: none; }
-.strips > .link-block { flex: 1 0 auto; flex-direction: row; flex-wrap: wrap; gap: 6px; }
+/* A block grows no wider than its strips at their limit, plus its gaps, padding and border */
+.strips > .link-block {
+    flex: 1 0 auto; flex-direction: row; flex-wrap: wrap; gap: 6px;
+    max-width: calc(var(--members, 1) * (var(--strip-max) + 6px) + 2px);
+}
 .strips > .link-block > .link-block__head { flex-basis: 100%; }
 .eq-overview__side > .link-block, .checks > .link-block { gap: 2px; }
 /* Routing matrix, stacked: a gap before every further link group */

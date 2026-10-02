@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.46.1] - 2026-10-02
+
+### Fixed
+
+- A stacked link block on the Comp, Gate, Delay and Gain pages grows no wider than its strips can fill, so it no longer leaves an empty strip's width beside its members
+- The buttons of the 1:1.0 gain warning on the Comp page show their whole text, and the second one goes to a line of its own when both do not fit
+
 ## [0.46.0] - 2026-10-01
 
 ### Added
