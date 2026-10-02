@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.47.1] - 2026-10-02
+
+### Fixed
+
+- The fields of the Auto EQ Setup and Fit steps and of the gain rider dialog follow their labels instead of sitting at the far edge of their grid cell
+
 ## [0.47.0] - 2026-10-02
 
 ### Added
