@@ -28,6 +28,8 @@
     --changed: #c2185b;
     --changed-text: #fff;
     --fader-accent: #4b5563;
+    --fader-track: #f3f4f6;
+    --fader-edge: #9ca3af;
     /* The meters are dark in both themes, so their threshold marks keep one colour */
     --meter-gate: #4dd0e1;
     --meter-comp: #ffab40;
@@ -58,6 +60,8 @@
         --changed: #ff6ec7;
         --changed-text: #1b1b1b;
         --fader-accent: #7d8aa0;
+        --fader-track: #1d2129;
+        --fader-edge: #4a5263;
         color-scheme: dark;
     }
 }
@@ -83,6 +87,8 @@
     --changed: #ff6ec7;
     --changed-text: #1b1b1b;
     --fader-accent: #7d8aa0;
+    --fader-track: #1d2129;
+    --fader-edge: #4a5263;
     color-scheme: dark;
 }
 
@@ -317,16 +323,37 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 /* --- widgets --- */
 .fader { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .fader__title { font-size: 12px; font-weight: 600; }
+/* The slider draws its own track and knob, so the knob can turn red on its own. --fill (range.js) is where the value
+   lies, the track fills from the bottom (left on a horizontal fader) up to the knob's centre. */
 .fader input[type=range] {
-    writing-mode: vertical-lr; direction: rtl; width: 28px; height: var(--fader-height); margin: 0; accent-color: var(--fader-accent);
+    --fill: 0; --knob: var(--fader-accent); --fill-to: to top;
+    writing-mode: vertical-lr; direction: rtl; width: 28px; height: var(--fader-height); margin: 0;
+    appearance: none; -webkit-appearance: none; background: transparent; cursor: pointer;
 }
-/* Muted by the channel's Mute button */
-.fader.is-muted input[type=range] { accent-color: var(--mute); }
+.fader input[type=range]:disabled { cursor: default; opacity: .5; }
+.fader input[type=range]::-webkit-slider-runnable-track {
+    inline-size: 100%; block-size: 6px; border-radius: 3px; border: 1px solid var(--fader-edge);
+    background: linear-gradient(var(--fill-to), var(--fader-accent) calc(9px + var(--fill) * (100% - 18px)), var(--fader-track) 0);
+}
+.fader input[type=range]::-moz-range-track {
+    inline-size: 100%; block-size: 6px; border-radius: 3px; border: 1px solid var(--fader-edge);
+    background: linear-gradient(var(--fill-to), var(--fader-accent) calc(9px + var(--fill) * (100% - 18px)), var(--fader-track) 0);
+}
+.fader input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; inline-size: 18px; block-size: 18px; margin-block-start: -7px;
+    border: 0; border-radius: 50%; background: var(--knob);
+}
+.fader input[type=range]::-moz-range-thumb { inline-size: 18px; block-size: 18px; border: 0; border-radius: 50%; background: var(--knob); }
+.fader input[type=range]:focus-visible { outline: none; }
+.fader input[type=range]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--head); outline-offset: 2px; }
+.fader input[type=range]:focus-visible::-moz-range-thumb { outline: 2px solid var(--head); outline-offset: 2px; }
+/* A gain at the bottom or muted by the channel's Mute button: the knob turns red, the track stays */
+.fader.is-muted input[type=range] { --knob: var(--mute); }
 .fader--short input[type=range] { height: calc(var(--fader-height) / 2 - 24px); }
 .fader--tall input[type=range] { height: calc(var(--fader-height) * 1.5); }
 .fader--h { flex-direction: row; gap: 8px; }
 .fader--h .fader__title { width: 38px; }
-.fader--h input[type=range], .peq__panel .fader--h input[type=range] { writing-mode: horizontal-tb; direction: ltr; width: 170px; height: 22px; }
+.fader--h input[type=range], .peq__panel .fader--h input[type=range] { --fill-to: to right; writing-mode: horizontal-tb; direction: ltr; width: 170px; height: 22px; }
 .group--filter .fader--h { padding-left: 46px; }
 .fader__value, .peq__panel output.fader__value {
     width: 72px; padding: 1px 4px; text-align: center; font-size: 12px; font-variant-numeric: tabular-nums;

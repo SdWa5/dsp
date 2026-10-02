@@ -142,7 +142,8 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   it as -60 dB. Typing "mute" sets it. -59.5 dB is the lowest gain that passes signal. The channel's Mute button lights up then as well,
   without setting the mute flag.
 - The other way round, a muted channel turns its gain fader's knob red, on every page, in Sub Control and in
-  Group Control. The fader's tooltip says that its Mute button mutes it.
+  Group Control. A gain at the bottom does the same. Only the knob turns red, the track keeps its colour. The
+  fader's tooltip says when its Mute button mutes it.
 - The meters hold their peak for 1.5 s and light a red top for 2 s after reaching 0 dB.
 - Every meter marks a threshold with a dashed line, the gate threshold on the inputs in cyan and the compressor
   threshold on the outputs and the Aux in orange. Channels > Meters switches the mark off or shows it for every

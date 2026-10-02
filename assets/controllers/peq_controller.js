@@ -3,6 +3,7 @@ import { Controller } from '@hotwired/stimulus';
 import { isChanged } from '../lib/defaults.js';
 import { getDefaults, getLabels, send, store } from '../lib/device.js';
 import { linkedMembers } from '../lib/link.js';
+import { paintRange } from '../lib/range.js';
 import { getPath } from '../lib/store.js';
 import { bandBypassed, drawGrid, Plot, prepare, response } from '../lib/eq.js';
 import * as S from '../lib/scale.js';
@@ -132,6 +133,7 @@ export default class extends Controller {
 
     param(event) {
         const field = event.params.field;
+        paintRange(event.target);
         this.setBand(this.selected, { [field]: Number(event.target.value) });
     }
 
@@ -140,6 +142,7 @@ export default class extends Controller {
         const filter = { ...this.channel[kind] };
         const field = event.params.field;
         if ('freq' === field) {
+            paintRange(event.target);
             filter.freq = Number(event.target.value);
         } else if ('slope' === field) {
             this.slopes[kind] = Number(event.target.value);
@@ -281,6 +284,7 @@ export default class extends Controller {
         for (const [name, value, fmt] of params) {
             if (this[`hasParam${name}Target`]) {
                 this[`param${name}Target`].value = value;
+                paintRange(this[`param${name}Target`]);
                 this[`param${name}LabelTarget`].textContent = S.format(fmt, value);
             }
         }
@@ -288,6 +292,7 @@ export default class extends Controller {
             const kind = input.dataset.kind;
             const filter = channel[kind];
             input.value = filter.freq;
+            paintRange(input);
             this.filterFreqLabelTargets[k].textContent = S.format('hz', filter.freq);
             if (filter.slope) {
                 this.slopes[kind] = filter.slope;
