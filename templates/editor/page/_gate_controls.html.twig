@@ -1,0 +1,13 @@
+{# Gate faders of input i (0..7), on the Gate page and the input's channel page. meter = with the input's meter #}
+{% import 'editor/_widgets.html.twig' as w %}
+{% set p = 'inputs.' ~ i %}
+{% set link = 'inputs:' ~ i %}
+{% set send = [{command: 'gate', args: {channel: i, attack: '@' ~ p ~ '.gate.attack', release: '@' ~ p ~ '.gate.release', threshold: '@' ~ p ~ '.gate.threshold'}}] %}
+<div class="strip__row">
+    {{ w.fader('Threshold', p ~ '.gate.threshold', send, 0, 180, 'threshold', link) }}
+    <div class="strip__stack">
+        {{ w.fader('Attack', p ~ '.gate.attack', send, 0, 998, 'ms', link, {class: 'fader--short'}) }}
+        {{ w.fader('Release', p ~ '.gate.release', send, 0, 2999, 'ms', link, {class: 'fader--short'}) }}
+    </div>
+    {% if meter ?? false %}{{ w.meter(i) }}{% endif %}
+</div>

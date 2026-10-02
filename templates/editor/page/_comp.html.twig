@@ -7,4 +7,9 @@
             {{ w.gain_warning(i) }}
         </div>
     {% endfor %}
+    {# The Aux is in no link group, so the placement leaves it last #}
+    <div class="strip">
+        <h3 class="strip__title">{{ w.ch(18) }}</h3>
+        {{ include('editor/page/_compressor.html.twig', {p: 'aux', channel: 18, meter: 16}) }}
+    </div>
 </div>

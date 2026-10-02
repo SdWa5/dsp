@@ -1,4 +1,4 @@
-{# Sub Control (key 'sub', 2 strips) or Group Control (key 'groups', 8 strips), in its dialog and on the Gain page.
+{# Sub Control (key 'sub', the input strip, the Aux and the output strip) or Group Control (key 'groups', 8 strips), in its dialog and on the Gain page.
    heading: an optional panel title that also makes the panel foldable, the dialog has its own head. class: extra classes for the panel. #}
 {% import 'editor/_widgets.html.twig' as w %}
 {% set heading = heading|default(null) %}
@@ -13,6 +13,21 @@
         {% else %}
             {% set send = [{command: 'group', args: {index: k, gainPercent: '@' ~ p ~ '.gain', muted: '@' ~ p ~ '.mute', mask: '@' ~ p ~ '.mask'}}] %}
             {% set title = (outputs ? 'Out group %group%' : 'In group %group%')|trans({'%group%': outputs ? k - 3 : k + 1}) %}
+        {% endif %}
+        {% if 'sub' == key and outputs %}
+            {# The Aux between the input and the output strip: its gain and mute and the inputs that feed it, as on the Aux page #}
+            {% set route = [{command: 'routing', args: {channel: 18, mask: '@aux.select'}}] %}
+            <div class="strip" data-controller="linkplace">
+                <h3 class="strip__title">{{ w.ch(18) }}</h3>
+                <div class="strip__row">
+                    {{ w.fader('', 'aux.gain', [{command: 'gain', args: {channel: 18, raw: '@aux.gain'}}], 0, 400, 'gain', null, {label: 'Aux gain', default: 280}) }}
+                    {{ w.meter(16) }}
+                </div>
+                {{ w.toggle('Mute', 'aux.mute', [{command: 'mute', args: {channel: 18, on: '@aux.mute'}}], null, {class: 'toggle--mute', muted_by: 'aux.gain'}) }}
+                {% for b in 0..7 %}
+                    {{ w.toggle(w.ch(b), 'aux.select', route, null, {bit: b, class: 'toggle--route'}) }}
+                {% endfor %}
+            </div>
         {% endif %}
         <div class="strip" data-controller="linkplace">
             <h3 class="strip__title">{{ title|trans }}</h3>

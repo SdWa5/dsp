@@ -33,5 +33,23 @@
                 {{ w.toggle('+48V', p ~ '.phantom', [{command: 'phantom', args: {channel: channel, on: '@' ~ p ~ '.phantom'}}], link, {class: 'toggle--phantom', enabled: p ~ '.mode'}) }}
             {% endif %}
         </fieldset>
+        {# The same controls as on the Gate, Comp and Delay pages, without a second meter #}
+        {% if input %}
+            <fieldset class="group group--dynamics" data-controller="collapse" data-collapse-key-value="channel.gate">
+                <legend>{{ w.fold('editor.tabs.gate', 'gate') }}</legend>
+                {{ include('editor/page/_gate_controls.html.twig', {i: i}) }}
+            </fieldset>
+        {% else %}
+            <fieldset class="group group--dynamics" data-controller="collapse" data-collapse-key-value="channel.comp">
+                <legend>{{ w.fold('editor.tabs.comp', 'comp') }}</legend>
+                {{ include('editor/page/_compressor.html.twig', {p: p, channel: channel, meter: null, link: link}) }}
+                {{ w.gain_warning(i) }}
+            </fieldset>
+            <fieldset class="group" data-controller="collapse" data-collapse-key-value="channel.delay">
+                <legend>{{ w.fold('editor.tabs.delay', 'delay') }}</legend>
+                {{ w.fader('', p ~ '.delay', [{command: 'delay', args: {channel: channel, samples: '@' ~ p ~ '.delay'}}], 0, 32640, 'delay', link, {label: '%channel% delay'|trans({'%channel%': 'Out' ~ (i + 1)}), default: 0}) }}
+                <label class="group__caption">{{ "Unit"|trans }} {{ w.choice('Delay unit', 'delay_unit', [{command: 'delayUnit', args: {unit: '@delay_unit'}}], labels.DELAY_UNITS) }}</label>
+            </fieldset>
+        {% endif %}
     {% endblock %}
 {% endembed %}
