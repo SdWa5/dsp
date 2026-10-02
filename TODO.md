@@ -164,3 +164,8 @@
 - Command for changing the IP address
 - Check on the device that gain raw 0 mutes an output and the Aux, as it mutes an input. The editor and
   `trackdsp:status` already show all three as muted
+- Check on the device whether EQ bypass (`3C`) also takes out the HPF and LPF. Set the HPF of one output to 1 kHz,
+  LK -48, switch EQ bypass on, play pink noise and record the output (Auto EQ step 2 or `arecord`). Energy below
+  1 kHz coming back means it does. `response()` in `assets/lib/eq.js` assumes it does not. If it does, the curve
+  drops the filters under EQ bypass, and the HighPass and LowPass Bypass buttons show red with it, like the bands
+  do through `bandBypassed()`
