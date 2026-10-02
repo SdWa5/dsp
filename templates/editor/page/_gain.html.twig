@@ -31,7 +31,7 @@
             <div class="strip">
                 <h3 class="strip__title">{{ w.ch(i) }}</h3>
                 <div class="strip__row">
-                    {{ w.fader('', p ~ '.gain', [{command: 'gain', args: {channel: i, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', 'inputs:' ~ i, {label: '%channel% gain'|trans({'%channel%': 'In' ~ (i + 1)}), default: 280}) }}
+                    {{ w.fader('', p ~ '.gain', [{command: 'gain', args: {channel: i, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', 'inputs:' ~ i, {label: '%channel% gain'|trans({'%channel%': 'In' ~ (i + 1)}), default: 280, muted_by: p ~ '.mute'}) }}
                     {{ w.meter(i) }}
                 </div>
                 <button type="button" class="toggle toggle--rider" data-riders-target="button" data-channel="{{ i }}"
@@ -73,7 +73,7 @@
         <div class="strip">
             <h3 class="strip__title">{{ w.ch(8 + i) }}</h3>
             <div class="strip__row">
-                {{ w.fader('', p ~ '.gain', [{command: 'gain', args: {channel: 8 + i, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', 'outputs:' ~ i, {label: '%channel% gain'|trans({'%channel%': 'Out' ~ (i + 1)}), default: 280}) }}
+                {{ w.fader('', p ~ '.gain', [{command: 'gain', args: {channel: 8 + i, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', 'outputs:' ~ i, {label: '%channel% gain'|trans({'%channel%': 'Out' ~ (i + 1)}), default: 280, muted_by: p ~ '.mute'}) }}
                 {{ w.meter(8 + i) }}
             </div>
             {{ w.toggle('Normal', p ~ '.phase', [{command: 'phase', args: {channel: 8 + i, inverted: '@' ~ p ~ '.phase'}}], 'outputs:' ~ i, {on: 'Inverse'}) }}

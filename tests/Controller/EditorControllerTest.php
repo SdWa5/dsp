@@ -202,6 +202,24 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(0, $settings->filter('[data-toggle-send-value], [data-fader-send-value]'));
     }
 
+    public function testEveryGainFaderTurnsRedWithItsMute(): void
+    {
+        $faders = self::page()->filter('[data-controller=fader][data-fader-bind-value$=".gain"]');
+        // Inputs, outputs and the Aux in their strips, tabs and Sub Control, and Sub Control and Group Control
+        self::assertGreaterThan(40, $faders->count());
+        $mutes = self::page()->filter('.toggle--mute')->each(static fn (Crawler $n): string => (string) $n->attr('data-toggle-bind-value'));
+        $faders->each(static function (Crawler $fader) use ($mutes): void {
+            $bind = (string) $fader->attr('data-fader-bind-value');
+            // The effect level of the Aux has no mute of its own
+            if ('aux.effect.gain' === $bind) {
+                return;
+            }
+            $mute = substr($bind, 0, -\strlen('gain')).'mute';
+            self::assertSame($mute, $fader->attr('data-fader-muted-by-value'), $bind);
+            self::assertContains($mute, $mutes, $bind);
+        });
+    }
+
     public function testEqOverviewHasASwitchPerChannelAndSendsNothing(): void
     {
         $overview = self::page()->filter('section[data-page=gain] [data-controller~=eqoverview]');

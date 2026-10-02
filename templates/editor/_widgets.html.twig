@@ -13,13 +13,15 @@
     {{- (text != key ? text : '')|raw -}}
 {%- endmacro %}
 
+{# options: class, enabled, default, label, tip, muted_by (a mute path, the knob turns red while it is set) #}
 {% macro fader(title, bind, send, min, max, fmt, link = null, options = {}) %}
     {% set tip = _self.tip(bind, options.tip ?? null)|trim %}
     <div{% if tip %} title="{{ tip }}"{% endif %} class="fader{{ options.class is defined ? ' ' ~ options.class }}" data-controller="fader"
          data-fader-bind-value="{{ bind }}" data-fader-send-value="{{ send|json_encode }}"
          data-fader-fmt-value="{{ fmt }}"{% if link %} data-fader-link-value="{{ link }}"{% endif %}
          {% if options.enabled is defined %} data-fader-enabled-value="{{ options.enabled }}"{% endif %}
-         {% if options.default is defined %} data-fader-default-value="{{ options.default }}"{% endif %}>
+         {% if options.default is defined %} data-fader-default-value="{{ options.default }}"{% endif %}
+         {% if options.muted_by is defined %} data-fader-muted-by-value="{{ options.muted_by }}"{% endif %}>
         {% if title %}<span class="fader__title">{{ title|trans }}</span>{% endif %}
         <input type="range" min="{{ min }}" max="{{ max }}" step="1" aria-label="{{ options.label|default(title ?: bind)|trans }}"
                {% if options.default is defined %} title="{{ (tip ? tip ~ ' ') ~ "Double-click: back to the default"|trans }}"{% endif %}

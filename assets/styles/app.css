@@ -304,6 +304,8 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .fader input[type=range] {
     writing-mode: vertical-lr; direction: rtl; width: 28px; height: var(--fader-height); margin: 0; accent-color: var(--fader-accent);
 }
+/* Muted by the channel's Mute button */
+.fader.is-muted input[type=range] { accent-color: var(--mute); }
 .fader--short input[type=range] { height: calc(var(--fader-height) / 2 - 24px); }
 .fader--tall input[type=range] { height: calc(var(--fader-height) * 1.5); }
 .fader--h { flex-direction: row; gap: 8px; }

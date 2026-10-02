@@ -1,14 +1,16 @@
+import { t } from '../lib/i18n.js';
 import BoundController from '../lib/bound_controller.js';
 import { getLabels, store } from '../lib/device.js';
 import { parse } from '../lib/scale.js';
 
 /**
  * A slider with a value field. Type a value into the field ("-6", "200ms", "1:4"), or double-click the
- * slider to go back to the default value.
+ * slider to go back to the default value. muted-by (a mute path) turns the knob red while that mute is set,
+ * the way a gain at raw 0 lights the Mute button.
  */
 export default class extends BoundController {
     static targets = ['input', 'label'];
-    static values = { ...BoundController.values, default: Number };
+    static values = { ...BoundController.values, default: Number, mutedBy: String };
 
     connect() {
         this.inputTarget.addEventListener('pointerdown', () => { this.busy = true; });
@@ -76,6 +78,13 @@ export default class extends BoundController {
     }
 
     render(value) {
+        if ('' !== this.mutedByValue) {
+            const muted = true === store.get(this.mutedByValue);
+            this.element.classList.toggle('is-muted', muted);
+            // A state message goes on a line of its own above the tooltip from the page
+            this.tip ??= this.element.title;
+            this.element.title = [muted ? t("Muted by its Mute button") : '', this.tip].filter(Boolean).join('\n');
+        }
         if (null !== value && undefined !== value) {
             this.inputTarget.value = value;
         }

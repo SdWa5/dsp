@@ -46,7 +46,9 @@ filter controls name their key under `editor.tip.panel` or `editor.tip` directly
 shows `editor.tip.device_id` and the connection button `editor.tip.bar.online`. A tooltip says what the control
 does in one sentence and names the unit where the value has one.
 
-A fader with a default puts the double-click hint after its tooltip. The toggle controller keeps the tooltip and
+A fader with a default puts the double-click hint after its tooltip. A gain fader with `options.muted_by`, the
+channel's mute path, turns its knob red (`is-muted`) while that mute is set and puts "Muted by its Mute button"
+above its tooltip. The toggle controller keeps the tooltip and
 puts a state message, such as an unknown value or a mute by the gain, on its own line above it.
 
 `EditorTooltipTest` checks that every `editor.tip` text appears on some control in both languages, and that one

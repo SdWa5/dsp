@@ -23,7 +23,7 @@
         <fieldset class="group" data-controller="collapse" data-collapse-key-value="channel.gain">
             <legend>{{ w.fold('Gain', 'gain') }}</legend>
             <div class="strip__row">
-                {{ w.fader(null, p ~ '.gain', [{command: 'gain', args: {channel: channel, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', link, {label: 'Gain', default: 280}) }}
+                {{ w.fader(null, p ~ '.gain', [{command: 'gain', args: {channel: channel, raw: '@' ~ p ~ '.gain'}}], 0, 400, 'gain', link, {label: 'Gain', default: 280, muted_by: p ~ '.mute'}) }}
                 {{ w.meter(channel) }}
             </div>
             {{ w.toggle('Normal', p ~ '.phase', [{command: 'phase', args: {channel: channel, inverted: '@' ~ p ~ '.phase'}}], link, {on: 'Inverse'}) }}
