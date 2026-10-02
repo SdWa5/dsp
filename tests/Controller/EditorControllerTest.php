@@ -357,6 +357,18 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(0, $aux->filter('[data-controller~=gainwarning], [data-fader-link-value]'));
     }
 
+    public function testEveryCompressorFaderTurnsRedWhileItsCompressorIsOff(): void
+    {
+        $faders = self::page()->filter('[data-controller=fader][data-fader-bind-value*=".comp."]');
+        // Comp page (8 outputs and the Aux), the 8 output tabs and the Aux dialog with 4 faders each, the Aux page 1
+        self::assertCount(18 * 4 + 1, $faders);
+        $faders->each(static function (Crawler $fader): void {
+            $bind = (string) $fader->attr('data-fader-bind-value');
+            self::assertSame(substr($bind, 0, (int) strrpos($bind, '.')), $fader->attr('data-fader-comp-value'), $bind);
+        });
+        self::assertCount($faders->count(), self::page()->filter('[data-fader-comp-value]'));
+    }
+
     public function testNoKneeControlButTheByteGoesBackAsHeld(): void
     {
         $page = self::page();

@@ -6,7 +6,7 @@
         {% set comp = [{command: 'compressor', args: {channel: 18, ratio: '@aux.comp.ratio', knee: '@aux.comp.knee', attack: '@aux.comp.attack', release: '@aux.comp.release', threshold: '@aux.comp.threshold'}}] %}
         <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.comp">
             <legend>{{ w.fold('Comp', 'aux_comp') }}</legend>
-            {{ w.fader(null, 'aux.comp.threshold', comp, 0, 220, 'threshold', null, {label: 'Aux compressor threshold'}) }}
+            {{ w.fader(null, 'aux.comp.threshold', comp, 0, 220, 'threshold', null, {label: 'Aux compressor threshold', comp: 'aux.comp'}) }}
             {{ w.dynamics('comp', 'aux') }}
             <button type="button" class="toggle" data-action="editor#open" data-editor-dialog-param="auxcomp">{{ "Set"|trans }}</button>
         </fieldset>

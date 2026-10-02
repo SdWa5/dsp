@@ -4,11 +4,11 @@
 {# The knee byte goes back as the device holds it. The vendor editor has no control for it, see docs/protocol.md #}
 {% set send = [{command: 'compressor', args: {channel: channel, ratio: '@' ~ c ~ '.ratio', knee: '@' ~ c ~ '.knee', attack: '@' ~ c ~ '.attack', release: '@' ~ c ~ '.release', threshold: '@' ~ c ~ '.threshold'}}] %}
 <div class="strip__row">
-    {{ w.fader('Threshold', c ~ '.threshold', send, 0, 220, 'threshold', link) }}
-    {{ w.fader('Ratio', c ~ '.ratio', send, 0, 15, 'ratio', link) }}
+    {{ w.fader('Threshold', c ~ '.threshold', send, 0, 220, 'threshold', link, {comp: c}) }}
+    {{ w.fader('Ratio', c ~ '.ratio', send, 0, 15, 'ratio', link, {comp: c}) }}
     <div class="strip__stack">
-        {{ w.fader('Attack', c ~ '.attack', send, 0, 998, 'ms', link, {class: 'fader--short'}) }}
-        {{ w.fader('Release', c ~ '.release', send, 9, 2999, 'ms', link, {class: 'fader--short'}) }}
+        {{ w.fader('Attack', c ~ '.attack', send, 0, 998, 'ms', link, {class: 'fader--short', comp: c}) }}
+        {{ w.fader('Release', c ~ '.release', send, 9, 2999, 'ms', link, {class: 'fader--short', comp: c}) }}
     </div>
     {% if meter is not null %}{{ w.meter(meter) }}{% endif %}
 </div>
