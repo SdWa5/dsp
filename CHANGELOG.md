@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.56.0] - 2026-10-02
+
+### Changed
+
+- A gain fader's knob also turns red while the gain sits at the bottom, and only the knob turns red, no longer the filled track
+- Sliders draw their own track and knob, with the filled part following the value (`assets/lib/range.js`)
+
 ## [0.55.0] - 2026-10-02
 
 ### Removed
