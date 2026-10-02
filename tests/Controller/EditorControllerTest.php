@@ -189,7 +189,9 @@ final class EditorControllerTest extends WebTestCase
         $overview = self::page()->filter('section[data-page=gain] [data-controller~=eqoverview]');
         self::assertCount(1, $overview);
         $paths = $overview->filter('[data-eqoverview-target=show]')->each(static fn (Crawler $n): string => (string) $n->attr('value'));
-        self::assertCount(16, $paths);
+        // Every input and output, then the Aux
+        self::assertCount(17, $paths);
+        self::assertSame('aux', end($paths));
         foreach ($paths as $path) {
             self::assertTrue(self::has($path.'.peq'), $path);
         }

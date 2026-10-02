@@ -142,7 +142,7 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   it as -60 dB. Typing "mute" sets it. -59.5 dB is the lowest gain that passes signal. The channel's Mute button lights up then as well,
   without setting the mute flag.
 - The meters hold their peak for 1.5 s and light a red top for 2 s after reaching 0 dB.
-- The Gain page starts with an EQ overview, the EQ curves of every input (solid) and output (dashed) in one plot.
+- The Gain page starts with an EQ overview, the EQ curves of every input (solid), output (dashed) and the Aux (dotted) in one plot.
   A switch per channel shows or hides its curve, kept in the browser. It changes nothing on the device.
 - The Gain page also carries Sub Control next to the channel strips and Group Control below them, the same
   controls as in their dialogs.
