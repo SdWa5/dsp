@@ -42,6 +42,13 @@
 
 ## Editor
 
+- Make an active Mute button and a gain turned to the bottom tell apart at a glance. Both light the Mute button
+  in the same red (`.toggle--mute.is-on`, `--mute` #ff5252), and since 0.56.0 both turn the gain knob red as
+  well, so only the tooltip says which one mutes. That red is also close to the colour of a changed setting
+  (`--changed` #c2185b, the mark on a value field), so a red mark alone does not say whether a channel is muted or
+  merely differs from the factory value. Give the mute by the gain a look of its own, for example an outlined
+  Mute button as the channel tab already has (`.chtab__mute.is-gain`), and move the mute red or the changed colour
+  far enough apart in both themes
 - Link crossover points between outputs, so that a frequency set on one filter also lands on its partner, for
   example the HighPass of Out1 on the LowPass of Out2. Every pair links the frequency, and optionally the slope
   as well, which keeps the two sides of a crossover the same type and order, for example Linkwitz-Riley 24 on
