@@ -74,7 +74,7 @@ test('typed values parse back to raw values', () => {
     assert.equal(S.parse('delay', '11.253', { delay_unit: 2 }), 480);
     assert.equal(S.parse('percent', '50%'), 50);
     assert.equal(S.parse('reverbTime', '1.96s'), 139);
-    for (const [fmt, raw] of [['gain', 190], ['gain', 0], ['threshold', 150], ['ms', 500], ['delay', 960], ['knee', 6]]) {
+    for (const [fmt, raw] of [['gain', 190], ['gain', 0], ['threshold', 150], ['ms', 500], ['delay', 960]]) {
         assert.equal(S.parse(fmt, S.format(fmt, raw)), raw, fmt);
     }
 });

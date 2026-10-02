@@ -168,6 +168,8 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   touched last, which is outlined, and starts at In1 and Out1. Every input tab draws its gate and every output tab
   its compressor small beside the faders, the Aux tab its compressor, and the Aux compressor dialog beside its
   faders as the vendor's Compressor Setting dialog does.
+- The compressors offer threshold, ratio, attack and release, as the vendor editor does. The byte called knee
+  keeps the value the device holds until a measurement shows what it does.
 - An output at compressor ratio 1:1.0 with a gain other than 0 dB is flagged on its strip on the Comp page and on its own tab. Two
   buttons set 1:1.1 from +20 dB, one keeping the gain value ("Exact gain") and one moving the gain to the level
   heard before ("Keep level"). Each button names the gain it sets, and "Keep level" says how far it falls short

@@ -72,7 +72,7 @@ slave's own name back right after the copy.
 | `29` | slot 00–14 | Read a preset name (00 = U01 … 13 = U20, 14 = F00) | ✓ |
 | `2C` | – | Device status. The editor sends it on connect. Reply `00 27 0F 00 00 00`, byte 6 lock (≈) | ✓ format, ≈ meaning |
 | `2D` / `2F` | PIN | Unlock / set PIN and lock | ≈ |
-| `30` | ch, ratio, knee, att u16, rel u16, thr u16 | Compressor (Out, Aux). At ratio 1:1.0 an output gain other than 0 dB misbehaves, and every compression mirrors the signal at 24 kHz, see [Signal chain](#signal-chain). Limit or 1:1.1 at +20 dB is off | ✓ |
+| `30` | ch, ratio, knee, att u16, rel u16, thr u16 | Compressor (Out, Aux). The vendor editor has no control for the byte called knee and sends `00` in every capture. Its meaning is unmeasured, so the editor and the CLI send back what the device holds. At ratio 1:1.0 an output gain other than 0 dB misbehaves, and every compression mirrors the signal at 24 kHz, see [Signal chain](#signal-chain). Limit or 1:1.1 at +20 dB is off | ✓ |
 | `31` / `32` | ch, freq u16, slope | Low pass / high pass. slope 0 = bypass, 1–20 = BW/BL/LK −6…−48 | ✓ |
 | `33` | ch, band, gain u16, freq u16, q, type, bypass | PEQ (In/Aux 5 bands, Out 7) | ✓ |
 | `34` | ch, raw u16 | Gain | ✓ |
@@ -162,11 +162,11 @@ Measured with the loopbacks of a UMC1820 on 2026-09-29. The procedures and the n
 54 LPF freq · 56 gain · 58 phase · 60 link
 
 **Output (76):** 0 name · 8 routing mask · 10 HPF slope · 12 HPF freq · 14 LPF slope · 16 LPF freq ·
-18 PEQ 7 × 6 · 60 ratio · 61 knee · 62 attack · 64 release · 66 threshold · 68 gain · 70 phase · 72 delay · 74 link
+18 PEQ 7 × 6 · 60 ratio · 61 knee (meaning unmeasured, see `30`) · 62 attack · 64 release · 66 threshold · 68 gain · 70 phase · 72 delay · 74 link
 
 **Aux (94):** 0 name · 8 source mask · 10 effect on/off · 12 effect gain · 16 AutoMix slope · 18 AutoMix (att, rel,
 thr, mask, on) · 28 Camera (same) · 38 PEQ 5 × 6 · 68 echo (predelay, delay, repeat, echo) · 76 reverb (predelay,
-reflect, time, reverb) · 84 ratio · 85 knee · 86 attack · 88 release · 90 threshold · 92 gain
+reflect, time, reverb) · 84 ratio · 85 knee (see `30`) · 86 attack · 88 release · 90 threshold · 92 gain
 
 **Footer (63):** 0 mute mask inputs · 2 Aux mute · 4 mute mask outputs · 6 + 2k band bypass mask input k ·
 22 band bypass Aux · 24 + 2k band bypass output k · 40 sub in (gain %, mute, mask, x) · 44 sub out (same) ·

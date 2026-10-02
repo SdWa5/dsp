@@ -334,7 +334,7 @@ final class EditorControllerTest extends WebTestCase
             self::assertSame(["inputs.$i.gate.threshold", "inputs.$i.gate.attack", "inputs.$i.gate.release"], $binds($input, 'gate'));
             self::assertCount(0, $input->filter('fieldset[data-collapse-key-value="channel.comp"], fieldset[data-collapse-key-value="channel.delay"]'));
             $output = $page->filter("section[data-page=outputs$i]");
-            $comp = array_map(static fn (string $v): string => "outputs.$i.comp.$v", ['threshold', 'ratio', 'knee', 'attack', 'release']);
+            $comp = array_map(static fn (string $v): string => "outputs.$i.comp.$v", ['threshold', 'ratio', 'attack', 'release']);
             self::assertSame($comp, $binds($output, 'comp'));
             self::assertSame(["outputs.$i.delay"], $binds($output, 'delay'));
             self::assertCount(1, $output->filter('fieldset[data-collapse-key-value="channel.delay"] select[data-choice-bind-value=delay_unit]'));
@@ -352,9 +352,22 @@ final class EditorControllerTest extends WebTestCase
         $aux = $strips->last();
         self::assertSame('18', $aux->filter('.ch')->attr('data-channel-index-value'));
         $binds = $aux->filter('[data-fader-bind-value]')->each(static fn (Crawler $n): string => (string) $n->attr('data-fader-bind-value'));
-        self::assertSame(['aux.comp.threshold', 'aux.comp.ratio', 'aux.comp.knee', 'aux.comp.attack', 'aux.comp.release'], $binds);
+        self::assertSame(['aux.comp.threshold', 'aux.comp.ratio', 'aux.comp.attack', 'aux.comp.release'], $binds);
         self::assertSame('16', $aux->filter('[data-controller=meter]')->attr('data-meter-index-value'));
         self::assertCount(0, $aux->filter('[data-controller~=gainwarning], [data-fader-link-value]'));
+    }
+
+    public function testNoKneeControlButTheByteGoesBackAsHeld(): void
+    {
+        $page = self::page();
+        self::assertCount(0, $page->filter('[data-fader-bind-value$=".knee"]'));
+        $sends = $page->filter('[data-fader-bind-value$=".comp.threshold"]')->each(static fn (Crawler $n): string => (string) $n->attr('data-fader-send-value'));
+        self::assertNotEmpty($sends);
+        foreach ($sends as $send) {
+            $command = json_decode($send, true, flags: \JSON_THROW_ON_ERROR)[0];
+            self::assertSame('compressor', $command['command']);
+            self::assertMatchesRegularExpression('/^@(outputs\.\d|aux)\.comp\.knee$/', $command['args']['knee']);
+        }
     }
 
     public function testSubControlHasTheAuxBetweenInputAndOutput(): void

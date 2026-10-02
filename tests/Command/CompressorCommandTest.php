@@ -26,20 +26,20 @@ final class CompressorCommandTest extends KernelTestCase
 
     public function testAllValuesOnSeveralOutputs(): void
     {
-        $tester = $this->runCommand(['channels' => 'out1,out2', '--ratio' => '4', '--knee' => '0', '--attack' => '10', '--release' => '200', '--threshold' => '-6']);
+        $tester = $this->runCommand(['channels' => 'out1,out2', '--ratio' => '4', '--attack' => '10', '--release' => '200', '--threshold' => '-6']);
 
         $tester->assertCommandIsSuccessful();
-        self::assertStringContainsString('Out1: 1:4.0 from -6.0 dB, attack 10 ms, release 200 ms, knee 0', $tester->getDisplay());
+        self::assertStringContainsString('Out1: 1:4.0 from -6.0 dB, attack 10 ms, release 200 ms', $tester->getDisplay());
         self::assertStringContainsString('Out2: 1:4.0 from -6.0 dB', $tester->getDisplay());
     }
 
     public function testMissingValuesKeepTheDeviceValues(): void
     {
-        // The demo holds Out8 at 1:1 from +20 dB, 50 ms attack, 200 ms release, knee 0
+        // The demo holds Out8 at 1:1 from +20 dB, 50 ms attack, 200 ms release
         $tester = $this->runCommand(['channels' => 'out8,aux', '--threshold' => '-3']);
 
         $tester->assertCommandIsSuccessful();
-        self::assertStringContainsString('Out8: 1:1.0 from -3.0 dB, attack 50 ms, release 200 ms, knee 0', $tester->getDisplay());
+        self::assertStringContainsString('Out8: 1:1.0 from -3.0 dB, attack 50 ms, release 200 ms', $tester->getDisplay());
         self::assertStringContainsString('Aux: ', $tester->getDisplay());
         self::assertStringContainsString('from -3.0 dB', explode('Aux: ', $tester->getDisplay())[1]);
     }
