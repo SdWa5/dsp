@@ -28,6 +28,9 @@
     --changed: #c2185b;
     --changed-text: #fff;
     --fader-accent: #4b5563;
+    /* The meters are dark in both themes, so their threshold marks keep one colour */
+    --meter-gate: #4dd0e1;
+    --meter-comp: #ffab40;
     --fader-height: 190px;
     --strip-max: 300px;
     color-scheme: light;
@@ -117,6 +120,8 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .menu__heading { padding: 4px 14px 0; color: var(--muted); font-size: 11px; }
 .menu__check { display: flex; align-items: center; gap: 6px; padding: 4px 14px; cursor: pointer; white-space: nowrap; }
 .menu__check:hover { background: var(--title); }
+.menu__group { display: flex; flex-direction: column; }
+.menu__check:has(input:disabled) { color: var(--muted); cursor: default; }
 .menu__list hr { width: 100%; margin: 4px 0; border: 0; border-top: 1px solid var(--panel-edge); }
 .bar__id { font-weight: 700; color: var(--muted); white-space: nowrap; }
 .theme { border: 1px solid var(--button-edge); border-radius: 12px; padding: 2px 10px; background: var(--button); cursor: pointer; }
@@ -336,13 +341,19 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .rider-info[data-state=limit], .rider-info[data-state=paused] { color: var(--limit-text); }
 
 .meter {
-    --level: 0; --peak: 0; position: relative; flex: none; width: 12px; height: var(--fader-height); border: 1px solid #333;
+    --level: 0; --peak: 0; --threshold: 0; position: relative; flex: none; width: 12px; height: var(--fader-height); border: 1px solid #333;
     background: linear-gradient(to top, #1b5e20 0 60%, #827717 60% 85%, #b71c1c 85%); overflow: hidden;
 }
 .meter__bar {
     position: absolute; inset: 0 0 auto 0; height: calc((1 - var(--level)) * 100%); background: #222; transition: height .12s linear;
 }
 .meter__peak { position: absolute; left: 0; right: 0; bottom: calc(var(--peak) * 100%); height: 2px; background: #fff; opacity: .8; }
+/* The gate threshold of an input, the compressor threshold of an output or the Aux */
+.meter__threshold {
+    position: absolute; left: 0; right: 0; bottom: calc(var(--threshold) * 100% - 1px); height: 0; z-index: 1;
+    border-top: 2px dashed var(--meter-comp);
+}
+.meter.is-gate .meter__threshold { border-top-color: var(--meter-gate); }
 /* Ticks every 12 dB: -48, -36, -24, -12, 0 */
 .meter::after {
     content: ''; position: absolute; inset: 0; pointer-events: none;

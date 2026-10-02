@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.51.0] - 2026-10-02
+
+### Added
+
+- A dashed mark on every meter at the gate threshold of an input or the compressor threshold of an output and the Aux, with the threshold in the meter's tooltip
+- Meters in the Channels menu, which shows or hides the mark and by default limits it to a gate above -90 dB and a compressor off 1:1.0 below +20 dB, kept in the browser, in English and German
+- `assets/lib/meters.js` and `assets/lib/meterview.js`, with tests
+- `TODO.md` item to check that every feature of the vendor editor exists in trackdsp
+
 ## [0.50.0] - 2026-10-02
 
 ### Added

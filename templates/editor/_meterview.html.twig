@@ -1,0 +1,6 @@
+{# The Meters settings in the Channels menu: the gate or compressor threshold as a mark on every meter #}
+<div class="menu__group" data-controller="meterview">
+    <span class="menu__heading">{{ 'editor.meter_view.title'|trans }}</span>
+    <label class="menu__check" title="{{ 'editor.meter_view.show_tip'|trans }}"><input type="checkbox" data-meterview-target="show" data-action="change->meterview#change"> {{ 'editor.meter_view.show'|trans }}</label>
+    <label class="menu__check" title="{{ 'editor.meter_view.active_tip'|trans }}"><input type="checkbox" data-meterview-target="active" data-action="change->meterview#change"> {{ 'editor.meter_view.active'|trans }}</label>
+</div>

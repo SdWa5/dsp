@@ -142,6 +142,10 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   it as -60 dB. Typing "mute" sets it. -59.5 dB is the lowest gain that passes signal. The channel's Mute button lights up then as well,
   without setting the mute flag.
 - The meters hold their peak for 1.5 s and light a red top for 2 s after reaching 0 dB.
+- Every meter marks a threshold with a dashed line, the gate threshold on the inputs in cyan and the compressor
+  threshold on the outputs and the Aux in orange. Channels > Meters switches the mark off or shows it for every
+  gate and compressor, by default only for the ones that work. A gate works above -90 dB, a compressor at a ratio
+  other than 1:1.0 with its threshold below +20 dB. A threshold off the meter's -60 to +12 dB shows no mark.
 - The Gain page starts with an EQ overview, the EQ curves of every input (solid), output (dashed) and the Aux (dotted) in one plot.
   Mag and Phase switch the plot as on a channel tab. A switch per channel shows or hides its curve, kept in the
   browser. It changes nothing on the device.

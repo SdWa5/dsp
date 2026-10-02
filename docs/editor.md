@@ -64,6 +64,18 @@ ddev exec bin/console lint:twig templates
 ddev exec composer ci
 ```
 
+## Meters
+
+Every meter marks the threshold of its channel's dynamics with a dashed line. Inputs mark their gate (cyan), the
+outputs and the Aux their compressor (orange). Meter and thresholds share one dB scale (`Scale::meterDb()`), so
+the mark sits where the meter reads the threshold. The tooltip adds the threshold below the level.
+
+Channels > Meters holds two settings, kept per browser under `trackdsp-meter-threshold`. "Show gate/comp
+threshold" switches the mark on, and "Only when active" restricts it to dynamics that work. The device has no
+on switch for either, so `assets/lib/meters.js` decides from the values. A gate works above -90 dB (raw 0, the
+factory value). A compressor works at a ratio other than 1:1.0 with its threshold below +20 dB, the two settings
+`docs/protocol.md` names as off. A threshold below -60 or above +12 dB lies off the meter and shows no mark.
+
 ## Page change marks
 
 Every function tab shows the number of its settings that differ from `resources/factory_config.bin` as a badge
