@@ -145,6 +145,21 @@ final class TransportTest extends TestCase
         self::assertSame([], array_filter($levels, static fn (float $db): bool => $db < -40.05 || $db > -9.95), 'Demo meters move between -40 and -10 dB');
     }
 
+    public function testDemoLimitsTheOutputsWhoseCompressorReachesTheLevel(): void
+    {
+        // The demo preset holds Out1 and Out2 at Limit from 0 dB, above every demo level (-40..-10 dB)
+        $dsp = new \App\Client\Matrix(DemoTransport::fromFile(self::DEMO), 0.01);
+        $dsp->write(Commands::compressor(8, 15, 0, 49, 199, 36)); // Out1 at Limit from -72 dB
+        $dsp->write(Commands::compressor(10, 9, 0, 49, 199, 36)); // Out3 at 1:4.0 from -72 dB
+        $dsp->write(Commands::compressor(11, 0, 0, 49, 199, 36)); // Out4 at 1:1.0, which never compresses
+
+        for ($poll = 0; $poll < 5; ++$poll) {
+            $raw = $dsp->metersRaw();
+            self::assertSame(0b101, \App\Client\Matrix::parseLimiting($raw));
+            self::assertSame("\xFF\xFF\x00", substr($raw, 52));
+        }
+    }
+
     public function testDemoRecallsTheFactoryDefault(): void
     {
         $factory = substr((string) file_get_contents(self::FACTORY), 0, Device::CONFIG_SIZE);

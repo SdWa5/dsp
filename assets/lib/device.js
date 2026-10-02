@@ -7,9 +7,12 @@ export const HEADER = 'X-Trackdsp';
 
 export const store = new Store();
 export const status = { connected: false, bridge: false, error: '', target: '', demo: false, riders: [] };
-const listeners = { status: new Set(), meters: new Set(), riders: new Set(), error: new Set() };
+const listeners = { status: new Set(), meters: new Set(), limiting: new Set(), riders: new Set(), error: new Set() };
 
-/** Listens to status, meters (levels), riders (what the gain riders do right now) or error. */
+/**
+ * Listens to status, meters (levels), limiting (bitmask of the outputs whose limiter works, bit 0 = Out1), riders
+ * (what the gain riders do right now) or error.
+ */
 export function on(event, listener) {
     listeners[event].add(listener);
     return () => listeners[event].delete(listener);
@@ -86,6 +89,7 @@ export function listen() {
     source.addEventListener('meters', (e) => {
         const data = JSON.parse(e.data);
         emit('meters', data.levels);
+        emit('limiting', data.limiting ?? 0);
         emit('riders', data.riders ?? []);
     });
     source.addEventListener('error', () => {

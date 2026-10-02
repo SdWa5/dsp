@@ -85,7 +85,7 @@ slave's own name back right after the copy.
 | `3C` | ch, 0/1 | EQ bypass of the whole channel | ✓ |
 | `3D` | ch, 8 chars | Channel name | ✓ |
 | `3E` | ch, att u16, rel u16, thr u16 | Noise gate (the 8x8 has no hold) | ✓ |
-| `40` | – | Meters: 17 × 3 bytes (In1–8, Out1–8, Aux) + `00 FF FF 00`, scale under Meter below | ✓ |
+| `40` | – | Meters: 17 × 3 bytes (In1–8, Out1–8, Aux), then byte 51 and `FF FF 00`. Scale under Meter below. Byte 51 is `00` in 3335 of 3482 captured replies and `03` in the other 147. They all come from `a01_gain_scale`, `a02_inverse`, `a11_hpf_bypass`, `a14_lpf_bypass`, `fix_out1_gain` and `t03_gain_out1`, which hold Out1 and Out2 at Limit from 0 dB. It turns `03` once the Out1 gain reaches +12 dB and holds about 3.3 s after it drops. Read as a bitmask of the outputs whose limiter works (bit 0 = Out1), not yet confirmed on the device | ✓ |
 | `55` | ch, mode | Input: 0 Line, 1 Mic 0 dB, 2 Mic +1 dB, 3 Mic +2 dB | ✓ |
 | `56` | ch, 0/1 | +48V phantom power | ✓ |
 | `5A` | idx | AutoMix slope 0 = −3 dB … 3 = −6 dB | ✓ |

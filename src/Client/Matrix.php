@@ -231,6 +231,18 @@ final class Matrix
         return $levels;
     }
 
+    /**
+     * The byte after the 17 levels as a mask of outputs, bit 0 = Out1. The vendor editor's captures show it set
+     * for exactly the outputs whose limiter holds them, and held for its release (docs/protocol.md, Meter).
+     * Its meaning is not yet confirmed on the device. 0 when the reply is too short.
+     */
+    public static function parseLimiting(string $data): int
+    {
+        $offset = 3 * self::METER_CHANNELS;
+
+        return \strlen($data) > $offset ? \ord($data[$offset]) : 0;
+    }
+
     public function setGain(string|int $channel, float $db): void
     {
         $this->write(Commands::gainDb(Channel::parse($channel), $db));

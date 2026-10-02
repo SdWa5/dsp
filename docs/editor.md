@@ -78,6 +78,12 @@ on switch for either, so `assets/lib/meters.js` decides from the values. A gate 
 factory value). A compressor works at a ratio other than 1:1.0 with its threshold below +20 dB, the two settings
 `docs/protocol.md` names as off. A threshold below -60 or above +12 dB lies off the meter and shows no mark.
 
+An output meter has an orange Limit lamp above its red top, where the vendor editor has its Limit segment. The
+lamp lights while the bridge's `limiting` field, byte 51 of the meter reply, has the output's bit set (bit 0 =
+Out1), and the tooltip then says "Limiter working". That reading of the byte rests on the captures, see
+`docs/protocol.md`, and is not yet confirmed on the device. The simulated device sets the bit of an output whose
+compressor works and whose level reaches its threshold. `trackdsp:meters` shows the same bit as LIMIT.
+
 ## Gate and compressor curves
 
 `assets/lib/dynamics.js` computes the static curve and `dynamics_controller.js` draws it on a canvas, input level

@@ -1,7 +1,7 @@
 import { t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { on, store } from '../lib/device.js';
-import { meterFraction, meterThreshold, showsThreshold } from '../lib/meters.js';
+import { limits, meterFraction, meterThreshold, showsThreshold } from '../lib/meters.js';
 import { getMeterView, onMeterView } from '../lib/meterview.js';
 
 const HOLD_MS = 1500;
@@ -11,7 +11,8 @@ const HOT_MS = 2000;
  * Level bar of one channel: In1–8 = 0–7, Out1–8 = 8–15, Aux = 16. Range -60..+12 dB with ticks every
  * 12 dB, a peak mark that holds for 1.5 s and a red top while the level was above 0 dB. A dashed mark shows
  * the gate threshold of an input or the compressor threshold of an output and the Aux, as the Meters
- * settings of the Channels menu choose.
+ * settings of the Channels menu choose. An output meter has an orange Limit lamp above the red top, lit while the
+ * device reports its limiter working (byte 51 of the meter reply, unconfirmed on the device).
  */
 export default class extends Controller {
     static targets = ['threshold'];
@@ -23,8 +24,10 @@ export default class extends Controller {
         this.hotAt = -Infinity;
         this.level = -90;
         this.threshold = null;
+        this.limiting = false;
         this.offs = [
             on('meters', (levels) => this.show(levels[this.indexValue] ?? -90)),
+            on('limiting', (mask) => this.showLimiting(limits(mask, this.indexValue))),
             store.subscribe(() => this.showThreshold()),
             onMeterView(() => this.showThreshold()),
         ];
@@ -66,6 +69,14 @@ export default class extends Controller {
         this.showTitle();
     }
 
+    showLimiting(limiting) {
+        if (limiting !== this.limiting) {
+            this.limiting = limiting;
+            this.element.classList.toggle('is-limiting', limiting);
+            this.showTitle();
+        }
+    }
+
     showTitle() {
         const parts = [];
         if (this.level > -90) {
@@ -74,6 +85,9 @@ export default class extends Controller {
         if (null !== this.threshold) {
             const db = this.threshold.db.toFixed(1);
             parts.push('gate' === this.threshold.kind ? t('Gate threshold %threshold% dB', { threshold: db }) : t('Compressor threshold %threshold% dB', { threshold: db }));
+        }
+        if (this.limiting) {
+            parts.push(t('Limiter working'));
         }
         this.element.title = parts.join('\n');
     }

@@ -89,6 +89,7 @@
 "none": "none"
 "verify": "verify"
 "%level% dB, peak %peak% dB": "%level% dB, peak %peak% dB"
+"Limiter working": "Limiter working"
 "Gate threshold %threshold% dB": "Gate threshold %threshold% dB"
 "Compressor threshold %threshold% dB": "Compressor threshold %threshold% dB"
 "Linked: %channels%": "Linked: %channels%"

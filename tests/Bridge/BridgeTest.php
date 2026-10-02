@@ -249,6 +249,7 @@ final class BridgeTest extends TestCase
         self::assertArrayHasKey('state', $events);
         self::assertArrayHasKey('meters', $events);
         self::assertCount(17, $events['meters']['levels']);
+        self::assertIsInt($events['meters']['limiting']);
         self::assertSame([], $events['meters']['riders']);
     }
 

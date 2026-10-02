@@ -64,9 +64,12 @@
     <span class="value" data-controller="value" data-value-bind-value="{{ bind }}" data-value-fmt-value="{{ fmt }}">–</span>
 {% endmacro %}
 
+{# Level bar of a meter slot: 0..7 In1..In8, 8..15 Out1..Out8 (with the Limit lamp), 16 Aux #}
 {% macro meter(index, label = null) %}
-    <div class="meter" data-controller="meter" data-meter-index-value="{{ index }}" role="meter" aria-label="{{ (label ?? 'Level')|trans }}">
+    {%- set output = index >= 8 and index < 16 -%}
+    <div class="meter{{ output ? ' meter--output' }}" data-controller="meter" data-meter-index-value="{{ index }}" role="meter" aria-label="{{ (label ?? 'Level')|trans }}">
         <span class="meter__bar"></span><span class="meter__peak"></span><span class="meter__threshold" data-meter-target="threshold" hidden></span>
+        {%- if output %}<span class="meter__limit"></span>{% endif %}
     </div>
 {% endmacro %}
 

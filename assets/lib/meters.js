@@ -16,6 +16,14 @@ export function meterFraction(db) {
     return Math.max(0, Math.min(1, (db - METER_FLOOR) / (METER_TOP - METER_FLOOR)));
 }
 
+/**
+ * Whether the meter at index shows its limiter working. limiting: byte 51 of the meter reply, a bitmask of
+ * Out1–8 (bit 0 = Out1) as the captures show it. Only output meters (8–15) have the lamp.
+ */
+export function limits(limiting, index) {
+    return index >= 8 && index < 16 && 0 !== (limiting & (1 << (index - 8)));
+}
+
 /** The state path of the channel behind a meter slot: In1–8 = 0–7, Out1–8 = 8–15, Aux = 16. */
 export function meterSource(index) {
     if (index < 8) {

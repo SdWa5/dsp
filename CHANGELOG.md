@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.54.0] - 2026-10-02
+
+### Added
+
+- Orange Limit lamp above the red top of every output meter, lit while byte 51 of the meter reply has the output's bit set, with "Limiter working" in the tooltip
+- `limiting` field in the bridge's meters event and `Matrix::parseLimiting()`
+- Limiter column in `trackdsp:meters`
+- The simulated device sets the limiting bit of an output whose compressor works and whose level reaches its threshold
+
 ## [0.53.0] - 2026-10-02
 
 ### Added

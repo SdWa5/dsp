@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { compActive, gateActive, meterFraction, meterSource, meterThreshold, meterView, showsThreshold } from '../lib/meters.js';
+import { compActive, gateActive, limits, meterFraction, meterSource, meterThreshold, meterView, showsThreshold } from '../lib/meters.js';
 
 const state = {
     inputs: [{ gate: { threshold: 100, attack: 0, release: 2999 } }, { gate: { threshold: 0, attack: 0, release: 2999 } }],
@@ -52,4 +52,16 @@ test('the settings decide which marks show, off the scale none does', () => {
     assert.equal(showsThreshold(meterThreshold(state, 1), all), false);
     assert.equal(showsThreshold(meterThreshold(state, 9), all), false);
     assert.equal(showsThreshold(null, all), false);
+});
+
+test('the Limit lamp of an output follows its bit in the limiting byte', () => {
+    assert.equal(limits(0b11, 8), true);
+    assert.equal(limits(0b11, 9), true);
+    assert.equal(limits(0b11, 10), false);
+    assert.equal(limits(0x80, 15), true);
+    // Inputs and the Aux have no lamp, whatever the byte holds
+    assert.equal(limits(0xff, 0), false);
+    assert.equal(limits(0xff, 7), false);
+    assert.equal(limits(0xff, 16), false);
+    assert.equal(limits(0, 8), false);
 });

@@ -2,6 +2,7 @@
 
 namespace App\Tests\Command;
 
+use App\Command\MetersCommand;
 use App\Command\RouteCommand;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
@@ -131,8 +132,22 @@ final class CliTest extends KernelTestCase
 
     public function testMeters(): void
     {
-        self::assertStringContainsString('Aux', $this->runCommand('trackdsp:meters')->getDisplay());
+        $display = $this->runCommand('trackdsp:meters')->getDisplay();
+        self::assertStringContainsString('Aux', $display);
+        self::assertStringContainsString('Limiter', $display);
         self::assertMatchesRegularExpression('/^([0-9a-f]{2} ){54}[0-9a-f]{2}$/', trim($this->runCommand('trackdsp:meters', ['--raw' => true])->getDisplay()));
+    }
+
+    public function testMetersMarkTheOutputsWhoseLimiterWorks(): void
+    {
+        // A reply of a01_gain_scale.pcap, Out1 and Out2 at Limit from 0 dB with the Out1 gain at +12 dB
+        $rows = MetersCommand::rows((string) hex2bin('233d50233d50ce3c16cf3c6ead05b1ad05bbad05c6ad05bdbe3d32a33d93ee3b95ad05c2ad05aaad05aaad05c5ad05aaad05b003ffff00'));
+
+        self::assertCount(17, $rows);
+        self::assertSame(['Out1', 'LIMIT'], [$rows[8][0], $rows[8][2]]);
+        self::assertSame(['Out2', 'LIMIT'], [$rows[9][0], $rows[9][2]]);
+        self::assertSame(['Aux', ''], [$rows[16][0], $rows[16][2]]);
+        self::assertSame(['LIMIT', 'LIMIT'], array_values(array_filter(array_column($rows, 2))));
     }
 
     public function testRouteInputParser(): void

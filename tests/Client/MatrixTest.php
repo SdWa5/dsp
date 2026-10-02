@@ -112,4 +112,14 @@ final class MatrixTest extends TestCase
         self::assertSame(-90.0, $levels[16]);
         self::assertSame(-90.0, Matrix::parseMeters('')[0]);
     }
+
+    public function testParseLimiting(): void
+    {
+        // A reply of captures/a01_gain_scale.pcap: Out1 and Out2, linked at Limit from 0 dB, driven with +12 dB gain
+        $driven = (string) hex2bin('233d50233d50ce3c16cf3c6ead05b1ad05bbad05c6ad05bdbe3d32a33d93ee3b95ad05c2ad05aaad05aaad05c5ad05aaad05b003ffff00');
+
+        self::assertSame(0b11, Matrix::parseLimiting($driven));
+        self::assertSame(0, Matrix::parseLimiting(substr_replace($driven, "\x00", 51, 1)));
+        self::assertSame(0, Matrix::parseLimiting(substr($driven, 0, 51)));
+    }
 }

@@ -148,6 +148,8 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   threshold on the outputs and the Aux in orange. Channels > Meters switches the mark off or shows it for every
   gate and compressor, by default only for the ones that work. A gate works above -90 dB, a compressor at a ratio
   other than 1:1.0 with its threshold below +20 dB. A threshold off the meter's -60 to +12 dB shows no mark.
+- Output meters have an orange Limit lamp above the red top, lit while the device reports the output's limiter
+  working. The captures show that byte of the meter reply, but the device has not confirmed its meaning yet.
 - The Gain page starts with an EQ overview, the EQ curves of every input (solid), output (dashed) and the Aux (dotted) in one plot.
   Mag and Phase switch the plot as on a channel tab. A switch per channel shows or hides its curve, kept in the
   browser. It changes nothing on the device.
