@@ -70,6 +70,16 @@ export function crossover(slopes, slope, fc, f, high) {
 }
 
 /**
+ * Whether band i of a channel is out of the curve: by its own bypass, or by the channel's EQ Bypass, which takes
+ * every PEQ band out but leaves the HPF and LPF. byEq says the EQ Bypass does it, as a gain at its lowest step
+ * mutes a channel without its mute.
+ */
+export function bandBypassed(channel, i) {
+    const byEq = Boolean(channel.eq_bypass);
+    return { on: byEq || Boolean(channel.peq?.[i]?.bypass), byEq };
+}
+
+/**
  * Response of a channel at f: {db, phase} with phase in degrees.
  * channel: {peq: [...], hpf?, lpf?, eq_bypass}
  */

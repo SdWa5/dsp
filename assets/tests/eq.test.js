@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { crossover, Plot, response } from '../lib/eq.js';
+import { bandBypassed, crossover, Plot, response } from '../lib/eq.js';
 import { hzToIndex } from '../lib/scale.js';
 
 const SLOPES = ['Bypass', 'BW -6', 'BL -6', 'BW -12', 'BL -12', 'LK -12', 'BW -18', 'BL -18', 'BW -24', 'BL -24',
@@ -45,4 +45,15 @@ test('plot mapping is invertible', () => {
     assert.ok(Math.abs(plot.f(plot.x(1234)) - 1234) < 1e-6);
     assert.equal(plot.y(0), 162);
     assert.ok(Math.abs(plot.db(plot.y(-7.5)) + 7.5) < 1e-9);
+});
+
+test('EQ Bypass shows every band as bypassed, and says so', () => {
+    const channel = { peq: [band(49, 120), band(101, 120, 25, 0, true)], eq_bypass: false };
+    assert.deepEqual(bandBypassed(channel, 0), { on: false, byEq: false });
+    assert.deepEqual(bandBypassed(channel, 1), { on: true, byEq: false });
+    channel.eq_bypass = true;
+    assert.deepEqual(bandBypassed(channel, 0), { on: true, byEq: true });
+    assert.deepEqual(bandBypassed(channel, 1), { on: true, byEq: true });
+    // The bands keep their own bypass, so switching EQ Bypass off brings back what each band had
+    assert.equal(channel.peq[0].bypass, false);
 });

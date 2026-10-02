@@ -15,6 +15,7 @@
 "At its limit": "Grenze erreicht"
 "Auto": "Auto"
 "Band %band%: %frequency%  Q %q%  %gain%": "Band %band%: %frequency%  Q %q%  %gain%"
+"Bypassed by EQ Bypass": "Durch EQ Bypass umgangen."
 "Colour theme %theme%. Click to change.": "Farbschema %theme%. Klicken zum Ändern."
 "Connect %target%": "%target% verbinden"
 "Connected to %target%%info%.": "Verbunden mit %target%%info%."

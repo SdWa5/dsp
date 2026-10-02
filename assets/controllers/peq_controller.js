@@ -4,7 +4,7 @@ import { isChanged } from '../lib/defaults.js';
 import { getDefaults, getLabels, send, store } from '../lib/device.js';
 import { linkedMembers } from '../lib/link.js';
 import { getPath } from '../lib/store.js';
-import { drawGrid, Plot, prepare, response } from '../lib/eq.js';
+import { bandBypassed, drawGrid, Plot, prepare, response } from '../lib/eq.js';
 import * as S from '../lib/scale.js';
 
 const COLORS = ['#ff5252', '#ffd740', '#e040fb', '#40c4ff', '#69f0ae', '#448aff', '#b0bec5', '#ffab40'];
@@ -264,7 +264,13 @@ export default class extends Controller {
             set(this.qTargets, S.format('q', b.q));
             set(this.gainTargets, S.format('peq', b.gain));
             set(this.typeTargets, String(b.type));
-            this.bypassTargets[i]?.classList.toggle('is-on', b.bypass);
+            const bypass = this.bypassTargets[i];
+            if (bypass) {
+                const { on, byEq } = bandBypassed(channel, i);
+                bypass.classList.toggle('is-on', on);
+                bypass.setAttribute('aria-pressed', on ? 'true' : 'false');
+                bypass.title = byEq ? t('Bypassed by EQ Bypass') : '';
+            }
             for (const field of ['freq', 'q', 'gain', 'type', 'bypass']) {
                 mark(this[`${field}Targets`][i], `peq.${i}.${field}`);
             }

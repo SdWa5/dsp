@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.48.0] - 2026-10-02
+
+### Changed
+
+- EQ Bypass on the channel and Aux tabs is red while it is on, like the Bypass of a band
+- While EQ Bypass is on, the Bypass of every PEQ band shows red too, with a tooltip in English and German that EQ Bypass does it, as Mute does for a gain at its lowest step
+
+### Added
+
+- `bandBypassed()` in `assets/lib/eq.js`, with a test
+
 ## [0.47.3] - 2026-10-02
 
 ### Fixed
