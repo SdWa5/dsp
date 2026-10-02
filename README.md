@@ -144,6 +144,8 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
 - The other way round, a muted channel turns its gain fader's knob red, on every page, in Sub Control and in
   Group Control. A gain at the bottom does the same. Only the knob turns red, the track keeps its colour. The
   fader's tooltip says when its Mute button mutes it.
+- A compressor that is off, at ratio 1:1.0 or with its threshold at +20 dB, turns the knobs of all its faders red,
+  on the Comp page, the output tabs, the Aux page and in the Aux compressor dialog.
 - The meters hold their peak for 1.5 s and light a red top for 2 s after reaching 0 dB.
 - Every meter marks a threshold with a dashed line, the gate threshold on the inputs in cyan and the compressor
   threshold on the outputs and the Aux in orange. Channels > Meters switches the mark off or shows it for every
