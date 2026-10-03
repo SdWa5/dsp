@@ -201,8 +201,9 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
 - The Gate and Comp pages plot the curve of a gate or compressor above their strips, input level against output
   level from -100 to +20 dB with the threshold as a red dot, as the vendor editor does. The plot follows the strip
   touched last, which is outlined, and starts at In1 and Out1. Every input tab draws its gate and every output tab
-  its compressor small beside the faders, the Aux tab its compressor, and the Aux compressor dialog beside its
-  faders as the vendor's Compressor Setting dialog does.
+  its compressor small beside the faders. The Aux tab places its compressor curve to the right of the threshold
+  fader, with Set below the fader. The Aux compressor dialog places the curve beside its faders on desktop
+  and wraps it below on narrow screens, as the vendor's Compressor Setting dialog does on desktop.
 - The compressors offer threshold, ratio, attack and release, as the vendor editor does. The byte called knee
   keeps the value the device holds until a measurement shows what it does.
 - An output at compressor ratio 1:1.0 with a gain other than 0 dB is flagged on its strip on the Comp page and on its own tab. Two

@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.69.1] - 2026-10-03
+
+### Fixed
+
+- The Aux page places its compressor curve beside the threshold fader, with the Set button below the fader,
+  using the same layout as output channel compressor sections.
+
 ## [0.69.0] - 2026-10-03
 
 ### Added

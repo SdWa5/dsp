@@ -4,11 +4,14 @@
     {% block side %}
         {% import 'editor/_widgets.html.twig' as w %}
         {% set comp = [{command: 'compressor', args: {channel: 18, ratio: '@aux.comp.ratio', knee: '@aux.comp.knee', attack: '@aux.comp.attack', release: '@aux.comp.release', threshold: '@aux.comp.threshold'}}] %}
-        <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.comp">
+        <fieldset class="group group--dynamics" data-controller="collapse" data-collapse-key-value="aux.comp">
             <legend>{{ w.fold('Comp', 'aux_comp') }}</legend>
-            {{ w.fader(null, 'aux.comp.threshold', comp, 0, 220, 'threshold', null, {label: 'Aux compressor threshold', comp: 'aux.comp'}) }}
+            {# The threshold and Set button share the left column; the curve uses the channel dynamics layout. #}
+            <div class="group-stack">
+                {{ w.fader(null, 'aux.comp.threshold', comp, 0, 220, 'threshold', null, {label: 'Aux compressor threshold', comp: 'aux.comp'}) }}
+                <button type="button" class="toggle" data-action="editor#open" data-editor-dialog-param="auxcomp">{{ "Set"|trans }}</button>
+            </div>
             {{ w.dynamics('comp', 'aux') }}
-            <button type="button" class="toggle" data-action="editor#open" data-editor-dialog-param="auxcomp">{{ "Set"|trans }}</button>
         </fieldset>
         <div class="group-stack">
             {% for key, spec in {automix: ['AutoMix', 18], effect: ['Effect', null], camera: ['Camera', 19]} %}

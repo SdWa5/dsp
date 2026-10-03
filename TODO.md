@@ -2,8 +2,6 @@
 
 ## First
 
-- (highest priority) Place the Aux compressor plot to the right of its faders, matching the output
-  compressor sections. Check the Aux page and Aux compressor settings dialog at desktop and narrow widths.
 - Check the clone on the laptop for uncommitted work before touching anything in Automation or related to it.
   Work on the Automation items had already started there, and an auto mode session may have stopped when the
   battery ran empty. Run `git status` and `git log origin/main..` there. If something is left, commit it on a
