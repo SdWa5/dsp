@@ -110,7 +110,9 @@ band" faders). Focus on a field of a band's row also selects that band, as its n
 "Selected band" faders follow the row being typed in. `singleFilter()` builds a channel that holds only that
 filter, so `response()` draws it with the same bypass rules as the channel curve. Pointing works the same way. `pointermove` on the curve finds the point
 under the pointer, and `pointerover` on the editor finds the band's table row, the "Selected band" group or the
-filter group. A drag wins over pointing, which wins over focus. Only pointing and dragging grey out the other
+filter group. A press on a filter's point or control holds that filter until a press lands elsewhere,
+so the grey curve stays after a drag ends and the pointer moves on, and on a touch screen, where a range input takes
+no focus and the pointer leaves as the finger lifts. A drag wins over pointing, then focus, then the last press. Only pointing and dragging grey out the other
 filters' points, rows and groups, so a field in focus leaves the rest of the editor as it is. The area between it and the 0 line is shaded for the curve on the left
 axis, the magnitude, or the phase while it shows alone.
 

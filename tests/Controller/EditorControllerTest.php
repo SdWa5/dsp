@@ -306,7 +306,7 @@ final class EditorControllerTest extends WebTestCase
     public function testEveryControlNamesTheFilterItEditsOrPointsAtForTheSingleCurve(): void
     {
         self::page()->filter('[data-controller=peq]')->each(static function (Crawler $peq): void {
-            self::assertSame('focusin->peq#focus focusout->peq#blur pointerover->peq#hoverControl pointerleave->peq#unhover', $peq->attr('data-action'));
+            self::assertSame('focusin->peq#focus focusout->peq#blur pointerover->peq#hoverControl pointerleave->peq#unhover pointerdown->peq#press', $peq->attr('data-action'));
             self::assertStringEndsWith('wheel->peq#wheel pointerleave->peq#unhover', (string) $peq->filter('canvas.peq__curve')->attr('data-action'));
             // peq#hoverControl finds a band by its row, a filter by its group's data-kind
             self::assertCount(\count($peq->filter('.peq__table tbody tr')), $peq->filter('tr[data-peq-target=row]'));
