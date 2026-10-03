@@ -31,6 +31,16 @@
   menu entry and find its counterpart in the editor or the CLI. A feature without a counterpart becomes an item
   here. On 2026-10-02 this found the curve plots of the Gate and Comp pages, the Limit segment of the output
   meters and the Active lamp of the Aux compressor dialog
+  - Complete the screenshots first, since the check can only find what they show. All 22 tabs of
+    `page_tour.json` have a `page_*.png`, but of the 34 forms the vendor editor names in `captures/dialogs.json`
+    only 13 have a screenshot (counted on 2026-10-03). Five more have a control dump and no screenshot
+    (`TfmProcess`, `TfmNetworkSetup`, `TfmPhantomPotent`, `TfmRs232Cmd`, `TfmRs232CmdEnglish`). Sixteen have
+    neither (`TfmHidData`, `TfmPeqRst`, `TfmAbout`, `TfmRs232Code`, `TfmRs232CodeEnglish`, `TfmLockPassWord`,
+    `TfmLockSetup`, `TfmPtsPassWord`, `TfmPtsSetup`, `TfmInformation`, `TfmExit`, `TfmMemo`, `TfmChannelName`,
+    `TfmFactory`, `TfmIdSelect`, `TfmStoreName`). The menu bar and its menus have no screenshot and no dump at
+    all, and `msgbox.png` belongs to none of the forms yet. Open each in the vendor editor on the VM
+    `win11-lightweight` as for the range survey, take the shot with `virsh -c qemu:///system screenshot
+    win11-lightweight tools/shots/dlg_<form>.png`, and note the forms that only open with the device online
 - PHPUnit group `device` with read-only checks and reversible writes over LAN and USB
 - Packaging: `trackdsp:serve`, FrankenPHP static binary, installer, desktop entry
 - Vendor preset files: trackdsp reads `.prs` (docs/protocol.md). Save a second sample in the vendor editor with
