@@ -6,9 +6,10 @@
 {% macro cell(o, i) %}
     {% import 'editor/_widgets.html.twig' as w %}
     {% set p = 'outputs.' ~ o %}
-    <td>{{ w.toggle('', p ~ '.route', [{command: 'routing', args: {channel: 8 + o, mask: '@' ~ p ~ '.route'}}], null, {bit: i, class: 'toggle--cell', aria: '%output% from %input%'|trans({'%output%': 'Out' ~ (o + 1), '%input%': i < 8 ? 'In' ~ (i + 1) : 'Aux'})}) }}</td>
+    <td data-source="{{ i }}" data-output="{{ o }}">{{ w.toggle('', p ~ '.route', [{command: 'routing', args: {channel: 8 + o, mask: '@' ~ p ~ '.route'}}], null, {bit: i, class: 'toggle--cell', aria: '%output% from %input%'|trans({'%output%': 'Out' ~ (o + 1), '%input%': i < 8 ? 'In' ~ (i + 1) : 'Aux'})}) }}</td>
 {% endmacro %}
-<div class="matrix-page">
+{# Hovering a cell, a header or a part of the graph brings out the same routing in both #}
+<div class="matrix-page" data-controller="routefocus" data-action="pointerover->routefocus#over pointerleave->routefocus#leave routing:rendered->routefocus#reapply">
 <div class="matrix-wrap">
     {# The signal runs from In to Out: the In headers sit on the left or at the top, the Out headers on the right or at the bottom #}
     {% for swapped in [false, true] %}
@@ -24,7 +25,7 @@
                 <tbody>
                     {% for i in 0..8 %}
                         <tr>
-                            <th scope="row">{{ w.ch(i < 8 ? i : 18) }}</th>
+                            <th scope="row" data-source="{{ i }}">{{ w.ch(i < 8 ? i : 18) }}</th>
                             {% for o in 0..7 %}{{ _self.cell(o, i) }}{% endfor %}
                         </tr>
                     {% endfor %}
@@ -32,13 +33,13 @@
                 <tfoot>
                     <tr>
                         {{ corner }}
-                        {% for o in 0..7 %}<th scope="col">{{ w.ch(8 + o) }}</th>{% endfor %}
+                        {% for o in 0..7 %}<th scope="col" data-output="{{ o }}">{{ w.ch(8 + o) }}</th>{% endfor %}
                     </tr>
                 </tfoot>
             {% else %}
                 <thead>
                     <tr>
-                        {% for i in 0..8 %}<th scope="col">{{ w.ch(i < 8 ? i : 18) }}</th>{% endfor %}
+                        {% for i in 0..8 %}<th scope="col" data-source="{{ i }}">{{ w.ch(i < 8 ? i : 18) }}</th>{% endfor %}
                         {{ corner }}
                     </tr>
                 </thead>
@@ -46,7 +47,7 @@
                     {% for o in 0..7 %}
                         <tr>
                             {% for i in 0..8 %}{{ _self.cell(o, i) }}{% endfor %}
-                            <th scope="row" class="matrix__end">{{ w.ch(8 + o) }}</th>
+                            <th scope="row" class="matrix__end" data-output="{{ o }}">{{ w.ch(8 + o) }}</th>
                         </tr>
                     {% endfor %}
                 </tbody>

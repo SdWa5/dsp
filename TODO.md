@@ -42,6 +42,11 @@
 
 ## Editor
 
+- Let the routing graph on the Matrix page make and unmake connections. A drag from an input or the Aux to an
+  output, or from an output to an input, toggles that route as a click on its matrix cell does, so an unset
+  route gets set and a set one gets cleared. While dragging, a line follows the pointer from the start node, and
+  the node under the pointer lights as the target. A drop on a node of the same column or beside any node does
+  nothing. Touch needs the same drag, with pointer capture so the page does not scroll
 - Make an active Mute button and a gain turned to the bottom tell apart at a glance. Both light the Mute button
   in the same red (`.toggle--mute.is-on`, `--mute` #ff5252), and since 0.56.0 both turn the gain knob red as
   well, so only the tooltip says which one mutes. That red is also close to the colour of a changed setting

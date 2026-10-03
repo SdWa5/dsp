@@ -181,7 +181,9 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
 - The corner button of the matrix swaps rows and columns, so the inputs become the rows. The choice is kept in the
   browser. The In headers sit on the left or at the top and the Out headers on the right or at the bottom, so the
   signal always runs from In to Out. Next to the matrix, a routing graph draws the inputs and the Aux on the left,
-  the outputs on the right and a line for every connection. Hovering a channel brings out its lines.
+  the outputs on the right and a line for every connection. Hovering works the same in the matrix and in the
+  graph and shows in both. A cell or a line brings out its connection and its two channels, and a channel brings
+  out itself and its connections. Everything else fades.
 - The Gate and Comp pages plot the curve of a gate or compressor above their strips, input level against output
   level from -100 to +20 dB with the threshold as a red dot, as the vendor editor does. The plot follows the strip
   touched last, which is outlined, and starts at In1 and Out1. Every input tab draws its gate and every output tab

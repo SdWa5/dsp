@@ -366,6 +366,25 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(0, $graph->filter('[data-toggle-send-value], [data-fader-send-value]'));
     }
 
+    public function testMatrixCellsAndHeadersNameTheirRoutingForTheHoverFocus(): void
+    {
+        $page = self::page()->filter('section[data-page=matrix] .matrix-page');
+        self::assertSame('routefocus', $page->attr('data-controller'));
+        self::assertSame('pointerover->routefocus#over pointerleave->routefocus#leave routing:rendered->routefocus#reapply', $page->attr('data-action'));
+        $page->filter('table.matrix')->each(static function (Crawler $table): void {
+            // Every cell is one connection, its source and output match the bit and path of its toggle
+            $table->filter('td')->each(static function (Crawler $cell): void {
+                $toggle = $cell->filter('[data-controller~=toggle]');
+                self::assertSame((string) $toggle->attr('data-toggle-bit-value'), $cell->attr('data-source'));
+                self::assertSame('outputs.'.$cell->attr('data-output').'.route', $toggle->attr('data-toggle-bind-value'));
+            });
+            self::assertCount(72, $table->filter('td'));
+            // Every header but the corner names its channel, In1..In8 and the Aux as sources, Out1..Out8 as outputs
+            self::assertCount(9, $table->filter('th[data-source]'));
+            self::assertCount(8, $table->filter('th[data-output]'));
+        });
+    }
+
     public function testChannelPagesCarryTheirGateCompAndDelay(): void
     {
         $page = self::page();
@@ -584,7 +603,7 @@ final class EditorControllerTest extends WebTestCase
         }
         foreach ($page->filter('[data-action]')->each(static fn (Crawler $n): string => (string) $n->attr('data-action')) as $actions) {
             foreach (preg_split('/\s+/', trim($actions)) ?: [] as $action) {
-                self::assertSame(1, preg_match('/^(?:[a-z]+->)?([a-z]+)#([A-Za-z]+)$/', $action, $m), \sprintf('Malformed action "%s".', $action));
+                self::assertSame(1, preg_match('/^(?:[a-z]+(?::[a-z]+)?->)?([a-z]+)#([A-Za-z]+)$/', $action, $m), \sprintf('Malformed action "%s".', $action));
                 self::assertArrayHasKey($m[1], $sources, \sprintf('Action "%s" names no controller on the page.', $action));
                 self::assertMatchesRegularExpression(\sprintf('/^\s+(?:async\s+)?%s\(/m', $m[2]), $sources[$m[1]], \sprintf('Action "%s" has no method.', $action));
             }
