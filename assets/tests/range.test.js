@@ -22,3 +22,11 @@ test('a gain knob turns red at the bottom or with its Mute', () => {
     assert.equal(knobMuted('percent', 0, false), false);
     assert.equal(knobMuted('percent', 0, true), true);
 });
+
+test('an output delay knob turns red at 0, no delay', () => {
+    assert.equal(knobMuted('delay', 0, undefined), true);
+    assert.equal(knobMuted('delay', 1, undefined), false);
+    assert.equal(knobMuted('delay', 32640, undefined), false);
+    // An echo delay at 0 ms still repeats, so it keeps its colour
+    assert.equal(knobMuted('plainMs', 0, undefined), false);
+});
