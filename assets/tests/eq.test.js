@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { axisLabel, bandBypassed, crossover, crossoverResponse, curveRuns, curveValue, eqView, loadEqView, Plot, plotFor, response, saveEqView } from '../lib/eq.js';
+import { axisLabel, bandBypassed, crossover, crossoverResponse, curveRuns, curveValue, eqView, loadEqView, Plot, plotFor, response, saveEqView, singleFilter } from '../lib/eq.js';
 import { hzToIndex } from '../lib/scale.js';
 
 const SLOPES = ['Bypass', 'BW -6', 'BL -6', 'BW -12', 'BL -12', 'LK -12', 'BW -18', 'BL -18', 'BW -24', 'BL -24',
@@ -72,6 +72,23 @@ test('the phase wraps from -180° to +180° without a line through the plot', ()
     assert.deepEqual(up.map((run) => run.map(([x, v]) => [x, v])), [[[0, 17], [5, 18]], [[5, -18], [10, -17]]]);
     // The magnitude stays one run, clipped just outside the grid
     assert.deepEqual(curveRuns([[0, { db: -40 }], [10, { db: 3 }]], 'mag'), [[[0, -18.5], [10, 3]]]);
+});
+
+test('a single filter draws as it would alone', () => {
+    const peak = band(hzToIndex(1000), 180);
+    const channel = { peq: [band(hzToIndex(100), 60), peak], hpf: { freq: 100, slope: 20 }, lpf: { freq: 300, slope: 0 }, eq_bypass: false };
+    const at = (which, f) => response(singleFilter(channel, which), f, SLOPES).db;
+    // The band alone: its own +6 dB, without the other band's cut and without the HPF
+    assert.ok(Math.abs(at({ kind: 'band', i: 1 }, 19.6875 * 2 ** (hzToIndex(1000) / 30)) - 6) < 0.01);
+    assert.ok(Math.abs(at({ kind: 'band', i: 1 }, 20)) < 0.1);
+    // The HPF alone falls below its corner and is flat above it, without either band
+    assert.ok(at({ kind: 'hpf' }, 20) < -60);
+    assert.ok(Math.abs(at({ kind: 'hpf' }, 5000)) < 0.01);
+    // A filter at slope 0, a bypassed band and the EQ Bypass stay flat, as in the channel curve
+    assert.ok(Math.abs(at({ kind: 'lpf' }, 20000)) < 1e-9);
+    assert.deepEqual(singleFilter({ ...channel, eq_bypass: true }, { kind: 'band', i: 1 }).eq_bypass, true);
+    assert.ok(Math.abs(response(singleFilter({ ...channel, peq: [band(170, 240, 25, 0, true)] }, { kind: 'band', i: 0 }), 1000, SLOPES).db) < 1e-9);
+    assert.deepEqual(singleFilter(channel, { kind: 'band', i: 9 }).peq, []);
 });
 
 test('plot mapping is invertible', () => {

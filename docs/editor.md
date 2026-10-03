@@ -103,6 +103,13 @@ Butterworth at 0.8 times the frequency ratio, as its magnitude always was, so it
 phase wraps at ±180°. `curveRuns()` ends the line where it leaves one edge and starts it again at the opposite one,
 so a steep filter winds through the plot instead of drawing vertical lines across it.
 
+While a single filter is being edited, the channel tab draws it alone in grey behind the channel curve. The PEQ
+controller counts a band, the HPF or the LPF as edited while its point is dragged or while one of its controls has
+focus (`focusin` on the editor, read from the control's band or kind param, or the selected band for the "Selected
+band" faders). `singleFilter()` builds a channel that holds only that filter, so `response()` draws it with the
+same bypass rules as the channel curve. The area between it and the 0 line is shaded for the curve on the left
+axis, the magnitude, or the phase while it shows alone.
+
 The EQ overview colours a curve and its switch by channel number. Linked channels share one EQ, so
 `curveColourSource()` in `assets/lib/overview.js` gives every member of a link group the same colour. That is the
 group's `--group` colour from `app.css` while the Channels menu shows link colours, read back from the switch's

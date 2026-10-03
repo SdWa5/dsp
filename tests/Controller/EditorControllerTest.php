@@ -303,6 +303,24 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(0, $page->filter('input[type=radio][name^=view-]'));
     }
 
+    public function testEveryControlNamesTheFilterItEditsForTheSingleCurve(): void
+    {
+        self::page()->filter('[data-controller=peq]')->each(static function (Crawler $peq): void {
+            self::assertSame('focusin->peq#focus focusout->peq#blur', $peq->attr('data-action'));
+            // peq#focus tells the filter by the band or kind param, or by the selected band's fader target
+            $bands = $peq->filter('.peq__table input, .peq__table select, .peq__table button')->each(static fn (Crawler $n): string => (string) $n->attr('data-peq-band-param'));
+            self::assertNotEmpty($bands);
+            foreach ($bands as $band) {
+                self::assertMatchesRegularExpression('/^\d$/', $band);
+            }
+            $kinds = $peq->filter('.group--filter input[data-peq-target], .group--filter select[data-peq-target], .group--filter button[data-peq-target]')->each(static fn (Crawler $n): string => (string) $n->attr('data-peq-kind-param'));
+            foreach ($kinds as $kind) {
+                self::assertContains($kind, ['hpf', 'lpf']);
+            }
+            self::assertSame(['paramFreq', 'paramQ', 'paramGain'], $peq->filter('.group--params input')->each(static fn (Crawler $n): string => (string) $n->attr('data-peq-target')));
+        });
+    }
+
     public function testChannelSectionsFollowTheLinkPlacement(): void
     {
         $page = self::page();

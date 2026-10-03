@@ -5,11 +5,13 @@ import { getDefaults, getLabels, send, store } from '../lib/device.js';
 import { linkedMembers } from '../lib/link.js';
 import { paintRange } from '../lib/range.js';
 import { getPath } from '../lib/store.js';
-import { bandBypassed, curveRuns, drawGrid, eqView, loadEqView, plotFor, prepare, response, saveEqView } from '../lib/eq.js';
+import { bandBypassed, curveRuns, drawGrid, eqView, loadEqView, plotFor, prepare, response, saveEqView, singleFilter } from '../lib/eq.js';
 import * as S from '../lib/scale.js';
 
 const COLORS = ['#ff5252', '#ffd740', '#e040fb', '#40c4ff', '#69f0ae', '#448aff', '#b0bec5', '#ffab40'];
 const CURVE = { mag: { color: '#ffee58', width: 2 }, phase: { color: '#4dd0e1', width: 1.5 } };
+// The filter being edited, drawn alone behind the channel curve
+const SINGLE = { color: '#9e9e9e', fill: 'rgba(158, 158, 158, 0.25)' };
 const DEFAULT_SLOPE = 20; // LK -48, the editor's default
 const DEFAULT_FREQS = { 5: [49, 101, 148, 200, 255], 7: [31, 71, 118, 161, 200, 240, 270] };
 
@@ -19,6 +21,9 @@ const DEFAULT_FREQS = { 5: [49, 101, 148, 200, 255], 7: [31, 71, 118, 161, 200, 
  * Every field that differs from the factory default gets the class is-changed. A write to a linked input or
  * output goes to every channel of its link group, as the Gain page's widgets do (bound_controller.js).
  * Mag and Phase show the magnitude, the phase or both, saved per channel. The phase reads in degrees on the axis.
+ * While a band, the HPF or the LPF is being edited, by dragging its point or with focus on one of its controls, its
+ * own curve as it would look alone is drawn in grey behind the channel curve, with the area to the 0 line filled
+ * for the magnitude, or for the phase while it shows alone.
  */
 export default class extends Controller {
     static values = { path: String, channel: Number };
@@ -29,6 +34,7 @@ export default class extends Controller {
     connect() {
         this.selected = 0;
         this.drag = null;
+        this.focused = null;
         this.slopes = {};
         const view = loadEqView(this.pathValue);
         if (this.hasMagTarget && this.hasPhaseTarget) {
@@ -238,7 +244,42 @@ export default class extends Controller {
     }
 
     pointerup() {
+        const dragged = null !== this.drag;
         this.drag = null;
+        if (dragged) {
+            this.draw();
+        }
+    }
+
+    /** A control of a band, of the selected band or of a filter takes focus: that filter is being edited. */
+    focus(event) {
+        const node = event.target;
+        const params = node.dataset;
+        if (undefined !== params.peqBandParam) {
+            this.focused = { kind: 'band', i: Number(params.peqBandParam) };
+        } else if (undefined !== params.peqKindParam) {
+            this.focused = { kind: params.peqKindParam };
+        } else if (/^param(Freq|Q|Gain)$/.test(params.peqTarget ?? '')) {
+            this.focused = { kind: 'band', selected: true };
+        } else {
+            this.focused = null;
+        }
+        this.draw();
+    }
+
+    blur() {
+        this.focused = null;
+        this.draw();
+    }
+
+    /** The filter being edited: the one dragged, else the one whose control has focus, else none. */
+    get editing() {
+        const which = this.drag ?? this.focused;
+        if (null === which) {
+            return null;
+        }
+
+        return 'band' === which.kind ? { kind: 'band', i: which.selected ? this.selected : which.i } : { kind: which.kind };
     }
 
     /** Mouse wheel over a band point changes its Q. */
@@ -341,6 +382,29 @@ export default class extends Controller {
             const f = 20 * 1000 ** (i / n);
             return [plot.x(f), response(channel, f, slopes)];
         });
+        const editing = this.editing;
+        if (null !== editing) {
+            const alone = singleFilter(channel, editing);
+            const own = Array.from({ length: n + 1 }, (_, i) => [points[i][0], response(alone, 20 * 1000 ** (i / n), slopes)]);
+            g.strokeStyle = SINGLE.color;
+            g.fillStyle = SINGLE.fill;
+            g.lineWidth = 1.5;
+            for (const kind of ['phase', 'mag'].filter((k) => view[k])) {
+                for (const run of curveRuns(own, kind)) {
+                    const path = new Path2D();
+                    run.forEach(([x, v], i) => (0 === i ? path.moveTo(x, plot.y(v)) : path.lineTo(x, plot.y(v))));
+                    g.stroke(path);
+                    // Only the curve on the left axis gets its area, two filled areas would hide each other
+                    if (kind !== (view.mag ? 'mag' : 'phase')) {
+                        continue;
+                    }
+                    path.lineTo(run[run.length - 1][0], plot.y(0));
+                    path.lineTo(run[0][0], plot.y(0));
+                    path.closePath();
+                    g.fill(path);
+                }
+            }
+        }
         // The phase first, so the magnitude with its handles stays on top
         for (const kind of ['phase', 'mag'].filter((k) => view[k])) {
             g.strokeStyle = CURVE[kind].color;

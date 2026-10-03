@@ -42,10 +42,6 @@
 
 ## Editor
 
-- EQ curve: while a single filter is being edited (a PEQ band, the HPF or the LPF), draw that filter's own curve
-  as it would look without any other filter, in grey behind the channel curve. Fill the area between it and the
-  0 dB line in grey at partial opacity. `peq_controller.js` knows the selected band in `selected`, and
-  `biquadResponse()` and `crossoverResponse()` in `assets/lib/eq.js` give a single filter's response.
 - Next: turn fader knobs red where the PEQ or a filter does nothing, like the gain and compressor knobs
   (`knobMuted()` and `compActive()`, `paint()` in `fader_controller.js`). Only the knob turns red, the track keeps
   its colour.
