@@ -433,8 +433,16 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .routing__node text { fill: var(--text); font-size: 12px; }
 .routing__id { font-weight: 700; }
 .routing__edge { fill: none; stroke-width: 2; transition: opacity 0.15s; }
-.routing__graph.has-focus .routing__edge:not(.is-focus) { opacity: 0.12; }
-.routing__graph.has-focus .routing__edge.is-focus { stroke-width: 3; }
+.has-route-focus .routing__edge:not(.is-focus) { opacity: 0.12; }
+.has-route-focus .routing__edge.is-focus { stroke-width: 3; }
+.routing__node { transition: opacity 0.1s; }
+.has-route-focus .routing__node:not(.is-focus) { opacity: 0.35; }
+.routing__node.is-focus .routing__box { stroke: var(--text); stroke-width: 2; }
+/* Hovering on the Matrix page: the cells outside the focus fade, the headers it names light up */
+.matrix td { transition: opacity 0.1s; }
+.matrix th { transition: opacity 0.1s; }
+.has-route-focus .matrix :is(td, th[data-source], th[data-output]):not(.is-focus) { opacity: 0.35; }
+.matrix th.is-focus { box-shadow: inset 0 0 0 2px var(--text); }
 .matrix-wrap { overflow-x: auto; padding: 8px; background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px; }
 .matrix { border-collapse: separate; border-spacing: 3px; margin: 0 auto; }
 .matrix caption { caption-side: bottom; padding-top: 6px; color: var(--muted); }

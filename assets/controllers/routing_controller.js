@@ -13,7 +13,8 @@ const WIDTH = 480;
 
 /**
  * The routing of the matrix as the vendor editor draws it: In1..In8 and Aux on the left, Out1..Out8 on the right,
- * and a line for every connection, coloured by its source. Hovering a channel brings out its lines. Both columns
+ * and a line for every connection, coloured by its source. Hovering a channel or a line brings out its lines here
+ * and its cells in the matrix (routefocus_controller.js). Both columns
  * follow the link placement, and a linked channel carries its group code and colour. It only shows the routing,
  * the matrix next to it sets it.
  */
@@ -59,7 +60,7 @@ export default class extends Controller {
             const y1 = rows.sources[slots.sources.indexOf(source)];
             const y2 = rows.outputs[slots.outputs.indexOf(output)];
             const mid = (left + right) / 2;
-            this.element(svg, 'path', {
+            this.svgNode(svg, 'path', {
                 class: 'routing__edge',
                 d: `M${left},${y1} C${mid},${y1} ${mid},${y2} ${right},${y2}`,
                 stroke: COLORS[source],
@@ -71,44 +72,34 @@ export default class extends Controller {
             const isSource = n < SOURCES;
             const y = isSource ? rows.sources[slots.sources.indexOf(n)] : rows.outputs[slots.outputs.indexOf(n - SOURCES)];
             const group = n < 8 ? groups.inputs[n] : n >= SOURCES ? groups.outputs[n - SOURCES] : 0;
-            const node = this.element(svg, 'g', {
+            const node = this.svgNode(svg, 'g', {
                 class: 'routing__node',
                 transform: `translate(${isSource ? 0 : right},${y - NODE.height / 2})`,
                 [isSource ? 'data-source' : 'data-output']: isSource ? n : n - SOURCES,
             });
-            this.element(node, 'rect', { class: 'routing__box', width: NODE.width, height: NODE.height, rx: 4 });
+            this.svgNode(node, 'rect', { class: 'routing__box', width: NODE.width, height: NODE.height, rx: 4 });
             if (group > 0) {
                 node.dataset.group = view.colour ? String(group) : '';
                 if (view.code) {
-                    const code = this.element(node, 'text', { class: 'routing__link', x: NODE.width - 6, y: NODE.height / 2 + 4, 'text-anchor': 'end' });
+                    const code = this.svgNode(node, 'text', { class: 'routing__link', x: NODE.width - 6, y: NODE.height / 2 + 4, 'text-anchor': 'end' });
                     const side = n < 8 ? 'inputs' : 'outputs';
                     code.textContent = linkName(view, side, groups[side], group) || `L${group}`;
                 }
             }
             if (isSource) {
-                this.element(node, 'rect', { class: 'routing__swatch', width: 4, height: NODE.height, fill: COLORS[n] });
+                this.svgNode(node, 'rect', { class: 'routing__swatch', width: 4, height: NODE.height, fill: COLORS[n] });
             }
-            const text = this.element(node, 'text', { x: 10, y: NODE.height / 2 + 4 });
-            this.element(text, 'tspan', { class: 'routing__id' }).textContent = parts.id;
+            const text = this.svgNode(node, 'text', { x: 10, y: NODE.height / 2 + 4 });
+            this.svgNode(text, 'tspan', { class: 'routing__id' }).textContent = parts.id;
             if ('' !== parts.name) {
-                this.element(text, 'tspan', { dx: 6 }).textContent = parts.name;
+                this.svgNode(text, 'tspan', { dx: 6 }).textContent = parts.name;
             }
-            node.addEventListener('pointerenter', () => this.focus(node.dataset));
-            node.addEventListener('pointerleave', () => this.focus(null));
         });
+        // The page's hover focus (routefocus_controller.js) goes onto the new lines and nodes
+        this.dispatch('rendered');
     }
 
-    /** Brings out the lines of one channel, or all of them again with null. */
-    focus(data) {
-        const svg = this.svgTarget;
-        svg.classList.toggle('has-focus', null !== data);
-        for (const edge of svg.querySelectorAll('.routing__edge')) {
-            const on = null !== data && (edge.dataset.source === data.source || edge.dataset.output === data.output);
-            edge.classList.toggle('is-focus', on);
-        }
-    }
-
-    element(parent, name, attributes) {
+    svgNode(parent, name, attributes) {
         const node = document.createElementNS(SVG, name);
         for (const [key, value] of Object.entries(attributes)) {
             node.setAttribute(key, String(value));
