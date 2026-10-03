@@ -5,7 +5,7 @@
  #}
 {% import 'editor/_widgets.html.twig' as w %}
 {% set fold = 'aux' == p ? 'aux' : 'channel' %}
-<div class="peq" data-controller="peq" data-peq-path-value="{{ p }}" data-peq-channel-value="{{ channel }}">
+<div class="peq" data-controller="peq" data-peq-path-value="{{ p }}" data-peq-channel-value="{{ channel }}" data-action="focusin->peq#focus focusout->peq#blur">
     <div class="peq__bar">
         <label title="{{ 'editor.tip.eq_mag'|trans }}"><input type="checkbox" checked data-peq-target="mag" data-action="peq#toggleView"> {{ "Mag"|trans }}</label>
         <label title="{{ 'editor.tip.eq_phase'|trans }}"><input type="checkbox" data-peq-target="phase" data-action="peq#toggleView"> {{ "Phase"|trans }}</label>

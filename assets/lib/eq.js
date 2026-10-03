@@ -128,6 +128,21 @@ export function response(channel, f, slopes) {
     return { db: 20 * Math.log10(Math.max(Math.hypot(re, im), 1e-6)), phase: (Math.atan2(im, re) * 180) / Math.PI };
 }
 
+/**
+ * A channel that holds only one of its filters, so response() gives that filter's curve as it would look alone.
+ * which: {kind: 'band', i} for a PEQ band, {kind: 'hpf'} or {kind: 'lpf'}. A bypassed band and the EQ Bypass keep
+ * a band flat, and a filter at slope 0 stays flat, as in the channel curve.
+ */
+export function singleFilter(channel, which) {
+    if ('band' === which.kind) {
+        const band = channel.peq?.[which.i];
+
+        return { peq: band ? [band] : [], eq_bypass: Boolean(channel.eq_bypass) };
+    }
+
+    return { peq: [], [which.kind]: channel[which.kind], eq_bypass: false };
+}
+
 /** Plot mapping: 20 Hz..20 kHz logarithmic, -18..+18 dB. */
 export class Plot {
     constructor(left, top, width, height) {
