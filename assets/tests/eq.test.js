@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { axisLabel, bandBypassed, crossover, crossoverResponse, curveRuns, curveValue, eqView, loadEqView, Plot, plotFor, response, saveEqView, singleFilter } from '../lib/eq.js';
+import { axisLabel, bandBypassed, bandIdle, crossover, crossoverResponse, curveRuns, curveValue, eqView, filterIdle, loadEqView, Plot, plotFor, response, saveEqView, singleFilter } from '../lib/eq.js';
 import { hzToIndex } from '../lib/scale.js';
 
 const SLOPES = ['Bypass', 'BW -6', 'BL -6', 'BW -12', 'BL -12', 'LK -12', 'BW -18', 'BL -18', 'BW -24', 'BL -24',
@@ -89,6 +89,28 @@ test('a single filter draws as it would alone', () => {
     assert.deepEqual(singleFilter({ ...channel, eq_bypass: true }, { kind: 'band', i: 1 }).eq_bypass, true);
     assert.ok(Math.abs(response(singleFilter({ ...channel, peq: [band(170, 240, 25, 0, true)] }, { kind: 'band', i: 0 }), 1000, SLOPES).db) < 1e-9);
     assert.deepEqual(singleFilter(channel, { kind: 'band', i: 9 }).peq, []);
+});
+
+test('a band or filter that does nothing', () => {
+    const channel = (peq, eqBypass = false) => ({ peq, eq_bypass: eqBypass });
+    // Peak, Low Shelf and High Shelf at 0 dB are flat
+    for (const type of [0, 1, 2]) {
+        assert.equal(bandIdle(channel([band(100, 120, 25, type)]), 0), 'flat');
+        assert.equal(bandIdle(channel([band(100, 121, 25, type)]), 0), null);
+    }
+    // Low Pass, High Pass and the Allpasses filter at any gain
+    for (const type of [3, 4, 5, 6]) {
+        assert.equal(bandIdle(channel([band(100, 120, 25, type)]), 0), null);
+    }
+    // A bypass wins, by the band's own Bypass or by EQ Bypass
+    assert.equal(bandIdle(channel([band(100, 180, 25, 0, true)]), 0), 'bypass');
+    assert.equal(bandIdle(channel([band(100, 120, 25, 4)], true), 0), 'bypass');
+    assert.equal(bandIdle(channel([]), 0), null);
+    assert.equal(bandIdle(undefined, 0), null);
+    // A HPF or LPF does nothing at slope 0 only
+    assert.equal(filterIdle({ freq: 100, slope: 0 }), true);
+    assert.equal(filterIdle({ freq: 100, slope: 20 }), false);
+    assert.equal(filterIdle(undefined), false);
 });
 
 test('plot mapping is invertible', () => {

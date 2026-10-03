@@ -1,6 +1,6 @@
 // Frequency response of the PEQ bands and crossover filters, for drawing the curve.
 // Port of the Python editor: RBJ cookbook biquads at 96 kHz, crossover slopes approximated.
-import { indexToHz, indexToQ, peqGainToDb } from './scale.js';
+import { indexToHz, indexToQ, PEQ_GAIN_UNITY, peqGainToDb } from './scale.js';
 import { readPref, writePref } from './prefs.js';
 
 const FS = 96000;
@@ -101,6 +101,31 @@ export function crossover(slopes, slope, fc, f, high) {
 export function bandBypassed(channel, i) {
     const byEq = Boolean(channel.eq_bypass);
     return { on: byEq || Boolean(channel.peq?.[i]?.bypass), byEq };
+}
+
+// Peak, Low Shelf and High Shelf do nothing at 0 dB. Low Pass, High Pass and the Allpasses filter at any gain
+const GAIN_TYPES = [0, 1, 2];
+
+/**
+ * Why band i of a channel does nothing, or null while it works: 'bypass' by its own Bypass or by EQ Bypass, 'flat'
+ * for a Peak or shelf at 0 dB. Its faders' knobs turn red then.
+ * @returns {'bypass'|'flat'|null}
+ */
+export function bandIdle(channel, i) {
+    const band = channel?.peq?.[i];
+    if (!band) {
+        return null;
+    }
+    if (bandBypassed(channel, i).on) {
+        return 'bypass';
+    }
+
+    return GAIN_TYPES.includes(band.type) && PEQ_GAIN_UNITY === band.gain ? 'flat' : null;
+}
+
+/** Whether a HPF or LPF does nothing: its Bypass is on (slope 0). EQ Bypass is left out until measured. */
+export function filterIdle(filter) {
+    return Boolean(filter) && !filter.slope;
 }
 
 /**

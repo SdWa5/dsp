@@ -5,7 +5,7 @@ import { getDefaults, getLabels, send, store } from '../lib/device.js';
 import { linkedMembers } from '../lib/link.js';
 import { paintRange } from '../lib/range.js';
 import { getPath } from '../lib/store.js';
-import { bandBypassed, curveRuns, drawGrid, eqView, loadEqView, plotFor, prepare, response, saveEqView, singleFilter } from '../lib/eq.js';
+import { bandBypassed, bandIdle, curveRuns, filterIdle, drawGrid, eqView, loadEqView, plotFor, prepare, response, saveEqView, singleFilter } from '../lib/eq.js';
 import * as S from '../lib/scale.js';
 
 const COLORS = ['#ff5252', '#ffd740', '#e040fb', '#40c4ff', '#69f0ae', '#448aff', '#b0bec5', '#ffab40'];
@@ -26,6 +26,8 @@ const DEFAULT_FREQS = { 5: [49, 101, 148, 200, 255], 7: [31, 71, 118, 161, 200, 
  * own curve as it would look alone is drawn in grey behind the channel curve, with the area to the 0 line filled
  * for the magnitude, or for the phase while it shows alone. Pointing at a filter's point, its table row or its faders
  * does the same and greys out the points and controls of every other filter.
+ * The knobs of the selected band's faders turn red while the band does nothing (bypassed, or a Peak or shelf at
+ * 0 dB), a filter's frequency knob while its Bypass is on.
  */
 export default class extends Controller {
     static values = { path: String, channel: Number };
@@ -429,6 +431,12 @@ export default class extends Controller {
                 this[`param${name}LabelTarget`].textContent = S.format(fmt, value);
             }
         }
+        const idle = bandIdle(channel, this.selected);
+        for (const name of ['Freq', 'Q', 'Gain']) {
+            if (this[`hasParam${name}Target`]) {
+                this.paintIdle(this[`param${name}Target`], null === idle ? '' : 'bypass' === idle ? t('Band bypassed') : t('Band at 0 dB: a Peak or shelf does nothing'));
+            }
+        }
         this.filterFreqTargets.forEach((input, k) => {
             const kind = input.dataset.kind;
             const filter = channel[kind];
@@ -440,6 +448,7 @@ export default class extends Controller {
             }
             this.filterSlopeTargets[k].value = String(filter.slope || this.slopes[kind] || DEFAULT_SLOPE);
             this.filterBypassTargets[k].classList.toggle('is-on', 0 === filter.slope);
+            this.paintIdle(input, filterIdle(filter) ? t('Filter bypassed') : '');
             mark(this.filterFreqLabelTargets[k], `${kind}.freq`);
             mark(this.filterSlopeTargets[k], `${kind}.slope`);
         });
@@ -448,6 +457,20 @@ export default class extends Controller {
             mark(this.eqBypassTarget, 'eq_bypass');
         }
         this.draw();
+    }
+
+    /**
+     * Turns a fader's knob red while its band or filter does nothing, as a muted gain's knob, and says why on a line
+     * of its own above the fader's tooltip from the page. The track keeps its colour.
+     */
+    paintIdle(input, reason) {
+        const fader = input.closest('.fader');
+        if (!fader) {
+            return;
+        }
+        fader.classList.toggle('is-muted', '' !== reason);
+        fader.dataset.tip ??= fader.title;
+        fader.title = [reason, fader.dataset.tip].filter(Boolean).join('\n');
     }
 
     draw() {
