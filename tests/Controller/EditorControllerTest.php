@@ -361,6 +361,8 @@ final class EditorControllerTest extends WebTestCase
         $graph = self::page()->filter('section[data-page=matrix] .matrix-page > [data-controller~=routing]');
         self::assertCount(1, $graph);
         self::assertSame('matrix.graph', $graph->attr('data-collapse-key-value'));
+        // The matrix folds on its own, with a title as the graph has
+        self::assertCount(1, self::page()->filter('section[data-page=matrix] .matrix-wrap.fold-panel[data-collapse-key-value="matrix.matrix"] > .fold-panel__title [data-collapse-target=toggle]'));
         self::assertCount(1, $graph->filter('svg[data-routing-target=svg]'));
         // The graph only shows the routing, the matrix sets it
         self::assertCount(0, $graph->filter('[data-toggle-send-value], [data-fader-send-value]'));

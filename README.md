@@ -117,7 +117,8 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   carries its group's code, icon and colour. The strips of Gain, Gate, Comp and Delay, the EQ overview switches,
   the route buttons of Sub Control, Group Control and the Aux, the Auto EQ outputs, the matrix and the routing
   graph follow the placement. Stacked gathers a group under one header, and strips, being too tall to stack, form
-  a block that runs across. The matrix leaves a gap around each group instead.
+  a block that runs across. The matrix leaves a gap around each group and heads it with one bar outside the
+  channel headers, and the routing graph draws a frame around each group. Either way the code shows once per group.
 - A link group can carry a name of up to 12 characters, typed in the Link dialog below the matrices. The name
   stands wherever the code would (L1, L2, ...), so it shows when "Group code or name" is on. It is kept in the
   browser with the other display settings and stays with the group's lowest channel, so it survives when other
@@ -178,12 +179,13 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   starting, changing or stopping it on any member does so for the whole group. A user preset stores the running
   riders and brings them back on recall, and the factory default runs with none.
   The Auto EQ page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
-- The corner button of the matrix swaps rows and columns, so the inputs become the rows. The choice is kept in the
-  browser. The In headers sit on the left or at the top and the Out headers on the right or at the bottom, so the
-  signal always runs from In to Out. Next to the matrix, a routing graph draws the inputs and the Aux on the left,
-  the outputs on the right and a line for every connection. Hovering works the same in the matrix and in the
-  graph and shows in both. A cell or a line brings out its connection and its two channels, and a channel brings
-  out itself and its connections. Everything else fades.
+- The matrix and the routing graph each fold under their own title. The corner button of the matrix swaps rows and
+  columns, so the inputs become the rows. The choice is kept in the browser. The In headers sit on the left or at
+  the top and the Out headers on the right or at the bottom, so the signal always runs from In to Out. Next to the
+  matrix, a routing graph draws the inputs and the Aux on the left, the outputs on the right and a line for every
+  connection. Hovering works the same in the matrix and in the graph and shows in both. A cell or a line brings
+  out its connection and its two channels, and a channel brings out itself and its connections. Everything else
+  fades.
 - The Gate and Comp pages plot the curve of a gate or compressor above their strips, input level against output
   level from -100 to +20 dB with the threshold as a red dot, as the vendor editor does. The plot follows the strip
   touched last, which is outlined, and starts at In1 and Out1. Every input tab draws its gate and every output tab

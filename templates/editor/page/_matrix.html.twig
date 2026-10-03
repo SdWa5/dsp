@@ -10,7 +10,8 @@
 {% endmacro %}
 {# Hovering a cell, a header or a part of the graph brings out the same routing in both #}
 <div class="matrix-page" data-controller="routefocus" data-action="pointerover->routefocus#over pointerleave->routefocus#leave routing:rendered->routefocus#reapply">
-<div class="matrix-wrap">
+<div class="matrix-wrap fold-panel" data-controller="collapse" data-collapse-key-value="matrix.matrix">
+    <h3 class="fold-panel__title">{{ w.fold('Matrix', 'matrix') }}</h3>
     {# The signal runs from In to Out: the In headers sit on the left or at the top, the Out headers on the right or at the bottom #}
     {% for swapped in [false, true] %}
         {% set corner %}

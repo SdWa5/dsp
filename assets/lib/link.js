@@ -235,6 +235,26 @@ export function linkPlacement(groups, placement) {
 }
 
 /**
+ * The placed channels in runs as a stacked section heads them: every link group of a stacked placement as one run
+ * with its group number, every other channel as a run of its own with group 0. A table and the routing graph draw
+ * one group header per run with a group, so the code shows once per group as on the stacked strips.
+ * @returns {{group: number, channels: number[]}[]}
+ */
+export function linkRuns(groups, placement) {
+    const { order, blocks } = linkPlacement(groups, placement);
+    const runs = [];
+    for (const i of order) {
+        const block = blocks.find((b) => b[0] === i);
+        if (block) {
+            runs.push({ group: groups[i], channels: block });
+        } else if (!blocks.some((b) => b.includes(i))) {
+            runs.push({ group: 0, channels: [i] });
+        }
+    }
+    return runs;
+}
+
+/**
  * The channels before which a table leaves a gap when stacked: the first member of a link group and the first
  * channel after a group, never between channels alone. Empty for the other placements.
  */

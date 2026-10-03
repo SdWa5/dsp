@@ -429,6 +429,9 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .routing__graph { display: block; width: 100%; height: auto; }
 .routing__node rect { fill: var(--title); }
 .routing__node[data-group]:not([data-group='']) .routing__box { stroke: var(--group); stroke-width: 2; }
+.routing__frame { fill: none; stroke: var(--panel-edge); stroke-width: 2; transition: opacity 0.1s; }
+.routing__frame[data-group]:not([data-group='']) { stroke: var(--group); }
+.has-route-focus .routing__frame { opacity: 0.35; }
 .routing__node text.routing__link { font-size: 10px; font-weight: 700; }
 .routing__node text { fill: var(--text); font-size: 12px; }
 .routing__id { font-weight: 700; }
@@ -443,6 +446,11 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .matrix th { transition: opacity 0.1s; }
 .has-route-focus .matrix :is(td, th[data-source], th[data-output]):not(.is-focus) { opacity: 0.35; }
 .matrix th.is-focus { box-shadow: inset 0 0 0 2px var(--text); }
+.matrix th.matrix__group { padding: 1px 4px; font-size: 9px; font-weight: 700; text-align: center; vertical-align: middle; }
+.matrix tbody th.matrix__group { position: static; }
+.matrix th.matrix__group.is-empty { padding: 0; background: none; }
+.matrix th.matrix__group[data-group]:not([data-group='']) { background: var(--group); color: #111; }
+.matrix th.is-grouped .ch__link { display: none; }
 .matrix-wrap { overflow-x: auto; padding: 8px; background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px; }
 .matrix { border-collapse: separate; border-spacing: 3px; margin: 0 auto; }
 .matrix caption { caption-side: bottom; padding-top: 6px; color: var(--muted); }

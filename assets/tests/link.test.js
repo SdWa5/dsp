@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { lcm, linkCommands, linkGaps, linkGroups, linkLayout, linkMark, linkName, linkNameKey, linkPlacement, linkUnits, linkedMembers, linkOrder, linkView, toggleLink } from '../lib/link.js';
+import { lcm, linkCommands, linkGaps, linkGroups, linkLayout, linkMark, linkName, linkNameKey, linkPlacement, linkRuns, linkUnits, linkedMembers, linkOrder, linkView, toggleLink } from '../lib/link.js';
 
 // An unlinked channel holds its own bit (factory default 1, 2, 4 …), a slave holds 0
 const side = (...links) => [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ link: links[i] ?? 1 << i }));
@@ -121,6 +121,16 @@ test('linkPlacement keeps channel order, or groups members, with blocks only whe
     assert.deepEqual(linkPlacement(groups, 'normal'), { order: [0, 1, 2, 3, 4, 5, 6, 7], blocks: [] });
     assert.deepEqual(linkPlacement(groups, 'side'), { order: [0, 3, 1, 2, 5, 6, 4, 7], blocks: [] });
     assert.deepEqual(linkPlacement(groups, 'stacked'), { order: [0, 3, 1, 2, 5, 6, 4, 7], blocks: [[0, 3], [2, 5, 6]] });
+});
+
+test('linkRuns heads each stacked group once and leaves every other channel alone', () => {
+    const groups = [1, 0, 2, 1, 0, 2, 2, 0];
+    assert.deepEqual(linkRuns(groups, 'stacked'), [
+        { group: 1, channels: [0, 3] }, { group: 0, channels: [1] }, { group: 2, channels: [2, 5, 6] },
+        { group: 0, channels: [4] }, { group: 0, channels: [7] },
+    ]);
+    assert.deepEqual(linkRuns(groups, 'side').map((run) => run.group), [0, 0, 0, 0, 0, 0, 0, 0]);
+    assert.deepEqual(linkRuns(groups, 'normal').map((run) => run.channels[0]), [0, 1, 2, 3, 4, 5, 6, 7]);
 });
 
 test('linkGaps separates link groups from their neighbours only when stacked', () => {
