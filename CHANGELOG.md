@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.66.0] - 2026-10-03
+
+### Added
+
+- The matrix on the Matrix page has a title and folds like the routing graph
+
+### Changed
+
+- Stacked, the matrix heads each link group with one bar and the routing graph frames it, so the group code shows
+  once per group instead of on every channel
+
 ## [0.65.0] - 2026-10-03
 
 ### Added
