@@ -1,6 +1,8 @@
 import { Controller } from '@hotwired/stimulus';
 import { getLabels, store } from '../lib/device.js';
 import { curveRuns, drawGrid, eqView, loadEqView, plotFor, prepare, response, saveEqView } from '../lib/eq.js';
+import { getLinkView, onLinkView } from '../lib/linkview.js';
+import { curveColourSource, linkedPaths, nearestCurve } from '../lib/overview.js';
 import { readPref, writePref } from '../lib/prefs.js';
 
 // One colour per channel number: an input draws a solid line, the output of the same number a dashed one.
@@ -8,6 +10,8 @@ import { readPref, writePref } from '../lib/prefs.js';
 const COLORS = ['#ff5252', '#ffd740', '#e040fb', '#40c4ff', '#69f0ae', '#448aff', '#b0bec5', '#ffab40'];
 const AUX_COLOR = '#ff4081';
 const DASHES = { inputs: [], outputs: [6, 4], aux: [2, 3] };
+// A curve that is not the one pointed at, nor linked with it
+const DIMMED = '#8a8a8a';
 const HIDDEN = 'eq-overview-hidden';
 const VIEW = 'overview';
 
@@ -17,6 +21,9 @@ const VIEW = 'overview';
  * with both shown it is the fainter, thinner curve of each channel.
  * A switch per channel shows or hides its curve. It only changes the plot, the EQ bypass of the channel
  * stays as it is (the curve itself is flat while the channel's EQ is bypassed, as on its tab).
+ * Linked channels share one EQ, so their curves and switches take one colour, the group's while the Channels menu
+ * shows link colours, else the first member's. Pointing at a curve or a switch greys out every other curve and
+ * switch, except the members of its link group.
  */
 export default class extends Controller {
     static targets = ['canvas', 'show', 'mag', 'phase'];
@@ -25,7 +32,6 @@ export default class extends Controller {
         const hidden = readPref(HIDDEN, []);
         this.showTargets.forEach((box) => {
             box.checked = !hidden.includes(box.value);
-            box.closest('label').style.setProperty('--curve', this.color(box.value));
         });
         const view = loadEqView(VIEW);
         if (this.hasMagTarget && this.hasPhaseTarget) {
@@ -33,7 +39,9 @@ export default class extends Controller {
             this.phaseTarget.checked = view.phase;
         }
         this.signature = '';
+        this.hover = null;
         this.unsubscribe = store.subscribe(() => this.schedule());
+        this.offView = onLinkView(() => this.schedule(true));
         this.resize = new ResizeObserver(() => this.schedule(true));
         this.resize.observe(this.canvasTarget);
         this.schedule(true);
@@ -41,6 +49,7 @@ export default class extends Controller {
 
     disconnect() {
         this.unsubscribe?.();
+        this.offView?.();
         this.resize?.disconnect();
     }
 
@@ -63,6 +72,46 @@ export default class extends Controller {
         return 'aux' === path ? AUX_COLOR : COLORS[Number(path.split('.')[1]) % COLORS.length];
     }
 
+    /** The pointer over the plot points at the nearest curve within a few pixels, or at none. */
+    hoverPlot(event) {
+        this.point(nearestCurve(this.drawn ?? [], event.offsetX, event.offsetY));
+    }
+
+    /** The pointer over a switch points at its curve. */
+    hoverSwitch(event) {
+        this.point(event.currentTarget.querySelector('input')?.value ?? null);
+    }
+
+    unhover() {
+        this.point(null);
+    }
+
+    point(path) {
+        if (path === this.hover) {
+            return;
+        }
+        this.hover = path;
+        this.schedule();
+    }
+
+    /** Each switch's link group and colour, which the canvas then reads back so curve and switch match. */
+    paintSwitches(state, colours) {
+        const lit = null === this.hover ? null : linkedPaths(this.hover, state);
+        const result = new Map();
+        for (const box of this.showTargets) {
+            const label = box.closest('label');
+            const { group, lead } = curveColourSource(box.value, state);
+            label.dataset.group = colours && group > 0 ? String(group) : '';
+            const css = '' === label.dataset.group ? '' : getComputedStyle(label).getPropertyValue('--group').trim();
+            const colour = '' === css ? this.color(lead) : css;
+            label.style.setProperty('--curve', colour);
+            label.classList.toggle('is-dimmed', null !== lit && !lit.includes(box.value));
+            result.set(box.value, colour);
+        }
+
+        return { colour: result, lit };
+    }
+
     /** At most one drawing per frame, and none when no curve changed (the store also carries unrelated values). */
     schedule(force = false) {
         if (force) {
@@ -77,10 +126,12 @@ export default class extends Controller {
     }
 
     draw() {
+        const state = store.state;
         const shown = this.showTargets.filter((box) => box.checked).map((box) => box.value);
         const channels = shown.map((path) => [path, store.get(path)]).filter(([, channel]) => channel);
         const view = this.view;
-        const signature = JSON.stringify([view, channels.map(([path, c]) => [path, c.peq, c.hpf, c.lpf, c.eq_bypass])]);
+        const { colour, lit } = this.paintSwitches(state, getLinkView().colour);
+        const signature = JSON.stringify([view, this.hover, [...colour], channels.map(([path, c]) => [path, c.peq, c.hpf, c.lpf, c.eq_bypass])]);
         if (signature === this.signature) {
             return;
         }
@@ -95,25 +146,32 @@ export default class extends Controller {
         const slopes = getLabels().SLOPES ?? [];
         const n = Math.max(200, Math.round(plot.width / 2));
         const both = view.mag && view.phase;
-        for (const [path, channel] of channels) {
+        const curves = channels.map(([path, channel]) => {
             const points = Array.from({ length: n + 1 }, (_, i) => {
                 const f = 20 * 1000 ** (i / n);
                 return [plot.x(f), response(channel, f, slopes)];
             });
-            g.strokeStyle = this.color(path);
+            const runs = ['phase', 'mag'].filter((k) => view[k]).map((kind) => [kind, curveRuns(points, kind).map((run) => run.map(([x, v]) => [x, plot.y(v)]))]);
+            return { path, runs, dimmed: null !== lit && !lit.includes(path) };
+        });
+        // The greyed curves go below, so the ones pointed at stay readable on top
+        curves.sort((a, b) => Number(b.dimmed) - Number(a.dimmed));
+        for (const { path, runs, dimmed } of curves) {
+            g.strokeStyle = dimmed ? DIMMED : colour.get(path);
             g.setLineDash(DASHES[path.split('.')[0]]);
-            for (const kind of ['phase', 'mag'].filter((k) => view[k])) {
+            for (const [kind, lines] of runs) {
                 // With both curves shown the phase is the fainter, thinner one
-                g.globalAlpha = both && 'phase' === kind ? 0.5 : 1;
+                g.globalAlpha = (both && 'phase' === kind ? 0.5 : 1) * (dimmed ? 0.4 : 1);
                 g.lineWidth = both && 'phase' === kind ? 1 : 1.5;
                 g.beginPath();
-                for (const run of curveRuns(points, kind)) {
-                    run.forEach(([x, v], i) => (0 === i ? g.moveTo(x, plot.y(v)) : g.lineTo(x, plot.y(v))));
+                for (const line of lines) {
+                    line.forEach(([x, y], i) => (0 === i ? g.moveTo(x, y) : g.lineTo(x, y)));
                 }
                 g.stroke();
             }
         }
         g.globalAlpha = 1;
         g.setLineDash([]);
+        this.drawn = curves.map(({ path, runs }) => ({ path, runs: runs.flatMap(([, lines]) => lines) }));
     }
 }

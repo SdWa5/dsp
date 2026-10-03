@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.59.0] - 2026-10-03
+
+### Added
+
+- The EQ overview draws linked channels in one colour, the link group's while link colours show
+- Pointing at a curve or a switch in the EQ overview greys out every other curve and switch outside its link group
+
 ## [0.58.0] - 2026-10-03
 
 ### Added

@@ -103,6 +103,13 @@ Butterworth at 0.8 times the frequency ratio, as its magnitude always was, so it
 phase wraps at ±180°. `curveRuns()` ends the line where it leaves one edge and starts it again at the opposite one,
 so a steep filter winds through the plot instead of drawing vertical lines across it.
 
+The EQ overview colours a curve and its switch by channel number. Linked channels share one EQ, so
+`curveColourSource()` in `assets/lib/overview.js` gives every member of a link group the same colour. That is the
+group's `--group` colour from `app.css` while the Channels menu shows link colours, read back from the switch's
+`data-group`, else the colour of the group's first member. Pointing at a curve picks the nearest one within 6 px
+(`nearestCurve()`), pointing at a switch picks its curve. Every curve and switch outside that curve's link group
+(`linkedPaths()`) turns grey, and the greyed curves go below the others.
+
 ## Gate and compressor curves
 
 `assets/lib/dynamics.js` computes the static curve and `dynamics_controller.js` draws it on a canvas, input level
