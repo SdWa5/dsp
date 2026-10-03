@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.67.0] - 2026-10-03
+
+### Added
+
+- Stacked link groups in the routing graph get a head with their code and colour, as the stacked strips have
+- Hovering a link group's bar in the matrix or its head in the routing graph brings out its channels and their
+  connections in both
+
+### Fixed
+
+- The matrix group bars no longer reach into the gaps between groups
+- The link group headers of the stacked strips span the whole block
+
 ## [0.66.0] - 2026-10-03
 
 ### Added

@@ -26,63 +26,96 @@ export function routingEdges(outputs) {
 }
 
 /**
- * Where the nodes sit, in SVG units: `rows` sources on the left and `outputs` on the right, both columns centred
- * on the same height, each node `height` high with `gap` between them. Returns the y of each node's centre.
+ * Where the nodes and the link group frames sit, in SVG units. columns holds the runs of each column in placed
+ * order, {sources, outputs}, each run {group, channels} as linkRuns() gives them. A node is `height` high with
+ * `gap` to the next. A run with a group gets a frame as a stacked block has: a head `head` high on top, then its
+ * nodes `pad` apart and `pad` inside the frame. Both columns are centred on the same height. Returns, per column,
+ * the y of each channel's centre by channel and the frames with their top and bottom.
+ * @returns {{height: number, sources: {y: number[], frames: {group: number, channels: number[], top: number, bottom: number}[]}, outputs: object}}
  */
-export function routingRows(rows, outputs, height = 26, gap = 8) {
-    const pitch = height + gap;
-    const total = Math.max(rows, outputs) * pitch - gap;
-    const column = (count) => {
-        const top = (total - (count * pitch - gap)) / 2;
-        return Array.from({ length: count }, (_, i) => top + i * pitch + height / 2);
+export function routingLayout(columns, { height = 26, gap = 8, head = 14, pad = 4 } = {}) {
+    const place = (runs) => {
+        const y = [];
+        const frames = [];
+        let cursor = 0;
+        for (const run of runs) {
+            const framed = run.group > 0;
+            const top = cursor;
+            cursor += framed ? head + pad : 0;
+            run.channels.forEach((channel, k) => {
+                cursor += k > 0 ? (framed ? pad : gap) : 0;
+                y[channel] = cursor + height / 2;
+                cursor += height;
+            });
+            if (framed) {
+                cursor += pad;
+                frames.push({ group: run.group, channels: run.channels, top, bottom: cursor });
+            }
+            cursor += gap;
+        }
+        return { y, frames, length: Math.max(0, cursor - gap) };
     };
-    return { height: total, sources: column(rows), outputs: column(outputs) };
+    const sources = place(columns.sources);
+    const outputs = place(columns.outputs);
+    const total = Math.max(sources.length, outputs.length);
+    const centre = ({ y, frames, length }) => {
+        const offset = (total - length) / 2;
+        return {
+            y: y.map((value) => value + offset),
+            frames: frames.map((frame) => ({ ...frame, top: frame.top + offset, bottom: frame.bottom + offset })),
+        };
+    };
+    return { height: total, sources: centre(sources), outputs: centre(outputs) };
 }
 
+/** A data attribute as a list of channels: "3" or "0 1 3", none for a missing or empty one. */
+const channelList = (value) => (undefined === value || '' === value ? [] : String(value).trim().split(/\s+/).map(Number));
+
 /**
- * What a hovered element of the Matrix page stands for, from its data-source and data-output: a connection with
- * both, a channel with one of them, or null with neither.
- * @returns {{source?: number, output?: number}|null}
+ * What a hovered element of the Matrix page stands for, from its data attributes: a connection with data-source
+ * and data-output, a channel with one of them, a link group with data-sources or data-outputs listing its
+ * channels, or null with none.
+ * @returns {{sources: number[], outputs: number[]}|null}
  */
 export function routingFocus(data) {
-    const focus = {};
-    for (const key of ['source', 'output']) {
-        if (undefined !== data?.[key] && '' !== data[key]) {
-            focus[key] = Number(data[key]);
-        }
-    }
-    return 0 === Object.keys(focus).length ? null : focus;
+    const sources = [...channelList(data?.source), ...channelList(data?.sources)];
+    const outputs = [...channelList(data?.output), ...channelList(data?.outputs)];
+    return 0 === sources.length && 0 === outputs.length ? null : { sources, outputs };
 }
 
+/** Whether a focus or an element stands for channels on one side, a channel or a link group, rather than a connection. */
+const isChannels = (item) => 0 === item.sources.length || 0 === item.outputs.length;
+
 /**
- * Whether an element of the Matrix page lies in a focus. A connection (a matrix cell, a graph line) carries both
- * source and output and lies in a channel's focus when it runs from or to that channel, and in a connection's focus
- * when it is that one. A channel (a header, a graph node) carries one and lies in any focus that names it.
+ * Whether an element of the Matrix page lies in a focus. A connection (a matrix cell, a graph line) lies in a
+ * channel's or group's focus when it runs from or to one of its channels, and in a connection's focus when it is
+ * that one. A channel (a header, a graph node) or a group (a group bar or head) lies in a focus that names all of
+ * its channels, so hovering a member does not light its whole group.
  */
 export function inRoutingFocus(focus, element) {
     if (null === focus || null === element) {
         return false;
     }
-    const both = undefined !== element.source && undefined !== element.output;
-    if (both) {
-        return (undefined === focus.source || focus.source === element.source) && (undefined === focus.output || focus.output === element.output);
+    if (!isChannels(element)) {
+        return (0 === focus.sources.length || element.sources.every((s) => focus.sources.includes(s)))
+            && (0 === focus.outputs.length || element.outputs.every((o) => focus.outputs.includes(o)));
     }
-    return (undefined !== element.source && focus.source === element.source) || (undefined !== element.output && focus.output === element.output);
+    const covered = (list, named) => list.length > 0 && list.every((channel) => named.includes(channel));
+    return covered(element.sources, focus.sources) || covered(element.outputs, focus.outputs);
 }
 
 /**
  * Whether an element of the Matrix page lights up under a focus. A cell or a line focuses its connection, which
- * lights that connection and its input and output channel only. A channel focuses itself, which lights the
- * channel and its connections, the lines and the set cells, but not the channels at their far ends. edges:
- * [{source, output}] of the routing.
+ * lights that connection and its input and output channel only. A channel or a link group focuses its channels,
+ * which lights them and their connections, the lines and the set cells, but not the channels at their far ends.
+ * edges: [{source, output}] of the routing.
  */
 export function routingLit(focus, element, edges) {
     if (null === focus || null === element || !inRoutingFocus(focus, element)) {
         return false;
     }
-    const isChannel = (item) => undefined === item.source || undefined === item.output;
-    if (isChannel(element) || !isChannel(focus)) {
+    if (isChannels(element) || !isChannels(focus)) {
         return true;
     }
-    return edges.some((edge) => edge.source === element.source && edge.output === element.output);
+    return edges.some((edge) => element.sources.includes(edge.source) && element.outputs.includes(edge.output));
 }
