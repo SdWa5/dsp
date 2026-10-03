@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.63.1] - 2026-10-03
+
+### Changed
+
+- Band 1's point on the EQ curve is orange instead of red
+
+### Fixed
+
+- A band's point and a HPF or LPF square on the EQ curve turn red as well while they do nothing
+
 ## [0.63.0] - 2026-10-03
 
 ### Added

@@ -8,7 +8,8 @@ import { getPath } from '../lib/store.js';
 import { bandBypassed, bandIdle, curveRuns, filterIdle, drawGrid, eqView, loadEqView, plotFor, prepare, response, saveEqView, singleFilter } from '../lib/eq.js';
 import * as S from '../lib/scale.js';
 
-const COLORS = ['#ff5252', '#ffd740', '#e040fb', '#40c4ff', '#69f0ae', '#448aff', '#b0bec5', '#ffab40'];
+// One colour per band point. None is red, which marks a band or filter that does nothing, as on the faders
+const COLORS = ['#ffab40', '#ffd740', '#e040fb', '#40c4ff', '#69f0ae', '#448aff', '#b0bec5', '#a1887f'];
 const CURVE = { mag: { color: '#ffee58', width: 2 }, phase: { color: '#4dd0e1', width: 1.5 } };
 // The filter being edited, drawn alone behind the channel curve, and the points of the filters not pointed at
 const SINGLE = { color: '#9e9e9e', fill: 'rgba(158, 158, 158, 0.25)' };
@@ -27,7 +28,8 @@ const DEFAULT_FREQS = { 5: [49, 101, 148, 200, 255], 7: [31, 71, 118, 161, 200, 
  * for the magnitude, or for the phase while it shows alone. Pointing at a filter's point, its table row or its faders
  * does the same and greys out the points and controls of every other filter.
  * The knobs of the selected band's faders turn red while the band does nothing (bypassed, or a Peak or shelf at
- * 0 dB), a filter's frequency knob while its Bypass is on.
+ * 0 dB), a filter's frequency knob while its Bypass is on. The band's point and the filter's square on the curve
+ * turn red with them, in the mute red of the theme.
  */
 export default class extends Controller {
     static values = { path: String, channel: Number };
@@ -530,9 +532,11 @@ export default class extends Controller {
         }
         g.lineWidth = 1;
         g.textBaseline = 'bottom';
+        // A point whose band or filter does nothing is red, as its faders' knobs
+        const idle = getComputedStyle(this.element).getPropertyValue('--mute').trim() || '#ff5252';
         for (const h of this.handles()) {
             if ('band' === h.kind) {
-                g.fillStyle = dimmed(h) ? DIMMED : COLORS[h.i % COLORS.length];
+                g.fillStyle = dimmed(h) ? DIMMED : null !== bandIdle(channel, h.i) ? idle : COLORS[h.i % COLORS.length];
                 g.beginPath();
                 g.arc(h.x, h.y, 6, 0, 2 * Math.PI);
                 g.fill();
@@ -545,7 +549,7 @@ export default class extends Controller {
                 g.fillStyle = '#fff';
                 g.fillText(String(h.i + 1), h.x, h.y - 9);
             } else {
-                g.fillStyle = dimmed(h) ? DIMMED : 'hpf' === h.kind ? '#ffffff' : '#c0ca33';
+                g.fillStyle = dimmed(h) ? DIMMED : filterIdle(channel[h.kind]) ? idle : 'hpf' === h.kind ? '#ffffff' : '#c0ca33';
                 g.fillRect(h.x - 5, h.y - 5, 10, 10);
                 g.fillText(h.kind.toUpperCase(), h.x, h.y - 8);
             }
