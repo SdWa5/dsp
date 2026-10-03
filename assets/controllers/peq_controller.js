@@ -38,6 +38,7 @@ export default class extends Controller {
         this.drag = null;
         this.focused = null;
         this.hovered = null;
+        this.pressed = null;
         this.slopes = {};
         const view = loadEqView(this.pathValue);
         if (this.hasMagTarget && this.hasPhaseTarget) {
@@ -45,6 +46,14 @@ export default class extends Controller {
             this.phaseTarget.checked = view.phase;
         }
         this.unsubscribe = store.subscribe(() => this.refresh());
+        // A press anywhere else lets go of the filter a press here held, which a touch needs (see press())
+        this.outside = (event) => {
+            if (!this.element.contains(event.target) && null !== this.pressed) {
+                this.pressed = null;
+                this.draw();
+            }
+        };
+        document.addEventListener('pointerdown', this.outside);
         this.resize = new ResizeObserver(() => this.draw());
         this.resize.observe(this.canvasTarget);
         this.refresh();
@@ -52,6 +61,7 @@ export default class extends Controller {
 
     disconnect() {
         this.unsubscribe?.();
+        document.removeEventListener('pointerdown', this.outside);
         this.resize?.disconnect();
     }
 
@@ -286,21 +296,37 @@ export default class extends Controller {
         this.draw();
     }
 
+    /** The filter a node belongs to: a band's row, the selected band's faders or a filter's group, else null. */
+    filterAt(node) {
+        const row = node.closest('tr[data-peq-target=row]');
+        const filter = node.closest('.group--filter');
+        if (row) {
+            return { kind: 'band', i: this.rowTargets.indexOf(row) };
+        }
+        if (filter) {
+            return { kind: filter.querySelector('[data-kind]')?.dataset.kind };
+        }
+
+        return node.closest('.group--params') ? { kind: 'band', selected: true } : null;
+    }
+
     /** The pointer over a band's row, the selected band's faders or a filter's group points at that filter. */
     hoverControl(event) {
-        if (event.target === this.canvasTarget) {
-            return;
+        if (event.target !== this.canvasTarget) {
+            this.hover(this.filterAt(event.target));
         }
-        const row = event.target.closest('tr[data-peq-target=row]');
-        const filter = event.target.closest('.group--filter');
-        if (row) {
-            this.hover({ kind: 'band', i: this.rowTargets.indexOf(row) });
-        } else if (filter) {
-            this.hover({ kind: filter.querySelector('[data-kind]')?.dataset.kind });
-        } else if (event.target.closest('.group--params')) {
-            this.hover({ kind: 'band', selected: true });
-        } else {
-            this.hover(null);
+    }
+
+    /**
+     * A press on a filter's control or point holds that filter as edited until a press lands elsewhere. Focus does
+     * that for a mouse, but a touch neither focuses a range input nor stays over it once lifted, so without this the
+     * grey curve would go the moment the finger does.
+     */
+    press(event) {
+        const which = event.target === this.canvasTarget ? this.resolve(this.drag) : this.filterAt(event.target);
+        if (JSON.stringify(which) !== JSON.stringify(this.pressed)) {
+            this.pressed = which;
+            this.draw();
         }
     }
 
@@ -335,9 +361,12 @@ export default class extends Controller {
         }
     }
 
-    /** The filter being edited: the one dragged, else the one pointed at, else the one whose control has focus. */
+    /**
+     * The filter being edited: the one dragged, else the one pointed at, else the one whose control has focus, else
+     * the one pressed last.
+     */
     get editing() {
-        return this.resolve(this.drag ?? this.hovered ?? this.focused);
+        return this.resolve(this.drag ?? this.hovered ?? this.focused ?? this.pressed);
     }
 
     /** Mouse wheel over a band point changes its Q. */
