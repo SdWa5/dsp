@@ -148,7 +148,8 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   on the Comp page, the output tabs, the Aux page and in the Aux compressor dialog.
 - The knobs of the selected band's faders turn red while the band does nothing, bypassed by its own Bypass or by EQ
   Bypass, or a Peak or shelf at 0 dB. A HighPass or LowPass frequency knob turns red while its Bypass is on. EQ
-  Bypass leaves the filter knobs as they are until it is measured whether it takes out the HPF and LPF.
+  Bypass leaves the filter knobs as they are until it is measured whether it takes out the HPF and LPF. The band's
+  point and the filter's square on the EQ curve turn red with them, so no band point uses red as its own colour.
 - The meters hold their peak for 1.5 s and light a red top for 2 s after reaching 0 dB.
 - Every meter marks a threshold with a dashed line, the gate threshold on the inputs in cyan and the compressor
   threshold on the outputs and the Aux in orange. Channels > Meters switches the mark off or shows it for every

@@ -62,7 +62,8 @@ itself in `refresh()` (`paintIdle()`). The selected band's three knobs turn red 
 Low Shelf or High Shelf at 0 dB. Low Pass, High Pass and the Allpasses filter at any gain, so only their bypass
 counts. A HighPass or LowPass frequency knob turns red while `filterIdle()` sees slope 0. EQ Bypass does not turn
 the filter knobs red, since whether it takes out the HPF and LPF is not measured yet. The reason goes on a line of
-its own above the fader's tooltip.
+its own above the fader's tooltip. The curve draws the band's point and the filter's square in the theme's
+`--mute` red by the same rules, so band 1's own colour is orange rather than the red it had before.
 
 `EditorTooltipTest` checks that every `editor.tip` text appears on some control in both languages, and that one
 key serves the same control on every page and in the dialogs. It also checks the top bar status and every footer element.
