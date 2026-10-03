@@ -25,27 +25,12 @@
 ## Rewrite
 
 - Browser editor: check every page and dialog against the device, with a harmless round trip per control
-- (medium priority) Check that every UI feature of the vendor editor exists in trackdsp in some form. Go through
-  its screenshots in `tools/shots/` (`page_*.png` per tab, `dlg_*.png` per dialog, `main.png`) and its control
-  dumps in `captures/` (`dialogs.json`, `aux_dialogs.json`, `page_tour.json`), list every control, display and
-  menu entry and find its counterpart in the editor or the CLI. A feature without a counterpart becomes an item
-  here. On 2026-10-02 this found the curve plots of the Gate and Comp pages, the Limit segment of the output
-  meters and the Active lamp of the Aux compressor dialog
-  - Complete the screenshots first, since the check can only find what they show. All 22 tabs of
-    `page_tour.json` have a `page_*.png`, but of the 34 forms the vendor editor names in `captures/dialogs.json`
-    only 13 have a screenshot (counted on 2026-10-03). Five more have a control dump and no screenshot
-    (`TfmProcess`, `TfmNetworkSetup`, `TfmPhantomPotent`, `TfmRs232Cmd`, `TfmRs232CmdEnglish`). Sixteen have
-    neither (`TfmHidData`, `TfmPeqRst`, `TfmAbout`, `TfmRs232Code`, `TfmRs232CodeEnglish`, `TfmLockPassWord`,
-    `TfmLockSetup`, `TfmPtsPassWord`, `TfmPtsSetup`, `TfmInformation`, `TfmExit`, `TfmMemo`, `TfmChannelName`,
-    `TfmFactory`, `TfmIdSelect`, `TfmStoreName`). The menu bar and its menus have no screenshot and no dump at
-    all, and `msgbox.png` belongs to none of the forms yet. Open each in the vendor editor on the VM
-    `win11-lightweight` as for the range survey, take the shot with `virsh -c qemu:///system screenshot
-    win11-lightweight tools/shots/dlg_<form>.png`, and note the forms that only open with the device online
 - PHPUnit group `device` with read-only checks and reversible writes over LAN and USB
 - Packaging: `trackdsp:serve`, FrankenPHP static binary, installer, desktop entry
-- Vendor preset files: trackdsp reads `.prs` (docs/protocol.md). Save a second sample in the vendor editor with
-  EQ bypass on, a test tone and another delay unit, to confirm that the file leaves them out. Then decide
-  whether trackdsp writes `.prs`, and check such a file by loading it in the vendor editor
+- Vendor preset files: trackdsp reads `.prs` (docs/protocol.md). Both supplied samples are byte-identical.
+  The user confirmed that reopening offline resets test tone to its default while EQ bypass and delay unit
+  stay unchanged. Decide whether trackdsp writes `.prs`, then check any generated file by loading it in the
+  offline vendor editor and comparing all represented settings.
 - Localization of the CLI. The browser editor has English and German catalogues in `translations/`
 - Localization of messages returned by the bridge and API, including Auto EQ warnings and recording names.
   Return message codes and parameters so the browser can translate them without changing CLI output
@@ -54,8 +39,74 @@
   ceiling. For programme with a crest factor of 12 to 15 dB that is about where its peaks reach the ceiling,
   while a sine or a limited signal lights it that much too early. Decide where the red top belongs
 
+## Vendor parity evidence
+
+The offline survey fixes confirmed UI gaps and leaves unknown protocol behavior unchanged. Each item below
+uses the control ID of the parity inventory; existing Protocol and Rewrite items remain the device-test source.
+
+### Unresolved offline evidence
+
+The inventory audit is complete. These individual unknowns remain recorded for evidence work; no additional
+screenshot queue is active. An unknown entry path does not imply a connected-device requirement. Inspect
+resources and handlers read-only before requesting another capture. Do not connect hardware for these items.
+
+- VP-phantom-pot. The user-proposed Gain-page shot is saved as gain_phantom_candidate.png. Use a read-only Windows control dump to determine whether TfmPhantomPotent is embedded there or separate. If separate, find its offline entry path and capture labels and bounds. Device writes remain postponed; its eight unlabelled sliders are not assigned roles from the form name alone.
+- VP-hid. The user found no further offline entry on 2026-10-03. Inspect executable form resources and event bindings read-only for TfmHidData. Capture if an entry path is found; otherwise record evidence of its role. Do not exclude it by name.
+- VP-serial-reference-forms. The manual intends main-menu Language selection, but the captured UI and inspected official V1.0 package do not expose it. Record this as documented but unavailable in the inspected build, not a confirmed trackdsp gap. Dormant language handlers and bundled forms do not establish user functionality. See captures/vendor_menu_resources.json. Confirm any remaining serial-reference form role through read-only handler references. Reopen language capture tasks only with a vendor-documented procedure or a reproduced supported entry in an unmodified editor. The user reported Windows in Chinese with the editor still English. If the editor stayed open during that change, reopen it once to complete the test. The legacy system-locale test remains separate and optional. Reinstalling the same inspected V1.0 package is unlikely to change startup English selection. Restore Windows settings afterward. The procedure and inspected code paths are recorded in the evidence JSON. Do not patch the editor or request further Chinese screenshots solely from hidden resources.
+- VP-pts. The packaged PtsSetup menu has Visible=false and binds to PtsSetupClick. Its caption refers to a count lock, but the PTS expansion and device behavior remain unknown. Inspect the handler and visibility overrides read-only for its purpose and a supported entry. Do not invoke a lock or alter device state. See captures/vendor_menu_resources.json.
+- VP-information. The offline Information popup is captured. Confirm its runtime class with a read-only Windows control dump using GetClassNameW. Several named forms share this caption. No repeat screenshot or connected device is needed for this check.
+- VP-memo. The packaged MemoShow menu has Visible=false and binds to MemoShowClick. Inspect the handler and visibility overrides read-only to establish its diagnostic or user-facing role. Capture only if a supported offline path is found. Default invisibility alone does not prove a helper exclusion. See captures/vendor_menu_resources.json.
+
+- VP-unassigned-evidence. Identify tools/shots/msgbox.png by its caption, message and entry path using a read-only Windows control dump before assigning a named form. Compare tools/shots/gain_phantom_candidate.png with the runtime class of the Gain-page Mic/+48V controls before assigning TfmPhantomPotent. Neither image establishes a separate feature solely from its filename.
+
+### Postponed connected-device work
+
+The user postponed these checks on 2026-10-03. Their recipes remain recorded for a later hardware session;
+they are unresolved, not completed. Factory Default confirmation, Process capture during a live transfer,
+UnLock and ID Number Select are removed from the current screenshot queue. The user confirmed the
+connection requirement for UnLock and ID Number Select on 2026-10-03. Connected-device portions of the offline items above are
+also postponed. Any additional form proven to need a connection belongs here.
+
+- VP-sensitivity. Send 55 00 33 and read input byte 9 back before extending the mode range. See the Protocol sensitivity TODO.
+- VP-limit. Run the byte-51 test and observe the vendor Limit lamp. See the Protocol TODO.
+- VP-clip. Compare sine and high-crest-factor programme against the vendor Clip lamp and the measured output ceiling. See Rewrite TODO.
+- VP-aux-active. Observe the Aux Active LED while sweeping through its threshold and capture the meter reply. Do not infer activity from an output bit.
+- VP-peq-reset. Capture Aux EQ Reset online and compare emitted frequencies with resources/factory_config.bin. See Protocol TODO.
+- VP-mix. Send raw attack/release 4999, read back and capture the vendor reply before widening. See Protocol TODO.
+- VP-mix-leds. Capture each LED with one and multiple selected inputs, then vary a test signal online and identify its status bytes.
+- VP-camera-selector. Change only this combo online and capture the write/readback. Determine whether it is a setting or a status display before adding it.
+- VP-effect-predelay. Send each raw predelay 250 and read back. See Protocol TODO.
+- VP-reverb-time. Capture min/max Time writes and derive the scale from raw values. See Protocol TODO.
+- VP-ip. Capture Setting ID/IP Set on a recoverable isolated device and identify the command and reconnection behavior. See Protocol TODO.
+- VP-lock. Find a recovery path, then capture set/unlock/change/unset and read lock state. See Protocol PIN TODO.
+- VP-id-select. The user confirmed that ID Number Select requires a connected device. In a later hardware session, identify the entry path, capture its controls and cancel without applying changes.
+- VP-slots. Capture vendor preset list online and a U21 selection without overwriting a slot. Read names/occupancy and determine slot encoding.
+- VP-working-startup. The user reported no visible effect from Working Status without a connected device on 2026-10-03 and confirmed there are no submenus. In a later hardware session, capture U01 writes and readback on a backed-up device before adding a startup-preset setting.
+- VP-file-upload. Capture File Upload online with a backed-up isolated device and compare writes. Compare inspected file values with device readback after a separately confirmed application.
+- VP-file-download. Capture File Download online and observe whether it reads device state or saves a file.
+- VP-progress. Capture TfmProcess during a backed-up upload online and compare stages/errors. Add progress only after measuring event timing.
+- VP-capture-TfmFactory. Capture TfmFactory through File > Factory Default on a backed-up isolated connected device, then cancel.
+  The existing offline No device connected shot remains valid evidence of the restriction.
+
 ## Editor
 
+- Add a browser display preference for the Gain-page EQ overview to choose between the combined plot
+  and separate input and output plots. Preserve the existing channel visibility selections in both views.
+- The Gain-page EQ overview should show one channel checkbox per link group. A group checkbox should
+  control visibility for all its linked channels; unlinked channels keep their individual checkboxes.
+  Update grouping when links change and retain the existing per-browser visibility preference.
+
+- Consider moving the Aux page button from the function-page header to the channel selector, between the
+  input and output channels. Review the placement with the Matrix and Sub Control Aux changes before
+  deciding whether to move it.
+- Add an output-selector column to the Aux strip in Sub Control. Keep the existing In1..In8 selectors
+  for inputs feeding Aux, and show Out1..Out8 beside them for outputs receiving Aux. Reflect and update the
+  Aux source bit in each output's existing routing mask. Apply the same shared view on the Gain page and
+  in the Sub Control dialog, synchronized with the Matrix page.
+- Show the Aux as both a source and a destination on the Matrix page. Include Aux in both the row and
+  column headers of the matrix, including its input-source selections. Place Aux in a third graph column
+  between In1..In8 and Out1..Out8, with input-to-Aux and Aux-to-output routes. Both sections currently show
+  Aux only as an input source. Keep both representations synchronized with the existing routing state.
 - Let the routing graph on the Matrix page make and unmake connections. A drag from an input or the Aux to an
   output, or from an output to an input, toggles that route as a click on its matrix cell does, so an unset
   route gets set and a set one gets cleared. While dragging, a line follows the pointer from the start node, and
@@ -68,6 +119,23 @@
   merely differs from the factory value. Give the mute by the gain a look of its own, for example an outlined
   Mute button as the channel tab already has (`.chtab__mute.is-gain`), and move the mute red or the changed colour
   far enough apart in both themes
+- Let the display of changed settings be switched in the UI, with two settings that each work on their own. The
+  first switches the marks, which are the bar on a changed field (`.is-changed`), the triangle on a channel tab
+  (`.chtab__changed`) and the colour of a changed function page tab. The second switches the amounts, which are
+  the count badges on the function page tabs (`.tab__count`). Keep both per browser like the link display
+  options (`assets/lib/linkview.js` through `assets/lib/prefs.js`) and place them next to those. Decide whether
+  the tooltip with the count (`changedText()` in `editor_controller.js`) follows the amount setting
+- Reset a setting to its factory default by clicking its changed mark. A double-click on a fader already does
+  this for one value (`reset()` in `fader_controller.js`, `resetFader()` in `peq_controller.js`), and the PEQ's
+  EQ Reset asks before it resets every band of a channel. A click on the mark of a field resets that field
+  without asking, through the same write as the double-click, so linked channels follow it. Wherever a mark
+  stands for a clear set of settings, a click on it resets that set. The mark on a function page tab covers that
+  page on the current channel, and the mark on a channel tab covers the whole channel. A big reset such as a
+  whole channel asks first, and the question names how many settings it changes and which linked channels it
+  reaches as well. Decide where the line lies for a page tab, and where a reset makes no sense, for example on
+  the channel name. Today the mark on a field is a `box-shadow` and cannot be clicked on its own, so it needs a
+  hit area of its own, a pointer cursor and a tooltip that says a click resets it. With the marks switched
+  off, the double-click stays the way to reset a value
 - Link crossover points between outputs, so that a frequency set on one filter also lands on its partner, for
   example the HighPass of Out1 on the LowPass of Out2. Every pair links the frequency, and optionally the slope
   as well, which keeps the two sides of a crossover the same type and order, for example Linkwitz-Riley 24 on

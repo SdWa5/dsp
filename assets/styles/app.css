@@ -528,6 +528,9 @@ details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
 .form-grid > label { display: flex; align-items: center; gap: 8px; }
 .form-grid > label.check { grid-column: 1 / -1; }
 .form-grid input[type=number] { width: 80px; }
+.serial-mask > label { display: flex; align-items: center; gap: 8px; }
+.serial-mask__channels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px 8px; margin-top: 8px; }
+.serial-mask__channels label { white-space: nowrap; }
 .form-grid select { max-width: 60%; }
 .unit-input { display: inline-flex; align-items: center; gap: 4px; }
 .recordings { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 4px; }
@@ -608,3 +611,7 @@ details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
     .fader--h input[type=range], .peq__panel .fader--h input[type=range] { width: 130px; }
     .calibration { margin-left: 0; }
 }
+
+.presetfile__name { overflow-wrap: anywhere; }
+.presetfile__table { max-height: 45vh; overflow: auto; margin-top: 12px; }
+.presetfile__table th { text-align: left; position: sticky; top: 0; background: var(--panel); }

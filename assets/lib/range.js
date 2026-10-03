@@ -1,4 +1,5 @@
 import { GAIN_MUTED } from './scale.js';
+import { getPath } from './store.js';
 // Range inputs draw their own track and knob (app.css), so the knob can take a colour of its own. The filled part
 // of the track comes from --fill, which paintRange() keeps in step with the value.
 
@@ -10,6 +11,12 @@ export function rangeFill(value, min, max) {
 /** Sets --fill on a range input from its current value. */
 export function paintRange(input) {
     input.style.setProperty('--fill', rangeFill(Number(input.value), Number(input.min), Number(input.max)).toFixed(4));
+}
+
+/** Resolve a numeric fader default, preserving explicit overrides and clamping to the available range. */
+export function faderDefault(defaults, path, min, max, override) {
+    const value = override ?? getPath(defaults, path);
+    return Number.isFinite(value) ? Math.max(min, Math.min(max, value)) : null;
 }
 
 /**

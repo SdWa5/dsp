@@ -4,7 +4,7 @@ editor:
         label: Menu
         file: File
         open_file: Open preset file…
-        open_file_hint: Send every setting to the device (.json, or .prs of the vendor editor)
+        open_file_hint: Inspect settings offline before applying to the device (.json or vendor .prs)
         save_file: Save preset file
         save_file_hint: The live settings as JSON
         device: Device
@@ -31,7 +31,7 @@ editor:
         autoeq: Auto EQ
         autoeq_hint: Measure and correct the outputs
         help: Help
-        rs232: RS232 code table
+        rs232: RS232 command builder and table
         about: About
         language: Language
         language_auto: Automatic (server/browser)
@@ -143,6 +143,7 @@ editor:
         lpf_freq: "Frequency of the low-pass filter, in Hz. Everything above it is cut."
         slope: "How steeply the filter cuts, in dB per octave. BW is Butterworth, BL Bessel and LK Linkwitz-Riley."
         panel:
+            preset_file: "Inspect a saved preset without changing live settings. Apply sends it only after confirmation."
             peq: "Parametric EQ (PEQ). Every band raises or lowers the range around its frequency."
             selected_band: "Frequency, Q and gain of the band selected in the table or on the curve."
             hpf: "High-pass filter (HPF). It removes everything below its frequency."
@@ -161,7 +162,7 @@ editor:
             eq_overview: "The PEQ curves of all inputs, all outputs and the Aux in one plot. The switches only show or hide a curve and change nothing on the device."
             inputs: "Gain, polarity, mode, mute and +48V of the eight inputs, with their meters and gain riders."
             outputs: "Gain, polarity and mute of the eight outputs, with their meters."
-            eq_curve: "The response of the PEQ bands and filters of this channel. Drag a point to move a band, the wheel on a point changes its Q."
+            eq_curve: "The response of the PEQ bands and filters of this channel. Drag a point to move a band, the wheel changes PEQ Q or the HPF/LPF filter type. Double-click a point to toggle its bypass."
             gain: "Gain, polarity, mute and, on an input, mode and +48V of this channel."
             gate: "Noise gate of this input. It closes below the threshold, attack and release set how fast it opens and closes."
             comp: "Compressor of this output, as on the Comp page. Threshold, ratio, attack and release."
@@ -249,7 +250,7 @@ editor:
 "Device ID": "Device ID"
 "Disconnect": "Disconnect"
 "Double-click: back to the default": "Double-click: back to the default"
-"Drag a point: frequency and gain. Wheel on a point: Q.": "Drag a point: frequency and gain. Wheel on a point: Q."
+"Drag for frequency and gain. Wheel changes PEQ Q or HPF/LPF type. Double-click toggles bypass.": "Drag for frequency and gain. Wheel changes PEQ Q or HPF/LPF type. Double-click toggles bypass."
 "EQ Bypass": "EQ Bypass"
 "EQ Reset": "EQ Reset"
 "EQ curve": "EQ curve"
@@ -398,3 +399,18 @@ editor:
 "none": "none"
 "output, input, 0/1": "output, input, 0/1"
 "⚠ 1:1.0 exaggerates the gain": "⚠ 1:1.0 exaggerates the gain"
+
+"RS232 command builder": "RS232 command builder"
+"Command": "Command"
+"Remote control code": "Remote control code"
+"Enter whole numbers within the ranges. Factory uses preset 0; User uses presets 1 to 20.": "Enter whole numbers within the ranges. Factory uses preset 0; User uses presets 1 to 20."
+"The code is generated locally. Select the text to copy it. Input mask bits 0 to 7 select In1 to In8. Raw command accepts decimal CMD and data bytes for commands without a named entry.": "The code is generated locally. Select the text to copy it. Input mask bits 0 to 7 select In1 to In8. Raw command accepts decimal CMD and data bytes for commands without a named entry."
+"Version": "Version"
+"Show all filters": "Show all filters"
+
+"Inspect preset file": "Inspect preset file"
+"Inspecting this file does not change live settings. Unknown values are not stored in the file. Apply to device sends its settings after confirmation.": "Inspecting this file does not change live settings. Unknown values are not stored in the file. Apply to device sends its settings after confirmation."
+"Section": "Section"
+"Setting": "Setting"
+"Value": "Value"
+"Apply to device": "Apply to device"

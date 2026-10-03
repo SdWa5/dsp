@@ -194,7 +194,7 @@ Group control is read with `6C 00` (8 × gain %, mute, mask).
 ### Vendor preset file (`.prs`, 1278 bytes)
 
 The vendor editor saves a preset as the configuration without its first two bytes and without footer bytes 48..62.
-Measured on one file, `tests/fixtures/vendor/SdWa5_Default_Preset_3_DSPs.prs`:
+The layout was first measured on `tests/fixtures/vendor/SdWa5_Default_Preset_3_DSPs.prs`:
 
 | File offset | Size | Content | Configuration offset |
 |---|---|---|---|
@@ -209,8 +209,14 @@ Measured on one file, `tests/fixtures/vendor/SdWa5_Default_Preset_3_DSPs.prs`:
 So the file carries neither the test tone, nor the delay unit, nor the EQ bypass. `Device::fromVendorPreset()`
 builds the configuration as `FF FF`, file bytes 16..1275 and the factory configuration for the rest, then sets those
 three to unknown, so that an upload leaves them on the device as they are. The editor's "Open preset file" takes
-such a file as well as a trackdsp JSON file, told apart by the magic. Whether a file saved with EQ bypass on still
-lacks it has not been checked with a second sample, and trackdsp does not write `.prs` files.
+such a file as well as a trackdsp JSON file, told apart by the magic. Opening inspects settings independently
+of live state; applying them is a separate confirmed action. On 2026-10-03 the user supplied
+`files/SdWa5_Default_Preset_3_DSPs_eqbypass_testtone_delayft.prs` after saving with EQ bypass, test tone and feet
+selected. Both samples are byte-identical, including their 1278-byte length. This second sample adds no
+representation of those settings. On the same day the user reported that reopening offline resets test tone
+to its default while EQ bypass and delay unit stay unchanged. This observation concerns the vendor UI,
+not device writes. Trackdsp keeps omitted values unknown and does not reset hardware tone during an upload.
+Trackdsp does not write `.prs` files. The sample checksum is recorded in `captures/README.md`.
 
 ### Still open
 
@@ -239,3 +245,29 @@ lacks it has not been checked with a second sample, and trackdsp does not write 
 | `48`/`49`/`4A`/`4B`/`4D` | Read gain/mute/preset/sub/level | `58`/`59`/`5B`/`5C` | Read Aux |
 
 The RS232 command numbers do **not** apply inside the USB/TCP frame (`55`/`56` mean something else there, for example).
+
+The browser Help dialog builds these serial packets locally, as the vendor's RS232 Remote Control Code
+dialog does. It never sends them through USB/TCP. The named builder follows the documented byte order; raw
+CMD/data bytes allow inspection of undocumented commands without assigning them guessed meanings. Vendor
+Get Full Matrix generates `7B7D01610000007D7B` at ID 1 with no editable parameters, captured in
+`tools/shots/rs232_full_matrix.png`. Its response is not inferred from this local builder evidence. The
+U21 preset option still needs capture evidence in the parity inventory.
+
+The offline Group builder screenshots show these command and data bytes at ID 1.
+
+| Command | Setup | CMD D1 D2 D3 |
+|---|---|---|
+| Get Group Parameter | Input1 / Output4 | `63 00 00 00` / `63 07 00 00` |
+| Group volume | Input1 0% / Output4 100% | `66 00 00 00` / `66 07 64 00` |
+| Group gain step | Input1 Increase / Output4 Decrease | `67 00 00 00` / `67 07 01 00` |
+| Group mute | Input1 UnMute / Output4 Mute | `68 00 00 00` / `68 07 01 00` |
+| Group matrix | Input1 empty / all | `69 00 00 00` / `69 00 00 FF` |
+| Group matrix | Output4 empty / all | `69 07 00 00` / `69 07 00 FF` |
+| Group matrix | Input1 only In1 / only In8 | `69 00 00 01` / `69 00 00 80` |
+| Group matrix | Output4 only In1 / only In8 | `69 07 00 01` / `69 07 00 80` |
+
+The group choices are Input1..4, then Output1..4. The Group Matrix mask occupies data byte three;
+data byte two stays zero. Both group sides display In1..In8 captions. The second batch shows
+In1 as bit 0 and In8 as bit 7 on both sides. The local builder offers the sequential eight-bit
+checkbox mask and keeps its byte editable.
+These describe locally generated serial packets, not measured device replies or USB/TCP commands.

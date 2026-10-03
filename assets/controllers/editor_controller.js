@@ -611,18 +611,11 @@ export default class extends Controller {
         this.fileTarget.click();
     }
 
-    async upload() {
+    inspectFile() {
         const file = this.fileTarget.files[0];
         this.fileTarget.value = '';
-        if (!file || !this.requireState() || !window.confirm(t("Send every setting of %file% to the device?", { file: file.name }))) {
-            return;
-        }
-        try {
-            // As a Blob: a vendor .prs file is binary and would not survive a text round trip
-            await api('upload', file);
-            this.refresh();
-        } catch (error) {
-            this.showError(error.message);
+        if (file) {
+            this.element.querySelector('#dialog-preset').dispatchEvent(new CustomEvent('presetfile:open', { detail: { file } }));
         }
     }
 

@@ -9,10 +9,14 @@ Windows vendor software "the t.racks 8x8 Matrix Digital Processor Editor". The p
 
 This branch rewrites the first implementation (Python and PySide6, kept in [legacy/python/](legacy/python/)) on
 Symfony. The protocol library, the device model, the command line, the device bridge and the JSON API are done and
-tested against the vendor editor captures and the live device over LAN. The browser editor has every page and
-dialog, and the gain rider, the compressor command and the auto EQ in it. It is tested against the simulated device,
-synthetic recordings and a mocked event stream, not yet page by page on the device. Packaging follows, see
-[TODO.md](TODO.md).
+tested against the vendor editor captures and the live device over LAN. The browser editor covers the main vendor
+functions and adds gain riders and Auto EQ. The [vendor inventory audit](docs/vendor-parity.md) is complete
+under its agreed outcome rule. It covers all 22 tabs, 34 named forms and 12 observed menus. Of 73 control
+groups, 49 are matched and 24 have concrete unresolved TODOs; there are no confirmed implementation gaps.
+This is measured inventory coverage, not certification of full hardware parity. Twelve surfaces lack screenshots;
+their evidence procedures remain recorded. Connected-device checks are postponed until a later hardware session.
+Browser tests use a simulated device, synthetic recordings and a mocked event stream; page-by-page device checks
+and packaging remain in [TODO.md](TODO.md).
 
 ## Requirements
 
@@ -98,10 +102,14 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
 - Help > Language chooses English, Deutsch or Automatic. A choice is remembered for this browser. Automatic
   uses `TRACKDSP_LOCALE=en` or `de` from `.env.local`, then the browser language, then English. The CLI and
   messages returned by the bridge and API stay in English. See [docs/editor.md](docs/editor.md).
-- File > Open preset file sends every setting of a trackdsp JSON file, or of a `.prs` file saved by the vendor
-  editor, to the device. A `.prs` file carries no test tone, delay unit and EQ bypass, so those stay as they are.
-  Save preset file writes JSON, including the running gain riders, which opening the file brings back. In demo
-  mode this sets up a preset without a device.
+- File > Open preset file inspects a trackdsp JSON file or vendor `.prs` file without a bridge or connected
+  device. The read-only dialog shows channel settings and Aux, Sub, Group and rider settings independently of
+  live state. Apply to device is a separate confirmed action, available when connected. The two inspected `.prs` samples carry no test tone, delay unit or EQ bypass, so those
+  stay as they are. The second sample saved with these controls changed is byte-identical to the first.
+  The user observed that reopening offline in the vendor editor resets test tone to its default while EQ
+  bypass and delay unit stay unchanged. This observation does not establish device writes.
+  Save preset file writes JSON, including the running gain riders, which applying the file brings back. In demo
+  mode Apply sets up a preset on the simulated device.
 - A named channel shows its name next to its ID wherever the ID appears, for example "Out1 Main L" or
   "Out1 (Main L)" in lists. A name that only repeats the ID is left out.
 - The channel tabs show a dot for a muted channel, a hollow one for a channel whose gain mutes it, and the link
@@ -137,8 +145,8 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   and the ones with abbreviations spell them out, for example FBQ, HPF, LPF, PEQ, Sub Control and Group Control.
   The device ID and the connection button in the top bar and every element of the footer have tooltips as well.
 - The store and recall dialogs show which user slots are empty. An empty slot cannot be recalled.
-- A fader value can be typed, with or without its unit ("-6", "2k", "200ms", "1:4"). A double click on a gain
-  or delay fader sets it back to 0 dB or no delay.
+- A fader value can be typed, with or without its unit ("-6", "2k", "200ms", "1:4"). Double-clicking any fader
+  restores its factory default. Gain keeps its unity override; delay returns to no delay.
 - A gain at its lowest step shows as "Muted", because raw 0 mutes the channel although the vendor editor shows
   it as -60 dB. Typing "mute" sets it. -59.5 dB is the lowest gain that passes signal. The channel's Mute button lights up then as well,
   without setting the mute flag.
@@ -162,6 +170,7 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
 - Every EQ curve shows the magnitude, the phase or both, chosen with Mag and Phase beside it and kept per channel
   in the browser. The phase reads in degrees from -180° to +180°, on the right axis while the magnitude shows too,
   and includes the HPF and LPF.
+- Show all filters labels PEQ and HPF/LPF values, bypass state and the selected crossover type. PEQ labels use the same idle red as their knobs. The wheel on a PEQ point changes Q; on HPF/LPF it changes type without enabling a bypassed filter. Double-clicking a point toggles its bypass.
 - While a PEQ band, the HPF or the LPF is being edited, by dragging its point or with one of its controls in focus,
   the curve shows that filter alone in grey behind the channel curve, with the area to the 0 dB line shaded.
   The grey curve stays after letting go, until a click lands elsewhere. Clicking into a field of a band's row selects
@@ -285,6 +294,19 @@ file_put_contents('preset.json', $device->toJson());    // same file format as t
 | `App\EventListener` | the header check for API writes |
 
 ## Development
+
+Help includes a local RS232 command builder for documented serial packets, captured Group commands and raw CMD/data bytes. Group Matrix offers channel checkboxes and an editable mask byte. Its
+output is copyable and it sends no device commands. EQ Reset asks before changing any band. PEQ views can display labels for all bands. About shows the version declared in `composer.json`.
+The parity inventory can be regenerated and checked without a device.
+
+```bash
+ddev exec php tools/vendor-parity.php --write
+ddev exec php tools/vendor-parity.php --check
+ddev exec php tools/vendor-parity.php --require-complete
+```
+
+The last command fails for confirmed implementation gaps or unrecorded evidence outcomes. Explicit unknowns
+with concrete TODOs satisfy the agreed inventory-audit completion rule; the gate does not certify hardware parity.
 
 ```bash
 ddev exec composer ci          # coding standard, PHPStan level 8, PHPUnit, browser code tests (node --test)

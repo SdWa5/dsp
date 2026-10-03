@@ -187,6 +187,15 @@
 <dialog class="dialog dialog--wide" id="dialog-help" data-editor-target="dialog">
     {{ _self.dialog('help', 'RS232 Code Table', 'help') }}
     <p>{{ "RS232/485 remote control, manual chapter 6.1. 115200 baud, 8N1, at least 200 ms between packets. A packet is"|trans }} <code>7B 7D ID CMD D1 D2 D3 7D 7B</code>{{ ". These command numbers do not apply over USB or TCP."|trans }}</p>
+    <fieldset class="dialog__form" data-controller="serial" data-action="input->serial#render change->serial#render">
+        <legend>{{ 'RS232 command builder'|trans }}</legend>
+        <label>{{ 'Command'|trans }} <select data-serial-target="command" data-action="change->serial#select"></select></label>
+        <label>{{ 'Device ID'|trans }} <input type="number" min="1" max="254" step="1" value="1" data-serial-target="id"></label>
+        <div class="form-grid" data-serial-target="params"></div>
+        <label>{{ 'Remote control code'|trans }} <input type="text" readonly data-serial-target="packet"></label>
+        <p role="status" data-serial-target="error" hidden>{{ 'Enter whole numbers within the ranges. Factory uses preset 0; User uses presets 1 to 20.'|trans }}</p>
+        <p class="dialog__note">{{ 'The code is generated locally. Select the text to copy it. Input mask bits 0 to 7 select In1 to In8. Raw command accepts decimal CMD and data bytes for commands without a named entry.'|trans }}</p>
+    </fieldset>
     <table class="table">
         <thead><tr><th>CMD</th><th>{{ "Function"|trans }}</th><th>{{ "Data"|trans }}</th></tr></thead>
         <tbody>
@@ -209,5 +218,16 @@
 <dialog class="dialog" id="dialog-about" data-editor-target="dialog">
     {{ _self.dialog('about', 'About', 'about') }}
     <p><b>trackdsp</b>{{ ": free control software for the Thomann t.racks 8x8 Matrix DSP over USB (HID) and TCP port 9761."|trans }}</p>
+    <p>{{ 'Version'|trans }} <span data-app-version>{{ version }}</span></p>
     <p>{{ "Not affiliated with Thomann. The protocol is described in"|trans }} <code>docs/protocol.md</code>.</p>
+</dialog>
+
+<dialog class="dialog dialog--wide presetfile" id="dialog-preset" data-editor-target="dialog" data-controller="presetfile" data-action="presetfile:open->presetfile#open">
+    {{ _self.dialog('preset', 'Inspect preset file', 'preset_file') }}
+    <p data-presetfile-target="name" class="presetfile__name"></p>
+    <p class="dialog__note">{{ 'Inspecting this file does not change live settings. Unknown values are not stored in the file. Apply to device sends its settings after confirmation.'|trans }}</p>
+    <p role="status" data-presetfile-target="message"></p>
+    <label>{{ 'Section'|trans }} <select data-presetfile-target="section" data-action="change->presetfile#select"></select></label>
+    <div class="presetfile__table"><table class="table"><thead><tr><th>{{ 'Setting'|trans }}</th><th>{{ 'Value'|trans }}</th></tr></thead><tbody data-presetfile-target="rows"></tbody></table></div>
+    <div class="dialog__buttons"><button type="button" class="big" data-presetfile-target="apply" data-action="presetfile#apply" disabled>{{ 'Apply to device'|trans }}</button></div>
 </dialog>

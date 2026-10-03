@@ -25,6 +25,8 @@ final class EditorController extends AbstractController
     public function __construct(
         #[Autowire('%trackdsp.factory_config%')]
         private readonly string $factoryConfig,
+        #[Autowire('%kernel.project_dir%/composer.json')]
+        private readonly string $packageFile,
         #[Autowire(service: 'translator')]
         private readonly TranslatorInterface&TranslatorBagInterface $translator,
     ) {
@@ -39,7 +41,16 @@ final class EditorController extends AbstractController
             'device_ids' => array_combine(range(1, 254), range(1, 254)),
             'rider_defaults' => (new RiderSettings(0))->toArray(),
             'defaults' => FactoryDefaults::fromFile($this->factoryConfig),
+            'version' => $this->version(),
         ]);
+    }
+
+    /** The declared application version, including uncommitted release changes. */
+    private function version(): string
+    {
+        $package = json_decode((string) file_get_contents($this->packageFile), true, flags: \JSON_THROW_ON_ERROR);
+
+        return \is_array($package) && \is_string($package['version'] ?? null) ? $package['version'] : '';
     }
 
     /**

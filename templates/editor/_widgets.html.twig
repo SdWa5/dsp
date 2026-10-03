@@ -26,7 +26,7 @@
          {% if options.comp is defined %} data-fader-comp-value="{{ options.comp }}"{% endif %}>
         {% if title %}<span class="fader__title">{{ title|trans }}</span>{% endif %}
         <input type="range" min="{{ min }}" max="{{ max }}" step="1" aria-label="{{ options.label|default(title ?: bind)|trans }}"
-               {% if options.default is defined %} title="{{ (tip ? tip ~ ' ') ~ "Double-click: back to the default"|trans }}"{% endif %}
+               title="{{ (tip ? tip ~ ' ') ~ "Double-click: back to the default"|trans }}"
                data-fader-target="input" data-action="input->fader#input wheel->fader#wheel dblclick->fader#reset">
         <input type="text" class="fader__value" inputmode="decimal" aria-label="{{ '%label% value'|trans({'%label%': options.label|default(title ?: bind)|trans}) }}"
                data-fader-target="label" data-action="change->fader#typed keydown->fader#key focus->fader#focus blur->fader#blur">

@@ -115,6 +115,7 @@ where every rider reports `{"channel", "gain", "average", "status"}`. The status
 | POST | `/api/connect` | `{"target": "192.168.68.10"}` | status |
 | POST | `/api/disconnect` | – | status |
 | POST | `/api/refresh` | – | status |
+| POST | `/api/preset` | a JSON or vendor preset file | parsed `device` and normalized `riders`, with no bridge call |
 | POST | `/api/upload` | a preset file | `{"queued": n}` |
 | GET | `/api/download` | – | the live state as a preset file |
 | GET | `/api/events` | – | server-sent events `status`, `state`, `meters` |
@@ -148,6 +149,10 @@ running) or 504 (no answer from the bridge in time).
 `/api/download` returns the live state as a preset file, `{"format": "trackdsp-8x8", "version": 1, "device":
 {...}, "riders": [...]}`, where `device.raw` is the 1277 byte configuration in hex, `device.groups` the group control
 and `riders` the running gain riders with their settings.
+`/api/preset` validates and returns a file for read-only inspection without a bridge or device connection.
+It constructs commands only to validate their ranges and uses the same parser as upload. Opening a file does
+not queue commands or replace riders. Its POST request requires the same `X-Trackdsp` header as upload.
+
 `/api/upload` turns a preset file into write frames (`Device::allFrames()`) and queues them like any write. An
 upload writes every setting a command can write:
 
@@ -175,3 +180,10 @@ A stream ends after 300 seconds (`trackdsp.events_lifetime`), and `EventSource` 
 Without a bridge it sends one `status` event with `"bridge": false` and ends. The events are relayed from
 the bridge socket rather than through a Mercure hub, so the same setup works in ddev and in the
 FrankenPHP binary.
+
+### Test bridge readiness
+
+`tests/Support/ScriptedBridge.php` waits for the subprocess to announce readiness after its listener opens.
+Socket-file existence alone allowed a refused connection in one of 300 measured starts. The same probe found
+no refusals in 300 starts with the readiness signal. The acknowledgement consumes no scripted status response
+and creates no request log entry. This changes test infrastructure only; production bridge behavior is unchanged.

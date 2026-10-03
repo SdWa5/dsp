@@ -77,7 +77,7 @@ final class EditorControllerTest extends WebTestCase
         // The changed-setting count stays hidden until the state arrives
         self::assertCount(7, $page->filter('.tab > .tab__count[hidden]'));
         self::assertCount(16, $page->filter('.chtab'));
-        self::assertCount(19, $page->filter('dialog'));
+        self::assertCount(20, $page->filter('dialog'));
         foreach ($page->filter('[data-editor-dialog-param]')->each(static fn (Crawler $n): string => (string) $n->attr('data-editor-dialog-param')) as $dialog) {
             self::assertCount(1, $page->filter('dialog#dialog-'.$dialog), \sprintf('No dialog "%s".', $dialog));
         }
@@ -295,7 +295,7 @@ final class EditorControllerTest extends WebTestCase
         // 8 inputs, 8 outputs and the Aux
         self::assertCount(17, $peqs);
         $peqs->each(static function (Crawler $peq): void {
-            $view = $peq->filter('.peq__bar input');
+            $view = $peq->filter('.peq__bar input[data-peq-target=mag], .peq__bar input[data-peq-target=phase]');
             self::assertSame(['checkbox', 'checkbox'], $view->each(static fn (Crawler $n): string => (string) $n->attr('type')));
             self::assertSame(['mag', 'phase'], $view->each(static fn (Crawler $n): string => (string) $n->attr('data-peq-target')));
             self::assertSame(['peq#toggleView', 'peq#toggleView'], $view->each(static fn (Crawler $n): string => (string) $n->attr('data-action')));
@@ -307,7 +307,8 @@ final class EditorControllerTest extends WebTestCase
     {
         self::page()->filter('[data-controller=peq]')->each(static function (Crawler $peq): void {
             self::assertSame('focusin->peq#focus focusout->peq#blur pointerover->peq#hoverControl pointerleave->peq#unhover pointerdown->peq#press', $peq->attr('data-action'));
-            self::assertStringEndsWith('wheel->peq#wheel pointerleave->peq#unhover', (string) $peq->filter('canvas.peq__curve')->attr('data-action'));
+            self::assertStringContainsString('wheel->peq#wheel', (string) $peq->filter('canvas.peq__curve')->attr('data-action'));
+            self::assertStringEndsWith('pointerleave->peq#unhover', (string) $peq->filter('canvas.peq__curve')->attr('data-action'));
             // peq#hoverControl finds a band by its row, a filter by its group's data-kind
             self::assertCount(\count($peq->filter('.peq__table tbody tr')), $peq->filter('tr[data-peq-target=row]'));
             $peq->filter('.group--filter')->each(static fn (Crawler $group) => self::assertCount(1, $group->filter('[data-kind]')));

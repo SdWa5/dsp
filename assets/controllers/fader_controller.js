@@ -1,8 +1,8 @@
 import { t } from '../lib/i18n.js';
 import BoundController from '../lib/bound_controller.js';
-import { getLabels, store } from '../lib/device.js';
+import { getDefaults, getLabels, store } from '../lib/device.js';
 import { compActive } from '../lib/meters.js';
-import { knobMuted, paintRange } from '../lib/range.js';
+import { faderDefault, knobMuted, paintRange } from '../lib/range.js';
 import { parse } from '../lib/scale.js';
 
 /**
@@ -44,9 +44,10 @@ export default class extends BoundController {
     }
 
     reset() {
-        if (this.hasDefaultValue) {
-            this.set(this.defaultValue);
-        }
+        if (this.inputTarget.disabled) return;
+        const value = faderDefault(getDefaults(), this.bindValue, Number(this.inputTarget.min),
+            Number(this.inputTarget.max), this.hasDefaultValue ? this.defaultValue : undefined);
+        if (null !== value) this.set(value);
     }
 
     typed() {

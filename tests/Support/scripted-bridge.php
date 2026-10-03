@@ -16,6 +16,8 @@ if (false === $server) {
     fwrite(\STDERR, "Cannot listen on $socket: $errstr\n");
     exit(1);
 }
+// Signal readiness after stream_socket_server has both bound and opened the listener.
+fwrite(\STDOUT, "ready\n");
 $log = [];
 while (true) {
     // An hour without a request ends a stand-in that its test left behind
