@@ -173,8 +173,10 @@ final class Device
     /**
      * A preset file saved by the vendor editor: the magic, then configuration bytes 2..1261 (name, channels, footer
      * up to the sub control) and CR LF. It lacks the test tone, the delay unit and the EQ bypass (footer 48..62),
-     * so those stay null and an upload leaves them on the device as they are. Read from one sample file
-     * (docs/protocol.md), so a file with EQ bypass on has not been checked yet.
+     * so those stay null and an upload leaves them on the device as they are. Two supplied samples are
+     * byte-identical, including one saved with EQ bypass, test tone and feet selected (docs/protocol.md).
+     * The user observed an offline vendor tone reset on reopen, with EQ bypass and delay unit unchanged.
+     * That UI behavior does not establish hardware writes; omitted settings stay unknown here.
      *
      * @param string $factoryConfig the factory configuration, which fills the bytes the file lacks
      */

@@ -1,9 +1,65 @@
 // Frequency response of the PEQ bands and crossover filters, for drawing the curve.
 // Port of the Python editor: RBJ cookbook biquads at 96 kHz, crossover slopes approximated.
-import { indexToHz, indexToQ, PEQ_GAIN_UNITY, peqGainToDb } from './scale.js';
+import { format, indexToHz, indexToQ, PEQ_GAIN_UNITY, peqGainToDb } from './scale.js';
 import { readPref, writePref } from './prefs.js';
 
 const FS = 96000;
+
+/** Ask once before resetting any band. Cancellation leaves the channel and linked channels untouched. */
+export function resetEqBands(bands, approve, writeBand) {
+    if (!approve()) return false;
+    // Preserve the editor's existing reset frequencies; Aux device defaults still need measurement.
+    const frequencies = { 5: [49, 101, 148, 200, 255], 7: [31, 71, 118, 161, 200, 240, 270] };
+    bands.forEach((_band, i) => writeBand(i, {
+        gain: 120, q: 25, type: 0, bypass: false, freq: frequencies[bands.length]?.[i] ?? 170,
+    }));
+    return true;
+}
+
+/** Fit band or crossover value labels inside the plot, even at frequency and gain boundaries. */
+export function drawFilterLabels(g, plot, point, labels) {
+    const widest = Math.min(plot.width, Math.max(...labels.map((label) => g.measureText(label).width)));
+    const x = Math.max(plot.left + widest / 2, Math.min(plot.left + plot.width - widest / 2, point.x));
+    const offset = (labels.length - 1) * 12;
+    const y = Math.max(plot.top + 12, Math.min(plot.top + plot.height - offset - 4, point.y - offset - 24));
+    g.textAlign = 'center';
+    g.textBaseline = 'bottom';
+    labels.forEach((label, i) => g.fillText(label, x, y + i * 12, plot.width));
+}
+
+/** Include effective bypass from either the band or the channel, without changing its values. */
+export function bandPlotLabels(channel, i, bypassLabel) {
+    const band = channel.peq[i];
+    return [format('hz', band.freq), `Q ${format('q', band.q)}`, format('peq', band.gain),
+        ...(bandBypassed(channel, i).on ? [bypassLabel] : [])];
+}
+
+/** Slope 0 encodes bypass. The displayed type is the same remembered choice as the slope selector. */
+export function crossoverPlotLabels(filter, slopes, selectedSlope, bypassLabel) {
+    return [format('hz', filter.freq), slopes[filter.slope || selectedSlope] ?? String(selectedSlope),
+        ...(filterIdle(filter) ? [bypassLabel] : [])];
+}
+
+/** Wheel steps through filter types, preserving bypass and leaving the supplied state untouched. */
+export function stepFilterType(filter, selectedSlope, delta, max) {
+    const selected = Math.max(1, Math.min(max, selectedSlope + (delta < 0 ? 1 : delta > 0 ? -1 : 0)));
+    return { selected, slope: filterIdle(filter) ? 0 : selected };
+}
+
+/** Pick the closest point; ties go to the point painted last, including crossover handles over bands. */
+export function plotHit(handles, x, y, radius) {
+    let hit;
+    let distance = Infinity;
+    for (const handle of handles) {
+        const dx = Math.abs(handle.x - x), dy = Math.abs(handle.y - y);
+        const next = dx * dx + dy * dy;
+        if (dx < radius && dy < radius && next <= distance) {
+            hit = handle;
+            distance = next;
+        }
+    }
+    return hit;
+}
 
 /** Biquad coefficients [b0, b1, b2, a0, a1, a2] for a PEQ type (Labels::PEQ_TYPES). */
 export function biquad(type, f0, gainDb, q) {

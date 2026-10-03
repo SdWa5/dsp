@@ -28,7 +28,8 @@ final class ScriptedBridge
         $this->process = new Process(['php', __DIR__.'/scripted-bridge.php', $this->socket, json_encode($statuses, \JSON_THROW_ON_ERROR), json_encode($writes, \JSON_THROW_ON_ERROR)]);
         $this->process->start();
         $deadline = microtime(true) + 10;
-        while (!file_exists($this->socket)) {
+        // Unix bind creates the path before listen accepts connections. Wait for the child after listen.
+        while (!str_contains($this->process->getOutput(), "ready\n")) {
             if (!$this->process->isRunning() || microtime(true) > $deadline) {
                 throw new \RuntimeException('The scripted bridge did not start: '.$this->process->getErrorOutput());
             }

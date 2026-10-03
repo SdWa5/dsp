@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { knobMuted, rangeFill } from '../lib/range.js';
+import { faderDefault, knobMuted, rangeFill } from '../lib/range.js';
 
 test('the fill runs from 0 at min to 1 at max', () => {
     assert.equal(rangeFill(0, 0, 400), 0);
@@ -29,4 +29,29 @@ test('an output delay knob turns red at 0, no delay', () => {
     assert.equal(knobMuted('delay', 32640, undefined), false);
     // An echo delay at 0 ms still repeats, so it keeps its colour
     assert.equal(knobMuted('plainMs', 0, undefined), false);
+});
+
+
+test('double-click defaults preserve zero, channel and band values, overrides and range bounds', () => {
+    const defaults = { inputs: [{ gain: 0, gate: { threshold: 0, release: 2999 },
+        peq: [{ freq: 41, q: 25, gain: 120 }, { freq: 101 }], hpf: { freq: 0 }, lpf: { freq: 300 } }],
+        aux: { comp: { threshold: 220, attack: 49 }, effect: { gain: 280 } }, groups: [{ gain: 100 }] };
+    assert.equal(faderDefault(defaults, 'inputs.0.gate.threshold', 0, 220), 0);
+    assert.equal(faderDefault(defaults, 'inputs.0.gate.release', 0, 2999), 2999);
+    assert.equal(faderDefault(defaults, 'inputs.0.peq.0.freq', 0, 300), 41);
+    assert.equal(faderDefault(defaults, 'inputs.0.peq.1.freq', 0, 300), 101);
+    assert.equal(faderDefault(defaults, 'inputs.0.peq.0.q', 0, 100), 25);
+    assert.equal(faderDefault(defaults, 'inputs.0.peq.0.gain', 0, 240), 120);
+    assert.equal(faderDefault(defaults, 'inputs.0.hpf.freq', 0, 300), 0);
+    assert.equal(faderDefault(defaults, 'inputs.0.lpf.freq', 0, 300), 300);
+    assert.equal(faderDefault(defaults, 'inputs.0.gain', 0, 400, 280), 280);
+    assert.equal(faderDefault(defaults, 'aux.effect.gain', 0, 400), 280);
+    assert.equal(faderDefault(defaults, 'groups.0.gain', 0, 100), 100);
+    assert.equal(faderDefault(defaults, 'aux.comp.threshold', 0, 180), 180);
+    assert.equal(faderDefault(defaults, 'aux.comp.attack', 99, 199), 99);
+    assert.equal(faderDefault(defaults, 'missing.value', 0, 100), null);
+    assert.equal(faderDefault(null, 'aux.comp.attack', 0, 199), null);
+    for (const value of [null, undefined, '25', false, NaN, Infinity]) {
+        assert.equal(faderDefault({ value }, 'value', 0, 100), null);
+    }
 });

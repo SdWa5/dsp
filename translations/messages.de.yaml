@@ -3,7 +3,7 @@ editor:
         label: Menü
         file: Datei
         open_file: Preset-Datei öffnen…
-        open_file_hint: Alle Einstellungen ans Gerät senden (.json oder .prs des Hersteller-Editors)
+        open_file_hint: Einstellungen offline ansehen und anschließend auf das Gerät anwenden (.json oder Hersteller-.prs)
         save_file: Preset-Datei speichern
         save_file_hint: Die aktuellen Einstellungen als JSON
         device: Gerät
@@ -30,7 +30,7 @@ editor:
         autoeq: Auto-EQ
         autoeq_hint: Die Ausgänge messen und korrigieren
         help: Hilfe
-        rs232: RS232-Codetabelle
+        rs232: RS232-Befehlseditor und Tabelle
         about: Über
         language: Sprache
         language_auto: Automatisch (Server/Browser)
@@ -142,6 +142,7 @@ editor:
         lpf_freq: "Frequenz des Tiefpassfilters, in Hz. Alles darüber wird abgeschnitten."
         slope: "Wie steil der Filter abschneidet, in dB pro Oktave. BW ist Butterworth, BL Bessel und LK Linkwitz-Riley."
         panel:
+            preset_file: "Ein gespeichertes Preset ansehen, ohne Live-Einstellungen zu verändern. Anwenden sendet es erst nach Bestätigung."
             peq: "Parametrischer EQ (PEQ). Jedes Band hebt oder senkt den Bereich um seine Frequenz."
             selected_band: "Frequenz, Q und Gain des Bands, das in der Tabelle oder auf der Kurve gewählt ist."
             hpf: "Hochpassfilter (HPF). Er entfernt alles unterhalb seiner Frequenz."
@@ -160,7 +161,7 @@ editor:
             eq_overview: "Die PEQ-Kurven aller Eingänge, aller Ausgänge und des Aux in einem Diagramm. Die Schalter blenden eine Kurve nur ein oder aus und ändern nichts am Gerät."
             inputs: "Gain, Polarität, Modus, Mute und +48V der acht Eingänge, mit ihren Pegelanzeigen und Gain-Ridern."
             outputs: "Gain, Polarität und Mute der acht Ausgänge, mit ihren Pegelanzeigen."
-            eq_curve: "Der Frequenzgang der PEQ-Bänder und Filter dieses Kanals. Einen Punkt ziehen verschiebt ein Band, das Mausrad auf einem Punkt ändert sein Q."
+            eq_curve: "Der Frequenzgang der PEQ-Bänder und Filter dieses Kanals. Einen Punkt ziehen verschiebt ein Band, das Mausrad ändert PEQ-Q oder den HPF/LPF-Filtertyp. Ein Doppelklick auf einen Punkt schaltet dessen Bypass."
             gain: "Gain, Polarität, Mute und bei einem Eingang Modus und +48V dieses Kanals."
             gate: "Noise Gate dieses Eingangs. Es schließt unterhalb der Schwelle, Attack und Release legen fest, wie schnell es öffnet und schließt."
             comp: "Kompressor dieses Ausgangs, wie auf der Seite Comp. Schwelle, Ratio, Attack und Release."
@@ -248,7 +249,7 @@ editor:
 "Device ID": "Geräte-ID"
 "Disconnect": "Trennen"
 "Double-click: back to the default": "Doppelklicken setzt den Standardwert zurück."
-"Drag a point: frequency and gain. Wheel on a point: Q.": "Ziehen eines Punkts ändert Frequenz und Gain. Das Mausrad am Punkt ändert Q."
+"Drag for frequency and gain. Wheel changes PEQ Q or HPF/LPF type. Double-click toggles bypass.": "Ziehen ändert Frequenz und Gain. Das Mausrad ändert PEQ-Q oder den HPF/LPF-Filtertyp. Doppelklick schaltet Bypass."
 "EQ Bypass": "EQ-Bypass"
 "EQ Reset": "EQ zurücksetzen"
 "EQ curve": "EQ-Kurve"
@@ -397,3 +398,18 @@ editor:
 "none": "keine"
 "output, input, 0/1": "Ausgang, Eingang, 0/1"
 "⚠ 1:1.0 exaggerates the gain": "⚠ 1:1.0 verstärkt den Gain übermäßig"
+
+"RS232 command builder": "RS232-Befehlseditor"
+"Command": "Befehl"
+"Remote control code": "Fernsteuercode"
+"Enter whole numbers within the ranges. Factory uses preset 0; User uses presets 1 to 20.": "Ganze Zahlen innerhalb der Bereiche eingeben. Factory verwendet Preset 0; User verwendet Presets 1 bis 20."
+"The code is generated locally. Select the text to copy it. Input mask bits 0 to 7 select In1 to In8. Raw command accepts decimal CMD and data bytes for commands without a named entry.": "Der Code wird lokal erzeugt. Zum Kopieren den Text auswählen. Bits 0 bis 7 der Eingangsmaske wählen In1 bis In8. Raw command akzeptiert dezimale CMD- und Datenbytes für Befehle ohne benannten Eintrag."
+"Version": "Version"
+"Show all filters": "Alle Filterwerte anzeigen"
+
+"Inspect preset file": "Preset-Datei ansehen"
+"Inspecting this file does not change live settings. Unknown values are not stored in the file. Apply to device sends its settings after confirmation.": "Das Ansehen dieser Datei verändert keine Live-Einstellungen. Unbekannte Werte sind nicht in der Datei gespeichert. „Auf Gerät anwenden“ sendet ihre Einstellungen nach Bestätigung."
+"Section": "Abschnitt"
+"Setting": "Einstellung"
+"Value": "Wert"
+"Apply to device": "Auf Gerät anwenden"

@@ -1,3 +1,4 @@
+import { bandPlotLabels, crossoverPlotLabels, drawFilterLabels, resetEqBands, stepFilterType, plotHit } from '../lib/eq.js';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { axisLabel, bandBypassed, bandIdle, crossover, crossoverResponse, curveRuns, curveValue, eqView, filterIdle, loadEqView, Plot, plotFor, response, saveEqView, singleFilter } from '../lib/eq.js';
@@ -168,4 +169,94 @@ test('the view is saved per plot', () => {
     } finally {
         delete globalThis.localStorage;
     }
+});
+
+test('EQ reset cancellation writes nothing on five- and seven-band channels', () => {
+    for (const count of [5, 7]) {
+        const bands = Array.from({ length: count }, () => ({ gain: 180, q: 40, freq: 100, type: 2, bypass: true }));
+        const before = structuredClone(bands);
+        let prompts = 0;
+        const writes = [];
+        assert.equal(resetEqBands(bands, () => { prompts++; return false; }, (...args) => writes.push(args)), false);
+        assert.equal(prompts, 1);
+        assert.deepEqual(writes, []);
+        assert.deepEqual(bands, before);
+        assert.equal(resetEqBands(bands, () => true, (...args) => writes.push(args)), true);
+        assert.equal(writes.length, count);
+        assert.deepEqual(writes.map(([i]) => i), Array.from({ length: count }, (_, i) => i));
+        assert.ok(writes.every(([, b]) => b.gain === 120 && b.q === 25 && b.type === 0 && b.bypass === false));
+        assert.deepEqual(bands, before);
+    }
+});
+
+test('all-band labels stay inside the plot at frequency and gain boundaries', () => {
+    const plot = { left: 40, top: 10, width: 600, height: 300 };
+    for (const x of [40, 640]) for (const y of [10, 310]) {
+        const drawn = [];
+        const g = { measureText: (s) => ({ width: s.length * 6 }), fillText: (...args) => drawn.push(args) };
+        const labels = ['20.16KHz', 'Q 128.00', '+12.0dB', 'Bypass'];
+        drawFilterLabels(g, plot, { x, y }, labels);
+        assert.deepEqual(drawn.map(([s]) => s), labels);
+        for (const [s, px, py] of drawn) {
+            assert.ok(px - s.length * 3 >= plot.left);
+            assert.ok(px + s.length * 3 <= plot.left + plot.width);
+            assert.ok(py >= plot.top + 12 && py <= plot.top + plot.height);
+        }
+    }
+});
+
+test('crossover labels include bypass status and fit narrow plots', () => {
+    const drawn = [];
+    const g = { measureText: (s) => ({ width: s.length * 6 }), fillText: (...args) => drawn.push(args) };
+    const plot = { left: 10, top: 5, width: 30, height: 90 };
+    drawFilterLabels(g, plot, { x: 10, y: 95 }, ['19.7Hz', 'Bypass']);
+    assert.deepEqual(drawn.map(([s]) => s), ['19.7Hz', 'Bypass']);
+    assert.ok(drawn.every(([, x, y, maxWidth]) => x === 25 && y <= 95 && maxWidth === 30));
+});
+
+
+test('PEQ labels show individual and global bypass without treating unity gain as bypass', () => {
+    const channel = { peq: [band(170, 120)], eq_bypass: false };
+    const values = bandPlotLabels(channel, 0, 'Bypass');
+    assert.equal(values.length, 3);
+    channel.peq[0].bypass = true;
+    assert.deepEqual(bandPlotLabels(channel, 0, 'Bypass'), [...values, 'Bypass']);
+    channel.peq[0].bypass = false;
+    channel.eq_bypass = true;
+    assert.deepEqual(bandPlotLabels(channel, 0, 'Umgangen'), [...values, 'Umgangen']);
+});
+
+test('bypassed crossovers retain their selected filter type in plot labels', () => {
+    for (const freq of [0, 300]) {
+        assert.deepEqual(crossoverPlotLabels({ freq, slope: 0 }, SLOPES, 20, 'Bypass'),
+            [freq === 0 ? '19.7Hz' : '20.16KHz', 'LK -48', 'Bypass']);
+        assert.deepEqual(crossoverPlotLabels({ freq, slope: 3 }, SLOPES, 20, 'Bypass'),
+            [freq === 0 ? '19.7Hz' : '20.16KHz', 'BW -12']);
+    }
+});
+
+test('wheel filter type steps preserve bypass, clamp endpoints and do not mutate device state', () => {
+    for (const slope of [0, 3]) {
+        const filter = { freq: 100, slope };
+        assert.deepEqual(stepFilterType(filter, 3, -1, 20), { selected: 4, slope: slope === 0 ? 0 : 4 });
+        assert.deepEqual(stepFilterType(filter, 3, 1, 20), { selected: 2, slope: slope === 0 ? 0 : 2 });
+        assert.deepEqual(stepFilterType(filter, 3, 0, 20), { selected: 3, slope });
+        assert.deepEqual(stepFilterType(filter, 1, 1, 20), { selected: 1, slope: slope === 0 ? 0 : 1 });
+        assert.deepEqual(stepFilterType(filter, 20, -1, 20), { selected: 20, slope: slope === 0 ? 0 : 20 });
+        assert.deepEqual(filter, { freq: 100, slope });
+    }
+});
+
+
+test('point gestures select the nearest handle and the topmost overlapping crossover', () => {
+    const bandPoint = { kind: 'band', i: 0, x: 40, y: 50 };
+    const highPass = { kind: 'hpf', x: 40, y: 50 };
+    const lowPass = { kind: 'lpf', x: 70, y: 50 };
+    const handles = [bandPoint, highPass, lowPass];
+    assert.equal(plotHit(handles, 40, 50, 9), highPass);
+    assert.equal(plotHit(handles, 70, 50, 9), lowPass);
+    assert.equal(plotHit([bandPoint, { ...highPass, x: 48 }], 41, 50, 12), bandPoint);
+    assert.equal(plotHit(handles, 100, 50, 9), undefined);
+    assert.equal(plotHit(handles, 49, 50, 9), undefined);
+    assert.equal(plotHit([], 40, 50, 9), undefined);
 });

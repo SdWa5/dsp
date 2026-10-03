@@ -9,14 +9,15 @@
     <div class="peq__bar">
         <label title="{{ 'editor.tip.eq_mag'|trans }}"><input type="checkbox" checked data-peq-target="mag" data-action="peq#toggleView"> {{ "Mag"|trans }}</label>
         <label title="{{ 'editor.tip.eq_phase'|trans }}"><input type="checkbox" data-peq-target="phase" data-action="peq#toggleView"> {{ "Phase"|trans }}</label>
-        <span class="peq__hint">{{ "Drag a point: frequency and gain. Wheel on a point: Q."|trans }}</span>
+        <label><input type="checkbox" data-peq-target="labels" data-action="peq#toggleLabels"> {{ "Show all filters"|trans }}</label>
+        <span class="peq__hint">{{ "Drag for frequency and gain. Wheel changes PEQ Q or HPF/LPF type. Double-click toggles bypass."|trans }}</span>
         <button type="button" class="toggle toggle--bypass" title="{{ 'editor.tip.eq_bypass'|trans }}" data-peq-target="eqBypass" data-action="peq#eqBypass">{{ "EQ Bypass"|trans }}</button>
         <button type="button" class="toggle" title="{{ 'editor.tip.eq_reset'|trans }}" data-action="peq#reset">{{ "EQ Reset"|trans }}</button>
     </div>
     <div class="fold-panel" data-controller="collapse" data-collapse-key-value="{{ fold }}.curve">
         <h3 class="fold-panel__title">{{ w.fold('EQ curve', 'eq_curve') }}</h3>
         <canvas class="peq__curve" data-peq-target="canvas"
-                data-action="pointerdown->peq#pointerdown pointermove->peq#pointermove pointerup->peq#pointerup pointercancel->peq#pointerup wheel->peq#wheel pointerleave->peq#unhover"></canvas>
+                data-action="pointerdown->peq#pointerdown pointermove->peq#pointermove pointerup->peq#pointerup pointercancel->peq#pointerup wheel->peq#wheel dblclick->peq#doubleClick pointerleave->peq#unhover"></canvas>
     </div>
     <div class="peq__panel">
         <fieldset class="group peq__table-wrap" data-controller="collapse" data-collapse-key-value="{{ fold }}.bands">
@@ -47,7 +48,7 @@
                 <div class="fader fader--h">
                     <span class="fader__title">{{ name|trans }}</span>
                     <input type="range" min="0" max="{{ spec[1] }}" aria-label="{{ 'Selected band %field%'|trans({'%field%': name|trans}) }}" data-peq-target="param{{ name }}"
-                           data-action="input->peq#param" data-peq-field-param="{{ spec[0] }}">
+                           title="{{ "Double-click: back to the default"|trans }}" data-action="input->peq#param dblclick->peq#resetFader" data-peq-field-param="{{ spec[0] }}">
                     <output class="fader__value" data-peq-target="param{{ name }}Label">–</output>
                 </div>
             {% endfor %}
@@ -58,7 +59,7 @@
                     <legend>{{ w.fold(title, kind) }}</legend>
                     <div class="fader fader--h" title="{{ ('editor.tip.' ~ kind ~ '_freq')|trans }}">
                         <input type="range" min="0" max="300" aria-label="{{ '%filter% frequency'|trans({'%filter%': title|trans}) }}" data-kind="{{ kind }}" data-peq-target="filterFreq"
-                               data-action="input->peq#filter" data-peq-kind-param="{{ kind }}" data-peq-field-param="freq">
+                               title="{{ "Double-click: back to the default"|trans }}" data-action="input->peq#filter dblclick->peq#resetFader" data-peq-kind-param="{{ kind }}" data-peq-field-param="freq">
                         <output class="fader__value" data-peq-target="filterFreqLabel">–</output>
                     </div>
                     <div class="group__row">

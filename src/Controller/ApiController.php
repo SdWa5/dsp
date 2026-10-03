@@ -17,7 +17,8 @@ use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
- * JSON API of the web editor. Every call goes through the bridge. Errors are {"error": "..."} with
+ * JSON API of the web editor. Preset inspection is local; device operations use the bridge.
+ * Errors are {"error": "..."} with
  * 400 (bad request), 409 (device not connected), 503 (bridge not running) or 504 (bridge timeout).
  */
 #[Route('/api', format: 'json')]
@@ -156,33 +157,64 @@ final class ApiController
     public function upload(Request $request): JsonResponse
     {
         return $this->call(function () use ($request): mixed {
-            try {
-                $file = $request->getContent();
-                $device = Device::isVendorPreset($file)
-                    ? Device::fromVendorPreset($file, (string) file_get_contents($this->factoryConfig))
-                    : Device::fromJson($file);
-                $frames = $device->allFrames();
-                $riders = Device::isVendorPreset($file) ? [] : (json_decode($file, true, 64, \JSON_THROW_ON_ERROR)['riders'] ?? []);
-                if (!\is_array($riders) || !array_is_list($riders)) {
-                    throw new \InvalidArgumentException('"riders" must be a list.');
-                }
-                // Checked before the first write, so a bad rider leaves the device as it is
-                foreach ($riders as $settings) {
-                    $channel = \is_array($settings) ? $settings['channel'] ?? null : null;
-                    if (!\is_int($channel) || $channel < 0 || $channel > 7) {
-                        throw new \InvalidArgumentException('every rider needs a "channel", an input index 0..7.');
-                    }
-                    RiderSettings::fromArray($channel, $settings);
-                }
-            } catch (\JsonException|\InvalidArgumentException|\LengthException|\OutOfRangeException $e) {
-                // Out of range: a value in the file that no command can carry, e.g. a gain above +12 dB
-                throw new BridgeException('Not a valid preset file: '.$e->getMessage(), 400, $e);
-            }
+            [, $frames, $riders] = $this->preset($request->getContent());
             $result = $this->bridge->request('write', ['frames' => array_map(self::hex(...), $frames)]);
             $this->bridge->request('riders', ['riders' => $riders]);
 
             return $result;
         });
+    }
+
+    /** Inspect a validated preset without contacting the bridge or changing live settings. */
+    #[Route('/preset', methods: ['POST'])]
+    public function inspectPreset(Request $request): JsonResponse
+    {
+        return $this->call(function () use ($request): array {
+            $file = $request->getContent();
+            [$device, , $riders] = $this->preset($file);
+            $state = $device->toArray();
+            if (Device::isVendorPreset($file)) {
+                // Frequency is in the absent footer too. Do not display the parser's factory fallback as file evidence.
+                $state['tone_freq'] = null;
+            }
+
+            return ['device' => $state, 'riders' => array_map(
+                static fn (array $settings): array => RiderSettings::fromArray($settings['channel'], $settings)->toArray(),
+                $riders,
+            )];
+        });
+    }
+
+    /**
+     * Construct commands for validation only. Inspection and upload accept exactly the same files.
+     *
+     * @return array{Device, list<Frame>, list<array<string, mixed>>}
+     */
+    private function preset(string $file): array
+    {
+        try {
+            $device = Device::isVendorPreset($file)
+                ? Device::fromVendorPreset($file, (string) file_get_contents($this->factoryConfig))
+                : Device::fromJson($file);
+            $frames = $device->allFrames();
+            $riders = Device::isVendorPreset($file) ? [] : (json_decode($file, true, 64, \JSON_THROW_ON_ERROR)['riders'] ?? []);
+            if (!\is_array($riders) || !array_is_list($riders)) {
+                throw new \InvalidArgumentException('"riders" must be a list.');
+            }
+            // Checked before the first write, so a bad rider leaves the device as it is
+            foreach ($riders as $settings) {
+                $channel = \is_array($settings) ? $settings['channel'] ?? null : null;
+                if (!\is_int($channel) || $channel < 0 || $channel > 7) {
+                    throw new \InvalidArgumentException('every rider needs a "channel", an input index 0..7.');
+                }
+                RiderSettings::fromArray($channel, $settings);
+            }
+        } catch (\JsonException|\InvalidArgumentException|\LengthException|\OutOfRangeException $e) {
+            // Out of range: a value in the file that no command can carry, e.g. a gain above +12 dB
+            throw new BridgeException('Not a valid preset file: '.$e->getMessage(), 400, $e);
+        }
+
+        return [$device, $frames, $riders];
     }
 
     /**

@@ -1,0 +1,160 @@
+{
+  "date": "2026-10-03",
+  "source": "https://fast-images.static-thomann.de/pics/atg/atgdata/file/misc/t_racks_8x8_matrix_digital_processor_editor_v1_0_setup.exe",
+  "installer_sha256": "a14c1cbc7a4f4e11d53883d61602702c54185893d63edd8faf2833bbc0ab0104",
+  "editor_sha256": "faafe0d84dc24841cb1f138de3a710080044e740f14df39cfad996d163835587",
+  "method": "The installer was unpacked with Debian innoextract 1.9 without executing it. wrestool extracted the TFMMAIN RCDATA resource. The selected TMenuItem properties were decoded from its TPF0 binary stream. Visible value tag 8 is vaFalse in System.Classes.TValueType.",
+  "value_type_reference": "https://docwiki.embarcadero.com/Libraries/Sydney/en/System.Classes.TValueType",
+  "resource": "TFMMAIN",
+  "resource_sha256": "9e3d312ebd1bda943b8e4a4d346bc1a008702ffb18a3fac3d777f9312a8f8e88",
+  "menus": {
+    "LanguageSel": {
+      "offset": 10757464,
+      "properties": {
+        "Caption": "語言",
+        "Visible": false
+      },
+      "property_bytes": "0b4c616e677561676553656c0743617074696f6e12020000009e8a008a0756697369626c650800"
+    },
+    "ChineseSimplified": {
+      "offset": 10757513,
+      "properties": {
+        "Caption": "簡體中文",
+        "OnClick": "ChineseSimplifiedClick"
+      },
+      "property_bytes": "114368696e65736553696d706c69666965640743617074696f6e1204000000217cd49a2d4e8765074f6e436c69636b07164368696e65736553696d706c6966696564436c69636b00"
+    },
+    "ChineseTraditional": {
+      "offset": 10757596,
+      "properties": {
+        "Caption": "繁體中文",
+        "Visible": false
+      },
+      "property_bytes": "124368696e657365547261646974696f6e616c0354616702010743617074696f6e1204000000417ed49a2d4e87650756697369626c650800"
+    },
+    "English": {
+      "offset": 10757663,
+      "properties": {
+        "Caption": "英文",
+        "Checked": true,
+        "OnClick": "EnglishClick"
+      },
+      "property_bytes": "07456e676c6973680354616702020743617074696f6e1202000000f182876507436865636b656409074f6e436c69636b070c456e676c697368436c69636b00"
+    },
+    "MemoShow": {
+      "offset": 10757885,
+      "properties": {
+        "Caption": "Memo Show",
+        "Visible": false,
+        "OnClick": "MemoShowClick"
+      },
+      "property_bytes": "084d656d6f53686f770743617074696f6e06094d656d6f2053686f770756697369626c6508074f6e436c69636b070d4d656d6f53686f77436c69636b00"
+    },
+    "PtsSetup": {
+      "offset": 10758191,
+      "properties": {
+        "Caption": "次數鎖",
+        "Visible": false,
+        "OnClick": "PtsSetupClick"
+      },
+      "property_bytes": "0850747353657475700743617074696f6e1203000000216b786596930756697369626c6508074f6e436c69636b070d5074735365747570436c69636b00"
+    },
+    "LockSetup": {
+      "offset": 10758263,
+      "properties": {
+        "Caption": "操作鎖",
+        "Visible": false,
+        "OnClick": "LockSetupClick"
+      },
+      "property_bytes": "094c6f636b53657475700743617074696f6e1203000000cd645c4f96930756697369626c6508074f6e436c69636b070e4c6f636b5365747570436c69636b00"
+    }
+  },
+  "limits": "Static resources and inspected code establish packaged visibility, startup English selection and implemented language handlers. No built-in language-menu override was found in the inspected paths; indirect overrides and runtime behavior remain unverified. The one-byte workaround was validated only by parsing an in-memory resource copy. Installed VM binary identity is unverified. No executable was changed or run, no Windows language was changed and no device was accessed.",
+  "runtime_code_inspection": {
+    "method": "objdump disassembly and published field/method/property RTTI were inspected without executing the editor. The full TFMMAIN stream was decoded and consumed exactly 10787624 bytes.",
+    "main_form_fields": {
+      "LanguageSel": "0x458",
+      "ChineseSimplified": "0x45c",
+      "ChineseTraditional": "0x460",
+      "English": "0x464",
+      "language_identifier": "0x23b4",
+      "NetworkSetup": "0xe5c"
+    },
+    "startup": {
+      "FormCreate": "0x41aac4",
+      "english_assignment": "0x41b24e..0x41b26f loads the ASCII English identifier at 0x79392a into main-form field 0x23b4.",
+      "checked_entries": "0x41b287..0x41b2bb unchecks both Chinese entries and checks English. 0x41b2c6 calls caption refresh at 0x412164.",
+      "FormShow": "0x4527a4..0x4527b3 contains no application action."
+    },
+    "language_handlers": {
+      "ChineseSimplifiedClick": "0x41a69c",
+      "EnglishClick": "0x41a8b0",
+      "behavior": "Both switch on the sender Tag (0, 1, 2), select ChineseGB, ChineseBIG5 or English, update checks and refresh translated captions. This is implemented language-selection logic, not only a resource binding."
+    },
+    "visibility": {
+      "setter": "TMenuItem Visible property RTTI identifies setter 0x5185b8 and field offset 0x3e. Caption setter is 0x5183d4; Checked setter is 0x518448.",
+      "main_form_direct_call": "0x41b614 makes NetworkSetup (field 0xe5c) visible. No direct visibility-setter call for LanguageSel, PtsSetup or MemoShow was found in the inspected main-form code.",
+      "LanguageSel_direct_references": [
+        "0x4088e1 assigns the published component pointer.",
+        "0x412ed7 loads the menu pointer for the Caption setter at 0x412edd."
+      ]
+    },
+    "keyboard": {
+      "menu_count": 41,
+      "menu_shortcuts": 0,
+      "root_key_events": 0,
+      "global_message_or_shortcut_events": 0,
+      "scope": "These counts describe serialized TFMMAIN event bindings and menu properties; they do not exclude code-installed hooks."
+    },
+    "configuration": "No language override was found in the inspected startup and language paths. Command-line, INI, registry and locale imports exist in shared runtime libraries; their presence does not establish an application language option."
+  },
+  "historical_non_vendor_workaround": {
+    "scope": "LanguageSel only. No executable was written or executed.",
+    "resource_file_offset": "0x757714",
+    "Visible_tag_resource_offset": "0xa4257d",
+    "Visible_tag_executable_offset": "0x1199c91",
+    "original_byte": "08 (vaFalse)",
+    "proposed_byte": "09 (vaTrue)",
+    "static_validation": "An in-memory copy with this single byte changed parses completely and has LanguageSel.Visible=true. Original executable SHA-256 remains unchanged.",
+    "limits": "This is a proposed binary modification, not a supported vendor option or a tested runtime result. Do not apply the offset to another executable hash. A debugger could instead set this VCL property at runtime, but that approach was not tested.",
+    "audit_relevance": "Outside the vendor-intended parity audit. A patched binary does not establish an available vendor feature. No patch or patched runtime test is planned."
+  },
+  "vendor_intended_language_selection": {
+    "documented_route": "Main menu Language, then English or Chinese, per the official English manual page 33.",
+    "manual": "https://images.thomann.de/pics/atg/atgdata/document/manual/490507_c_490507_r1_en_online.pdf#page=33",
+    "observed_availability": "The user VM screenshots have no Language menu. The official V1.0 resource sets LanguageSel.Visible=false, and startup explicitly selects English.",
+    "supported_alternative": "No supported alternative was found in the inspected startup/language paths or documentation. The language click handlers have no direct call sites in the disassembly; their presence alone does not establish a usable entry.",
+    "audit_conclusion": "Language switching is documented but unavailable in the inspected V1.0 UI. Dormant handlers and bundled translations are not counted as accessible functionality or as a confirmed trackdsp parity gap. Binary patching is excluded from this audit.",
+    "remaining_uncertainty": "Installed VM binary identity and indirect runtime paths remain unverified. A normal entry would need an unmodified build and a vendor-documented procedure or a reproduced supported UI path. Until then, do not request Chinese screenshots or implement parity solely from hidden forms."
+  },
+  "further_language_analysis": {
+    "date": "2026-10-03",
+    "form_resource_language": "wrestool lists exactly one TFMMAIN resource, language 0 (neutral). The separately named Chinese and English serial forms also use language 0; they are not alternative language IDs of the same form.",
+    "translation_lookup": "0x411ef0..0x412163 selects moEnglish, moSimplified or moTraditional by comparing main-form field 0x23b4 with English, ChineseGB or ChineseBIG5. It looks up captions in that selected memo. No Windows locale query was found in this selector.",
+    "startup_language_access": "Among 410 call instructions in the FormCreate address interval 0x41aac4..0x41dedb, the direct 0x23b4 field access is the explicit English assignment at 0x41b26a.",
+    "initialization": "The exported Fmain Initialize routine at 0x455314 calls application global initialization at 0x407acc. The inspected initializer builds strings/tables and numerical scale constants; no language choice was found there.",
+    "import_call_sites": {
+      "GetLocaleInfoA": 10,
+      "GetLocaleInfoW": 7,
+      "GetSystemDefaultLangID": 1,
+      "GetSystemDefaultUILanguage": 3,
+      "GetUserDefaultUILanguage": 2,
+      "SetThreadLocale": 3,
+      "GetPrivateProfileStringW": 6,
+      "WritePrivateProfileStringW": 4,
+      "RegOpenKeyExW": 10,
+      "RegQueryValueExW": 7,
+      "scope": "These are direct calls to import stubs recognized in objdump disassembly. All listed call sites are beyond 0x49e000 in bundled runtime/component code, rather than the inspected main form/application handlers. This does not exclude indirect or code-installed behavior."
+    },
+    "command_line": "GetCommandLineA has one direct runtime call; GetCommandLineW has three. The early GetCommandLineW call at 0x4020ae initializes the runtime command-line pointer alias at 0x7fdfe8. No language startup argument was found in the inspected application paths.",
+    "conclusion": "The deeper analysis still identifies no normal vendor-supported language switch in this package. Startup selects English independently of the Windows-language APIs in the inspected paths. A Windows-language test remains useful as a counter-test for indirect runtime behavior, not as an already established intended route."
+  },
+  "windows_language_counter_test": {
+    "status": "The user reported on 2026-10-03 that Windows is now Chinese while the editor remains English. No editor reinstall was reported. Editor restart and exact binary identity were not independently verified.",
+    "phase_1": "Use the original unmodified editor with DSP connections disconnected. Record current display/preferred language and editor header. Close the editor, select Chinese (Simplified, China) as Windows display language and first preferred language under Settings > Time & language > Language & region, installing its language pack if needed. Sign out and back in, then reopen the same editor. Record whether the UI language changes or Language appears. Restore the original language after the test.",
+    "phase_2": "If phase 1 has no effect and testing the legacy system locale is desired, record its original value first, then separately change Language for non-Unicode programs to Chinese (Simplified, China), restart Windows, and reopen the same unmodified offline editor. Restore and restart afterward. Do not conflate this code-page test with the display-language test.",
+    "microsoft_display_reference": "https://support.microsoft.com/en-us/windows/hardware/input-devices/manage-the-language-and-keyboard-input-layout-settings-in-windows",
+    "interpretation": "The reported result supports the static finding of explicit startup English selection. Reinstalling the same inspected V1.0 package is unlikely to change this. If the editor remained open during the Windows change, close and reopen it once before treating the display-language test as complete. No supported language switch has been established.",
+    "phase_1_result": "User-reported Windows Chinese UI did not change the editor captions to Chinese. This result is scoped to that setup; it does not establish a legacy system-locale result."
+  }
+}

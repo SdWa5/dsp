@@ -5,6 +5,31 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.68.0] - 2026-10-03
+
+### Added
+
+- File Open inspects JSON and vendor preset files without a bridge or device. A read-only preview keeps missing values unknown and live settings unchanged; applying the original file is a separate confirmed action.
+- A vendor parity inventory maps the 22 tabs, 34 named forms and observed menus to controls and explicit evidence gaps.
+- A local coverage checker validates the inventory, screenshot paths, source counterparts and generated report.
+- Help builds RS232 packets locally with named documented commands and captured Group commands, including mute and matrix channel masks, plus raw CMD/data bytes.
+- About shows the application version declared in composer.json.
+- EQ Reset asks for confirmation before changing any band in the shared input, output and Aux editor.
+- Show all filters labels every PEQ band and both crossover filters, independent of bypass, saved per channel in the browser. Labels show effective bypass and retain the selected crossover type. PEQ labels use the same bypass or flat-gain red as their knobs.
+- The wheel over HPF/LPF points changes filter type while preserving bypass, using the existing linked-channel controls.
+- Double-clicking PEQ, HPF and LPF points toggles individual bypass through the shared channel controls.
+- Every fader restores its factory default on double-click, with the existing gain-unity overrides preserved.
+
+### Changed
+
+- The inventory audit is complete with 49 matched groups, 24 concrete unresolved outcomes and no confirmed implementation gap. The completion checker follows that outcome rule; individual evidence TODOs replace the umbrella item. The README describes measured coverage instead of claiming every vendor dialog exists. Connected-device audit checks are recorded separately as postponed work.
+- A second vendor preset sample saved with EQ bypass, test tone and feet selected is byte-identical to the original fixture. The preset documentation records both samples and the user-observed offline reopening behavior. Test tone resets to its default while EQ bypass and delay unit stay unchanged.
+- The Windows screenshot batch records file choosers, Group command boundaries, sibling EQ overlays and the separate channel-name and preset-name popups. Equivalent comparison in the existing EQ overview closes that audit item.
+
+### Fixed
+
+- The scripted test bridge waits for listener readiness instead of socket-file existence, avoiding reproduced startup connection refusals without consuming scripted status answers.
+
 ## [0.67.0] - 2026-10-03
 
 ### Added

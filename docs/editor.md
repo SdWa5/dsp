@@ -46,7 +46,7 @@ filter controls name their key under `editor.tip.panel` or `editor.tip` directly
 shows `editor.tip.device_id` and the connection button `editor.tip.bar.online`. A tooltip says what the control
 does in one sentence and names the unit where the value has one.
 
-A fader with a default puts the double-click hint after its tooltip. A gain fader turns its knob red (`is-muted`)
+Every fader puts the double-click default hint after its tooltip. A gain fader turns its knob red (`is-muted`)
 while its gain sits at raw 0, the bottom, or while the mute named by `options.muted_by` is set, and the mute puts
 "Muted by its Mute button" above its tooltip. A compressor fader with `options.comp`, the compressor's path, turns
 its knob red while that compressor is off, by `compActive()` in `assets/lib/meters.js` (ratio 1:1.0 or threshold
@@ -178,3 +178,74 @@ curve switches do not affect these marks.
 Auto EQ marks the resulting output EQ state even when there is no active measurement session. It has no factory
 reference for recording positions or fit preferences. `pageChanges()` in `assets/lib/defaults.js` derives all
 function-page marks from one state comparison. Tests cover each page, counts, restoring defaults and unknown values.
+
+## Inspecting preset files
+
+File > Open preset file opens JSON and vendor `.prs` settings in a read-only dialog, even without a bridge.
+Choose a section to inspect each input, output, Aux, Aux functions, Sub/Group controls or saved gain riders.
+The file owns its preview data; live events cannot replace it. Missing values show “Not stored in this file”,
+including EQ bypass and delay units absent from `.prs`. A delay with no stored display unit uses milliseconds.
+No imported value is sent or committed to the live store during inspection.
+
+Apply to device is a separate button, enabled only with live state and a connected device. It asks for
+confirmation, then uploads the original bytes through the existing validated upload endpoint and refreshes
+live state. A parse error clears the prior preview and disables Apply. Both endpoints use the same parser and
+command validation. Applying also replaces running gain riders with those saved in the file; a file without
+riders stops them. Test tone and device identity remain outside the existing preset upload operation.
+
+## Vendor parity and serial code generation
+
+[Vendor parity](vendor-parity.md) records each known tab, form and menu and its control counterparts. The JSON
+inventory is the source; `tools/vendor-parity.php --write` regenerates the report. Coverage checks compare the
+recorded surfaces with the vendor dumps, verify screenshot paths and source counterparts, and reject stale
+documentation. Unknown controls require a concrete verification recipe. Coverage does not certify parity or
+hardware behavior. `--require-complete` accepts counterparts, evidenced exclusions and concrete unresolved
+TODOs, and rejects confirmed implementation gaps or missing evidence outcomes.
+The user postponed connected-device checks and captures until a later hardware session. No further screenshot queue is active. Unreachable forms and uncertain behavior remain individual TODOs,
+with evidence procedures recorded in the completed inventory audit.
+
+Help contains the serial command builder evidenced by `tools/shots/dlg_TfmRs232CmdEnglish.png`.
+`assets/lib/rs232.js` encodes the separate nine-byte RS232 protocol, with named commands from manual chapter
+6.1 and raw CMD/data bytes for the remaining vendor functions. The Stimulus serial controller generates a
+read-only hex field locally and neither subscribes to the bridge nor sends packets. Gain values use raw
+0..400 with a dB hint; channels are numbered 1..8 in the form and encoded from zero. Input masks use bits
+0..7 for In1..In8. Factory is F00 and measured user slots are U01..U20; U21 remains an audit item.
+Get Full Matrix uses the captured command 61 with three zero data bytes. Get Group Parameter, Group
+volume, Group gain step, Group mute and Group matrix follow recorded vendor packets. Group indices
+0..7 follow the Input1..4, Output1..4 choice list. Group Matrix offers channel checkboxes alongside an editable mask byte.
+The single-channel shots establish In1 as bit 0 and In8 as bit 7 on both group sides. Invalid or incomplete values
+clear the output.
+
+Sibling EQ comparison is available in the Gain-page overview. Its channel switches overlay the same
+PEQ/HPF/LPF response used on channel pages. The vendor batch shows the equivalent comparison on
+individual input and output pages; trackdsp keeps this function in the shared overview.
+
+About reads the declared version from `composer.json`, so a release change appears before dependency install.
+
+Close the browser tab or window to leave the editor. This closes the browser view, not the separate bridge
+process. The browser supplies the equivalent of the vendor desktop application’s Exit action.
+
+EQ Reset asks for confirmation before changing a band, including bands on linked channels. Cancelling leaves
+the live settings untouched. This matches the vendor confirmation in `tools/shots/dlg_TfmPeqRst.png`.
+
+Show all filters displays frequency, Q and gain beside every PEQ band point, and frequency and slope
+beside the HPF and LPF points, including bypassed filters. PEQ labels show effective band or global
+bypass. PEQ value labels and the selected-band summary use the same bandIdle() rule as their knobs.
+They turn red when bypassed or when a Peak or shelf has 0 dB gain.
+Bypassed HPF/LPF labels retain the type selected in their slope selector, alongside Bypass.
+Because the device encodes bypass as slope 0, this type is a browser choice, not a separate device readback. This extends the vendor SHOW ALL EQ labels to
+all filters at the user’s request. Label visibility follows the display toggle rather than bypass state.
+The preference is saved per channel in this browser and writes no DSP setting.
+
+The wheel over a PEQ point changes Q. Over HPF/LPF it steps through the filter types in the slope selector,
+clamped to its first and last type. A bypassed filter stays bypassed; changing its remembered type sends
+no device command until it is enabled. Active filters use the existing linked-channel write path.
+
+Double-clicking a PEQ, HPF or LPF point toggles its individual Bypass through the existing linked write path.
+A global EQ Bypass still overrides PEQ bands. Blank plot space changes nothing; overlapping points choose
+the closest handle, then the one painted last on a tie.
+
+Double-clicking any fader restores its numeric factory default through the existing command path. Explicit
+widget defaults take precedence, preserving gain unity (raw 280) and delay 0. PEQ frequency, Q and gain
+use the selected band’s factory values; HPF/LPF use the channel’s factory frequency without altering bypass.
+Defaults are clamped to the fader range. Disabled controls and missing defaults send nothing.

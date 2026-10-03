@@ -3,9 +3,10 @@ import { Controller } from '@hotwired/stimulus';
 import { isChanged } from '../lib/defaults.js';
 import { getDefaults, getLabels, send, store } from '../lib/device.js';
 import { linkedMembers } from '../lib/link.js';
-import { paintRange } from '../lib/range.js';
+import { faderDefault, paintRange } from '../lib/range.js';
+import { readPref, writePref } from '../lib/prefs.js';
 import { getPath } from '../lib/store.js';
-import { bandBypassed, bandIdle, curveRuns, filterIdle, drawGrid, eqView, loadEqView, plotFor, prepare, response, saveEqView, singleFilter } from '../lib/eq.js';
+import { bandBypassed, bandIdle, bandPlotLabels, crossoverPlotLabels, curveRuns, drawFilterLabels, filterIdle, drawGrid, eqView, loadEqView, plotFor, plotHit, prepare, resetEqBands, response, saveEqView, singleFilter, stepFilterType } from '../lib/eq.js';
 import * as S from '../lib/scale.js';
 
 // One colour per band point. None is red, which marks a band or filter that does nothing, as on the faders
@@ -15,7 +16,6 @@ const CURVE = { mag: { color: '#ffee58', width: 2 }, phase: { color: '#4dd0e1', 
 const SINGLE = { color: '#9e9e9e', fill: 'rgba(158, 158, 158, 0.25)' };
 const DIMMED = '#6b6b6b';
 const DEFAULT_SLOPE = 20; // LK -48, the editor's default
-const DEFAULT_FREQS = { 5: [49, 101, 148, 200, 255], 7: [31, 71, 118, 161, 200, 240, 270] };
 
 /**
  * PEQ editor of one channel: response curve with draggable band points and filter handles, band table,
@@ -29,13 +29,14 @@ const DEFAULT_FREQS = { 5: [49, 101, 148, 200, 255], 7: [31, 71, 118, 161, 200, 
  * does the same and greys out the points and controls of every other filter.
  * The knobs of the selected band's faders turn red while the band does nothing (bypassed, or a Peak or shelf at
  * 0 dB), a filter's frequency knob while its Bypass is on. The band's point and the filter's square on the curve
- * turn red with them, in the mute red of the theme.
+ * turn red with them, in the mute red of the theme. Show all filters displays band and crossover values
+ * regardless of bypass; its local preference never changes processing.
  */
 export default class extends Controller {
     static values = { path: String, channel: Number };
     static targets = ['canvas', 'row', 'freq', 'q', 'gain', 'type', 'bypass', 'select', 'paramFreq', 'paramQ', 'paramGain',
         'paramFreqLabel', 'paramQLabel', 'paramGainLabel', 'filterFreq', 'filterFreqLabel', 'filterSlope', 'filterBypass',
-        'eqBypass', 'mag', 'phase'];
+        'eqBypass', 'mag', 'phase', 'labels'];
 
     connect() {
         this.selected = 0;
@@ -48,6 +49,9 @@ export default class extends Controller {
         if (this.hasMagTarget && this.hasPhaseTarget) {
             this.magTarget.checked = view.mag;
             this.phaseTarget.checked = view.phase;
+        }
+        if (this.hasLabelsTarget) {
+            this.labelsTarget.checked = readPref('eq-filter-labels', {})[this.pathValue] === true;
         }
         this.unsubscribe = store.subscribe(() => this.refresh());
         // A press anywhere else lets go of the filter a press here held, which a touch needs (see press())
@@ -167,6 +171,21 @@ export default class extends Controller {
         this.setBand(this.selected, { [field]: Number(event.target.value) });
     }
 
+    /** Restore only the double-clicked fader from this channel's factory defaults, preserving bypass. */
+    resetFader(event) {
+        if (!this.channel || event.target.disabled) return;
+        const { field, kind } = event.params;
+        const path = `${this.pathValue}.${kind ? kind : `peq.${this.selected}`}.${field}`;
+        const value = faderDefault(getDefaults(), path, Number(event.target.min), Number(event.target.max));
+        if (null === value) return;
+        if (kind) {
+            store.set(path, value);
+            this.sendFilter(kind);
+        } else {
+            this.setBand(this.selected, { [field]: value });
+        }
+    }
+
     filter(event) {
         const kind = event.params.kind;
         const filter = { ...this.channel[kind] };
@@ -195,12 +214,21 @@ export default class extends Controller {
     }
 
     reset() {
-        const defaults = DEFAULT_FREQS[this.channel.peq.length] ?? [];
-        this.channel.peq.forEach((_band, i) => this.setBand(i, { gain: 120, q: 25, type: 0, bypass: false, freq: defaults[i] ?? 170 }));
+        resetEqBands(this.channel.peq,
+            () => window.confirm(t('Reset all EQ bands on this channel?')),
+            (i, values) => this.setBand(i, values));
     }
 
     toggleView() {
         saveEqView(this.pathValue, this.view.mag, this.view.phase);
+        this.draw();
+    }
+
+    /** All-filter labels are a browser preference and send no device command. */
+    toggleLabels() {
+        writePref('eq-filter-labels', {
+            ...readPref('eq-filter-labels', {}), [this.pathValue]: this.labelsTarget.checked,
+        });
         this.draw();
     }
 
@@ -233,7 +261,7 @@ export default class extends Controller {
             return;
         }
         const { offsetX: x, offsetY: y } = event;
-        const hit = this.handles().find((h) => Math.abs(h.x - x) < 9 && Math.abs(h.y - y) < 9);
+        const hit = plotHit(this.handles(), x, y, 9);
         if (!hit) {
             return;
         }
@@ -248,7 +276,7 @@ export default class extends Controller {
     pointermove(event) {
         if (null === this.drag) {
             const { offsetX: x, offsetY: y } = event;
-            const hit = this.channel ? this.handles().find((h) => Math.abs(h.x - x) < 9 && Math.abs(h.y - y) < 9) : undefined;
+            const hit = this.channel ? plotHit(this.handles(), x, y, 9) : undefined;
             this.hover(hit ? ('band' === hit.kind ? { kind: 'band', i: hit.i } : { kind: hit.kind }) : null);
             return;
         }
@@ -268,6 +296,20 @@ export default class extends Controller {
         this.drag = null;
         if (dragged) {
             this.draw();
+        }
+    }
+
+    /** Double-click uses the same individual bypass controls and linked writes as the table and faders. */
+    doubleClick(event) {
+        if (!this.channel || this.element.classList.contains('is-offline')) return;
+        const hit = plotHit(this.handles(), event.offsetX, event.offsetY, 9);
+        if (!hit) return;
+        event.preventDefault();
+        if ('band' === hit.kind) {
+            this.selected = hit.i;
+            this.toggleBypass({ params: { band: hit.i } });
+        } else {
+            this.filter({ params: { kind: hit.kind, field: 'bypass' } });
         }
     }
 
@@ -373,14 +415,29 @@ export default class extends Controller {
         return this.resolve(this.drag ?? this.hovered ?? this.focused ?? this.pressed);
     }
 
-    /** Mouse wheel over a band point changes its Q. */
+    /** Wheel changes a band's Q or a crossover's type. A bypassed crossover stays bypassed. */
     wheel(event) {
+        if (!this.channel || 0 === event.deltaY) return;
         const { offsetX: x, offsetY: y } = event;
-        const hit = this.handles().find((h) => 'band' === h.kind && Math.abs(h.x - x) < 12 && Math.abs(h.y - y) < 12);
+        const hit = plotHit(this.handles(), x, y, 12);
         if (!hit) {
             return;
         }
         event.preventDefault();
+        if ('band' !== hit.kind) {
+            const filter = this.channel[hit.kind];
+            const current = filter.slope || this.slopes[hit.kind] || DEFAULT_SLOPE;
+            const next = stepFilterType(filter, current, event.deltaY, (getLabels().SLOPES ?? []).length - 1);
+            if (next.selected === current) return;
+            this.slopes[hit.kind] = next.selected;
+            if (0 === filter.slope) {
+                this.refresh();
+            } else {
+                store.set(`${this.pathValue}.${hit.kind}.slope`, next.slope);
+                this.sendFilter(hit.kind);
+            }
+            return;
+        }
         const q = this.channel.peq[hit.i].q + (event.deltaY < 0 ? 1 : -1);
         this.selected = hit.i;
         this.setBand(hit.i, { q: Math.max(0, Math.min(100, q)) });
@@ -536,7 +593,8 @@ export default class extends Controller {
         const idle = getComputedStyle(this.element).getPropertyValue('--mute').trim() || '#ff5252';
         for (const h of this.handles()) {
             if ('band' === h.kind) {
-                g.fillStyle = dimmed(h) ? DIMMED : null !== bandIdle(channel, h.i) ? idle : COLORS[h.i % COLORS.length];
+                const inactive = null !== bandIdle(channel, h.i);
+                g.fillStyle = dimmed(h) ? DIMMED : inactive ? idle : COLORS[h.i % COLORS.length];
                 g.beginPath();
                 g.arc(h.x, h.y, 6, 0, 2 * Math.PI);
                 g.fill();
@@ -546,18 +604,27 @@ export default class extends Controller {
                     g.stroke();
                     g.lineWidth = 1;
                 }
-                g.fillStyle = '#fff';
+                g.fillStyle = inactive ? idle : '#fff';
                 g.fillText(String(h.i + 1), h.x, h.y - 9);
+                if (this.hasLabelsTarget && this.labelsTarget.checked) {
+                    drawFilterLabels(g, plot, h, bandPlotLabels(channel, h.i, t('Bypass')));
+                }
             } else {
                 g.fillStyle = dimmed(h) ? DIMMED : filterIdle(channel[h.kind]) ? idle : 'hpf' === h.kind ? '#ffffff' : '#c0ca33';
                 g.fillRect(h.x - 5, h.y - 5, 10, 10);
                 g.fillText(h.kind.toUpperCase(), h.x, h.y - 8);
+                if (this.hasLabelsTarget && this.labelsTarget.checked) {
+                    const filter = channel[h.kind];
+                    drawFilterLabels(g, plot, h, crossoverPlotLabels(filter, slopes,
+                        this.slopes[h.kind] || DEFAULT_SLOPE, t('Bypass')));
+                }
             }
         }
         const b = channel.peq[this.selected];
         g.textAlign = 'left';
         g.textBaseline = 'top';
-        g.fillStyle = '#ffee58';
-        g.fillText(t("Band %band%: %frequency%  Q %q%  %gain%", { band: this.selected + 1, frequency: S.format('hz', b.freq), q: S.format('q', b.q), gain: S.format('peq', b.gain) }), plot.left + 6, plot.top + 4);
+        g.fillStyle = null !== bandIdle(channel, this.selected) ? idle : '#ffee58';
+        const summary = t("Band %band%: %frequency%  Q %q%  %gain%", { band: this.selected + 1, frequency: S.format('hz', b.freq), q: S.format('q', b.q), gain: S.format('peq', b.gain) });
+        g.fillText(summary + (bandBypassed(channel, this.selected).on ? `  ${t('Bypass')}` : ''), plot.left + 6, plot.top + 4);
     }
 }

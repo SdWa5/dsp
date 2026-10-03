@@ -71,7 +71,7 @@
                             {% endfor %}
                         </div>
                     </div>
-                    <input type="file" accept=".json,.prs,application/json" hidden data-editor-target="file" data-action="change->editor#upload">
+                    <input type="file" accept=".json,.prs,application/json" hidden data-editor-target="file" data-action="change->editor#inspectFile">
                 </nav>
                 <span class="bar__id" title="{{ 'editor.tip.device_id'|trans }}">{{ 'editor.bar.id'|trans }} {{ w.value('device_id') }}</span>
                 <button type="button" class="theme" data-editor-target="theme" data-action="editor#theme" title="{{ 'editor.bar.theme'|trans }}">{{ 'editor.bar.theme_auto'|trans }}</button>
