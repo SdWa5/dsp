@@ -5,10 +5,11 @@ import { getDefaults, getLabels, send, store } from '../lib/device.js';
 import { linkedMembers } from '../lib/link.js';
 import { paintRange } from '../lib/range.js';
 import { getPath } from '../lib/store.js';
-import { bandBypassed, drawGrid, Plot, prepare, response } from '../lib/eq.js';
+import { bandBypassed, curveRuns, drawGrid, eqView, loadEqView, plotFor, prepare, response, saveEqView } from '../lib/eq.js';
 import * as S from '../lib/scale.js';
 
 const COLORS = ['#ff5252', '#ffd740', '#e040fb', '#40c4ff', '#69f0ae', '#448aff', '#b0bec5', '#ffab40'];
+const CURVE = { mag: { color: '#ffee58', width: 2 }, phase: { color: '#4dd0e1', width: 1.5 } };
 const DEFAULT_SLOPE = 20; // LK -48, the editor's default
 const DEFAULT_FREQS = { 5: [49, 101, 148, 200, 255], 7: [31, 71, 118, 161, 200, 240, 270] };
 
@@ -17,17 +18,23 @@ const DEFAULT_FREQS = { 5: [49, 101, 148, 200, 255], 7: [31, 71, 118, 161, 200, 
  * parameter faders of the selected band, high and low pass. Values: path ("outputs.0"), channel (index).
  * Every field that differs from the factory default gets the class is-changed. A write to a linked input or
  * output goes to every channel of its link group, as the Gain page's widgets do (bound_controller.js).
+ * Mag and Phase show the magnitude, the phase or both, saved per channel. The phase reads in degrees on the axis.
  */
 export default class extends Controller {
     static values = { path: String, channel: Number };
     static targets = ['canvas', 'row', 'freq', 'q', 'gain', 'type', 'bypass', 'select', 'paramFreq', 'paramQ', 'paramGain',
         'paramFreqLabel', 'paramQLabel', 'paramGainLabel', 'filterFreq', 'filterFreqLabel', 'filterSlope', 'filterBypass',
-        'eqBypass', 'phase'];
+        'eqBypass', 'mag', 'phase'];
 
     connect() {
         this.selected = 0;
         this.drag = null;
         this.slopes = {};
+        const view = loadEqView(this.pathValue);
+        if (this.hasMagTarget && this.hasPhaseTarget) {
+            this.magTarget.checked = view.mag;
+            this.phaseTarget.checked = view.phase;
+        }
         this.unsubscribe = store.subscribe(() => this.refresh());
         this.resize = new ResizeObserver(() => this.draw());
         this.resize.observe(this.canvasTarget);
@@ -169,15 +176,21 @@ export default class extends Controller {
         this.channel.peq.forEach((_band, i) => this.setBand(i, { gain: 120, q: 25, type: 0, bypass: false, freq: defaults[i] ?? 170 }));
     }
 
-    togglePhase() {
+    toggleView() {
+        saveEqView(this.pathValue, this.view.mag, this.view.phase);
         this.draw();
+    }
+
+    /** The curves the Mag and Phase switches show, the magnitude alone without them. */
+    get view() {
+        return this.hasMagTarget && this.hasPhaseTarget ? eqView(this.magTarget.checked, this.phaseTarget.checked) : eqView();
     }
 
     // --- curve ----------------------------------------------------------------------------------
 
     plot() {
         const canvas = this.canvasTarget;
-        return new Plot(48, 14, canvas.clientWidth - 60, canvas.clientHeight - 36);
+        return plotFor(this.view, canvas.clientWidth, canvas.clientHeight);
     }
 
     handles() {
@@ -314,31 +327,30 @@ export default class extends Controller {
         if (null === canvas) {
             return;
         }
-        const { g } = canvas;
+        const { g, width, height } = canvas;
+        const view = this.view;
         const plot = this.plot();
-        drawGrid(g, plot, canvas.width, canvas.height);
+        drawGrid(g, plot, width, height, view);
         const channel = this.channel;
         if (!channel) {
             return;
         }
-        const phase = this.hasPhaseTarget && this.phaseTarget.checked;
         const slopes = getLabels().SLOPES ?? [];
-        g.strokeStyle = '#ffee58';
-        g.lineWidth = 2;
-        g.beginPath();
         const n = Math.max(200, Math.round(plot.width));
-        for (let i = 0; i <= n; i += 1) {
+        const points = Array.from({ length: n + 1 }, (_, i) => {
             const f = 20 * 1000 ** (i / n);
-            const r = response(channel, f, slopes);
-            const value = Math.max(-18.5, Math.min(18.5, phase ? r.phase / 10 : r.db));
-            const [x, y] = [plot.x(f), plot.y(value)];
-            if (0 === i) {
-                g.moveTo(x, y);
-            } else {
-                g.lineTo(x, y);
+            return [plot.x(f), response(channel, f, slopes)];
+        });
+        // The phase first, so the magnitude with its handles stays on top
+        for (const kind of ['phase', 'mag'].filter((k) => view[k])) {
+            g.strokeStyle = CURVE[kind].color;
+            g.lineWidth = CURVE[kind].width;
+            g.beginPath();
+            for (const run of curveRuns(points, kind)) {
+                run.forEach(([x, v], i) => (0 === i ? g.moveTo(x, plot.y(v)) : g.lineTo(x, plot.y(v))));
             }
+            g.stroke();
         }
-        g.stroke();
         g.lineWidth = 1;
         g.textBaseline = 'bottom';
         for (const h of this.handles()) {

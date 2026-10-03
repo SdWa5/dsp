@@ -89,6 +89,20 @@ Out1), and the tooltip then says "Limiter working". That reading of the byte res
 `docs/protocol.md`, and is not yet confirmed on the device. The simulated device sets the bit of an output whose
 compressor works and whose level reaches its threshold. `trackdsp:meters` shows the same bit as LIMIT.
 
+## EQ curve views
+
+The EQ curve of a channel tab and the EQ overview on the Gain page each have a Mag and a Phase checkbox, which
+show the magnitude, the phase or both. `eqView()` in `assets/lib/eq.js` decides the axes. The magnitude reads in dB
+on the left. The phase alone reads in degrees on the left, and beside the magnitude it gets its own degree axis on
+the right. Both share the grid, so ±180° lies on the ±18 dB lines and each 6 dB line is 60°. The choice is kept per
+channel and for the overview in the `eq-view` preference.
+
+The phase is that of the whole channel, the PEQ bands as biquads and the HPF and LPF from their analogue
+Butterworth prototype (`crossoverResponse()`). LK is two Butterworths of half the order in series. BL is drawn as a
+Butterworth at 0.8 times the frequency ratio, as its magnitude always was, so its phase is an approximation. The
+phase wraps at ±180°. `curveRuns()` ends the line where it leaves one edge and starts it again at the opposite one,
+so a steep filter winds through the plot instead of drawing vertical lines across it.
+
 ## Gate and compressor curves
 
 `assets/lib/dynamics.js` computes the static curve and `dynamics_controller.js` draws it on a canvas, input level

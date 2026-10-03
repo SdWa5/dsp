@@ -7,8 +7,8 @@
 {% set fold = 'aux' == p ? 'aux' : 'channel' %}
 <div class="peq" data-controller="peq" data-peq-path-value="{{ p }}" data-peq-channel-value="{{ channel }}">
     <div class="peq__bar">
-        <label><input type="radio" name="view-{{ channel }}" checked data-action="peq#togglePhase"> {{ "Mag"|trans }}</label>
-        <label><input type="radio" name="view-{{ channel }}" data-peq-target="phase" data-action="peq#togglePhase"> {{ "Phase"|trans }}</label>
+        <label title="{{ 'editor.tip.eq_mag'|trans }}"><input type="checkbox" checked data-peq-target="mag" data-action="peq#toggleView"> {{ "Mag"|trans }}</label>
+        <label title="{{ 'editor.tip.eq_phase'|trans }}"><input type="checkbox" data-peq-target="phase" data-action="peq#toggleView"> {{ "Phase"|trans }}</label>
         <span class="peq__hint">{{ "Drag a point: frequency and gain. Wheel on a point: Q."|trans }}</span>
         <button type="button" class="toggle toggle--bypass" title="{{ 'editor.tip.eq_bypass'|trans }}" data-peq-target="eqBypass" data-action="peq#eqBypass">{{ "EQ Bypass"|trans }}</button>
         <button type="button" class="toggle" title="{{ 'editor.tip.eq_reset'|trans }}" data-action="peq#reset">{{ "EQ Reset"|trans }}</button>

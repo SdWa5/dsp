@@ -130,6 +130,8 @@ editor:
             name: "Der Name der Live-Einstellungen aus dem zuletzt geladenen oder gespeicherten Preset. Speichern schlägt ihn für den Platz vor."
         eq_bypass: "Schaltet den EQ dieses Kanals ab. Die Bänder behalten ihre Werte."
         eq_reset: "Setzt jedes Band dieses Kanals auf 0 dB bei seiner Standardfrequenz zurück."
+        eq_mag: "Zeigt den Betrag in dB an der linken Achse."
+        eq_phase: "Zeigt die Phase in Grad, an der rechten Achse, solange auch der Betrag angezeigt wird."
         band:
             freq: "Mittenfrequenz des Bands, in Hz."
             q: "Q ist die Breite des Bands. Ein höheres Q wirkt auf einen schmaleren Bereich."

@@ -42,9 +42,6 @@
 
 ## Editor
 
-- Correct phase plot units to degrees, with a scale from -180 to +180 degrees. Phase must not be labelled in dB.
-- Allow magnitude and phase to be displayed independently for each channel, including both together. Provide the choices in each channel's settings and on the all-channel Gain page.
-
 - Next: turn fader knobs red where the PEQ or a filter does nothing, like the gain and compressor knobs
   (`knobMuted()` and `compActive()`, `paint()` in `fader_controller.js`). Only the knob turns red, the track keeps
   its colour.
