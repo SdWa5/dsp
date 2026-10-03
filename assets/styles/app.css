@@ -268,7 +268,7 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .dynamics__plot--page { align-self: center; width: min(100%, 480px); height: 360px; }
 .dynamics--dialog .dynamics__plot { width: 280px; height: 280px; }
 .dynamics-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
-/* On a channel tab the small curve stands beside the faders, the gain warning below both */
+/* On channel and Aux tabs the small curve stands beside the faders, the gain warning below both */
 .group.group--dynamics { display: grid; grid-template-columns: auto auto; align-items: start; gap: 4px 8px; }
 .group--dynamics > .gain-warning { grid-column: 1 / -1; }
 .group--dynamics .dynamics__plot { margin-top: 18px; }

@@ -157,6 +157,11 @@ curves on the channel tabs, the Aux tab and in the Aux compressor dialog are fix
 view and sends nothing. A drawing happens at most once per frame and only when the threshold, the ratio or the
 title changed.
 
+The Aux tab uses the same two-column dynamics layout as output channel sections. Its threshold fader and Set
+button share the left column, and its 170 × 170 curve occupies the right column. The existing `aux.comp`
+collapse preference folds both columns. The compressor dialog keeps its larger curve beside all four controls
+when space permits and wraps it below them on narrow screens.
+
 ## Aux routing
 
 Both matrix orientations have nine sources and nine destinations. Aux stays last on each axis and outside

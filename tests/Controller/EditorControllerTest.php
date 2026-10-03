@@ -263,6 +263,31 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(0, $page->filter('.dynamics-panel [data-fader-send-value], .dynamics [data-fader-send-value]'));
     }
 
+    public function testAuxCompressorPlacesItsControlsBesideTheCurve(): void
+    {
+        $page = self::page();
+        $group = $page->filter('section[data-page=aux] fieldset.group--dynamics[data-collapse-key-value="aux.comp"]');
+        self::assertCount(1, $group);
+        self::assertSame('collapse', $group->attr('data-controller'));
+        self::assertCount(1, $group->filter('fieldset > .group-stack > [data-fader-bind-value="aux.comp.threshold"]'));
+        self::assertCount(1, $group->filter('fieldset > .group-stack > button[data-action="editor#open"][data-editor-dialog-param=auxcomp]'));
+        self::assertCount(1, $group->filter('fieldset > .dynamics[data-dynamics-path-value=aux]'));
+        $fader = $group->filter('[data-fader-bind-value="aux.comp.threshold"]');
+        self::assertSame('aux.comp', $fader->attr('data-fader-comp-value'));
+        self::assertSame('0', $fader->filter('input[type=range]')->attr('min'));
+        self::assertSame('220', $fader->filter('input[type=range]')->attr('max'));
+        self::assertSame([['command' => 'compressor', 'args' => [
+            'channel' => 18,
+            'ratio' => '@aux.comp.ratio',
+            'knee' => '@aux.comp.knee',
+            'attack' => '@aux.comp.attack',
+            'release' => '@aux.comp.release',
+            'threshold' => '@aux.comp.threshold',
+        ]]], json_decode((string) $fader->attr('data-fader-send-value'), true, flags: \JSON_THROW_ON_ERROR));
+        self::assertCount(1, $page->filter('dialog#dialog-auxcomp .dynamics-row > .strip__row'));
+        self::assertCount(1, $page->filter('dialog#dialog-auxcomp .dynamics-row > .dynamics--dialog'));
+    }
+
     public function testEqOverviewHasASwitchPerChannelAndSendsNothing(): void
     {
         $overview = self::page()->filter('section[data-page=gain] [data-controller~=eqoverview]');
