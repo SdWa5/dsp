@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.58.0] - 2026-10-03
+
+### Added
+
+- Mag and Phase checkboxes on every EQ curve and on the EQ overview show the magnitude, the phase or both, kept per channel
+
+### Fixed
+
+- The phase axis is labelled in degrees from -180° to +180° instead of dB
+- The phase includes the HPF and LPF, so a crossover turns it through the plot
+- The phase wraps from -180° to +180° without a line across the plot
+
 ## [0.57.2] - 2026-10-03
 
 ### Added

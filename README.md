@@ -153,6 +153,9 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   other than 1:1.0 with its threshold below +20 dB. A threshold off the meter's -60 to +12 dB shows no mark.
 - Output meters have an orange Limit lamp above the red top, lit while the device reports the output's limiter
   working. The captures show that byte of the meter reply, but the device has not confirmed its meaning yet.
+- Every EQ curve shows the magnitude, the phase or both, chosen with Mag and Phase beside it and kept per channel
+  in the browser. The phase reads in degrees from -180° to +180°, on the right axis while the magnitude shows too,
+  and includes the HPF and LPF.
 - The Gain page starts with an EQ overview, the EQ curves of every input (solid), output (dashed) and the Aux (dotted) in one plot.
   Mag and Phase switch the plot as on a channel tab. A switch per channel shows or hides its curve, kept in the
   browser. It changes nothing on the device.

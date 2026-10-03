@@ -274,13 +274,28 @@ final class EditorControllerTest extends WebTestCase
         foreach ($paths as $path) {
             self::assertTrue(self::has($path.'.peq'), $path);
         }
-        // Mag and Phase as on a channel tab, the overview's own pair of radios
-        $view = $overview->filter('input[type=radio][name=view-overview]');
-        self::assertCount(2, $view);
+        // Mag and Phase as on a channel tab, two switches that can both be on
+        $view = $overview->filter('.peq__bar input[type=checkbox]');
+        self::assertSame(['mag', 'phase'], $view->each(static fn (Crawler $n): string => (string) $n->attr('data-eqoverview-target')));
         self::assertNotNull($view->eq(0)->attr('checked'));
-        self::assertSame('phase', $view->eq(1)->attr('data-eqoverview-target'));
+        self::assertNull($view->eq(1)->attr('checked'));
         // Showing a curve is a view setting, never a write to the device
         self::assertCount(0, $overview->filter('[data-toggle-send-value], [data-fader-send-value]'));
+    }
+
+    public function testEveryChannelCurveShowsMagnitudeAndPhaseIndependently(): void
+    {
+        $page = self::page();
+        $peqs = $page->filter('[data-controller=peq]');
+        // 8 inputs, 8 outputs and the Aux
+        self::assertCount(17, $peqs);
+        $peqs->each(static function (Crawler $peq): void {
+            $view = $peq->filter('.peq__bar input');
+            self::assertSame(['checkbox', 'checkbox'], $view->each(static fn (Crawler $n): string => (string) $n->attr('type')));
+            self::assertSame(['mag', 'phase'], $view->each(static fn (Crawler $n): string => (string) $n->attr('data-peq-target')));
+            self::assertSame(['peq#toggleView', 'peq#toggleView'], $view->each(static fn (Crawler $n): string => (string) $n->attr('data-action')));
+        });
+        self::assertCount(0, $page->filter('input[type=radio][name^=view-]'));
     }
 
     public function testChannelSectionsFollowTheLinkPlacement(): void

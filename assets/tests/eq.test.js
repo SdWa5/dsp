@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { bandBypassed, crossover, Plot, response } from '../lib/eq.js';
+import { axisLabel, bandBypassed, crossover, crossoverResponse, curveRuns, curveValue, eqView, loadEqView, Plot, plotFor, response, saveEqView } from '../lib/eq.js';
 import { hzToIndex } from '../lib/scale.js';
 
 const SLOPES = ['Bypass', 'BW -6', 'BL -6', 'BW -12', 'BL -12', 'LK -12', 'BW -18', 'BL -18', 'BW -24', 'BL -24',
@@ -38,6 +38,42 @@ test('crossover slopes', () => {
     assert.ok(Math.abs(a - b - 24) < 0.1);
 });
 
+test('crossover phase at the corner', () => {
+    const deg = ([re, im]) => (Math.atan2(im, re) * 180) / Math.PI;
+    const at = (slope, high) => deg(crossoverResponse(SLOPES, slope, 1000, 1000, high));
+    // A Butterworth of order n turns 45° per order at its corner, lagging as a low pass and leading as a high pass
+    assert.ok(Math.abs(at(1, false) + 45) < 1e-9);
+    assert.ok(Math.abs(at(1, true) - 45) < 1e-9);
+    assert.ok(Math.abs(at(3, false) + 90) < 1e-9);
+    assert.ok(Math.abs(at(6, false) + 135) < 1e-9);
+    // LK -24 is two BW -12 in series, 180° at the corner
+    assert.ok(Math.abs(Math.abs(at(10, false)) - 180) < 1e-9);
+    assert.deepEqual(crossoverResponse(SLOPES, 0, 1000, 1000, true), [1, 0]);
+});
+
+test('the HPF and LPF turn the phase of a channel', () => {
+    const corner = 19.6875 * 2 ** (100 / 30);
+    const hpf = response({ peq: [], hpf: { freq: 100, slope: 1 }, eq_bypass: false }, corner, SLOPES);
+    assert.ok(Math.abs(hpf.phase - 45) < 1e-6, `${hpf.phase}`);
+    const lpf = response({ peq: [], lpf: { freq: 100, slope: 3 }, eq_bypass: false }, corner, SLOPES);
+    assert.ok(Math.abs(lpf.phase + 90) < 1e-6, `${lpf.phase}`);
+});
+
+test('the phase wraps from -180° to +180° without a line through the plot', () => {
+    const points = [[0, { phase: -150 }], [10, { phase: -170 }], [20, { phase: 170 }], [30, { phase: 150 }]];
+    const runs = curveRuns(points, 'phase');
+    assert.equal(runs.length, 2);
+    // -170° to 170° is 20° on, so it leaves at -180° halfway and comes back at +180°
+    assert.deepEqual(runs[0].at(-1), [15, -18]);
+    assert.deepEqual(runs[1][0], [15, 18]);
+    assert.deepEqual(runs[1].at(-1), [30, 15]);
+    // The other way round it leaves at the top
+    const up = curveRuns([[0, { phase: 170 }], [10, { phase: -170 }]], 'phase');
+    assert.deepEqual(up.map((run) => run.map(([x, v]) => [x, v])), [[[0, 17], [5, 18]], [[5, -18], [10, -17]]]);
+    // The magnitude stays one run, clipped just outside the grid
+    assert.deepEqual(curveRuns([[0, { db: -40 }], [10, { db: 3 }]], 'mag'), [[[0, -18.5], [10, 3]]]);
+});
+
 test('plot mapping is invertible', () => {
     const plot = new Plot(48, 12, 600, 300);
     assert.equal(plot.x(20), 48);
@@ -56,4 +92,41 @@ test('EQ Bypass shows every band as bypassed, and says so', () => {
     assert.deepEqual(bandBypassed(channel, 1), { on: true, byEq: true });
     // The bands keep their own bypass, so switching EQ Bypass off brings back what each band had
     assert.equal(channel.peq[0].bypass, false);
+});
+
+test('magnitude, phase or both, with the axis each side labels', () => {
+    assert.deepEqual(eqView(), { mag: true, phase: false, left: 'db', right: null });
+    assert.deepEqual(eqView(false, true), { mag: false, phase: true, left: 'deg', right: null });
+    assert.deepEqual(eqView(true, true), { mag: true, phase: true, left: 'db', right: 'deg' });
+    // Nothing shown keeps the dB grid
+    assert.deepEqual(eqView(false, false), { mag: false, phase: false, left: 'db', right: null });
+});
+
+test('the phase reads in degrees, ±180° on the ±18 dB lines', () => {
+    assert.deepEqual([-18, -6, 0, 6, 18].map((db) => axisLabel('deg', db)), ['-180°', '-60°', '0°', '+60°', '+180°']);
+    assert.deepEqual([-18, 0, 18].map((db) => axisLabel('db', db)), ['-18dB', '0dB', '+18dB']);
+    assert.equal(curveValue({ db: 3, phase: -90 }, 'phase'), -9);
+    assert.equal(curveValue({ db: 3, phase: -90 }, 'mag'), 3);
+    assert.equal(curveValue({ db: 40, phase: 0 }, 'mag'), 18.5);
+});
+
+test('the plot makes room for the degree axis only beside the magnitude', () => {
+    assert.deepEqual({ ...plotFor(eqView(), 660, 336) }, { left: 48, top: 14, width: 600, height: 300 });
+    assert.deepEqual({ ...plotFor(eqView(false, true), 660, 336) }, { left: 48, top: 14, width: 600, height: 300 });
+    assert.equal(plotFor(eqView(true, true), 660, 336).width, 568);
+});
+
+test('the view is saved per plot', () => {
+    const items = new Map();
+    globalThis.localStorage = { getItem: (k) => items.get(k) ?? null, setItem: (k, v) => items.set(k, String(v)) };
+    try {
+        assert.deepEqual(loadEqView('inputs.0'), eqView());
+        saveEqView('inputs.0', true, true);
+        saveEqView('overview', false, true);
+        assert.deepEqual(loadEqView('inputs.0'), eqView(true, true));
+        assert.deepEqual(loadEqView('overview'), eqView(false, true));
+        assert.deepEqual(loadEqView('outputs.3'), eqView());
+    } finally {
+        delete globalThis.localStorage;
+    }
 });
