@@ -1,10 +1,11 @@
 import { Controller } from '@hotwired/stimulus';
 import { store } from '../lib/device.js';
 import { channelId, channelParts } from '../lib/channels.js';
-import { linkGroups, linkName, linkRuns } from '../lib/link.js';
+import { linkGroups, linkName } from '../lib/link.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
 import { routingEdges, routingLayout, routingPath, AUX, GRAPH_WIDTH, NODE_WIDTH, NODE_HEIGHT, SOURCES, sourceChannel } from '../lib/routing.js';
 import { t } from '../lib/i18n.js';
+import { getChannelView, onChannelView, channelVisible, visibleRuns, visibleEdge } from '../lib/channelview.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
 // One colour per source, the inputs as on the EQ overview, Aux in grey
@@ -25,7 +26,7 @@ export default class extends Controller {
 
     connect() {
         this.signature = null;
-        this.offs = [store.subscribe(() => this.render()), onLinkView(() => this.render())];
+        this.offs = [store.subscribe(() => this.render()), onLinkView(() => this.render()), onChannelView(() => this.render())];
         this.render();
     }
 
@@ -35,7 +36,7 @@ export default class extends Controller {
 
     render() {
         const state = store.state;
-        const edges = routingEdges(state?.outputs, state?.aux?.select);
+        const edges = routingEdges(state?.outputs, state?.aux?.select).filter(edge => visibleEdge(edge));
         const names = [...Array.from({ length: SOURCES }, (_, s) => sourceChannel(s)), ...Array.from({ length: 8 }, (_, o) => 8 + o)]
             .map((index) => channelParts(index, state));
         const view = getLinkView();
@@ -43,16 +44,16 @@ export default class extends Controller {
         const placement = null === state ? 'normal' : view.placement;
         // Only inputs and outputs belong to link groups; Aux has its own central column
         const runs = {
-            sources: linkRuns(groups.inputs, placement),
-            outputs: linkRuns(groups.outputs, placement),
+            sources: visibleRuns(groups.inputs, placement, 0),
+            outputs: visibleRuns(groups.outputs, placement, 8),
         };
         // The state updates often, the graph only redraws when a connection, a name or the link display changes
-        const signature = JSON.stringify([edges, names, groups, view]);
+        const signature = JSON.stringify([edges, names, groups, view, getChannelView()]);
         if (signature === this.signature) {
             return;
         }
         this.signature = signature;
-        const layout = routingLayout(runs, { height: NODE.height, head: HEAD, pad: MARGIN });
+        const layout = routingLayout(runs, { height: NODE.height, head: HEAD, pad: MARGIN, aux: channelVisible(18) });
         const svg = this.svgTarget;
         svg.setAttribute('viewBox', `${-MARGIN} ${-MARGIN} ${WIDTH + 2 * MARGIN} ${layout.height + 2 * MARGIN}`);
         svg.replaceChildren();
@@ -84,6 +85,7 @@ export default class extends Controller {
             });
         }
         names.forEach((parts, n) => {
+            if (!channelVisible(n < 8 ? n : n === AUX ? 18 : n - SOURCES + 8)) return;
             const isAux = n === AUX;
             const isSource = n < SOURCES;
             const y = isAux ? layout.aux : isSource ? layout.sources.y[n] : layout.outputs.y[n - SOURCES];

@@ -36,12 +36,13 @@ export function routingEdges(outputs, auxSelect = null) {
  * Where the nodes and the link group frames sit, in SVG units. columns holds the runs of each column in placed
  * order, {sources, outputs}, each run {group, channels} as linkRuns() gives them. A node is `height` high with
  * `gap` to the next. A run with a group gets a frame as a stacked block has: a head `head` high on top, then its
- * nodes `pad` apart and `pad` inside the frame. Both outer columns share a height; Aux occupies a separate row below both.
+ * nodes `pad` apart and `pad` inside the frame. Both outer columns share a height; visible Aux occupies a separate row below both.
+ * Set aux false to remove the unused bottom row while keeping channel coordinates and route identities.
  * Returns, per column,
  * the y of each channel's centre by channel and the frames with their top and bottom.
  * @returns {{height: number, sources: {y: number[], frames: {group: number, channels: number[], top: number, bottom: number}[]}, outputs: object, aux: number}}
  */
-export function routingLayout(columns, { height = 26, gap = 8, head = 14, pad = 4 } = {}) {
+export function routingLayout(columns, { height = 26, gap = 8, head = 14, pad = 4, aux = true } = {}) {
     const place = (runs) => {
         const y = [];
         const frames = [];
@@ -73,7 +74,7 @@ export function routingLayout(columns, { height = 26, gap = 8, head = 14, pad = 
             frames: frames.map((frame) => ({ ...frame, top: frame.top + offset, bottom: frame.bottom + offset })),
         };
     };
-    return { height: total + gap + height, sources: centre(sources), outputs: centre(outputs), aux: total + gap + height / 2 };
+    return { height: Math.max(height, total + (aux ? gap + height : 0)), sources: centre(sources), outputs: centre(outputs), aux: total + gap + height / 2 };
 }
 
 /** SVG path for each route. Direct input/output lines cross a clear lane above or below the Aux box. */

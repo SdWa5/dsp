@@ -1,6 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
 import { routingEdges, routingFocus, routingLit } from '../lib/routing.js';
 import { store } from '../lib/device.js';
+import { onChannelView, visibleEdge } from '../lib/channelview.js';
 
 const HOLDERS = '[data-source], [data-output], [data-sources], [data-outputs]';
 
@@ -16,7 +17,10 @@ export default class extends Controller {
     connect() {
         this.focus = null;
         this.key = 'null';
+        this.off = onChannelView(() => this.leave());
     }
+
+    disconnect() { this.off?.(); }
 
     over(event) {
         const holder = event.target.closest(HOLDERS);
@@ -39,7 +43,7 @@ export default class extends Controller {
         this.focus = focus;
         this.key = key;
         this.element.classList.toggle('has-route-focus', null !== focus);
-        const edges = routingEdges(store.state?.outputs, store.state?.aux?.select);
+        const edges = routingEdges(store.state?.outputs, store.state?.aux?.select).filter(edge => visibleEdge(edge));
         for (const node of this.element.querySelectorAll(HOLDERS)) {
             node.classList.toggle('is-focus', routingLit(focus, routingFocus(node.dataset), edges));
         }

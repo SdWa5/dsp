@@ -177,6 +177,8 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 [data-group='3'] { --group: #ce93d8; }
 [data-group='4'] { --group: #f48fb1; }
 .chtab[data-group]:not([data-group='']) { box-shadow: inset 0 3px 0 var(--group); background: color-mix(in srgb, var(--group) 18%, transparent); }
+/* Stacked tabs leave the repeated group edge to their shared header. */
+.chtabs.is-stacked .chtab { box-shadow: none; }
 .chtab[data-group]:not([data-group='']) .chtab__link { background: var(--group); color: #111; }
 /* Shape per group: circle, square, triangle, diamond, so groups differ without colour too. Next to the code or alone */
 .chtab__link--bare { top: 4px; right: 4px; padding: 0; background: none; }
@@ -621,3 +623,17 @@ details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
 .aux-routes__column { display: flex; flex-direction: column; gap: 4px; min-width: 0; margin: 0; padding: 0; border: 0; }
 .aux-routes__column legend { margin-bottom: 4px; font-weight: 700; }
 .matrix__unsupported { width: 24px; height: 24px; padding: 0; border: 0; background: transparent; color: var(--text); opacity: 0.5; cursor: not-allowed; }
+
+/* Browser display choices never change device state or remove selector members. */
+[hidden] { display: none !important; }
+.channel-visibility { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.group-selector { padding: 3px 5px; border: 1px solid var(--panel-edge); border-radius: 4px; background: var(--group, var(--panel)); }
+.channel-members { font-size: 11px; font-weight: 600; margin-left: 4px; }
+.channel-warning { padding: 12px; }
+
+/* Aggregate controls belong to their group header and leave individual channel order intact. */
+.link-block__head .group-selector { border: 0; padding: 2px 0; border-radius: 0; background: transparent; }
+.channel-visibility__side > legend { max-width: 100%; }
+.channel-visibility__side > legend .toggle { font-size: 10px; white-space: normal; }
+.link-block__head--selector[data-group]:not([data-group='']) { background: var(--group); color: #111; }
+.checks > .link-block__head--selector { flex-basis: 100%; }

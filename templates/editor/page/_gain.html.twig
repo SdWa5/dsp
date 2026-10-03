@@ -9,14 +9,14 @@
     <canvas class="eq-overview__plot" data-eqoverview-target="canvas" data-action="pointermove->eqoverview#hoverPlot pointerleave->eqoverview#unhover"></canvas>
     <div class="eq-overview__switches" data-action="pointerover->eqoverview#hoverSwitch pointerleave->eqoverview#unhover" role="group" aria-label="{{ "Curves shown"|trans }}">
         {% for side in ['inputs', 'outputs'] %}
-            <span class="eq-overview__side" data-controller="linkplace">
+            <span class="eq-overview__side" data-controller="linkplace" data-linkplace-display-value="true">
                 {% for i in 0..7 %}
                     <label class="eq-overview__switch eq-overview__switch--{{ side }}"><input type="checkbox" value="{{ side }}.{{ i }}" checked
                         data-eqoverview-target="show" data-action="change->eqoverview#toggle">{{ w.ch(('outputs' == side ? 8 : 0) + i) }}</label>
                 {% endfor %}
             </span>
         {% endfor %}
-        <label class="eq-overview__switch eq-overview__switch--aux"><input type="checkbox" value="aux" checked
+        <label class="eq-overview__switch eq-overview__switch--aux" data-controller="channelvisibility" data-channelvisibility-index-value="18"><input type="checkbox" value="aux" checked
             data-eqoverview-target="show" data-action="change->eqoverview#toggle">{{ w.ch(18) }}</label>
     </div>
     <p class="eq-overview__note">{{ "Solid: inputs, dashed: outputs, dotted: the Aux. Linked channels share a colour. Point at a curve or a switch to pick it out. A switch only shows or hides a curve, the EQ of the channel stays as it is."|trans }}</p>
@@ -24,7 +24,7 @@
 <div class="gain-layout">
 <div class="gain-layout__channels">
 <div data-controller="riders" data-riders-defaults-value="{{ rider_defaults|json_encode }}">
-    <div class="strips" data-controller="collapse linkplace" data-collapse-key-value="gain.input">
+    <div class="strips" data-controller="collapse linkplace" data-linkplace-display-value="true" data-collapse-key-value="gain.input">
         <h2 class="strips__title">{{ w.fold('Input', 'inputs') }}</h2>
         {% for i in 0..7 %}
             {% set p = 'inputs.' ~ i %}
@@ -66,7 +66,7 @@
         </form>
     </dialog>
 </div>
-<div class="strips" data-controller="collapse linkplace" data-collapse-key-value="gain.output">
+<div class="strips" data-controller="collapse linkplace" data-linkplace-display-value="true" data-collapse-key-value="gain.output">
     <h2 class="strips__title">{{ w.fold('Output', 'outputs') }}</h2>
     {% for i in 0..7 %}
         {% set p = 'outputs.' ~ i %}

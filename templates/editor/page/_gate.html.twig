@@ -3,7 +3,7 @@
 <div data-controller="dynamics" data-dynamics-kind-value="gate" data-dynamics-path-value="inputs.0" data-dynamics-follow-value="true"
      data-action="focusin->dynamics#select pointerdown->dynamics#select">
     {{ w.dynamics_panel('Gate curve', 'gate', 'gate_curve') }}
-    <div class="strips" data-controller="linkplace">
+    <div class="strips" data-controller="linkplace" data-linkplace-display-value="true">
         {% for i in 0..7 %}
             <div class="strip" data-dynamics-source="inputs.{{ i }}">
                 <h3 class="strip__title">{{ w.ch(i) }}</h3>

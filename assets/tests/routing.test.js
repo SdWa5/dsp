@@ -163,3 +163,13 @@ test('all direct routes clear the central Aux box in every link placement', asyn
         }
     }
 });
+
+test('hidden Aux removes its unused bottom row while preserving outer node coordinates', () => {
+    const columns = { sources: [{ group: 0, channels: [0, 7] }], outputs: [{ group: 0, channels: [0] }] };
+    const visible = routingLayout(columns), hidden = routingLayout(columns, { aux: false });
+    assert.deepEqual(hidden.sources, visible.sources);
+    assert.deepEqual(hidden.outputs, visible.outputs);
+    assert.equal(visible.height - hidden.height, 26 + 8);
+    const empty = routingLayout({ sources: [], outputs: [] }, { aux: false });
+    assert.ok(empty.height > 0);
+});

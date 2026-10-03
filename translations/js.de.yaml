@@ -233,3 +233,8 @@
 "Deadband": "Toleranz"
 "Override hold": "Pause nach manueller Änderung"
 "Allow boosts": "Verstärkung erlauben"
+
+"%channel% is hidden by your display settings.": "%channel% ist durch die Anzeigeeinstellungen ausgeblendet."
+"No visible input channels.": "Keine sichtbaren Eingangskanäle."
+"Hidden members: %channels%": "Ausgeblendete Mitglieder: %channels%"
+"No visible compressor channels.": "Keine sichtbaren Kompressorkanäle."

@@ -1,8 +1,9 @@
 import { Controller } from '@hotwired/stimulus';
 import { store } from '../lib/device.js';
-import { channelLabel, channelParts } from '../lib/channels.js';
+import { channelId, channelLabel, channelParts } from '../lib/channels.js';
 import { linkGroups, linkMark, linkName } from '../lib/link.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
+import { getChannelView, onChannelView, channelMembers, displayedChannel } from '../lib/channelview.js';
 
 /**
  * A channel ID with the channel's name next to it: "In1 DJ L". In an <option> as plain text "In1 · DJ L".
@@ -15,7 +16,7 @@ export default class extends Controller {
 
     connect() {
         this.shown = null;
-        this.offs = [store.subscribe((state) => this.render(state)), onLinkView(() => this.render(store.state))];
+        this.offs = [store.subscribe((state) => this.render(state)), onLinkView(() => this.render(store.state)), onChannelView(() => this.render(store.state))];
         this.render(store.state);
     }
 
@@ -27,7 +28,8 @@ export default class extends Controller {
         const { id, name } = channelParts(this.indexValue, state);
         const view = getLinkView();
         const { group, label } = this.group(state, view);
-        const key = JSON.stringify([id, name, group, label, view.code, view.shape, view.colour]);
+        const members = channelMembers(this.indexValue, state);
+        const key = JSON.stringify([id, name, group, label, members, view.code, view.shape, view.colour, getChannelView()]);
         if (key === this.shown) {
             return;
         }
@@ -43,6 +45,14 @@ export default class extends Controller {
         this.element.classList.toggle('is-named', '' !== name);
         this.element.title = channelLabel(this.indexValue, state);
         this.showLink(view, group, label);
+        this.element.querySelector('.channel-members')?.remove();
+        if (this.element.closest('[data-linkplace-display-value=true]') && getChannelView().grouped && displayedChannel(this.indexValue, state)) {
+            if (members.length > 1) {
+                const summary = document.createElement('span'); summary.className = 'channel-members';
+                summary.textContent = members.map(i => channelId(i)).join(', ');
+                this.element.append(summary);
+            }
+        }
     }
 
     /** {group, label}: the link group (1..) of this channel and its name, group 0 when it is alone, the Aux or not to be shown. */

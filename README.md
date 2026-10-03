@@ -127,6 +127,17 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   graph follow the placement. Stacked gathers a group under one header, and strips, being too tall to stack, form
   a block that runs across. The matrix leaves a gap around each group and heads it with one bar outside the
   channel headers, and the routing graph frames each group under a head. Either way the code shows once per group.
+- Channels > Channel display settings hides chosen inputs, outputs and Aux in this browser. Hidden channels stay
+  active, and linked edits still reach them. Hidden detail pages offer Unhide channel and
+  Open Gain page. Show all restores every channel, while section-header buttons restore inputs or outputs
+  independently. The dialog follows existing link colours, icons, ordering and stacked placement, and its
+  group-header checkboxes show mixed visibility and restore or hide every member of the group.
+- One control per link group shows the lowest visible member's processing strip, header tab and Gain EQ switch,
+  labelled with group members. Matrix and routing graph keep individual visible channels. Routing and membership
+  selectors retain every channel and put mixed-state group checkboxes in their group headers, including hidden
+  members. Group control labels show the group name and icon; their tooltips identify members.
+  Enabling grouping preserves channel order and stacked placement. Auto EQ group
+  selection changes its form only. Preferences survive reloads, or last for the visit if storage is blocked.
 - A link group can carry a name of up to 12 characters, typed in the Link dialog below the matrices. The name
   stands wherever the code would (L1, L2, ...), so it shows when "Group code or name" is on. It is kept in the
   browser with the other display settings and stays with the group's lowest channel, so it survives when other
@@ -136,6 +147,8 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   channel of a group is copied to the others. The rows and columns follow the placement after every click, and
   stacked turns each group into a block with one header naming its members. The display settings sit below the
   two matrices as well.
+- Input, output and Aux detail pages share the order Bands, Selected band and Gain. HPF/LPF follow where
+  available, stacked vertically, then Gate or Comp and the remaining channel-specific sections.
 - Every setting that differs from the factory default (`resources/factory_config.bin`) has a bar on its left
   edge. Every page tab shows the number of its changed settings as a badge, and every channel tab shows a corner
   triangle when its settings differ. The tooltip counts the changed settings. Auto EQ tracks output PEQ bands and EQ bypass. The marks clear when values return to
@@ -177,8 +190,8 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   that band. Pointing at a filter's point, its table row, the selected band's faders or a filter's group does the same and
   greys out the points and controls of every other filter.
 - The Gain page starts with an EQ overview, the EQ curves of every input (solid), output (dashed) and the Aux (dotted) in one plot.
-  Mag and Phase switch the plot as on a channel tab. A switch per channel shows or hides its curve, kept in the
-  browser. It changes nothing on the device. Linked channels share one EQ, so their curves and switches share one
+  Mag and Phase switch the plot as on a channel tab. A switch per channel, or per link group when grouping is
+  enabled, shows or hides its curves, kept in the browser. It changes nothing on the device. Linked channels share one EQ, so their curves and switches share one
   colour, the group's while Channels shows link colours, else the first member's. Pointing at a curve or a switch
   greys out every other curve and switch, except the rest of its link group. With stacked placement the whole
   block of a link group works as its switch.

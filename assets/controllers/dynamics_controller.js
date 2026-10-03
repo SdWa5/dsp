@@ -4,6 +4,7 @@ import { getLabels, store } from '../lib/device.js';
 import { channelLabel } from '../lib/channels.js';
 import { drawDynamics, dynamicsCurve } from '../lib/dynamics.js';
 import { prepare } from '../lib/eq.js';
+import { onChannelView, displayedChannel, representative } from '../lib/channelview.js';
 
 /**
  * The curve of a gate (kind gate, path an input) or compressor (kind comp, path an output or the Aux), input level
@@ -17,6 +18,7 @@ export default class extends Controller {
     connect() {
         this.signature = '';
         this.unsubscribe = store.subscribe(() => this.schedule());
+        this.offDisplay = onChannelView(() => this.schedule(true));
         this.resize = new ResizeObserver(() => this.schedule(true));
         this.resize.observe(this.canvasTarget);
         this.schedule(true);
@@ -24,6 +26,7 @@ export default class extends Controller {
 
     disconnect() {
         this.unsubscribe?.();
+        this.offDisplay?.();
         this.resize?.disconnect();
         cancelAnimationFrame(this.frame);
     }
@@ -57,6 +60,26 @@ export default class extends Controller {
     }
 
     draw() {
+        if (this.followValue) {
+            const [side, raw] = this.pathValue.split('.');
+            const index = raw === undefined ? 18 : Number(raw) + (side === 'outputs' ? 8 : 0);
+            if (!displayedChannel(index, store.state)) {
+                const same = representative(index, store.state);
+                const base = this.kindValue === 'gate' ? 0 : 8;
+                const candidates = Array.from({ length: 8 }, (_, i) => base + i);
+                if (this.kindValue === 'comp') candidates.push(18);
+                const next = same ?? candidates.find(i => displayedChannel(i, store.state));
+                if (next !== undefined && next !== null) this.pathValue = next === 18 ? 'aux' : `${base ? 'outputs' : 'inputs'}.${next - base}`;
+                else {
+                    const message = t(this.kindValue === 'gate' ? 'No visible input channels.' : 'No visible compressor channels.');
+                    const canvas = prepare(this.canvasTarget);
+                    if (canvas) { canvas.g.clearRect(0, 0, canvas.width, canvas.height); canvas.g.fillStyle = '#aaa'; canvas.g.fillText(message, 12, 24); }
+                    this.canvasTarget.setAttribute('aria-label', message);
+                    this.signature = '';
+                    return;
+                }
+            }
+        }
         const dynamics = store.get(`${this.pathValue}.${this.kindValue}`);
         if (!dynamics) {
             return;

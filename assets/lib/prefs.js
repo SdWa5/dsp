@@ -1,5 +1,5 @@
 /**
- * Per-browser view preferences (theme, matrix orientation, collapsed panels, link display, EQ overview) in
+ * Per-browser view preferences (theme, matrix orientation, collapsed panels, link display, channel visibility, EQ overview) in
  * localStorage. Storage may be blocked or missing, so reads fall back and writes last for the visit only.
  * A string is stored as it is, which keeps the theme value of older versions readable. Anything else as JSON.
  */
