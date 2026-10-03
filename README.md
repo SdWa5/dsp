@@ -94,7 +94,7 @@ although the device answers ping. Close the vendor editor first.
 `https://trackdsp.ddev.site` in ddev. It has the Gain, Gate, Comp, Delay, Matrix, Aux and Auto EQ pages, a tab per
 input and output with the EQ curve, live meters and the File, Device, Channels, Tools and Help menus. The Comp page
 also holds the Aux compressor, after the outputs, and Sub Control on the Gain page and in its dialog holds the Aux
-gain, mute and input selection between its input and output strip. An input's tab also carries its gate, and an
+gain, mute and separate input/output routing selectors between its input and output strip. An input's tab also carries its gate, and an
 output's tab its compressor and delay, with the same controls as on the Gate, Comp and Delay pages. The editor
 talks to the bridge through the JSON API below. A ddev with another `project_tld` needs its host names in
 `TRACKDSP_TRUSTED_HOSTS` in `.env.local`, or the app answers 400 "Untrusted Host".
@@ -188,13 +188,16 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   starting, changing or stopping it on any member does so for the whole group. A user preset stores the running
   riders and brings them back on recall, and the factory default runs with none.
   The Auto EQ page leads through measure, fit, apply and verify. See [docs/automation.md](docs/automation.md).
-- The matrix and the routing graph each fold under their own title. The corner button of the matrix swaps rows and
-  columns, so the inputs become the rows. The choice is kept in the browser. The In headers sit on the left or at
-  the top and the Out headers on the right or at the bottom, so the signal always runs from In to Out. Next to the
-  matrix, a routing graph draws the inputs and the Aux on the left, the outputs on the right and a line for every
-  connection. Hovering works the same in the matrix and in the graph and shows in both. A cell or a line brings
-  out its connection and its two channels, a channel brings out itself and its connections, and a link group's bar
-  or head brings out its channels and their connections. Everything else fades.
+- The matrix and the routing graph each fold under their own title. The matrix includes Aux as both a source
+  and a destination, last on both axes. Its corner button swaps rows and columns and keeps the choice in the
+  browser. Eight input-to-Aux cells use Aux's input selection; Aux-to-output cells use each output's Aux source
+  bit. Aux cannot feed itself, so that intersection is disabled. The Aux page and Sub Control expose the same routes in two
+  selector columns, also shared by the Gain page and Sub Control dialog.
+- The routing graph places inputs on the left and outputs on the right, with Aux between them in a separate row below all channels. It displays direct
+  input-to-output, input-to-Aux and Aux-to-output connections. Direct lines avoid the Aux box. Hovering a cell
+  or line highlights its connection and endpoints in both views; hovering Aux highlights both its incoming
+  and outgoing connections. Link placement and group headings apply to inputs and outputs; Aux stays independent.
+  The graph is read-only.
 - The Gate and Comp pages plot the curve of a gate or compressor above their strips, input level against output
   level from -100 to +20 dB with the threshold as a red dot, as the vendor editor does. The plot follows the strip
   touched last, which is outlined, and starts at In1 and Out1. Every input tab draws its gate and every output tab

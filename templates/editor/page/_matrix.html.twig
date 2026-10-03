@@ -1,12 +1,18 @@
 {% import 'editor/_widgets.html.twig' as w %}
 {#
- # Outputs as rows (the vendor editor's layout) or, swapped, inputs as rows. Both tables are rendered and the
- # corner button shows one of them. Every cell carries its own binding, so the two stay in step through the store.
+ # Outputs as rows or, swapped, inputs as rows. Aux is last on both axes. Both tables are rendered and the
+ # corner button shows one. Each supported cell binds to its destination mask, so the tables stay in step.
  #}
 {% macro cell(o, i) %}
     {% import 'editor/_widgets.html.twig' as w %}
-    {% set p = 'outputs.' ~ o %}
-    <td data-source="{{ i }}" data-output="{{ o }}">{{ w.toggle('', p ~ '.route', [{command: 'routing', args: {channel: 8 + o, mask: '@' ~ p ~ '.route'}}], null, {bit: i, class: 'toggle--cell', aria: '%output% from %input%'|trans({'%output%': 'Out' ~ (o + 1), '%input%': i < 8 ? 'In' ~ (i + 1) : 'Aux'})}) }}</td>
+    {% if o == 8 and i == 8 %}
+        <td><button type="button" class="matrix__unsupported" disabled title="{{ 'Aux cannot feed itself'|trans }}" aria-label="{{ 'Aux cannot feed itself'|trans }}">×</button></td>
+    {% else %}
+        {% set p = o == 8 ? 'aux.select' : 'outputs.' ~ o ~ '.route' %}
+        {% set output = o == 8 ? 'Aux' : 'Out' ~ (o + 1) %}
+        {% set input = i == 8 ? 'Aux' : 'In' ~ (i + 1) %}
+        <td data-source="{{ i }}" data-output="{{ o }}">{{ w.toggle('', p, [{command: 'routing', args: {channel: o == 8 ? 18 : 8 + o, mask: '@' ~ p}}], null, {bit: i, class: 'toggle--cell', aria: '%output% from %input%'|trans({'%output%': output, '%input%': input})}) }}</td>
+    {% endif %}
 {% endmacro %}
 {# Hovering a cell, a header or a part of the graph brings out the same routing in both #}
 <div class="matrix-page" data-controller="routefocus" data-action="pointerover->routefocus#over pointerleave->routefocus#leave routing:rendered->routefocus#reapply">
@@ -21,20 +27,20 @@
             </th>
         {% endset %}
         <table class="matrix" data-controller="linkplace" data-editor-target="matrix" data-swapped="{{ swapped ? 1 : 0 }}"{{ swapped ? ' hidden' }}>
-            <caption>{{ (swapped ? 'Which outputs each input feeds' : 'Which inputs feed each output')|trans }}</caption>
+            <caption>{{ (swapped ? 'Which destinations each source feeds' : 'Which sources feed each destination')|trans }}</caption>
             {% if swapped %}
                 <tbody>
                     {% for i in 0..8 %}
                         <tr>
                             <th scope="row" data-source="{{ i }}">{{ w.ch(i < 8 ? i : 18) }}</th>
-                            {% for o in 0..7 %}{{ _self.cell(o, i) }}{% endfor %}
+                            {% for o in 0..8 %}{{ _self.cell(o, i) }}{% endfor %}
                         </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
                         {{ corner }}
-                        {% for o in 0..7 %}<th scope="col" data-output="{{ o }}">{{ w.ch(8 + o) }}</th>{% endfor %}
+                        {% for o in 0..8 %}<th scope="col" data-output="{{ o }}">{{ w.ch(o == 8 ? 18 : 8 + o) }}</th>{% endfor %}
                     </tr>
                 </tfoot>
             {% else %}
@@ -45,10 +51,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for o in 0..7 %}
+                    {% for o in 0..8 %}
                         <tr>
                             {% for i in 0..8 %}{{ _self.cell(o, i) }}{% endfor %}
-                            <th scope="row" class="matrix__end" data-output="{{ o }}">{{ w.ch(8 + o) }}</th>
+                            <th scope="row" class="matrix__end" data-output="{{ o }}">{{ w.ch(o == 8 ? 18 : 8 + o) }}</th>
                         </tr>
                     {% endfor %}
                 </tbody>

@@ -37,7 +37,7 @@ const PAGE_PATHS = {
     gate: /^inputs\.\d+\.gate\./,
     comp: /^outputs\.\d+\.comp\./,
     delay: /^(?:outputs\.\d+\.delay$|delay_unit$)/,
-    matrix: /^outputs\.\d+\.route$/,
+    matrix: /^(?:outputs\.\d+\.route$|aux\.select$)/,
     aux: /^aux\./,
     autoeq: /^outputs\.\d+\.(?:peq\.|eq_bypass$)/,
 };

@@ -426,7 +426,7 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 /* --- matrix --- */
 .matrix-page { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
 .matrix-page > .matrix-wrap { flex: 0 1 auto; min-width: 0; max-width: 100%; }
-.routing { flex: 1 1 360px; max-width: 560px; padding: 8px; background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px; }
+.routing { flex: 1 1 520px; max-width: 760px; padding: 8px; background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px; }
 .routing__graph { display: block; width: 100%; height: auto; }
 .routing__node rect { fill: var(--title); }
 .routing__node[data-group]:not([data-group='']) .routing__box { stroke: var(--group); stroke-width: 2; }
@@ -615,3 +615,9 @@ details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
 .presetfile__name { overflow-wrap: anywhere; }
 .presetfile__table { max-height: 45vh; overflow: auto; margin-top: 12px; }
 .presetfile__table th { text-align: left; position: sticky; top: 0; background: var(--panel); }
+
+/* Aux routing selectors keep each side's link placement independent. */
+.aux-routes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.aux-routes__column { display: flex; flex-direction: column; gap: 4px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.aux-routes__column legend { margin-bottom: 4px; font-weight: 700; }
+.matrix__unsupported { width: 24px; height: 24px; padding: 0; border: 0; background: transparent; color: var(--text); opacity: 0.5; cursor: not-allowed; }

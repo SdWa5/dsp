@@ -2,6 +2,8 @@
 
 ## First
 
+- (highest priority) Place the Aux compressor plot to the right of its faders, matching the output
+  compressor sections. Check the Aux page and Aux compressor settings dialog at desktop and narrow widths.
 - Check the clone on the laptop for uncommitted work before touching anything in Automation or related to it.
   Work on the Automation items had already started there, and an auto mode session may have stopped when the
   battery ran empty. Run `git status` and `git log origin/main..` there. If something is left, commit it on a
@@ -90,6 +92,10 @@ also postponed. Any additional form proven to need a connection belongs here.
 
 ## Editor
 
+- Add per-browser display controls to hide unused input and output channels. Let the user choose the channels
+  explicitly, keep hidden channels recoverable through the display settings, and define which channel views
+  follow the selection. Hiding a channel must not change its mute, routing or other device settings.
+
 - Add a browser display preference for the Gain-page EQ overview to choose between the combined plot
   and separate input and output plots. Preserve the existing channel visibility selections in both views.
 - The Gain-page EQ overview should show one channel checkbox per link group. A group checkbox should
@@ -99,14 +105,6 @@ also postponed. Any additional form proven to need a connection belongs here.
 - Consider moving the Aux page button from the function-page header to the channel selector, between the
   input and output channels. Review the placement with the Matrix and Sub Control Aux changes before
   deciding whether to move it.
-- Add an output-selector column to the Aux strip in Sub Control. Keep the existing In1..In8 selectors
-  for inputs feeding Aux, and show Out1..Out8 beside them for outputs receiving Aux. Reflect and update the
-  Aux source bit in each output's existing routing mask. Apply the same shared view on the Gain page and
-  in the Sub Control dialog, synchronized with the Matrix page.
-- Show the Aux as both a source and a destination on the Matrix page. Include Aux in both the row and
-  column headers of the matrix, including its input-source selections. Place Aux in a third graph column
-  between In1..In8 and Out1..Out8, with input-to-Aux and Aux-to-output routes. Both sections currently show
-  Aux only as an input source. Keep both representations synchronized with the existing routing state.
 - Let the routing graph on the Matrix page make and unmake connections. A drag from an input or the Aux to an
   output, or from an output to an input, toggles that route as a click on its matrix cell does, so an unset
   route gets set and a set one gets cleared. While dragging, a line follows the pointer from the start node, and
