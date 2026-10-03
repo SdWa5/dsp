@@ -12,7 +12,8 @@ export const FREQ_STEPS = 300;
 export const FREQ_BASE = 19.6875;
 export const PEQ_GAIN_UNITY = 120;
 export const SAMPLE_RATE = 48000;
-const SPEED_OF_SOUND = 343.0;
+// m/s, as the vendor editor converts: 680 ms shows 233.580 m (tools/shots/ranges/delay_m.png)
+const SPEED_OF_SOUND = 343.5;
 const FEET_PER_METRE = 3.2808;
 
 const round1 = (v) => Math.round(v * 10) / 10;

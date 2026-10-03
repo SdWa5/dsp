@@ -4,6 +4,7 @@ namespace App\Tests\Controller;
 
 use App\Bridge\CommandMap;
 use App\Transport\DemoTransport;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -365,6 +366,45 @@ final class EditorControllerTest extends WebTestCase
         // Gate page and input tab of every input
         self::assertCount(16, $ranges);
         self::assertSame([['0', '220']], array_values(array_unique($ranges, \SORT_REGULAR)));
+    }
+
+    /**
+     * The fader ranges of the vendor editor, from the range survey in tools/shots/ranges/: per bind path suffix the
+     * expected [min, max] of every fader and how many there are.
+     *
+     * @return iterable<string, array{string, int, list<array{string, string}>}>
+     */
+    public static function vendorRanges(): iterable
+    {
+        // Comp page, output tabs and Aux: release from 1 ms (comp.png, aux_comp_min.png)
+        yield 'output release' => ['outputs.%d.comp.release', 16, [['0', '2999']]];
+        yield 'output attack' => ['outputs.%d.comp.attack', 16, [['0', '998']]];
+        // The Aux compressor stops at 200 ms attack and 999 ms release (aux_comp_max.png), Comp page and dialog
+        yield 'aux release' => ['aux.comp.release', 2, [['0', '998']]];
+        yield 'aux attack' => ['aux.comp.attack', 2, [['0', '199']]];
+        // AutoMix and Camera from -50 dB (automix_min.png, camera_min.png)
+        yield 'automix threshold' => ['aux.automix.threshold', 1, [['80', '180']]];
+        yield 'camera threshold' => ['aux.camera.threshold', 1, [['80', '180']]];
+        // Echo delay up to 400 ms (effect_max.png)
+        yield 'echo delay' => ['aux.effect.echo_delay', 1, [['0', '400']]];
+    }
+
+    /**
+     * @param list<array{string, string}> $expected
+     */
+    #[DataProvider('vendorRanges')]
+    public function testFadersSpanTheVendorRanges(string $path, int $count, array $expected): void
+    {
+        $pattern = '/^'.str_replace('%d', '\\d', preg_quote($path, '/')).'$/';
+        $ranges = [];
+        self::page()->filter('[data-controller=fader]')->each(static function (Crawler $fader) use ($pattern, &$ranges): void {
+            if (preg_match($pattern, (string) $fader->attr('data-fader-bind-value'))) {
+                $input = $fader->filter('input[type=range]');
+                $ranges[] = [$input->attr('min'), $input->attr('max')];
+            }
+        });
+        self::assertCount($count, $ranges);
+        self::assertSame($expected, array_values(array_unique($ranges, \SORT_REGULAR)));
     }
 
     public function testEveryCompressorFaderTurnsRedWhileItsCompressorIsOff(): void
