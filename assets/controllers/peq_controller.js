@@ -10,8 +10,9 @@ import * as S from '../lib/scale.js';
 
 const COLORS = ['#ff5252', '#ffd740', '#e040fb', '#40c4ff', '#69f0ae', '#448aff', '#b0bec5', '#ffab40'];
 const CURVE = { mag: { color: '#ffee58', width: 2 }, phase: { color: '#4dd0e1', width: 1.5 } };
-// The filter being edited, drawn alone behind the channel curve
+// The filter being edited, drawn alone behind the channel curve, and the points of the filters not pointed at
 const SINGLE = { color: '#9e9e9e', fill: 'rgba(158, 158, 158, 0.25)' };
+const DIMMED = '#6b6b6b';
 const DEFAULT_SLOPE = 20; // LK -48, the editor's default
 const DEFAULT_FREQS = { 5: [49, 101, 148, 200, 255], 7: [31, 71, 118, 161, 200, 240, 270] };
 
@@ -23,7 +24,8 @@ const DEFAULT_FREQS = { 5: [49, 101, 148, 200, 255], 7: [31, 71, 118, 161, 200, 
  * Mag and Phase show the magnitude, the phase or both, saved per channel. The phase reads in degrees on the axis.
  * While a band, the HPF or the LPF is being edited, by dragging its point or with focus on one of its controls, its
  * own curve as it would look alone is drawn in grey behind the channel curve, with the area to the 0 line filled
- * for the magnitude, or for the phase while it shows alone.
+ * for the magnitude, or for the phase while it shows alone. Pointing at a filter's point, its table row or its faders
+ * does the same and greys out the points and controls of every other filter.
  */
 export default class extends Controller {
     static values = { path: String, channel: Number };
@@ -35,6 +37,7 @@ export default class extends Controller {
         this.selected = 0;
         this.drag = null;
         this.focused = null;
+        this.hovered = null;
         this.slopes = {};
         const view = loadEqView(this.pathValue);
         if (this.hasMagTarget && this.hasPhaseTarget) {
@@ -230,6 +233,9 @@ export default class extends Controller {
 
     pointermove(event) {
         if (null === this.drag) {
+            const { offsetX: x, offsetY: y } = event;
+            const hit = this.channel ? this.handles().find((h) => Math.abs(h.x - x) < 9 && Math.abs(h.y - y) < 9) : undefined;
+            this.hover(hit ? ('band' === hit.kind ? { kind: 'band', i: hit.i } : { kind: hit.kind }) : null);
             return;
         }
         const plot = this.plot();
@@ -272,14 +278,58 @@ export default class extends Controller {
         this.draw();
     }
 
-    /** The filter being edited: the one dragged, else the one whose control has focus, else none. */
-    get editing() {
-        const which = this.drag ?? this.focused;
+    /** The pointer over a band's row, the selected band's faders or a filter's group points at that filter. */
+    hoverControl(event) {
+        if (event.target === this.canvasTarget) {
+            return;
+        }
+        const row = event.target.closest('tr[data-peq-target=row]');
+        const filter = event.target.closest('.group--filter');
+        if (row) {
+            this.hover({ kind: 'band', i: this.rowTargets.indexOf(row) });
+        } else if (filter) {
+            this.hover({ kind: filter.querySelector('[data-kind]')?.dataset.kind });
+        } else if (event.target.closest('.group--params')) {
+            this.hover({ kind: 'band', selected: true });
+        } else {
+            this.hover(null);
+        }
+    }
+
+    unhover() {
+        this.hover(null);
+    }
+
+    hover(which) {
+        if (JSON.stringify(which) === JSON.stringify(this.hovered)) {
+            return;
+        }
+        this.hovered = which;
+        this.draw();
+    }
+
+    /** {kind, i} with a selected band resolved to its index. */
+    resolve(which) {
         if (null === which) {
             return null;
         }
 
         return 'band' === which.kind ? { kind: 'band', i: which.selected ? this.selected : which.i } : { kind: which.kind };
+    }
+
+    /** Greys out the rows, faders and filter groups of every filter but the pointed one, null clears it. */
+    paintPointed(pointed) {
+        const other = (which) => null !== pointed && (which.kind !== pointed.kind || which.i !== pointed.i);
+        this.rowTargets.forEach((row, i) => row.classList.toggle('is-dimmed', other({ kind: 'band', i })));
+        this.element.querySelector('.group--params')?.classList.toggle('is-dimmed', other({ kind: 'band', i: this.selected }));
+        for (const group of this.element.querySelectorAll('.group--filter')) {
+            group.classList.toggle('is-dimmed', other({ kind: group.querySelector('[data-kind]')?.dataset.kind }));
+        }
+    }
+
+    /** The filter being edited: the one dragged, else the one pointed at, else the one whose control has focus. */
+    get editing() {
+        return this.resolve(this.drag ?? this.hovered ?? this.focused);
     }
 
     /** Mouse wheel over a band point changes its Q. */
@@ -383,6 +433,9 @@ export default class extends Controller {
             return [plot.x(f), response(channel, f, slopes)];
         });
         const editing = this.editing;
+        const pointed = this.resolve(this.drag ?? this.hovered);
+        this.paintPointed(pointed);
+        const dimmed = (h) => null !== pointed && (h.kind !== pointed.kind || ('band' === h.kind && h.i !== pointed.i));
         if (null !== editing) {
             const alone = singleFilter(channel, editing);
             const own = Array.from({ length: n + 1 }, (_, i) => [points[i][0], response(alone, 20 * 1000 ** (i / n), slopes)]);
@@ -419,7 +472,7 @@ export default class extends Controller {
         g.textBaseline = 'bottom';
         for (const h of this.handles()) {
             if ('band' === h.kind) {
-                g.fillStyle = COLORS[h.i % COLORS.length];
+                g.fillStyle = dimmed(h) ? DIMMED : COLORS[h.i % COLORS.length];
                 g.beginPath();
                 g.arc(h.x, h.y, 6, 0, 2 * Math.PI);
                 g.fill();
@@ -432,7 +485,7 @@ export default class extends Controller {
                 g.fillStyle = '#fff';
                 g.fillText(String(h.i + 1), h.x, h.y - 9);
             } else {
-                g.fillStyle = 'hpf' === h.kind ? '#ffffff' : '#c0ca33';
+                g.fillStyle = dimmed(h) ? DIMMED : 'hpf' === h.kind ? '#ffffff' : '#c0ca33';
                 g.fillRect(h.x - 5, h.y - 5, 10, 10);
                 g.fillText(h.kind.toUpperCase(), h.x, h.y - 8);
             }
