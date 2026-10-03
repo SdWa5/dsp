@@ -253,6 +253,8 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 /* Pointing at a curve or a switch greys out the switches of every other curve */
 .eq-overview__switch { transition: opacity 0.1s; }
 .eq-overview__switch.is-dimmed { opacity: 0.4; filter: grayscale(1); }
+.eq-overview .link-block.is-dimmed[data-group] { border-color: var(--panel-edge); }
+.eq-overview .link-block.is-dimmed > .link-block__head { opacity: 0.4; filter: grayscale(1); }
 .eq-overview__note { margin: 0; color: var(--muted); font-size: 12px; }
 .eq-overview.is-collapsed > :not(.strips__title) { display: none; }
 /* Gate and Comp: the curve of a gate or compressor, input level against output level. The large one on the pages

@@ -120,7 +120,9 @@ The EQ overview colours a curve and its switch by channel number. Linked channel
 `curveColourSource()` in `assets/lib/overview.js` gives every member of a link group the same colour. That is the
 group's `--group` colour from `app.css` while the Channels menu shows link colours, read back from the switch's
 `data-group`, else the colour of the group's first member. Pointing at a curve picks the nearest one within 6 px
-(`nearestCurve()`), pointing at a switch picks its curve. Every curve and switch outside that curve's link group
+(`nearestCurve()`), pointing at a switch picks its curve. One `pointerover` handler on the switches finds the
+switch under the pointer, or else the link group's `.link-block` around it, so the block's head, border and gaps
+pick the group too. A block whose switches all grey out greys out with them. Every curve and switch outside that curve's link group
 (`linkedPaths()`) turns grey, and the greyed curves go below the others.
 
 ## Gate and compressor curves
