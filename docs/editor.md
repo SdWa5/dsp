@@ -56,6 +56,14 @@ therefore draw their own track and knob in `app.css`, because a native slider co
 from the value, and `knobMuted()` there decides the red knob. The toggle controller keeps the tooltip and
 puts a state message, such as an unknown value or a mute by the gain, on its own line above it.
 
+The PEQ faders are plain range inputs inside `.fader` wrappers, so `peq_controller.js` sets `is-muted` on them
+itself in `refresh()` (`paintIdle()`). The selected band's three knobs turn red while `bandIdle()` in
+`assets/lib/eq.js` says the band does nothing, `'bypass'` by its own Bypass or by EQ Bypass, `'flat'` for a Peak,
+Low Shelf or High Shelf at 0 dB. Low Pass, High Pass and the Allpasses filter at any gain, so only their bypass
+counts. A HighPass or LowPass frequency knob turns red while `filterIdle()` sees slope 0. EQ Bypass does not turn
+the filter knobs red, since whether it takes out the HPF and LPF is not measured yet. The reason goes on a line of
+its own above the fader's tooltip.
+
 `EditorTooltipTest` checks that every `editor.tip` text appears on some control in both languages, and that one
 key serves the same control on every page and in the dialogs. It also checks the top bar status and every footer element.
 

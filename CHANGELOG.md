@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.63.0] - 2026-10-03
+
+### Added
+
+- The selected band's knobs turn red while the band is bypassed or a Peak or shelf sits at 0 dB, a HPF or LPF knob while its Bypass is on
+
 ## [0.62.0] - 2026-10-03
 
 ### Added
