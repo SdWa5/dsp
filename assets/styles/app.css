@@ -459,6 +459,9 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 /* Gate and Comp on a channel page: two short faders stack to the height of the threshold */
 .peq__panel .group--dynamics .fader--short input[type=range] { height: calc(150px / 2 - 24px); }
 .group--params, .group--filter { gap: 6px; }
+/* Pointing at one filter greys out the rows and groups of the others */
+.peq__table tr, .group--params, .group--filter { transition: opacity 0.1s; }
+.peq__table tr.is-dimmed, .group--params.is-dimmed, .group--filter.is-dimmed { opacity: 0.4; filter: grayscale(1); }
 .peq__table { border-collapse: collapse; }
 /* A group like the others, which still scrolls a table that is too wide (a fieldset grows to its content otherwise) */
 .peq__table-wrap { min-width: 0; max-width: 100%; overflow-x: auto; }

@@ -303,10 +303,14 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(0, $page->filter('input[type=radio][name^=view-]'));
     }
 
-    public function testEveryControlNamesTheFilterItEditsForTheSingleCurve(): void
+    public function testEveryControlNamesTheFilterItEditsOrPointsAtForTheSingleCurve(): void
     {
         self::page()->filter('[data-controller=peq]')->each(static function (Crawler $peq): void {
-            self::assertSame('focusin->peq#focus focusout->peq#blur', $peq->attr('data-action'));
+            self::assertSame('focusin->peq#focus focusout->peq#blur pointerover->peq#hoverControl pointerleave->peq#unhover', $peq->attr('data-action'));
+            self::assertStringEndsWith('wheel->peq#wheel pointerleave->peq#unhover', (string) $peq->filter('canvas.peq__curve')->attr('data-action'));
+            // peq#hoverControl finds a band by its row, a filter by its group's data-kind
+            self::assertCount(\count($peq->filter('.peq__table tbody tr')), $peq->filter('tr[data-peq-target=row]'));
+            $peq->filter('.group--filter')->each(static fn (Crawler $group) => self::assertCount(1, $group->filter('[data-kind]')));
             // peq#focus tells the filter by the band or kind param, or by the selected band's fader target
             $bands = $peq->filter('.peq__table input, .peq__table select, .peq__table button')->each(static fn (Crawler $n): string => (string) $n->attr('data-peq-band-param'));
             self::assertNotEmpty($bands);

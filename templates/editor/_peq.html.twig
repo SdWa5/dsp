@@ -5,7 +5,7 @@
  #}
 {% import 'editor/_widgets.html.twig' as w %}
 {% set fold = 'aux' == p ? 'aux' : 'channel' %}
-<div class="peq" data-controller="peq" data-peq-path-value="{{ p }}" data-peq-channel-value="{{ channel }}" data-action="focusin->peq#focus focusout->peq#blur">
+<div class="peq" data-controller="peq" data-peq-path-value="{{ p }}" data-peq-channel-value="{{ channel }}" data-action="focusin->peq#focus focusout->peq#blur pointerover->peq#hoverControl pointerleave->peq#unhover">
     <div class="peq__bar">
         <label title="{{ 'editor.tip.eq_mag'|trans }}"><input type="checkbox" checked data-peq-target="mag" data-action="peq#toggleView"> {{ "Mag"|trans }}</label>
         <label title="{{ 'editor.tip.eq_phase'|trans }}"><input type="checkbox" data-peq-target="phase" data-action="peq#toggleView"> {{ "Phase"|trans }}</label>
@@ -16,7 +16,7 @@
     <div class="fold-panel" data-controller="collapse" data-collapse-key-value="{{ fold }}.curve">
         <h3 class="fold-panel__title">{{ w.fold('EQ curve', 'eq_curve') }}</h3>
         <canvas class="peq__curve" data-peq-target="canvas"
-                data-action="pointerdown->peq#pointerdown pointermove->peq#pointermove pointerup->peq#pointerup pointercancel->peq#pointerup wheel->peq#wheel"></canvas>
+                data-action="pointerdown->peq#pointerdown pointermove->peq#pointermove pointerup->peq#pointerup pointercancel->peq#pointerup wheel->peq#wheel pointerleave->peq#unhover"></canvas>
     </div>
     <div class="peq__panel">
         <fieldset class="group peq__table-wrap" data-controller="collapse" data-collapse-key-value="{{ fold }}.bands">

@@ -107,7 +107,10 @@ While a single filter is being edited, the channel tab draws it alone in grey be
 controller counts a band, the HPF or the LPF as edited while its point is dragged or while one of its controls has
 focus (`focusin` on the editor, read from the control's band or kind param, or the selected band for the "Selected
 band" faders). `singleFilter()` builds a channel that holds only that filter, so `response()` draws it with the
-same bypass rules as the channel curve. The area between it and the 0 line is shaded for the curve on the left
+same bypass rules as the channel curve. Pointing works the same way. `pointermove` on the curve finds the point
+under the pointer, and `pointerover` on the editor finds the band's table row, the "Selected band" group or the
+filter group. A drag wins over pointing, which wins over focus. Only pointing and dragging grey out the other
+filters' points, rows and groups, so a field in focus leaves the rest of the editor as it is. The area between it and the 0 line is shaded for the curve on the left
 axis, the magnitude, or the phase while it shows alone.
 
 The EQ overview colours a curve and its switch by channel number. Linked channels share one EQ, so
