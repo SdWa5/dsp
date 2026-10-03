@@ -281,9 +281,9 @@ final class EditorControllerTest extends WebTestCase
         self::assertNull($view->eq(1)->attr('checked'));
         // Pointing at a curve or at its switch picks it out, and leaving lets go
         self::assertSame('pointermove->eqoverview#hoverPlot pointerleave->eqoverview#unhover', $overview->filter('canvas')->attr('data-action'));
-        $switches = $overview->filter('.eq-overview__switch')->each(static fn (Crawler $n): string => (string) $n->attr('data-action'));
-        self::assertCount(17, $switches);
-        self::assertSame(['pointerenter->eqoverview#hoverSwitch pointerleave->eqoverview#unhover'], array_values(array_unique($switches)));
+        // One handler on the switches, so a link group's whole block points at its curves
+        self::assertSame('pointerover->eqoverview#hoverSwitch pointerleave->eqoverview#unhover', $overview->filter('.eq-overview__switches')->attr('data-action'));
+        self::assertCount(0, $overview->filter('.eq-overview__switch[data-action]'));
         // Showing a curve is a view setting, never a write to the device
         self::assertCount(0, $overview->filter('[data-toggle-send-value], [data-fader-send-value]'));
     }

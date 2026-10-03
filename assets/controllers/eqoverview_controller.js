@@ -77,9 +77,13 @@ export default class extends Controller {
         this.point(nearestCurve(this.drawn ?? [], event.offsetX, event.offsetY));
     }
 
-    /** The pointer over a switch points at its curve. */
+    /**
+     * The pointer over a switch points at its curve, over a link group's block (its head, its border, the gaps
+     * between its switches) at the group's curves. Anywhere else between the switches it points at none.
+     */
     hoverSwitch(event) {
-        this.point(event.currentTarget.querySelector('input')?.value ?? null);
+        const holder = event.target.closest('.eq-overview__switch') ?? event.target.closest('.link-block');
+        this.point(holder?.querySelector('[data-eqoverview-target=show]')?.value ?? null);
     }
 
     unhover() {
@@ -107,6 +111,11 @@ export default class extends Controller {
             label.style.setProperty('--curve', colour);
             label.classList.toggle('is-dimmed', null !== lit && !lit.includes(box.value));
             result.set(box.value, colour);
+        }
+        // A link group's block greys out with its switches
+        for (const block of this.element.querySelectorAll('.link-block')) {
+            const boxes = [...block.querySelectorAll('[data-eqoverview-target=show]')];
+            block.classList.toggle('is-dimmed', null !== lit && !boxes.some((box) => lit.includes(box.value)));
         }
 
         return { colour: result, lit };
