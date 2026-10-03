@@ -257,12 +257,20 @@ export default class extends Controller {
         }
     }
 
-    /** A control of a band, of the selected band or of a filter takes focus: that filter is being edited. */
+    /**
+     * A control of a band, of the selected band or of a filter takes focus: that filter is being edited. A field of
+     * a band's row also selects that band, as its number button does.
+     */
     focus(event) {
         const node = event.target;
         const params = node.dataset;
         if (undefined !== params.peqBandParam) {
             this.focused = { kind: 'band', i: Number(params.peqBandParam) };
+            if (this.channel && this.focused.i !== this.selected) {
+                this.selected = this.focused.i;
+                this.refresh();
+                return;
+            }
         } else if (undefined !== params.peqKindParam) {
             this.focused = { kind: params.peqKindParam };
         } else if (/^param(Freq|Q|Gain)$/.test(params.peqTarget ?? '')) {

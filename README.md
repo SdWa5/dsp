@@ -158,7 +158,7 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   and includes the HPF and LPF.
 - While a PEQ band, the HPF or the LPF is being edited, by dragging its point or with one of its controls in focus,
   the curve shows that filter alone in grey behind the channel curve, with the area to the 0 dB line shaded.
-  Pointing at a filter's point, its table row, the selected band's faders or a filter's group does the same and
+  Clicking into a field of a band's row selects that band. Pointing at a filter's point, its table row, the selected band's faders or a filter's group does the same and
   greys out the points and controls of every other filter.
 - The Gain page starts with an EQ overview, the EQ curves of every input (solid), output (dashed) and the Aux (dotted) in one plot.
   Mag and Phase switch the plot as on a channel tab. A switch per channel shows or hides its curve, kept in the
