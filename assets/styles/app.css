@@ -250,6 +250,9 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .eq-overview__switch::after { content: ''; order: -1; width: 16px; height: 0; border-top: 3px solid var(--curve); }
 .eq-overview__switch--outputs::after { border-top-style: dashed; }
 .eq-overview__switch--aux::after { border-top-style: dotted; }
+/* Pointing at a curve or a switch greys out the switches of every other curve */
+.eq-overview__switch { transition: opacity 0.1s; }
+.eq-overview__switch.is-dimmed { opacity: 0.4; filter: grayscale(1); }
 .eq-overview__note { margin: 0; color: var(--muted); font-size: 12px; }
 .eq-overview.is-collapsed > :not(.strips__title) { display: none; }
 /* Gate and Comp: the curve of a gate or compressor, input level against output level. The large one on the pages

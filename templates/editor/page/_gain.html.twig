@@ -6,20 +6,20 @@
         <label title="{{ 'editor.tip.eq_mag'|trans }}"><input type="checkbox" checked data-eqoverview-target="mag" data-action="eqoverview#toggleView"> {{ "Mag"|trans }}</label>
         <label title="{{ 'editor.tip.eq_phase'|trans }}"><input type="checkbox" data-eqoverview-target="phase" data-action="eqoverview#toggleView"> {{ "Phase"|trans }}</label>
     </div>
-    <canvas class="eq-overview__plot" data-eqoverview-target="canvas"></canvas>
+    <canvas class="eq-overview__plot" data-eqoverview-target="canvas" data-action="pointermove->eqoverview#hoverPlot pointerleave->eqoverview#unhover"></canvas>
     <div class="eq-overview__switches" role="group" aria-label="{{ "Curves shown"|trans }}">
         {% for side in ['inputs', 'outputs'] %}
             <span class="eq-overview__side" data-controller="linkplace">
                 {% for i in 0..7 %}
-                    <label class="eq-overview__switch eq-overview__switch--{{ side }}"><input type="checkbox" value="{{ side }}.{{ i }}" checked
+                    <label class="eq-overview__switch eq-overview__switch--{{ side }}" data-action="pointerenter->eqoverview#hoverSwitch pointerleave->eqoverview#unhover"><input type="checkbox" value="{{ side }}.{{ i }}" checked
                         data-eqoverview-target="show" data-action="change->eqoverview#toggle">{{ w.ch(('outputs' == side ? 8 : 0) + i) }}</label>
                 {% endfor %}
             </span>
         {% endfor %}
-        <label class="eq-overview__switch eq-overview__switch--aux"><input type="checkbox" value="aux" checked
+        <label class="eq-overview__switch eq-overview__switch--aux" data-action="pointerenter->eqoverview#hoverSwitch pointerleave->eqoverview#unhover"><input type="checkbox" value="aux" checked
             data-eqoverview-target="show" data-action="change->eqoverview#toggle">{{ w.ch(18) }}</label>
     </div>
-    <p class="eq-overview__note">{{ "Solid: inputs, dashed: outputs, dotted: the Aux. A switch only shows or hides a curve, the EQ of the channel stays as it is."|trans }}</p>
+    <p class="eq-overview__note">{{ "Solid: inputs, dashed: outputs, dotted: the Aux. Linked channels share a colour. Point at a curve or a switch to pick it out. A switch only shows or hides a curve, the EQ of the channel stays as it is."|trans }}</p>
 </div>
 <div class="gain-layout">
 <div class="gain-layout__channels">

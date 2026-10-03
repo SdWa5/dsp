@@ -279,6 +279,11 @@ final class EditorControllerTest extends WebTestCase
         self::assertSame(['mag', 'phase'], $view->each(static fn (Crawler $n): string => (string) $n->attr('data-eqoverview-target')));
         self::assertNotNull($view->eq(0)->attr('checked'));
         self::assertNull($view->eq(1)->attr('checked'));
+        // Pointing at a curve or at its switch picks it out, and leaving lets go
+        self::assertSame('pointermove->eqoverview#hoverPlot pointerleave->eqoverview#unhover', $overview->filter('canvas')->attr('data-action'));
+        $switches = $overview->filter('.eq-overview__switch')->each(static fn (Crawler $n): string => (string) $n->attr('data-action'));
+        self::assertCount(17, $switches);
+        self::assertSame(['pointerenter->eqoverview#hoverSwitch pointerleave->eqoverview#unhover'], array_values(array_unique($switches)));
         // Showing a curve is a view setting, never a write to the device
         self::assertCount(0, $overview->filter('[data-toggle-send-value], [data-fader-send-value]'));
     }
