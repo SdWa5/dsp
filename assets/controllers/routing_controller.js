@@ -1,24 +1,26 @@
 import { Controller } from '@hotwired/stimulus';
 import { store } from '../lib/device.js';
-import { channelParts } from '../lib/channels.js';
-import { linkGroups, linkName, linkPlacement, linkRuns } from '../lib/link.js';
+import { channelId, channelParts } from '../lib/channels.js';
+import { linkGroups, linkName, linkRuns } from '../lib/link.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
-import { routingEdges, routingRows, SOURCES, sourceChannel } from '../lib/routing.js';
+import { routingEdges, routingLayout, SOURCES, sourceChannel } from '../lib/routing.js';
+import { t } from '../lib/i18n.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
 // One colour per source, the inputs as on the EQ overview, Aux in grey
 const COLORS = ['#ff5252', '#ffd740', '#e040fb', '#40c4ff', '#69f0ae', '#448aff', '#b0bec5', '#ffab40', '#9e9e9e'];
 const NODE = { width: 150, height: 26 };
 const WIDTH = 480;
-// Room around the columns for the frames of stacked link groups
+// Room around the columns for the frames of stacked link groups, and the height of a frame's head
 const MARGIN = 4;
+const HEAD = 14;
 
 /**
  * The routing of the matrix as the vendor editor draws it: In1..In8 and Aux on the left, Out1..Out8 on the right,
  * and a line for every connection, coloured by its source. Hovering a channel or a line brings out its lines here
  * and its cells in the matrix (routefocus_controller.js). Both columns
  * follow the link placement, and a linked channel carries its group code and colour. Stacked, a frame gathers
- * each link group and only its first channel carries the code, as one header does on the stacked strips. It only shows the routing,
+ * each link group under a head with the group's code and colour, as a stacked block does on the other pages. It only shows the routing,
  * the matrix next to it sets it.
  */
 export default class extends Controller {
@@ -42,10 +44,10 @@ export default class extends Controller {
         const view = getLinkView();
         const groups = { inputs: linkGroups(state?.inputs ?? []), outputs: linkGroups(state?.outputs ?? []) };
         const placement = null === state ? 'normal' : view.placement;
-        // Row of every source and output: In1..In8 by the placement and the Aux last, Out1..Out8 by the placement
-        const slots = {
-            sources: [...linkPlacement(groups.inputs, placement).order, 8],
-            outputs: linkPlacement(groups.outputs, placement).order,
+        // The runs of each column: In1..In8 by the placement and the Aux last, Out1..Out8 by the placement
+        const runs = {
+            sources: [...linkRuns(groups.inputs, placement), { group: 0, channels: [8] }],
+            outputs: linkRuns(groups.outputs, placement),
         };
         // The state updates often, the graph only redraws when a connection, a name or the link display changes
         const signature = JSON.stringify([edges, names, groups, view]);
@@ -53,35 +55,32 @@ export default class extends Controller {
             return;
         }
         this.signature = signature;
-        const rows = routingRows(SOURCES, 8, NODE.height);
+        const layout = routingLayout(runs, { height: NODE.height, head: HEAD, pad: MARGIN });
         const svg = this.svgTarget;
-        svg.setAttribute('viewBox', `${-MARGIN} ${-MARGIN} ${WIDTH + 2 * MARGIN} ${rows.height + 2 * MARGIN}`);
+        svg.setAttribute('viewBox', `${-MARGIN} ${-MARGIN} ${WIDTH + 2 * MARGIN} ${layout.height + 2 * MARGIN}`);
         svg.replaceChildren();
         const left = NODE.width;
         const right = WIDTH - NODE.width;
-        // Stacked, every link group gets a frame and its first channel the code: node -> 'first' | 'member'
-        const roles = new Map();
-        if ('stacked' === placement) {
-            for (const [side, base, column, x] of [['inputs', 0, rows.sources, 0], ['outputs', SOURCES, rows.outputs, right]]) {
-                const slot = 'inputs' === side ? slots.sources : slots.outputs;
-                for (const run of linkRuns(groups[side], placement).filter((r) => r.group > 0)) {
-                    run.channels.forEach((i, k) => roles.set(base + i, 0 === k ? 'first' : 'member'));
-                    const ys = run.channels.map((i) => column[slot.indexOf(i)]);
-                    const frame = this.svgNode(svg, 'rect', {
-                        class: 'routing__frame',
-                        x: x - MARGIN + 1,
-                        y: Math.min(...ys) - NODE.height / 2 - MARGIN + 1,
-                        width: NODE.width + 2 * MARGIN - 2,
-                        height: Math.max(...ys) - Math.min(...ys) + NODE.height + 2 * MARGIN - 2,
-                        rx: 6,
-                    });
-                    frame.dataset.group = view.colour ? String(run.group) : '';
+        // Stacked, every link group gets a frame with a head that carries its code, as a stacked block does
+        const framed = new Set();
+        for (const [column, side, base, x] of [['sources', 'inputs', 0, 0], ['outputs', 'outputs', SOURCES, right]]) {
+            for (const frame of layout[column].frames) {
+                frame.channels.forEach((i) => framed.add(base + i));
+                const holder = this.svgNode(svg, 'g', { class: 'routing__group', ['data-' + column]: frame.channels.join(' ') });
+                holder.dataset.group = view.colour ? String(frame.group) : '';
+                const box = { x: x - MARGIN + 1, width: NODE.width + 2 * MARGIN - 2 };
+                this.svgNode(holder, 'title').textContent = t('Linked: %channels%', { channels: frame.channels.map((i) => channelId(('outputs' === side ? 8 : 0) + i)).join(', ') });
+                this.svgNode(holder, 'rect', { class: 'routing__frame', ...box, y: frame.top + 1, height: frame.bottom - frame.top - 2, rx: 5 });
+                this.svgNode(holder, 'rect', { class: 'routing__head', ...box, y: frame.top + 1, height: HEAD, rx: 3 });
+                if (view.code) {
+                    const code = this.svgNode(holder, 'text', { class: 'routing__head-code', x: x + NODE.width / 2, y: frame.top + 1 + HEAD / 2 + 3, 'text-anchor': 'middle' });
+                    code.textContent = linkName(view, side, groups[side], frame.group) || `L${frame.group}`;
                 }
             }
         }
         for (const { source, output } of edges) {
-            const y1 = rows.sources[slots.sources.indexOf(source)];
-            const y2 = rows.outputs[slots.outputs.indexOf(output)];
+            const y1 = layout.sources.y[source];
+            const y2 = layout.outputs.y[output];
             const mid = (left + right) / 2;
             this.svgNode(svg, 'path', {
                 class: 'routing__edge',
@@ -93,7 +92,7 @@ export default class extends Controller {
         }
         names.forEach((parts, n) => {
             const isSource = n < SOURCES;
-            const y = isSource ? rows.sources[slots.sources.indexOf(n)] : rows.outputs[slots.outputs.indexOf(n - SOURCES)];
+            const y = isSource ? layout.sources.y[n] : layout.outputs.y[n - SOURCES];
             const group = n < 8 ? groups.inputs[n] : n >= SOURCES ? groups.outputs[n - SOURCES] : 0;
             const node = this.svgNode(svg, 'g', {
                 class: 'routing__node',
@@ -102,9 +101,9 @@ export default class extends Controller {
             });
             this.svgNode(node, 'rect', { class: 'routing__box', width: NODE.width, height: NODE.height, rx: 4 });
             if (group > 0) {
-                // A framed member leaves the colour to its frame and the code to the first channel
-                node.dataset.group = view.colour && !roles.has(n) ? String(group) : '';
-                if (view.code && 'member' !== roles.get(n)) {
+                // A framed member leaves its colour and code to the frame's head
+                node.dataset.group = view.colour && !framed.has(n) ? String(group) : '';
+                if (view.code && !framed.has(n)) {
                     const code = this.svgNode(node, 'text', { class: 'routing__link', x: NODE.width - 6, y: NODE.height / 2 + 4, 'text-anchor': 'end' });
                     const side = n < 8 ? 'inputs' : 'outputs';
                     code.textContent = linkName(view, side, groups[side], group) || `L${group}`;
@@ -123,7 +122,7 @@ export default class extends Controller {
         this.dispatch('rendered');
     }
 
-    svgNode(parent, name, attributes) {
+    svgNode(parent, name, attributes = {}) {
         const node = document.createElementNS(SVG, name);
         for (const [key, value] of Object.entries(attributes)) {
             node.setAttribute(key, String(value));

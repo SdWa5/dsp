@@ -314,7 +314,8 @@ input[type=text], input[type=number], select { background: var(--field); color: 
     flex: 1 0 auto; flex-direction: row; flex-wrap: wrap; gap: 6px;
     max-width: calc(var(--members, 1) * (var(--strip-max) + 6px) + 2px);
 }
-.strips > .link-block > .link-block__head { flex-basis: 100%; }
+/* The head spans the padding as well, which its negative margin alone does not do in a wrapping row */
+.strips > .link-block > .link-block__head { flex-basis: calc(100% + 6px); }
 .eq-overview__side > .link-block, .checks > .link-block { gap: 2px; }
 /* Routing matrix, stacked: a gap before every further link group */
 .matrix:not(.link-matrix) tr.is-unit-start > td { padding-top: 10px; }
@@ -429,9 +430,15 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .routing__graph { display: block; width: 100%; height: auto; }
 .routing__node rect { fill: var(--title); }
 .routing__node[data-group]:not([data-group='']) .routing__box { stroke: var(--group); stroke-width: 2; }
-.routing__frame { fill: none; stroke: var(--panel-edge); stroke-width: 2; transition: opacity 0.1s; }
-.routing__frame[data-group]:not([data-group='']) { stroke: var(--group); }
-.has-route-focus .routing__frame { opacity: 0.35; }
+.routing__group { transition: opacity 0.1s; }
+.routing__frame { fill: none; stroke: var(--panel-edge); stroke-width: 2; }
+.routing__head { fill: var(--title); }
+.routing__head-code { fill: var(--text); font-size: 9px; font-weight: 700; }
+.routing__group[data-group]:not([data-group='']) .routing__frame { stroke: var(--group); }
+.routing__group[data-group]:not([data-group='']) .routing__head { fill: var(--group); }
+.routing__group[data-group]:not([data-group='']) .routing__head-code { fill: #111; }
+.has-route-focus .routing__group:not(.is-focus) { opacity: 0.35; }
+.routing__group.is-focus .routing__frame { stroke-width: 3; }
 .routing__node text.routing__link { font-size: 10px; font-weight: 700; }
 .routing__node text { fill: var(--text); font-size: 12px; }
 .routing__id { font-weight: 700; }
@@ -444,12 +451,13 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 /* Hovering on the Matrix page: the cells outside the focus fade, the headers it names light up */
 .matrix td { transition: opacity 0.1s; }
 .matrix th { transition: opacity 0.1s; }
-.has-route-focus .matrix :is(td, th[data-source], th[data-output]):not(.is-focus) { opacity: 0.35; }
+.has-route-focus .matrix :is(td, th[data-source], th[data-output], th[data-sources], th[data-outputs]):not(.is-focus) { opacity: 0.35; }
 .matrix th.is-focus { box-shadow: inset 0 0 0 2px var(--text); }
 .matrix th.matrix__group { padding: 1px 4px; font-size: 9px; font-weight: 700; text-align: center; vertical-align: middle; }
 .matrix tbody th.matrix__group { position: static; }
-.matrix th.matrix__group.is-empty { padding: 0; background: none; }
-.matrix th.matrix__group[data-group]:not([data-group='']) { background: var(--group); color: #111; }
+/* background-color only, so the transparent gap border of a group start stays clear */
+.matrix th.matrix__group.is-empty { padding: 0; background-color: transparent; }
+.matrix th.matrix__group[data-group]:not([data-group='']) { background-color: var(--group); color: #111; }
 .matrix th.is-grouped .ch__link { display: none; }
 .matrix-wrap { overflow-x: auto; padding: 8px; background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 6px; }
 .matrix { border-collapse: separate; border-spacing: 3px; margin: 0 auto; }

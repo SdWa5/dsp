@@ -151,6 +151,8 @@ export default class extends Controller {
         bar.className = 'matrix__group' + (run.group > 0 ? '' : ' is-empty');
         if (run.group > 0) {
             bar.dataset.group = view.colour ? String(run.group) : '';
+            // The bar stands for the whole group in the Matrix page's hover (routefocus_controller.js)
+            bar.dataset['inputs' === side ? 'sources' : 'outputs'] = run.channels.join(' ');
             bar.title = t('Linked: %channels%', { channels: run.channels.map((i) => channelId(('outputs' === side ? 8 : 0) + i)).join(', ') });
             bar.innerHTML = linkMark(view, run.group, linkName(view, side, groups[side], run.group));
         }
