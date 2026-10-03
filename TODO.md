@@ -17,6 +17,10 @@
   clone command in the README, the sibling entry in the sdwa5 repository, and whether the project name
   `trackdsp` goes with it, which is also the composer package, the ddev name, `bin/trackdsp` and the
   `trackdsp:` command prefix
+- (low priority) Investigate the flaky `PlaybackTest::testAnInterruptBeforeTheRunLeavesTheDeviceAlone`
+  (`tests/Measurement/PlaybackTest.php`). It failed once in `composer ci` on 2026-10-03 with a refused
+  connection on the scripted bridge socket and passed on the rerun without a change. Find out why the socket
+  can be unready, for example by running the test in a loop, and make the test wait for it or fail clearly
 
 ## Rewrite
 
@@ -63,6 +67,10 @@
   the pairing on both filters, and decide what happens when one partner is in a link group, where the change
   then reaches every channel of that group. The system tuning (Automation, step 6) needs matching crossover
   filters as well and could set them through such a pair
+- (low priority) Proposal: let the look of an idle PEQ point be chosen in the UI. Since 0.63.1 a band point that
+  does nothing, and an HPF or LPF square at slope 0, is filled in the mute red on the curve. A red ring around
+  the band's own colour would keep the band colour readable. If this is made configurable, it could sit as a
+  setting next to the link display options and be kept per browser like them
 
 ## Several devices
 
