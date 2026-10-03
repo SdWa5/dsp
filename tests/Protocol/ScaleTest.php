@@ -87,8 +87,11 @@ final class ScaleTest extends TestCase
         self::assertSame(1, Scale::rawToMs(0));
         self::assertSame(2999, Scale::msToRaw(3000));
         self::assertSame('1.333 ms', Scale::delayLabel(64));
-        self::assertSame('0.457 m', Scale::delayLabel(64, 1));
-        self::assertSame('1.500 ft', Scale::delayLabel(64, 2));
+        self::assertSame('0.458 m', Scale::delayLabel(64, 1));
+        self::assertSame('1.503 ft', Scale::delayLabel(64, 2));
+        // The vendor editor at the 680 ms maximum (tools/shots/ranges/delay_m.png, delay_ft.png)
+        self::assertSame('233.580 m', Scale::delayLabel(32640, 1));
+        self::assertSame('766.329 ft', Scale::delayLabel(32640, 2));
         self::assertSame(64, Scale::msToSamples(1.3333));
     }
 

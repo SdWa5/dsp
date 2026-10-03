@@ -36,8 +36,11 @@ test('times, thresholds, delay and presets', () => {
     assert.equal(S.format('threshold', 220), '+20.0dB');
     assert.equal(S.format('ms', 2999), '3000ms');
     assert.equal(S.delayLabel(480), '10.000 ms');
-    assert.equal(S.delayLabel(480, 1), '3.430 m');
-    assert.equal(S.format('delay', 480, { delay_unit: 2 }), '11.253 ft');
+    assert.equal(S.delayLabel(480, 1), '3.435 m');
+    assert.equal(S.format('delay', 480, { delay_unit: 2 }), '11.270 ft');
+    // The vendor editor at the 680 ms maximum (tools/shots/ranges/delay_m.png, delay_ft.png)
+    assert.equal(S.delayLabel(32640, 1), '233.580 m');
+    assert.equal(S.delayLabel(32640, 2), '766.329 ft');
     assert.equal(S.format('reverbTime', 139), '1.96s');
     assert.equal(S.format('ratio', 15, null, { COMP_RATIOS: { 15: 'Limit' } }), 'Limit');
     assert.equal(S.format('gain', null), '–');
@@ -69,9 +72,9 @@ test('typed values parse back to raw values', () => {
     assert.equal(S.parse('hz', '2k'), S.hzToIndex(2000));
     assert.equal(S.parse('peq', '+3'), 150);
     assert.equal(S.parse('delay', '10'), 480);
-    assert.equal(S.parse('delay', '3.430', { delay_unit: 1 }), 480);
+    assert.equal(S.parse('delay', '3.435', { delay_unit: 1 }), 480);
     assert.equal(S.parse('delay', '10ms', { delay_unit: 1 }), 480);
-    assert.equal(S.parse('delay', '11.253', { delay_unit: 2 }), 480);
+    assert.equal(S.parse('delay', '11.270', { delay_unit: 2 }), 480);
     assert.equal(S.parse('percent', '50%'), 50);
     assert.equal(S.parse('reverbTime', '1.96s'), 139);
     for (const [fmt, raw] of [['gain', 190], ['gain', 0], ['threshold', 150], ['ms', 500], ['delay', 960]]) {

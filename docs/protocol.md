@@ -113,12 +113,13 @@ Every frame the editor sent in the 143 captures (4830 frames) is rebuilt byte fo
 | PEQ gain (0–240) | (raw − 120)/10 dB | ✓ |
 | Q (0–100) | 0.4 · 320^(i/100); 25 = 1.70, 32 = 2.50 | ✓ |
 | PEQ type | 0 Peak, 1 Low Shelf, 2 High Shelf, 3 Low Pass, 4 High Pass, 5 Allpass1, 6 Allpass2 | ✓ |
-| Times | ms = raw + 1 | ✓ |
+| Times | ms = raw + 1. The vendor editor's faders run 1..999 ms attack and 1..3000 ms release on the gate and the output compressors, 1..200 ms and 1..999 ms on the Aux compressor, and 1..5000 ms both on AutoMix and Camera (`tools/shots/ranges/`, 2026-10-03). No capture sends an AutoMix or Camera time above 3000 ms, so this editor stops there until one does | ✓ |
 | Gate threshold | raw/2 − 90 dB, 0..220 (−90..+20 dB). The vendor editor's fader ends at +20.0 dB (`tools/shots/gate_threshold_max.png`, 2026-10-02), like the compressor's | ✓ |
-| Compressor / AutoMix threshold | raw/2 − 90 dB (180 = 0 dB, 220 = +20 dB). The limiter moves the output peak 1 dB per dB | ✓, unit at the connector unconfirmed |
+| Compressor / AutoMix threshold | raw/2 − 90 dB (180 = 0 dB, 220 = +20 dB). The limiter moves the output peak 1 dB per dB. The vendor editor's compressor faders run −90..+20 dB, its AutoMix and Camera faders −50..0 dB (80..180) | ✓, unit at the connector unconfirmed |
 | Ratio | 0 = 1:1.0 … 14 = 1:20, 15 = Limit | ✓ |
-| Delay | samples / 48 (ms) | ✓ |
-| Reverb time | 139 = 1.96 s (no further data points) | approximated |
+| Delay | samples / 48 (ms). The vendor editor shows metres at 343.5 m/s and feet at 3.2808 per metre, 680 ms = 233.580 m = 766.329 ft (`tools/shots/ranges/delay_m.png`, `delay_ft.png`) | ✓ |
+| Effect | Levels 0..100, echo delay 0..400 ms, both predelays 0..250 ms in the vendor editor (`tools/shots/ranges/effect_max.png`), raw = ms as the factory 200/10/50 show. No capture sends a predelay above 200, so this editor stops there until one does | ✓ (ranges from the vendor editor) |
+| Reverb time | 139 = 1.96 s. The vendor editor shows 0.1 s at its minimum and 4.00 s at its maximum (`tools/shots/ranges/effect_min.png`, `effect_max.png`), which `raw × 1.96 / 139` misses at both ends | approximated |
 | Meter | value = lo + 256 · hi + byte 3 / 256, dB = (value − 15906) · 20 · log10(2) / 128, which is 21.26 per dB. 0 dB lies on the threshold scale, a 1 kHz sine at unity reads −27.8 dB. 0x05AD is digital silence | ✓ |
 
 ### Signal chain

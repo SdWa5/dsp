@@ -139,7 +139,7 @@
     {{ _self.dialog('auxcomp', 'Aux compressor', 'aux_comp_dialog') }}
     {# The faders with the curve beside them, as in the vendor's Compressor Setting dialog #}
     <div class="dynamics-row">
-        {{ include('editor/page/_compressor.html.twig', {p: 'aux', channel: 18, meter: 16}) }}
+        {{ include('editor/page/_compressor.html.twig', {p: 'aux', channel: 18, meter: 16, attack_max: 199, release_max: 998}) }}
         {{ w.dynamics('comp', 'aux', {class: 'dynamics--dialog'}) }}
     </div>
 </dialog>
@@ -153,7 +153,7 @@
             <label>{{ "Slope"|trans }} {{ w.choice('AutoMix slope', 'aux.automix_slope', [{command: 'autoMixSlope', args: {index: '@aux.automix_slope'}}], labels.AUTOMIX_SLOPES) }}</label>
         {% endif %}
         <div class="strip__row">
-            {{ w.fader('Threshold', m ~ '.threshold', send, 0, 180, 'threshold') }}
+            {{ w.fader('Threshold', m ~ '.threshold', send, 80, 180, 'threshold') }}
             {{ w.fader('Attack', m ~ '.attack', send, 0, 998, 'ms') }}
             {{ w.fader('Release', m ~ '.release', send, 0, 2999, 'ms') }}
             <fieldset class="group" data-controller="linkplace">
@@ -174,7 +174,7 @@
     <div class="strip__row">
         {{ w.fader('Echo', e ~ '.echo', echo, 0, 100, 'raw') }}
         {{ w.fader('Repeat', e ~ '.echo_repeat', echo, 0, 100, 'raw') }}
-        {{ w.fader('Delay', e ~ '.echo_delay', echo, 0, 1000, 'plainMs') }}
+        {{ w.fader('Delay', e ~ '.echo_delay', echo, 0, 400, 'plainMs') }}
         {{ w.fader('PreDelay', e ~ '.echo_predelay', echo, 0, 200, 'plainMs') }}
         {{ w.fader('Reverb', e ~ '.reverb', reverb, 0, 100, 'raw') }}
         {{ w.fader('Reflect', e ~ '.reflect', reverb, 0, 100, 'raw') }}

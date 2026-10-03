@@ -42,6 +42,9 @@
 
 ## Editor
 
+- Correct phase plot units to degrees, with a scale from -180 to +180 degrees. Phase must not be labelled in dB.
+- Allow magnitude and phase to be displayed independently for each channel, including both together. Provide the choices in each channel's settings and on the all-channel Gain page.
+
 - Next: turn fader knobs red where the PEQ or a filter does nothing, like the gain and compressor knobs
   (`knobMuted()` and `compActive()`, `paint()` in `fader_controller.js`). Only the knob turns red, the track keeps
   its colour.
@@ -182,6 +185,22 @@
 
 ## Protocol
 
+- Widen the AutoMix and Camera attack and release faders to 5000 ms and both effect predelays to 250 ms, as the
+  vendor editor has them (`tools/shots/ranges/automix_max.png`, `camera_max.png`, `effect_max.png`). No capture
+  sends those raw values yet. On the device, send AutoMix (`64`, channel `12`) with attack and release raw 4999 and
+  the echo and reverb predelays raw 250, then read the configuration back. Both values held make the faders wider
+- Find the reverb time scale. The vendor editor shows 0.1 s at the bottom, 1.96 s at raw 139 and 4.00 s at the
+  top (`tools/shots/ranges/effect_min.png`, `effect.png`, `effect_max.png`), while `raw × 1.96 / 139` gives 0 s
+  and 3.60 s. Capture the vendor editor online while Time goes to its maximum and its minimum, and read the raw
+  values of `60`
+- Mic sensitivity: the vendor editor sets 0..50 dB in 1 dB steps (`tools/shots/ranges/gain_input.png`), this
+  editor offers Mic 0 dB, +1 dB and +2 dB as modes 1..3. Send `55 00 33` on the device and read input byte 9
+  back, expecting `33`, with about 50 dB more gain on a mic than at mode 1. Then replace the three modes with Line
+  plus a 0..50 dB sensitivity control
+- Find which band frequencies the vendor editor's EQ Reset sends on the Aux. Its offline preset shows the input
+  layout (61.1 Hz, 2.00 kHz, 7.13 kHz, `tools/shots/ranges/aux.png`), as this editor's EQ Reset does, while the
+  device's factory Aux holds 50.8 Hz, 203.1 Hz, 500 Hz, 2.00 kHz and 10.08 kHz. Capture the vendor editor online
+  pressing EQ Reset on the Aux page
 - Measure what byte 61 (Aux 85), called knee since the first Python editor, does. The vendor editor has no
   control for it and sends 0, so the editor and the CLI no longer offer it. On the Out7 to IN5 loopback, set ratio
   4:1 from -20 dB and run the level sweep through the threshold of the B6 method in `docs/measurements.md` with

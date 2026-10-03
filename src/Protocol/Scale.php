@@ -17,7 +17,8 @@ final class Scale
     public const PEQ_GAIN_UNITY = 120;
     public const Q_STEPS = 100;
     public const SAMPLE_RATE = 48000;
-    public const SPEED_OF_SOUND = 343.0;
+    /** m/s, as the vendor editor converts: 680 ms shows 233.580 m (tools/shots/ranges/delay_m.png). */
+    public const SPEED_OF_SOUND = 343.5;
     public const FEET_PER_METRE = 3.2808;
     public const METER_ZERO = 15906;
     public const METER_PER_DOUBLING = 128;

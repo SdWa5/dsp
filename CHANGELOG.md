@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.57.2] - 2026-10-03
+
+### Added
+
+- Screenshots of the vendor editor's fader ranges and defaults in `tools/shots/ranges/`
+
+### Fixed
+
+- The compressor release fader starts at 1 ms instead of 10 ms, as in the vendor editor
+- The Aux compressor's attack fader ends at 200 ms and its release fader at 999 ms, as in the vendor editor's Aux dialog
+- The AutoMix and Camera threshold faders start at -50 dB instead of -90 dB, as in the vendor editor
+- The echo delay fader ends at 400 ms instead of 1000 ms, as in the vendor editor
+- A delay shown in metres or feet uses 343.5 m/s instead of 343 m/s, as the vendor editor does
+
 ## [0.57.1] - 2026-10-02
 
 ### Fixed
