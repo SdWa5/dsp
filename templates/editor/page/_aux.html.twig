@@ -1,6 +1,17 @@
 {% import 'editor/_widgets.html.twig' as w %}
 <h2 class="page__title">{{ w.ch(18, {class: 'ch--big'}) }} {{ w.text('Aux name', 'aux.name', [{command: 'channelName', args: {channel: 18, name: '@aux.name'}}], 8) }}</h2>
 {% embed 'editor/_peq.html.twig' with {p: 'aux', channel: 18, filters: false, bands: 5} %}
+    {% block common %}
+        {% import 'editor/_widgets.html.twig' as w %}
+        <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.gain">
+            <legend>{{ w.fold('Gain', 'aux_gain') }}</legend>
+            <div class="strip__row">
+                {{ w.fader(null, 'aux.gain', [{command: 'gain', args: {channel: 18, raw: '@aux.gain'}}], 0, 400, 'gain', null, {label: 'Aux gain', default: 280, muted_by: 'aux.mute'}) }}
+                {{ w.meter(16) }}
+            </div>
+            {{ w.toggle('Mute', 'aux.mute', [{command: 'mute', args: {channel: 18, on: '@aux.mute'}}], null, {class: 'toggle--mute', muted_by: 'aux.gain'}) }}
+        </fieldset>
+    {% endblock %}
     {% block side %}
         {% import 'editor/_widgets.html.twig' as w %}
         {% set comp = [{command: 'compressor', args: {channel: 18, ratio: '@aux.comp.ratio', knee: '@aux.comp.knee', attack: '@aux.comp.attack', release: '@aux.comp.release', threshold: '@aux.comp.threshold'}}] %}
@@ -12,6 +23,10 @@
                 <button type="button" class="toggle" data-action="editor#open" data-editor-dialog-param="auxcomp">{{ "Set"|trans }}</button>
             </div>
             {{ w.dynamics('comp', 'aux') }}
+        </fieldset>
+        <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.select">
+            <legend>{{ w.fold('Select', 'aux_select') }}</legend>
+            {% include 'editor/_aux_routes.html.twig' %}
         </fieldset>
         <div class="group-stack">
             {% for key, spec in {automix: ['AutoMix', 18], effect: ['Effect', null], camera: ['Camera', 19]} %}
@@ -28,17 +43,5 @@
                 </fieldset>
             {% endfor %}
         </div>
-        <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.select">
-            <legend>{{ w.fold('Select', 'aux_select') }}</legend>
-            {% include 'editor/_aux_routes.html.twig' %}
-        </fieldset>
-        <fieldset class="group" data-controller="collapse" data-collapse-key-value="aux.gain">
-            <legend>{{ w.fold('Gain', 'aux_gain') }}</legend>
-            <div class="strip__row">
-                {{ w.fader(null, 'aux.gain', [{command: 'gain', args: {channel: 18, raw: '@aux.gain'}}], 0, 400, 'gain', null, {label: 'Aux gain', default: 280, muted_by: 'aux.mute'}) }}
-                {{ w.meter(16) }}
-            </div>
-            {{ w.toggle('Mute', 'aux.mute', [{command: 'mute', args: {channel: 18, on: '@aux.mute'}}], null, {class: 'toggle--mute', muted_by: 'aux.gain'}) }}
-        </fieldset>
     {% endblock %}
 {% endembed %}

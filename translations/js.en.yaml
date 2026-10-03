@@ -233,3 +233,8 @@
 "Deadband": "Deadband"
 "Override hold": "Override hold"
 "Allow boosts": "Allow boosts"
+
+"%channel% is hidden by your display settings.": "%channel% is hidden by your display settings."
+"No visible input channels.": "No visible input channels."
+"Hidden members: %channels%": "Hidden members: %channels%"
+"No visible compressor channels.": "No visible compressor channels."

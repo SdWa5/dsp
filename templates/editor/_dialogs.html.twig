@@ -4,6 +4,27 @@
     <header class="dialog__head"><h2{% if tip %} title="{{ ('editor.tip.panel.' ~ tip)|trans }}"{% endif %}>{{ title|trans }}</h2><button type="button" class="dialog__close" data-action="editor#close" aria-label="{{ "Close"|trans }}">×</button></header>
 {% endmacro %}
 
+<dialog class="dialog" id="dialog-display" data-editor-target="dialog">
+    {{ _self.dialog('display', 'Channel display settings', 'display') }}
+    <div data-controller="channelview">
+        <p>{{ 'Hidden channels remain active. Linked edits still reach hidden members.'|trans }}</p>
+        <div class="channel-visibility">
+            {% for side, title in {inputs: 'Input', outputs: 'Output'} %}
+                <fieldset class="group channel-visibility__side" data-controller="linkplace selectors">
+                    <legend>{{ title|trans }} <button type="button" class="toggle" data-action="channelview#showSide" data-channelview-side-param="{{ side }}">{{ (side == 'inputs' ? 'Show all input channels' : 'Show all output channels')|trans }}</button></legend>
+                    {% for i in 0..7 %}
+                        {% set index = (side == 'outputs' ? 8 : 0) + i %}
+                        <label class="check"><input type="checkbox" value="{{ index }}" checked data-channelview-target="channel" data-action="change->channelview#change">{{ w.ch(index) }}</label>
+                    {% endfor %}
+                </fieldset>
+            {% endfor %}
+        </div>
+        <label class="check"><input type="checkbox" value="18" checked data-channelview-target="channel" data-action="change->channelview#change">{{ w.ch(18) }}</label>
+        <label class="check"><input type="checkbox" data-channelview-target="grouped" data-action="change->channelview#change">{{ 'One control per link group'|trans }}</label>
+        <button type="button" class="toggle" data-action="channelview#showAll">{{ 'Show all channels'|trans }}</button>
+    </div>
+</dialog>
+
 <dialog class="dialog" id="dialog-connect" data-editor-target="dialog">
     {{ _self.dialog('connect', 'Connection', 'connect') }}
     <p class="dialog__status" data-editor-target="status">–</p>
@@ -156,7 +177,7 @@
             {{ w.fader('Threshold', m ~ '.threshold', send, 80, 180, 'threshold') }}
             {{ w.fader('Attack', m ~ '.attack', send, 0, 998, 'ms') }}
             {{ w.fader('Release', m ~ '.release', send, 0, 2999, 'ms') }}
-            <fieldset class="group" data-controller="linkplace">
+            <fieldset class="group" data-controller="linkplace selectors">
                 <legend>{{ "Select"|trans }}</legend>
                 {% for i in 0..7 %}
                     {{ w.toggle(w.ch(i), m ~ '.select', send, null, {bit: i, class: 'toggle--route'}) }}

@@ -1,7 +1,7 @@
 {#
  # PEQ editor of one channel. p = state path, channel = channel index, filters = with HPF/LPF.
  # The curve, the band table and every group fold. Their keys start with "aux" or "channel", so all channel
- # pages fold together.
+ # pages fold together. Common sections precede HPF/LPF and the channel-specific side sections.
  #}
 {% import 'editor/_widgets.html.twig' as w %}
 {% set fold = 'aux' == p ? 'aux' : 'channel' %}
@@ -53,7 +53,11 @@
                 </div>
             {% endfor %}
         </fieldset>
+        </div>
+        {% block common %}{% endblock %}
         {% if filters %}
+        {# Keep the crossover controls stacked vertically while preserving shared section order. #}
+        <div class="group-stack">
             {% for kind, title in {hpf: 'HighPass', lpf: 'LowPass'} %}
                 <fieldset class="group group--filter" data-controller="collapse" data-collapse-key-value="{{ fold }}.{{ kind }}">
                     <legend>{{ w.fold(title, kind) }}</legend>
@@ -72,8 +76,8 @@
                     </div>
                 </fieldset>
             {% endfor %}
-        {% endif %}
         </div>
+        {% endif %}
         {% block side %}{% endblock %}
     </div>
 </div>

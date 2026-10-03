@@ -2,14 +2,15 @@ import { Controller } from '@hotwired/stimulus';
 import { store } from '../lib/device.js';
 import { channelId } from '../lib/channels.js';
 import { t } from '../lib/i18n.js';
-import { linkGaps, linkGroups, linkMark, linkName, linkPlacement, linkRuns } from '../lib/link.js';
+import { linkGroups, linkMark, linkName, linkPlacement } from '../lib/link.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
+import { getChannelView, onChannelView, channelVisible, displayedChannel, visibleRuns } from '../lib/channelview.js';
 
-/** The channel index (0..15) a node shows through its first channel label, -1 for none or the Aux. */
+/** The channel index (0..15) a node shows through its first channel label, 18 for Aux, -1 for none. */
 const channelOf = (node) => {
     const label = node.matches('.ch') ? node : node.querySelector('.ch');
     const index = label ? Number(label.dataset.channelIndexValue) : -1;
-    return index >= 0 && index < 16 ? index : -1;
+    return index >= 0 && (index < 16 || index === 18) ? index : -1;
 };
 
 /**
@@ -22,12 +23,13 @@ const channelOf = (node) => {
  * leave out their own marks.
  */
 export default class extends Controller {
+    static values = { display: Boolean };
     connect() {
         this.shown = null;
         if ('TABLE' === this.element.tagName) {
             this.tagColumns();
         }
-        this.offs = [store.subscribe(() => this.place()), onLinkView(() => this.place())];
+        this.offs = [store.subscribe(() => this.place()), onLinkView(() => this.place()), onChannelView(() => this.place())];
         this.place();
     }
 
@@ -39,7 +41,7 @@ export default class extends Controller {
         const state = store.state;
         const view = getLinkView();
         const groups = { inputs: linkGroups(state?.inputs ?? []), outputs: linkGroups(state?.outputs ?? []) };
-        const key = JSON.stringify([groups, view]);
+        const key = JSON.stringify([groups, view, getChannelView()]);
         if (key === this.shown) {
             return;
         }
@@ -58,7 +60,10 @@ export default class extends Controller {
             block.querySelector(':scope > .link-block__head')?.remove();
             block.replaceWith(...block.children);
         }
-        const items = [...this.element.children].filter((node) => channelOf(node) >= 0);
+        const channels = [...this.element.children].filter((node) => channelOf(node) >= 0);
+        for (const item of channels) item.hidden = this.displayValue && !displayedChannel(channelOf(item), store.state);
+        // Aux follows visibility but never enters input/output link ordering or blocks.
+        const items = channels.filter(node => channelOf(node) < 16);
         if (0 === items.length) {
             return;
         }
@@ -73,10 +78,12 @@ export default class extends Controller {
             }
         }
         for (const unit of blocks) {
-            const members = unit.map((i) => byChannel.get(i)).filter(Boolean);
+            const members = unit.map((i) => byChannel.get(i)).filter(node => node && !node.hidden);
+            if (!members.length) continue;
             const group = groups[side][unit[0]];
             const block = document.createElement('div');
             block.className = 'link-block';
+            block.dataset.linkGroup = String(group);
             block.dataset.group = view.colour ? String(group) : '';
             // Caps a block of strips at the width its members can fill
             block.style.setProperty('--members', String(members.length));
@@ -109,9 +116,11 @@ export default class extends Controller {
         table.querySelectorAll('th.is-grouped').forEach((th) => th.classList.remove('is-grouped'));
         const columnSide = Number(table.querySelector('[data-link-column]')?.dataset.linkColumn) < 8 ? 'inputs' : 'outputs';
         const columns = linkPlacement(groups[columnSide], placement);
-        const columnStarts = linkGaps(groups[columnSide], placement);
+        const columnRuns = visibleRuns(groups[columnSide], placement, columnSide === 'outputs' ? 8 : 0);
+        const columnStarts = new Set(columnRuns.filter(run => run.group > 0).map(run => run.channels[0]));
         for (const row of table.rows) {
-            const cells = [...row.cells].filter((cell) => undefined !== cell.dataset.linkColumn);
+            for (const cell of row.cells) if (cell.dataset.linkColumn === '18') cell.hidden = !channelVisible(18);
+            const cells = [...row.cells].filter((cell) => undefined !== cell.dataset.linkColumn && Number(cell.dataset.linkColumn) < 16);
             if (0 === cells.length) {
                 continue;
             }
@@ -120,14 +129,15 @@ export default class extends Controller {
             for (const i of columns.order) {
                 row.insertBefore(byChannel.get(i), anchor);
             }
-            cells.forEach((cell) => cell.classList.toggle('is-unit-start', columnStarts.has(Number(cell.dataset.linkColumn) % 8)));
+            cells.forEach(cell => { cell.hidden = !channelVisible(Number(cell.dataset.linkColumn)); cell.classList.toggle('is-unit-start', columnStarts.has(Number(cell.dataset.linkColumn) % 8)); });
         }
         const body = table.tBodies[0];
         const rowOf = (row) => {
             const head = row.querySelector('th[scope=row]');
             return head ? channelOf(head) : -1;
         };
-        const rows = [...body.rows].filter((row) => rowOf(row) >= 0);
+        for (const row of body.rows) if (rowOf(row) === 18) row.hidden = !channelVisible(18);
+        const rows = [...body.rows].filter((row) => rowOf(row) >= 0 && rowOf(row) < 16);
         if (0 === rows.length) {
             return;
         }
@@ -137,7 +147,8 @@ export default class extends Controller {
         for (const i of linkPlacement(groups[rowSide], placement).order) {
             body.insertBefore(byChannel.get(i), anchor);
         }
-        const rowStarts = linkGaps(groups[rowSide], placement);
+        rows.forEach(row => { row.hidden = !channelVisible(rowOf(row)); });
+        const rowStarts = new Set(visibleRuns(groups[rowSide], placement, rowSide === 'outputs' ? 8 : 0).filter(run => run.group > 0).map(run => run.channels[0]));
         rows.forEach((row) => row.classList.toggle('is-unit-start', rowStarts.has(rowOf(row) % 8)));
         if ('stacked' === placement) {
             this.headRows(rows, rowOf, groups, rowSide, view);
@@ -169,7 +180,7 @@ export default class extends Controller {
         const rowsLast = rows[0].lastElementChild?.matches('th[scope=row]');
         const outer = (row, cell) => (rowsLast ? row.append(cell) : row.prepend(cell));
         const byChannel = new Map(rows.map((row) => [rowOf(row) % 8, row]));
-        for (const run of linkRuns(groups[side], 'stacked')) {
+        for (const run of visibleRuns(groups[side], 'stacked', side === 'outputs' ? 8 : 0)) {
             const bar = this.groupBar(run, side, groups, view);
             bar.rowSpan = run.channels.length;
             outer(byChannel.get(run.channels[0]), bar);
@@ -187,13 +198,15 @@ export default class extends Controller {
     headColumns(groups, side, view) {
         const table = this.element;
         const header = table.tHead?.rows[0] ?? table.tFoot.rows[0];
-        const all = linkRuns(groups[side], 'stacked');
+        const all = visibleRuns(groups[side], 'stacked', side === 'outputs' ? 8 : 0);
         const runs = new Map(all.map((run) => [run.channels[0], run]));
         const grouped = new Set(all.filter((run) => run.group > 0).flatMap((run) => run.channels));
         const line = document.createElement('tr');
         line.className = 'matrix__groups';
         for (const cell of header.cells) {
-            const column = undefined === cell.dataset.linkColumn ? -1 : Number(cell.dataset.linkColumn) % 8;
+            if (cell.hidden) continue;
+            const channel = Number(cell.dataset.linkColumn);
+            const column = Number.isInteger(channel) && channel < 16 ? channel % 8 : -1;
             if (column < 0) {
                 const empty = document.createElement('th');
                 empty.className = 'matrix__group is-empty';

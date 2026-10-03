@@ -77,7 +77,7 @@ final class EditorControllerTest extends WebTestCase
         // The changed-setting count stays hidden until the state arrives
         self::assertCount(7, $page->filter('.tab > .tab__count[hidden]'));
         self::assertCount(16, $page->filter('.chtab'));
-        self::assertCount(20, $page->filter('dialog'));
+        self::assertCount(21, $page->filter('dialog'));
         foreach ($page->filter('[data-editor-dialog-param]')->each(static fn (Crawler $n): string => (string) $n->attr('data-editor-dialog-param')) as $dialog) {
             self::assertCount(1, $page->filter('dialog#dialog-'.$dialog), \sprintf('No dialog "%s".', $dialog));
         }
@@ -370,7 +370,7 @@ final class EditorControllerTest extends WebTestCase
             self::assertCount($count, $page->filter($selector), $selector);
             $page->filter($selector)->each(static function (Crawler $node) use ($selector): void {
                 if (str_ends_with($selector, '.strip') && $node->filter('.aux-routes')->count() > 0) {
-                    self::assertCount(2, $node->filter('.aux-routes__column[data-controller=linkplace]'));
+                    self::assertCount(2, $node->filter('.aux-routes__column[data-controller~=linkplace]'));
 
                     return;
                 }
@@ -541,7 +541,7 @@ final class EditorControllerTest extends WebTestCase
             $select = $aux->filter('.toggle--route[data-toggle-bind-value="aux.select"]');
             self::assertSame(range(0, 7), $select->each(static fn (Crawler $n): int => (int) $n->attr('data-toggle-bit-value')));
             self::assertSame(range(0, 7), $select->each(static fn (Crawler $n): int => (int) $n->filter('.ch')->attr('data-channel-index-value')));
-            self::assertCount(2, $aux->filter('.aux-routes__column[data-controller=linkplace]'));
+            self::assertCount(2, $aux->filter('.aux-routes__column[data-controller~=linkplace]'));
             self::assertCount(0, $aux->filter('[data-fader-link-value], [data-toggle-link-value]'));
         }
     }

@@ -136,6 +136,58 @@ switch under the pointer, or else the link group's `.link-block` around it, so t
 pick the group too. A block whose switches all grey out greys out with them. Every curve and switch outside that curve's link group
 (`linkedPaths()`) turns grey, and the greyed curves go below the others.
 
+## Channel display settings
+
+Channels > Channel display settings keeps `{hidden, grouped}` under `trackdsp-channel-display`. Hidden indices
+are individual input/output channels 0..15 or Aux at 18. All start visible and grouping starts disabled.
+Malformed preferences fall back to those defaults. Storage failures retain changes for the current visit.
+The settings send no API writes and do not affect changed-setting counts, presets or linked-write behavior.
+Section-header Show all buttons restore inputs or outputs independently without unhiding Aux or the other side.
+The global Show all restores every channel. Each section uses the shared link placement and marks while keeping
+visibility independently selectable for every member, even when one processing control per group is enabled.
+Its group-header selectors show checked, unchecked or mixed visibility, select every member when mixed or empty,
+and hide every member when fully selected. They reuse checkbox preference actions and send no device commands.
+
+Visibility filters channel tabs, Gain/Gate/Comp/Delay strips and Gain EQ switches and curves. Matrix filters rows
+and columns in both orientations. Visible Aux retains its disabled self-route; hiding Aux suppresses its row
+and column. The graph compacts its outer columns,
+removes edges with hidden endpoints and keeps visible Aux beneath them. Hiding Aux removes its bottom row.
+Original channel indices, masks and group identities stay intact. Matrix and graph never combine link groups into a single channel.
+
+One control per link group chooses the lowest visible member as representative. Its strip, tab and EQ switch
+show group membership. Fully hidden groups disappear from processing views. A visible non-representative's
+individual detail URL remains usable and activates its representative's tab. An explicitly hidden channel URL
+shows a warning with Unhide channel and Open Gain page. Channel names and link assignments remain individual.
+Gate and Comp follow plots recover to a visible representative when their selected strip disappears. With no
+visible inputs Gate shows an empty state; with no visible outputs Comp displays Aux if visible, otherwise an empty state.
+
+EQ overview curve selection remains separate under `trackdsp-eq-overview-hidden`. Group switches show mixed
+selection and update every member, including hidden members, while global visibility still suppresses hidden
+curves. Turning grouping off restores the individual switches without losing their selections.
+
+The shared `selectors` controller adds group checkboxes to Aux input/output routes, Sub/Group membership,
+AutoMix/Camera inputs and Auto EQ outputs. Individual controls remain complete even for hidden channels.
+Group selectors appear in the existing stacked group headers. Normal and adjacent placement add headers at the
+first member, preserving individual channel order. There is no separate aggregate selector bar. Headers retain
+the chosen group name, colour and icon. Member IDs and hidden members appear in tooltips rather than repeating the individual channel labels.
+Stacked channel tabs omit their individual group-edge shadow because their shared header already marks the group.
+Mixed or empty groups select all members; fully selected groups clear all. Tooltips identify hidden members.
+Shared masks produce one combined masked write; Aux output choices update each existing output mask separately,
+preserving unrelated bits. Auto EQ aggregates update individual form checkboxes and have no submission name.
+
+The shared channel editor places Bands, Selected band and Gain before HPF/LPF and channel-specific sections.
+Inputs then show Gate and FBQ, outputs show Comp and Delay, and Aux shows Comp, Select, AutoMix, Effect and Camera.
+HPF and LPF retain their shared vertical stack. Existing collapse keys and bindings are retained.
+
+`ChannelDisplayTest` checks templates, section order and translations. JavaScript tests cover normalization,
+storage failures, representative changes, layouts and real bound-control aggregate writes. The isolated browser
+regression intercepts every API request and checks 1440 px and 390 px views, hidden-page recovery, group selectors,
+both matrix orientations and every link placement. Provide an installed Playwright module and a running editor.
+
+```bash
+PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node tools/test-channel-display.mjs
+```
+
 ## Gate and compressor curves
 
 `assets/lib/dynamics.js` computes the static curve and `dynamics_controller.js` draws it on a canvas, input level
@@ -164,7 +216,8 @@ when space permits and wraps it below them on narrow screens.
 
 ## Aux routing
 
-Both matrix orientations have nine sources and nine destinations. Aux stays last on each axis and outside
+Both matrix orientations have nine sources and nine destinations before visibility filtering. Visible Aux stays
+last on each axis and outside
 input/output link groups. Inputs feeding Aux bind to bits 0..7 of `aux.select` and send the existing routing
 command for channel 18. Aux feeding an output binds to bit 8 of that output's `route` mask and sends its output
 channel 8..15. Each toggle preserves the other mask bits. Routing keeps its existing per-output write behavior,

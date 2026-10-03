@@ -41,7 +41,7 @@ final class AuxRoutingTest extends WebTestCase
         self::assertResponseIsSuccessful();
         foreach (['section[data-page=gain] .strips[data-collapse-key-value="gain.sub"] .aux-routes', 'dialog#dialog-sub .aux-routes', 'section[data-page=aux] fieldset[data-collapse-key-value="aux.select"]'] as $scope) {
             $aux = $page->filter($scope);
-            $columns = $aux->filter('.aux-routes__column[data-controller=linkplace]');
+            $columns = $aux->filter('.aux-routes__column[data-controller~=linkplace]');
             self::assertCount(2, $columns);
             self::assertSame($input, $columns->eq(0)->filter('legend')->text());
             self::assertSame($output, $columns->eq(1)->filter('legend')->text());

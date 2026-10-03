@@ -7,19 +7,8 @@
     {{ w.text('%channel% name'|trans({'%channel%': (input ? 'In' : 'Out') ~ (i + 1)}), p ~ '.name', [{command: 'channelName', args: {channel: channel, name: '@' ~ p ~ '.name'}}], 8) }}
 </h2>
 {% embed 'editor/_peq.html.twig' with {p: p, channel: channel, filters: true, bands: input ? 5 : 7} %}
-    {% block side %}
+    {% block common %}
         {% import 'editor/_widgets.html.twig' as w %}
-        {% if input %}
-            <fieldset class="group" data-controller="collapse" data-collapse-key-value="channel.fbq">
-                <legend>{{ w.fold('FBQ', 'fbq') }}</legend>
-                <div class="radios" data-controller="choice" data-action="change->choice#change" data-choice-bind-value="{{ p }}.fbq" data-choice-link-value="{{ link }}"
-                     data-choice-send-value="{{ [{command: 'fbq', args: {channel: channel, level: '@' ~ p ~ '.fbq'}}]|json_encode }}">
-                    {% for value, text in labels.FBQ_LEVELS %}
-                        <label class="radio"><input type="radio" name="fbq-{{ i }}" value="{{ value }}"><span>{{ text }}</span></label>
-                    {% endfor %}
-                </div>
-            </fieldset>
-        {% endif %}
         <fieldset class="group" data-controller="collapse" data-collapse-key-value="channel.gain">
             <legend>{{ w.fold('Gain', 'gain') }}</legend>
             <div class="strip__row">
@@ -33,6 +22,9 @@
                 {{ w.toggle('+48V', p ~ '.phantom', [{command: 'phantom', args: {channel: channel, on: '@' ~ p ~ '.phantom'}}], link, {class: 'toggle--phantom', enabled: p ~ '.mode'}) }}
             {% endif %}
         </fieldset>
+    {% endblock %}
+    {% block side %}
+        {% import 'editor/_widgets.html.twig' as w %}
         {# The same controls as on the Gate, Comp and Delay pages, without a second meter #}
         {% if input %}
             <fieldset class="group group--dynamics" data-controller="collapse" data-collapse-key-value="channel.gate">
@@ -51,6 +43,17 @@
                 <legend>{{ w.fold('editor.tabs.delay', 'delay') }}</legend>
                 {{ w.fader('', p ~ '.delay', [{command: 'delay', args: {channel: channel, samples: '@' ~ p ~ '.delay'}}], 0, 32640, 'delay', link, {label: '%channel% delay'|trans({'%channel%': 'Out' ~ (i + 1)}), default: 0}) }}
                 <label class="group__caption">{{ "Unit"|trans }} {{ w.choice('Delay unit', 'delay_unit', [{command: 'delayUnit', args: {unit: '@delay_unit'}}], labels.DELAY_UNITS) }}</label>
+            </fieldset>
+        {% endif %}
+        {% if input %}
+            <fieldset class="group" data-controller="collapse" data-collapse-key-value="channel.fbq">
+                <legend>{{ w.fold('FBQ', 'fbq') }}</legend>
+                <div class="radios" data-controller="choice" data-action="change->choice#change" data-choice-bind-value="{{ p }}.fbq" data-choice-link-value="{{ link }}"
+                     data-choice-send-value="{{ [{command: 'fbq', args: {channel: channel, level: '@' ~ p ~ '.fbq'}}]|json_encode }}">
+                    {% for value, text in labels.FBQ_LEVELS %}
+                        <label class="radio"><input type="radio" name="fbq-{{ i }}" value="{{ value }}"><span>{{ text }}</span></label>
+                    {% endfor %}
+                </div>
             </fieldset>
         {% endif %}
     {% endblock %}

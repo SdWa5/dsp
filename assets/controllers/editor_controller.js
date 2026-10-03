@@ -4,10 +4,11 @@ import { api, getDefaults, listen, on, send, status, store } from '../lib/device
 import { changedPaths, pageChanges } from '../lib/defaults.js';
 import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel, channelParts } from '../lib/channels.js';
-import { lcm, linkCommands, linkGroups, linkedMembers, LINK_NAME_LENGTH, linkLayout, linkMark, linkName, linkNameKey, linkUnits, toggleLink } from '../lib/link.js';
+import { lcm, linkCommands, linkGroups, linkedMembers, LINK_NAME_LENGTH, linkMark, linkName, linkNameKey, linkUnits, toggleLink } from '../lib/link.js';
 import { GAIN_MUTED, presetLabel, presetSlotInfo } from '../lib/scale.js';
 import { readPref, writePref } from '../lib/prefs.js';
 import { getLinkView, setLinkView } from '../lib/linkview.js';
+import { getChannelView, onChannelView, setChannelView, channelVisible, representative, channelMembers, channelLayout } from '../lib/channelview.js';
 
 const THEMES = ['auto', 'light', 'dark'];
 /** How the channel tabs show link groups, each switched on its own in the Channels menu. */
@@ -21,7 +22,7 @@ const changedText = (count) => t(1 === count
  */
 export default class extends Controller {
     static targets = ['tab', 'page', 'online', 'banner', 'bannerText', 'number', 'error', 'dialog', 'status', 'target', 'slots',
-        'storeName', 'linkMatrix', 'file', 'scanButton', 'scanStatus', 'found', 'theme', 'matrix', 'linkView', 'linkPlacement', 'chtabs', 'linkNames', 'linkNamesEmpty'];
+        'storeName', 'linkMatrix', 'file', 'scanButton', 'scanStatus', 'found', 'theme', 'matrix', 'linkView', 'linkPlacement', 'chtabs', 'linkNames', 'linkNamesEmpty', 'channelWarning', 'channelWarningText'];
 
     connect() {
         const theme = readPref('theme', 'auto');
@@ -33,6 +34,7 @@ export default class extends Controller {
             on('status', () => this.showStatus()),
             on('error', (message) => this.showError(message)),
             store.subscribe(() => this.showState()),
+            onChannelView(() => { this.showState(); this.show(this.currentPage); }),
         ];
         const page = window.location.hash.slice(1);
         this.show(this.pageTargets.some((p) => p.dataset.page === page) ? page : 'gain');
@@ -61,16 +63,34 @@ export default class extends Controller {
     }
 
     show(page) {
+        this.currentPage = page;
+        this.showChannelPage();
         for (const section of this.pageTargets) {
-            section.hidden = section.dataset.page !== page;
+            section.hidden = section.dataset.page !== page || this.hiddenPageChannel !== null;
         }
         for (const tab of this.tabTargets) {
-            const active = tab.dataset.page === page;
+            const match = /^(inputs|outputs)([0-7])$/.exec(page);
+            const selected = match ? Number(match[2]) + (match[1] === 'outputs' ? 8 : 0) : null;
+            const active = selected === null ? !tab.hidden && tab.dataset.page === page : !tab.hidden && tab.dataset.side === match[1]
+                && Number(tab.dataset.index) + (match[1] === 'outputs' ? 8 : 0) === (getChannelView().grouped ? representative(selected, store.state) : selected);
             tab.classList.toggle('is-active', active);
             tab.setAttribute('aria-selected', active ? 'true' : 'false');
         }
         // A canvas measures its size only while visible
         window.dispatchEvent(new Event('resize'));
+    }
+
+    /** A hidden detail page remains reachable only through its recovery warning. */
+    showChannelPage() {
+        const match = /^(inputs|outputs)([0-7])$/.exec(this.currentPage ?? '');
+        const index = this.currentPage === 'aux' ? 18 : match ? Number(match[2]) + (match[1] === 'outputs' ? 8 : 0) : null;
+        this.hiddenPageChannel = index !== null && !channelVisible(index) ? index : null;
+        this.channelWarningTarget.hidden = this.hiddenPageChannel === null;
+        if (this.hiddenPageChannel !== null) this.channelWarningTextTarget.textContent = t('%channel% is hidden by your display settings.', { channel: channelLabel(index, store.state) });
+    }
+
+    unhideChannel() {
+        if (this.hiddenPageChannel !== null) setChannelView({ ...getChannelView(), hidden: getChannelView().hidden.filter(i => i !== this.hiddenPageChannel) });
     }
 
     showStatus() {
@@ -92,11 +112,13 @@ export default class extends Controller {
             number.textContent = presetLabel(state?.active_preset);
         }
         this.placeChannelTabs(state);
+        this.showChannelPage();
         const pages = pageChanges(state, getDefaults());
         for (const tab of this.tabTargets) {
             if (tab.dataset.side) {
                 this.showChannelTab(tab, state);
             } else {
+                if (tab.dataset.page === 'aux') tab.hidden = !channelVisible(18);
                 const count = pages[tab.dataset.page]?.length ?? 0;
                 const badge = tab.querySelector('.tab__count');
                 tab.classList.toggle('is-changed', count > 0);
@@ -114,6 +136,7 @@ export default class extends Controller {
         const channel = ('outputs' === side ? 8 : 0) + index;
         const { name } = channelParts(channel, state);
         tab.querySelector('.chtab__name').textContent = name;
+        tab.querySelector('.chtab__id').textContent = getChannelView().grouped ? channelMembers(channel, state).map(i => channelId(i)).join(', ') : channelId(channel);
         const marks = [];
         const titles = [channelLabel(channel, state)];
         if (state?.[side]?.[index]?.mute) {
@@ -159,29 +182,38 @@ export default class extends Controller {
     placeChannelTabs(state) {
         const placement = null === state ? 'normal' : this.linkViewSettings.placement;
         const groups = { inputs: linkGroups(state?.inputs ?? []), outputs: linkGroups(state?.outputs ?? []) };
-        const layouts = { inputs: linkLayout(groups.inputs, placement), outputs: linkLayout(groups.outputs, placement) };
+        const layouts = { inputs: channelLayout(groups.inputs, placement, 0), outputs: channelLayout(groups.outputs, placement, 8) };
         const offset = { inputs: 0, outputs: layouts.inputs.columns };
         const rows = lcm(layouts.inputs.rows, layouts.outputs.rows);
-        const units = { inputs: linkUnits(groups.inputs), outputs: linkUnits(groups.outputs) };
-        const header = 'stacked' === placement && Object.values(units).some((side) => side.some((u) => u.length > 1)) ? 1 : 0;
+        const units = { inputs: layouts.inputs.units, outputs: layouts.outputs.units };
+        const header = 'stacked' === placement && Object.entries(units).some(([side, units]) => units.some(unit => groups[side][unit[0]] > 0)) ? 1 : 0;
         this.chtabsTargets.forEach((box) => {
-            box.style.setProperty('--chtab-columns', String(layouts.inputs.columns + layouts.outputs.columns));
-            box.classList.toggle('is-stacked', rows > 1);
-            box.style.gridTemplateRows = rows > 1 ? `${header ? 'auto ' : ''}repeat(${rows}, 1fr)` : '';
+            box.style.setProperty('--chtab-columns', String(Math.max(1, layouts.inputs.columns + layouts.outputs.columns)));
+            box.classList.toggle('is-stacked', rows > 1 || header > 0);
+            box.style.gridTemplateRows = rows > 1 || header > 0 ? `${header ? 'auto ' : ''}repeat(${rows}, 1fr)` : '';
         });
         for (const tab of this.tabTargets.filter((t) => t.dataset.side)) {
             const side = tab.dataset.side;
             const cell = layouts[side].cells[Number(tab.dataset.index)];
+            tab.hidden = !cell;
+            if (!cell) continue;
             const scale = rows / layouts[side].rows;
             // A channel alone reaches up into the header row, a group member starts below it
-            const alone = cell.span === layouts[side].rows;
+            const alone = groups[side][Number(tab.dataset.index)] === 0;
             tab.style.gridColumn = String(offset[side] + cell.column);
             tab.style.gridRow = alone ? `1 / span ${header + rows}` : `${header + (cell.row - 1) * scale + 1} / span ${cell.span * scale}`;
             // The gap between the inputs and the outputs goes before the first output column
             tab.classList.toggle('is-split', 'outputs' === side && 1 === cell.column);
         }
+        for (const tab of this.tabTargets.filter(t => t.dataset.side)) {
+            const match = /^(inputs|outputs)([0-7])$/.exec(this.currentPage ?? '');
+            if (!match) continue;
+            const base = match[1] === 'outputs' ? 8 : 0;
+            const active = !tab.hidden && tab.dataset.side === match[1] && Number(tab.dataset.index) + base === (getChannelView().grouped ? representative(Number(match[2]) + base, state) : Number(match[2]) + base);
+            tab.classList.toggle('is-active', active); tab.setAttribute('aria-selected', String(active));
+        }
         // The headers change only with the groups and the display settings, not with every state update
-        const key = JSON.stringify([header, units, this.linkViewSettings]);
+        const key = JSON.stringify([header, units, this.linkViewSettings, getChannelView()]);
         if (key === this.groupHeadKey) {
             return;
         }
@@ -191,7 +223,7 @@ export default class extends Controller {
             const { colour } = this.linkViewSettings;
             for (const side of ['inputs', 'outputs']) {
                 units[side].forEach((unit, column) => {
-                    if (unit.length < 2) {
+                    if (groups[side][unit[0]] === 0) {
                         return;
                     }
                     const group = groups[side][unit[0]];

@@ -4,6 +4,7 @@ import { curveRuns, drawGrid, eqView, loadEqView, plotFor, prepare, response, sa
 import { getLinkView, onLinkView } from '../lib/linkview.js';
 import { curveColourSource, linkedPaths, nearestCurve } from '../lib/overview.js';
 import { readPref, writePref } from '../lib/prefs.js';
+import { getChannelView, onChannelView, channelVisible, selectionState } from '../lib/channelview.js';
 
 // One colour per channel number: an input draws a solid line, the output of the same number a dashed one.
 // The Aux has a colour of its own and a dotted line
@@ -19,7 +20,7 @@ const VIEW = 'overview';
  * The EQ curves of every input, every output and the Aux in one plot, as the vendor editor shows them on its Gain page.
  * Mag and Phase show the magnitude, the phase or both, as on a channel tab. The phase reads in degrees on the axis, and
  * with both shown it is the fainter, thinner curve of each channel.
- * A switch per channel shows or hides its curve. It only changes the plot, the EQ bypass of the channel
+ * A switch per channel, or one mixed-state switch per link group, shows or hides its curves. It only changes the plot, the EQ bypass of the channel
  * stays as it is (the curve itself is flat while the channel's EQ is bypassed, as on its tab).
  * Linked channels share one EQ, so their curves and switches take one colour, the group's while the Channels menu
  * shows link colours, else the first member's. Pointing at a curve or a switch greys out every other curve and
@@ -30,8 +31,9 @@ export default class extends Controller {
 
     connect() {
         const hidden = readPref(HIDDEN, []);
+        this.hiddenPaths = new Set(Array.isArray(hidden) ? hidden : []);
         this.showTargets.forEach((box) => {
-            box.checked = !hidden.includes(box.value);
+            box.checked = !this.hiddenPaths.has(box.value);
         });
         const view = loadEqView(VIEW);
         if (this.hasMagTarget && this.hasPhaseTarget) {
@@ -42,6 +44,7 @@ export default class extends Controller {
         this.hover = null;
         this.unsubscribe = store.subscribe(() => this.schedule());
         this.offView = onLinkView(() => this.schedule(true));
+        this.offDisplay = onChannelView(() => this.schedule(true));
         this.resize = new ResizeObserver(() => this.schedule(true));
         this.resize.observe(this.canvasTarget);
         this.schedule(true);
@@ -50,11 +53,15 @@ export default class extends Controller {
     disconnect() {
         this.unsubscribe?.();
         this.offView?.();
+        this.offDisplay?.();
         this.resize?.disconnect();
     }
 
-    toggle() {
-        writePref(HIDDEN, this.showTargets.filter((box) => !box.checked).map((box) => box.value));
+    toggle(event) {
+        const box = event.target;
+        const paths = getChannelView().grouped ? linkedPaths(box.value, store.state) : [box.value];
+        paths.forEach(path => box.checked ? this.hiddenPaths.delete(path) : this.hiddenPaths.add(path));
+        writePref(HIDDEN, [...this.hiddenPaths]);
         this.schedule(true);
     }
 
@@ -136,7 +143,15 @@ export default class extends Controller {
 
     draw() {
         const state = store.state;
-        const shown = this.showTargets.filter((box) => box.checked).map((box) => box.value);
+        for (const box of this.showTargets) {
+            const paths = getChannelView().grouped ? linkedPaths(box.value, state) : [box.value];
+            const selection = selectionState(paths.map(path => !this.hiddenPaths.has(path)));
+            box.checked = selection.selected; box.indeterminate = selection.mixed;
+        }
+        const shown = this.showTargets.map(box => box.value).filter(path => {
+            const [side, raw] = path.split('.');
+            return !this.hiddenPaths.has(path) && channelVisible(raw === undefined ? 18 : Number(raw) + (side === 'outputs' ? 8 : 0));
+        });
         const channels = shown.map((path) => [path, store.get(path)]).filter(([, channel]) => channel);
         const view = this.view;
         const { colour, lit } = this.paintSwitches(state, getLinkView().colour);

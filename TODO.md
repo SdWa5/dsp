@@ -90,15 +90,15 @@ also postponed. Any additional form proven to need a connection belongs here.
 
 ## Editor
 
-- Add per-browser display controls to hide unused input and output channels. Let the user choose the channels
-  explicitly, keep hidden channels recoverable through the display settings, and define which channel views
-  follow the selection. Hiding a channel must not change its mute, routing or other device settings.
+- Consolidate and reorder display settings, especially the Channels header menu. The Channel display settings
+  modal currently contains only channel visibility and link-group control grouping, while other channel display
+  options remain scattered in the menu. Consider a dedicated Display Settings page containing all display
+  preferences, including channel visibility, grouping, link appearance and placement, meter thresholds and plot
+  options. Otherwise, at least group and reorder the existing channel display settings coherently and make the
+  modal's scope clear. Preserve existing browser preferences and keep device actions separate from display options.
 
 - Add a browser display preference for the Gain-page EQ overview to choose between the combined plot
   and separate input and output plots. Preserve the existing channel visibility selections in both views.
-- The Gain-page EQ overview should show one channel checkbox per link group. A group checkbox should
-  control visibility for all its linked channels; unlinked channels keep their individual checkboxes.
-  Update grouping when links change and retain the existing per-browser visibility preference.
 
 - Consider moving the Aux page button from the function-page header to the channel selector, between the
   input and output channels. Review the placement with the Matrix and Sub Control Aux changes before
@@ -141,6 +141,20 @@ also postponed. Any additional form proven to need a connection belongs here.
   the pairing on both filters, and decide what happens when one partner is in a link group, where the change
   then reaches every channel of that group. The system tuning (Automation, step 6) needs matching crossover
   filters as well and could set them through such a pair
+- Combine the channel page’s Bands and Selected band sections into one section, or place both
+  inside a shared parent section. Preserve their controls and collapse behavior across input, output and Aux pages.
+- (low priority) Expose all Aux compressor settings directly on the Aux page, like the output channel
+  compressor sections, instead of requiring the Aux compressor modal for ratio, attack and release.
+  Reuse the shared compressor controls and preserve Aux-specific ranges and the adjacent curve.
+- (low priority) Allow dragging compressor and gate threshold plot knobs to change the threshold. Cover the
+  Comp and Gate pages, output and input channel tabs, Aux page and Aux compressor dialog. Reuse the threshold
+  faders' bounds, step and writes, including linked channel behavior, and support mouse and touch input.
+- (low priority) Add per-browser display settings for the Gate and Comp page plots. Let each page show all
+  channel curves or only the selected or last-edited channel's curve. Preserve the existing single-channel
+  mode as the default, and include Aux in the Comp page's all-channel view.
+- (low priority) Identify gate and compressor curves with their channel link-group colours. Use curve colours,
+  marks or borders consistently in single-channel and all-channel views, with channel labels so overlapping
+  curves remain identifiable. Keep unlinked channels and Aux distinguishable without assigning them a link group.
 - (low priority) Proposal: let the look of an idle PEQ point be chosen in the UI. Since 0.63.1 a band point that
   does nothing, and an HPF or LPF square at slope 0, is filled in the mute red on the curve. A red ring around
   the band's own colour would keep the band colour readable. If this is made configurable, it could sit as a

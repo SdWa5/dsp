@@ -16,7 +16,7 @@
         {% endif %}
         {% if 'sub' == key and outputs %}
             {# The Aux between the input and the output strip: its gain and mute, incoming inputs and outgoing outputs #}
-            <div class="strip">
+            <div class="strip" data-controller="channelvisibility" data-channelvisibility-index-value="18">
                 <h3 class="strip__title">{{ w.ch(18) }}</h3>
                 <div class="strip__row">
                     {{ w.fader('', 'aux.gain', [{command: 'gain', args: {channel: 18, raw: '@aux.gain'}}], 0, 400, 'gain', null, {label: 'Aux gain', default: 280, muted_by: 'aux.mute'}) }}
@@ -26,7 +26,7 @@
                 {% include 'editor/_aux_routes.html.twig' %}
             </div>
         {% endif %}
-        <div class="strip" data-controller="linkplace">
+        <div class="strip" data-controller="linkplace selectors">
             <h3 class="strip__title">{{ title|trans }}</h3>
             {{ w.fader('', p ~ '.gain', send, 0, 100, 'percent', null, {label: '%channel% gain'|trans({'%channel%': title|trans}), muted_by: p ~ '.mute'}) }}
             {{ w.toggle('Mute', p ~ '.mute', send, null, {class: 'toggle--mute'}) }}

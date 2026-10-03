@@ -5,6 +5,26 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.70.0] - 2026-10-03
+
+### Added
+
+- Channels offers browser display settings for individual input/output/Aux visibility and one processing control per link group.
+- Input and output section headers offer independent Show all actions. The visibility dialog follows link colours, icons, ordering and stacked placement and provides mixed-state group visibility checkboxes.
+- Hidden channel pages offer an inline warning, Unhide channel and Open Gain page actions.
+- Additional mixed-state group selectors cover Aux routing, Sub/Group membership, AutoMix, Camera and Auto EQ outputs while retaining all individual choices.
+- Regression checks cover browser preferences, sparse layouts, representative changes, masked group writes, translations and mocked desktop/mobile views.
+- TODOs record grouped Bands/Selected band sections, directly accessible Aux compressor controls, draggable dynamics thresholds and configurable dynamics curve displays.
+
+### Changed
+
+- Processing strips, channel tabs and Gain EQ switches use the lowest visible linked member when grouping is enabled. Group EQ switches retain every member's curve-selection preference.
+- Matrix and routing graph filter hidden endpoints while keeping individual visible channels and original group identities. Visible Aux keeps its independent bottom row; hiding it removes its displayed graph edges and unused bottom row.
+- Group selectors live in link-group headers throughout the UI, including mixed visibility selectors in the display dialog. Labels show group names and icons; tooltips identify members. Grouping preserves individual channel order and stacked placement.
+- Stacked channel tabs omit the repeated coloured group-edge shadow beneath their shared header.
+- Channel pages place Bands, Selected band and Gain first, then HPF/LPF and channel-specific sections in a consistent order. HPF and LPF retain their vertical stack, and existing control bindings and collapse keys remain unchanged.
+- Gate follow plots recover to a visible representative or display an empty state. Comp follow plots fall back to visible Aux when all outputs are hidden, or show an empty state when Aux is hidden too.
+
 ## [0.69.1] - 2026-10-03
 
 ### Fixed
