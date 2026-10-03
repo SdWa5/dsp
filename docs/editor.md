@@ -50,7 +50,9 @@ A fader with a default puts the double-click hint after its tooltip. A gain fade
 while its gain sits at raw 0, the bottom, or while the mute named by `options.muted_by` is set, and the mute puts
 "Muted by its Mute button" above its tooltip. A compressor fader with `options.comp`, the compressor's path, turns
 its knob red while that compressor is off, by `compActive()` in `assets/lib/meters.js` (ratio 1:1.0 or threshold
-+20 dB), and says so above its tooltip. Only the knob changes colour, the track keeps its own. The sliders
++20 dB), and says so above its tooltip. An output delay fader (format `delay`) turns its knob red at 0 samples,
+which is no delay, and puts "No delay" above its tooltip. The echo delays of the Effect dialog keep their colour at
+0 ms, since an echo still repeats then. Only the knob changes colour, the track keeps its own. The sliders
 therefore draw their own track and knob in `app.css`, because a native slider colours both with one
 `accent-color`. The filled part of the track follows `--fill`, which `paintRange()` in `assets/lib/range.js` sets
 from the value, and `knobMuted()` there decides the red knob. The toggle controller keeps the tooltip and

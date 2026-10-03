@@ -13,9 +13,9 @@ export function paintRange(input) {
 }
 
 /**
- * Whether a gain fader shows a red knob: its gain sits at raw 0 (the bottom, which mutes) or its Mute button is
- * set. fmt: the fader's value format, only gain faders (fmt gain) have the bottom rule.
+ * Whether a fader shows a red knob: a gain at raw 0 (the bottom, which mutes) or with its Mute button set, an
+ * output delay at 0 samples, which is no delay. fmt: the fader's value format, which decides the rule.
  */
 export function knobMuted(fmt, value, mute) {
-    return true === mute || ('gain' === fmt && GAIN_MUTED === value);
+    return true === mute || ('gain' === fmt && GAIN_MUTED === value) || ('delay' === fmt && 0 === value);
 }

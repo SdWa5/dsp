@@ -9,8 +9,8 @@ import { parse } from '../lib/scale.js';
  * A slider with a value field. Type a value into the field ("-6", "200ms", "1:4"), or double-click the
  * slider to go back to the default value. A gain fader's knob turns red while its gain sits at raw 0, the bottom,
  * or while the mute named by muted-by is set, the way a gain at raw 0 lights the Mute button. A compressor fader's
- * knob turns red while the compressor named by comp is off (ratio 1:1.0 or threshold +20 dB). The track keeps its
- * colour.
+ * knob turns red while the compressor named by comp is off (ratio 1:1.0 or threshold +20 dB), a delay fader's while
+ * it is at 0. The track keeps its colour.
  */
 export default class extends BoundController {
     static targets = ['input', 'label'];
@@ -100,10 +100,11 @@ export default class extends BoundController {
         // No state yet is not an off compressor
         const off = null !== comp && 'object' === typeof comp && !compActive(comp);
         this.element.classList.toggle('is-muted', off || knobMuted(this.fmtValue, Number(this.inputTarget.value), mute));
-        if ('' !== this.mutedByValue || '' !== this.compValue) {
+        if ('' !== this.mutedByValue || '' !== this.compValue || 'delay' === this.fmtValue) {
             // A state message goes on a line of its own above the tooltip from the page
             this.tip ??= this.element.title;
-            const state = mute ? t("Muted by its Mute button") : off ? t("Compressor off: ratio 1:1.0 or threshold +20 dB") : '';
+            const none = 'delay' === this.fmtValue && 0 === Number(this.inputTarget.value);
+            const state = mute ? t("Muted by its Mute button") : off ? t("Compressor off: ratio 1:1.0 or threshold +20 dB") : none ? t("No delay") : '';
             this.element.title = [state, this.tip].filter(Boolean).join('\n');
         }
     }

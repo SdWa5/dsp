@@ -146,6 +146,7 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   fader's tooltip says when its Mute button mutes it.
 - A compressor that is off, at ratio 1:1.0 or with its threshold at +20 dB, turns the knobs of all its faders red,
   on the Comp page, the output tabs, the Aux page and in the Aux compressor dialog.
+- An output delay fader's knob turns red at 0, no delay, on the Delay page and the output tabs.
 - The knobs of the selected band's faders turn red while the band does nothing, bypassed by its own Bypass or by EQ
   Bypass, or a Peak or shelf at 0 dB. A HighPass or LowPass frequency knob turns red while its Bypass is on. EQ
   Bypass leaves the filter knobs as they are until it is measured whether it takes out the HPF and LPF. The band's

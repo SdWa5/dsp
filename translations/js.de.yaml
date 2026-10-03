@@ -43,6 +43,7 @@
 "Band bypassed": "Band umgangen."
 "Band at 0 dB: a Peak or shelf does nothing": "Band auf 0 dB. Ein Peak oder Shelf bewirkt dann nichts."
 "Filter bypassed": "Filter umgangen."
+"No delay": "Keine Verzögerung."
 "%channel% Gate": "%channel% Gate"
 "%channel% Compressor": "%channel% Kompressor"
 "No DSP found on USB or on %networks%.": "Kein DSP über USB oder in %networks% gefunden."
