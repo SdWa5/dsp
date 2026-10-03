@@ -5,6 +5,22 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.69.0] - 2026-10-03
+
+### Added
+
+- Both matrix orientations include Aux as a source and destination, with its unsupported self-route disabled.
+- One shared Aux input/output selector view serves the Aux page, Gain page and Sub Control dialog.
+- Regression tests cover Aux routing masks, shared views, translations, hover focus and link placement.
+- A UI configurability TODO records per-browser controls to hide unused input and output channels.
+- A highest-priority TODO records placing the Aux compressor plot beside its faders.
+
+### Changed
+
+- The read-only routing graph places Aux between input and output columns in a separate bottom row, displays both route directions and keeps direct lines clear of its node.
+- Hovering the central Aux node highlights its incoming and outgoing routes in both matrix and graph.
+- Matrix change marks include Aux input selection, using the existing factory defaults.
+
 ## [0.68.0] - 2026-10-03
 
 ### Added

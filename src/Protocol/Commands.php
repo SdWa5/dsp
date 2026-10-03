@@ -49,7 +49,7 @@ final class Commands
 
     /**
      * Matrix routing of an output (0x08–0x0F), or the source selection of the Aux (0x12).
-     * Bit 0 = In1 … bit 7 = In8.
+     * Bit 0 = In1 … bit 7 = In8; output masks also use bit 8 for Aux. Aux has input bits only.
      */
     public static function routing(int $channel, int $mask): Frame
     {

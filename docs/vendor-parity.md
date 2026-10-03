@@ -49,7 +49,7 @@ The check validates coverage, source counterparts, PNG paths, unresolved TODOs, 
 | peq-reset | EQ Reset | unresolved | [peq_controller.js](../assets/controllers/peq_controller.js) | Connected-device verification is postponed by the user until a later hardware session. Input/output reset exists. Aux reset frequencies require online confirmation. Capture Aux EQ Reset online and compare emitted frequencies with resources/factory_config.bin. See Protocol TODO. |
 | filters | HighPass / LowPass frequency, slope and Bypass | matched | [_peq.html.twig](../templates/editor/_peq.html.twig) | Frequency range matches. Slope labels come from captured value lists; bypass maps to raw slope 0. |
 | fbq | FBQ Close and Levels 1..4 | matched | [_channel.html.twig](../templates/editor/page/_channel.html.twig) |  |
-| aux-sources | Aux Select In1..In8 | matched | [_aux.html.twig](../templates/editor/page/_aux.html.twig) |  |
+| aux-sources | Aux Select In1..In8 | matched | [_aux_routes.html.twig](../templates/editor/_aux_routes.html.twig) |  |
 | aux-switches | AutoMix / Effect / Camera Off, On and Set | matched | [_aux.html.twig](../templates/editor/page/_aux.html.twig) |  |
 | mix | AutoMix / Camera threshold, attack, release and source buttons | unresolved | [_dialogs.html.twig](../templates/editor/_dialogs.html.twig) | Connected-device verification is postponed by the user until a later hardware session. Threshold -50..0 dB matches. Vendor attack/release reach 5000 ms; trackdsp retains smaller ranges pending readback. Send raw attack/release 4999, read back and capture the vendor reply before widening. See Protocol TODO. |
 | mix-slope | AutoMix slope -3/-4/-5/-6 dB | matched | [_dialogs.html.twig](../templates/editor/_dialogs.html.twig) |  |

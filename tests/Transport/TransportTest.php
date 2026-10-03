@@ -145,6 +145,27 @@ final class TransportTest extends TestCase
         self::assertSame([], array_filter($levels, static fn (float $db): bool => $db < -40.05 || $db > -9.95), 'Demo meters move between -40 and -10 dB');
     }
 
+    public function testDemoKeepsIncomingAndOutgoingAuxRoutingIndependent(): void
+    {
+        $dsp = new \App\Client\Matrix(DemoTransport::fromFile(self::DEMO), 0.01);
+        $before = $dsp->device();
+        $original = $before->outputs[7]->route;
+        $auxInputs = (1 << 0) | (1 << 7);
+        $dsp->write(Commands::routing(18, $auxInputs));
+        $dsp->write(Commands::routing(15, $original | (1 << 8)));
+        $after = $dsp->device();
+        self::assertSame($auxInputs, $after->aux->select);
+        self::assertSame($original | (1 << 8), $after->outputs[7]->route);
+        self::assertSame($before->outputs[0]->route, $after->outputs[0]->route);
+        self::assertSame($before->aux->gain, $after->aux->gain);
+        self::assertSame($before->aux->mute, $after->aux->mute);
+
+        $dsp->write(Commands::routing(15, $after->outputs[7]->route & ~(1 << 8)));
+        $after = $dsp->device();
+        self::assertSame($original & ~(1 << 8), $after->outputs[7]->route);
+        self::assertSame($auxInputs, $after->aux->select);
+    }
+
     public function testDemoLimitsTheOutputsWhoseCompressorReachesTheLevel(): void
     {
         // The demo preset holds Out1 and Out2 at Limit from 0 dB, above every demo level (-40..-10 dB)

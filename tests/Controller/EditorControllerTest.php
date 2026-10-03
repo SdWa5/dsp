@@ -120,19 +120,19 @@ final class EditorControllerTest extends WebTestCase
         [$normal, $swapped] = [$tables->eq(0), $tables->eq(1)];
         self::assertNull($normal->attr('hidden'));
         self::assertNotNull($swapped->attr('hidden'));
-        self::assertCount(8, $normal->filter('tbody tr'));
+        self::assertCount(9, $normal->filter('tbody tr'));
         self::assertCount(9, $swapped->filter('tbody tr'));
         foreach ([$normal, $swapped] as $table) {
-            self::assertCount(72, $table->filter('.toggle--cell'));
+            self::assertCount(80, $table->filter('.toggle--cell'));
             self::assertSame('editor#swapMatrix', $table->filter('.matrix__corner')->attr('data-action'));
         }
         // The signal runs from In to Out: In headers left or on top, Out headers right or at the bottom
         self::assertSame('In1', $normal->filter('thead th')->first()->filter('.ch__id')->text());
         self::assertSame('Out1', $normal->filter('tbody tr')->first()->filter('th')->last()->filter('.ch__id')->text());
         self::assertSame('In1', $swapped->filter('tbody tr')->first()->filter('th')->first()->filter('.ch__id')->text());
-        self::assertCount(8, $swapped->filter('tfoot th .ch'));
+        self::assertCount(9, $swapped->filter('tfoot th .ch'));
         // Row In3 of the swapped table holds bit 2 of every output
-        $row = $swapped->filter('tbody tr')->eq(2)->filter('.toggle--cell');
+        $row = $swapped->filter('tbody tr')->eq(2)->filter('.toggle--cell[data-toggle-bind-value^="outputs."]');
         self::assertSame('outputs.7.route', $row->last()->attr('data-toggle-bind-value'));
         self::assertSame(['2'], array_values(array_unique($row->each(static fn (Crawler $n): string => (string) $n->attr('data-toggle-bit-value')))));
     }
@@ -338,12 +338,17 @@ final class EditorControllerTest extends WebTestCase
             'section[data-page=comp] .strips' => 1,
             'section[data-page=delay] .strips' => 1,
             'section[data-page=matrix] table.matrix' => 2,
-            'section[data-page=aux] fieldset[data-collapse-key-value="aux.select"]' => 1,
+            'section[data-page=aux] .aux-routes__column' => 2,
             'section[data-page=autoeq] .checks' => 1,
         ];
         foreach ($placed as $selector => $count) {
             self::assertCount($count, $page->filter($selector), $selector);
             $page->filter($selector)->each(static function (Crawler $node) use ($selector): void {
+                if (str_ends_with($selector, '.strip') && $node->filter('.aux-routes')->count() > 0) {
+                    self::assertCount(2, $node->filter('.aux-routes__column[data-controller=linkplace]'));
+
+                    return;
+                }
                 if (str_ends_with($selector, '.strip') && null === $node->filter('.toggle--route')->getNode(0)) {
                     return;
                 }
@@ -376,15 +381,16 @@ final class EditorControllerTest extends WebTestCase
         self::assertSame('pointerover->routefocus#over pointerleave->routefocus#leave routing:rendered->routefocus#reapply', $page->attr('data-action'));
         $page->filter('table.matrix')->each(static function (Crawler $table): void {
             // Every cell is one connection, its source and output match the bit and path of its toggle
-            $table->filter('td')->each(static function (Crawler $cell): void {
+            $table->filter('td[data-source]')->each(static function (Crawler $cell): void {
                 $toggle = $cell->filter('[data-controller~=toggle]');
                 self::assertSame((string) $toggle->attr('data-toggle-bit-value'), $cell->attr('data-source'));
-                self::assertSame('outputs.'.$cell->attr('data-output').'.route', $toggle->attr('data-toggle-bind-value'));
+                self::assertSame('8' === $cell->attr('data-output') ? 'aux.select' : 'outputs.'.$cell->attr('data-output').'.route', $toggle->attr('data-toggle-bind-value'));
             });
-            self::assertCount(72, $table->filter('td'));
-            // Every header but the corner names its channel, In1..In8 and the Aux as sources, Out1..Out8 as outputs
+            self::assertCount(81, $table->filter('td'));
+            self::assertCount(1, $table->filter('td button.matrix__unsupported[disabled]'));
+            // Aux appears as both source and destination; its unsupported self-cell has no focus attributes
             self::assertCount(9, $table->filter('th[data-source]'));
-            self::assertCount(8, $table->filter('th[data-output]'));
+            self::assertCount(9, $table->filter('th[data-output]'));
         });
     }
 
@@ -510,7 +516,7 @@ final class EditorControllerTest extends WebTestCase
             $select = $aux->filter('.toggle--route[data-toggle-bind-value="aux.select"]');
             self::assertSame(range(0, 7), $select->each(static fn (Crawler $n): int => (int) $n->attr('data-toggle-bit-value')));
             self::assertSame(range(0, 7), $select->each(static fn (Crawler $n): int => (int) $n->filter('.ch')->attr('data-channel-index-value')));
-            self::assertContains('linkplace', explode(' ', (string) $aux->attr('data-controller')));
+            self::assertCount(2, $aux->filter('.aux-routes__column[data-controller=linkplace]'));
             self::assertCount(0, $aux->filter('[data-fader-link-value], [data-toggle-link-value]'));
         }
     }

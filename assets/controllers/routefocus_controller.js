@@ -39,7 +39,7 @@ export default class extends Controller {
         this.focus = focus;
         this.key = key;
         this.element.classList.toggle('has-route-focus', null !== focus);
-        const edges = routingEdges(store.state?.outputs);
+        const edges = routingEdges(store.state?.outputs, store.state?.aux?.select);
         for (const node of this.element.querySelectorAll(HOLDERS)) {
             node.classList.toggle('is-focus', routingLit(focus, routingFocus(node.dataset), edges));
         }

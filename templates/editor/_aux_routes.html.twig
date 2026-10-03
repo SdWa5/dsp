@@ -1,0 +1,18 @@
+{# Shared Aux selectors. Inputs use aux.select; outputs toggle only their Aux source bit. #}
+{% import 'editor/_widgets.html.twig' as w %}
+{% set route = [{command: 'routing', args: {channel: 18, mask: '@aux.select'}}] %}
+<div class="aux-routes">
+    <fieldset class="aux-routes__column" data-controller="linkplace">
+        <legend>{{ 'Input'|trans }}</legend>
+        {% for b in 0..7 %}
+            {{ w.toggle(w.ch(b), 'aux.select', route, null, {bit: b, class: 'toggle--route', aria: '%output% from %input%'|trans({'%output%': 'Aux', '%input%': 'In' ~ (b + 1)})}) }}
+        {% endfor %}
+    </fieldset>
+    <fieldset class="aux-routes__column" data-controller="linkplace">
+        <legend>{{ 'Output'|trans }}</legend>
+        {% for b in 0..7 %}
+            {% set p_out = 'outputs.' ~ b ~ '.route' %}
+            {{ w.toggle(w.ch(8 + b), p_out, [{command: 'routing', args: {channel: 8 + b, mask: '@' ~ p_out}}], null, {bit: 8, class: 'toggle--route', aria: '%output% from %input%'|trans({'%output%': 'Out' ~ (b + 1), '%input%': 'Aux'})}) }}
+        {% endfor %}
+    </fieldset>
+</div>

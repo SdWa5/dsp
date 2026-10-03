@@ -3,25 +3,22 @@ import { store } from '../lib/device.js';
 import { channelId, channelParts } from '../lib/channels.js';
 import { linkGroups, linkName, linkRuns } from '../lib/link.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
-import { routingEdges, routingLayout, SOURCES, sourceChannel } from '../lib/routing.js';
+import { routingEdges, routingLayout, routingPath, AUX, GRAPH_WIDTH, NODE_WIDTH, NODE_HEIGHT, SOURCES, sourceChannel } from '../lib/routing.js';
 import { t } from '../lib/i18n.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
 // One colour per source, the inputs as on the EQ overview, Aux in grey
 const COLORS = ['#ff5252', '#ffd740', '#e040fb', '#40c4ff', '#69f0ae', '#448aff', '#b0bec5', '#ffab40', '#9e9e9e'];
-const NODE = { width: 150, height: 26 };
-const WIDTH = 480;
+const NODE = { width: NODE_WIDTH, height: NODE_HEIGHT };
+const WIDTH = GRAPH_WIDTH;
 // Room around the columns for the frames of stacked link groups, and the height of a frame's head
 const MARGIN = 4;
 const HEAD = 14;
 
 /**
- * The routing of the matrix as the vendor editor draws it: In1..In8 and Aux on the left, Out1..Out8 on the right,
- * and a line for every connection, coloured by its source. Hovering a channel or a line brings out its lines here
- * and its cells in the matrix (routefocus_controller.js). Both columns
- * follow the link placement, and a linked channel carries its group code and colour. Stacked, a frame gathers
- * each link group under a head with the group's code and colour, as a stacked block does on the other pages. It only shows the routing,
- * the matrix next to it sets it.
+ * Inputs, Aux and outputs form three columns. Every direct or Aux route is coloured by its source.
+ * Link placement and group frames apply to the outer columns; Aux stays independent in a separate bottom row between the columns.
+ * Hover focus matches the matrix. This graph only displays routing; the matrix and selectors edit it.
  */
 export default class extends Controller {
     static targets = ['svg'];
@@ -38,15 +35,15 @@ export default class extends Controller {
 
     render() {
         const state = store.state;
-        const edges = routingEdges(state?.outputs);
+        const edges = routingEdges(state?.outputs, state?.aux?.select);
         const names = [...Array.from({ length: SOURCES }, (_, s) => sourceChannel(s)), ...Array.from({ length: 8 }, (_, o) => 8 + o)]
             .map((index) => channelParts(index, state));
         const view = getLinkView();
         const groups = { inputs: linkGroups(state?.inputs ?? []), outputs: linkGroups(state?.outputs ?? []) };
         const placement = null === state ? 'normal' : view.placement;
-        // The runs of each column: In1..In8 by the placement and the Aux last, Out1..Out8 by the placement
+        // Only inputs and outputs belong to link groups; Aux has its own central column
         const runs = {
-            sources: [...linkRuns(groups.inputs, placement), { group: 0, channels: [8] }],
+            sources: linkRuns(groups.inputs, placement),
             outputs: linkRuns(groups.outputs, placement),
         };
         // The state updates often, the graph only redraws when a connection, a name or the link display changes
@@ -59,7 +56,6 @@ export default class extends Controller {
         const svg = this.svgTarget;
         svg.setAttribute('viewBox', `${-MARGIN} ${-MARGIN} ${WIDTH + 2 * MARGIN} ${layout.height + 2 * MARGIN}`);
         svg.replaceChildren();
-        const left = NODE.width;
         const right = WIDTH - NODE.width;
         // Stacked, every link group gets a frame with a head that carries its code, as a stacked block does
         const framed = new Set();
@@ -79,26 +75,28 @@ export default class extends Controller {
             }
         }
         for (const { source, output } of edges) {
-            const y1 = layout.sources.y[source];
-            const y2 = layout.outputs.y[output];
-            const mid = (left + right) / 2;
             this.svgNode(svg, 'path', {
                 class: 'routing__edge',
-                d: `M${left},${y1} C${mid},${y1} ${mid},${y2} ${right},${y2}`,
+                d: routingPath({ source, output }, layout),
                 stroke: COLORS[source],
                 'data-source': source,
                 'data-output': output,
             });
         }
         names.forEach((parts, n) => {
+            const isAux = n === AUX;
             const isSource = n < SOURCES;
-            const y = isSource ? layout.sources.y[n] : layout.outputs.y[n - SOURCES];
+            const y = isAux ? layout.aux : isSource ? layout.sources.y[n] : layout.outputs.y[n - SOURCES];
             const group = n < 8 ? groups.inputs[n] : n >= SOURCES ? groups.outputs[n - SOURCES] : 0;
             const node = this.svgNode(svg, 'g', {
                 class: 'routing__node',
-                transform: `translate(${isSource ? 0 : right},${y - NODE.height / 2})`,
+                transform: `translate(${isAux ? (WIDTH - NODE.width) / 2 : isSource ? 0 : right},${y - NODE.height / 2})`,
                 [isSource ? 'data-source' : 'data-output']: isSource ? n : n - SOURCES,
             });
+            if (isAux) {
+                node.dataset.aux = '1';
+                node.dataset.output = String(AUX);
+            }
             this.svgNode(node, 'rect', { class: 'routing__box', width: NODE.width, height: NODE.height, rx: 4 });
             if (group > 0) {
                 // A framed member leaves its colour and code to the frame's head

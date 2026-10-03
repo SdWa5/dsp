@@ -157,6 +157,30 @@ curves on the channel tabs, the Aux tab and in the Aux compressor dialog are fix
 view and sends nothing. A drawing happens at most once per frame and only when the threshold, the ratio or the
 title changed.
 
+## Aux routing
+
+Both matrix orientations have nine sources and nine destinations. Aux stays last on each axis and outside
+input/output link groups. Inputs feeding Aux bind to bits 0..7 of `aux.select` and send the existing routing
+command for channel 18. Aux feeding an output binds to bit 8 of that output's `route` mask and sends its output
+channel 8..15. Each toggle preserves the other mask bits. Routing keeps its existing per-output write behavior,
+without adding the gain/PEQ controls' client-side linked writes. No API, protocol or preset format changes.
+
+The Aux-to-Aux intersection has a disabled button with an explanatory translated label and no command binding.
+The shared Aux selector template renders eight incoming and eight outgoing selectors in separate labelled
+columns on the Aux page, Gain page and Sub Control dialog. Each column follows the corresponding input/output link placement independently.
+All three views use the shared store.
+
+The graph puts a single Aux node between input and output columns in a separate row below all their channels. `routingEdges()` accepts output masks and
+`aux.select`; destination index 8 denotes Aux only inside the UI, not a ninth hardware output. `routingLayout()`
+places Aux below both outer columns, and `routingPath()` keeps direct connections clear of its box.
+`data-aux="1"` distinguishes the central node's two roles from a connection. Its hover lights both incoming and
+outgoing routes; individual edges light their endpoints. Matrix headers keep their source or destination role.
+The graph remains read-only. Missing routing masks produce no edges, and disconnected controls are disabled.
+
+Regression tests cover matrix orientations and commands, both Sub Control views, translated labels, independent
+incoming/outgoing masks, preserved bits, shared-store synchronization, hover behavior and all link placements.
+The demo transport tests use isolated state and do not contact a shared bridge or hardware.
+
 ## Page change marks
 
 Every function tab shows the number of its settings that differ from `resources/factory_config.bin` as a badge
@@ -171,7 +195,7 @@ curve switches do not affect these marks.
 | Gate | Input gate settings |
 | Comp | Output compressor settings |
 | Delay | Output delays and the device delay unit |
-| Matrix | Output routing masks |
+| Matrix | Output routing masks and Aux input selection |
 | Aux | Every Aux setting with a factory default |
 | Auto EQ | Output PEQ settings, band bypass and EQ bypass |
 

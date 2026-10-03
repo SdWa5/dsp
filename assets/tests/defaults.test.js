@@ -52,7 +52,7 @@ test('every function page marks its own changed controls', () => {
         ['outputs.0.delay', 480, ['delay']],
         ['delay_unit', 1, ['delay']],
         ['outputs.0.route', 3, ['matrix']],
-        ['aux.select', 3, ['aux']],
+        ['aux.select', 3, ['matrix', 'aux']],
         ['outputs.0.peq.0.gain', 150, ['autoeq']],
         ['outputs.0.peq.0.bypass', true, ['autoeq']],
         ['outputs.0.eq_bypass', true, ['autoeq']],
