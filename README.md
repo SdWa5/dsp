@@ -113,7 +113,7 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
 - A named channel shows its name next to its ID wherever the ID appears, for example "Out1 Main L" or
   "Out1 (Main L)" in lists. A name that only repeats the ID is left out.
 - The channel tabs show a dot for a muted channel, a hollow one for a channel whose gain mutes it, and the link
-  group. The Channels menu and the Link dialog set how a link group shows on the tabs and in the Link matrix, kept
+  group. Display Settings and the Link dialog set how a link group shows on the tabs and in the Link matrix, kept
   in the browser. The code (L1, L2, ..., on by default), an icon per group (circle, square, triangle, diamond) and a
   colour per group combine freely, and code and icon stand next to each other. The placement of linked channels is
   in channel order, side by side, or stacked per link group in one column. Stacked puts a header with the group's
@@ -124,14 +124,35 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
 - The link display and the placement also apply inside the pages. Every channel label outside the Link dialog
   carries its group's code, icon and colour. The strips of Gain, Gate, Comp and Delay, the EQ overview switches,
   the route buttons of Sub Control, Group Control and the Aux, the Auto EQ outputs, the matrix and the routing
-  graph follow the placement. Stacked gathers a group under one header, and strips, being too tall to stack, form
+  graph follow the placement. Link colours fill group frames, including padding; member controls keep their own
+  backgrounds. Stacked gathers a group under one header, and strips, being too tall to stack, form
   a block that runs across. The matrix leaves a gap around each group and heads it with one bar outside the
   channel headers, and the routing graph frames each group under a head. Either way the code shows once per group.
-- Channels > Channel display settings hides chosen inputs, outputs and Aux in this browser. Hidden channels stay
+- The header’s Display Settings button opens `#display`, the complete browser display overview. Its sections cover
+  appearance and language, channel visibility and grouping, link appearance and names with shared colour marks, meter thresholds,
+  EQ plot options and curve selection with shared link-group placement, matrix orientation and shared panel expansion. Local theme, language,
+  plot, Link-dialog and panel controls remain synchronized shortcuts. All seven settings sections fold
+  through their headings and retain their state per browser. Translated tooltips explain every display
+  control, including browser group names and shared panel choices. Existing preferences are preserved;
+  changes stay available for the current visit when storage is blocked. Display preferences send no device
+  writes. Channel names are also editable here through the existing
+  device controls and Names dialog shortcut. Input, Output and Aux names have separate rows; link-group names
+  use Input and Output rows, and panel choices use one row per page context. Controls wrap within their rows. Name edits write to the connected device and belong to presets.
+- Grouped channel tabs and Gain EQ overview switches show every member’s channel name and update after any
+  member rename, including hidden members. Shared channel captions show all IDs once before the names.
+  Turning grouping off restores individual captions. Channel-page titles omit repeated device names; grouped
+  linked titles use an editable group-name field without a repeated label. Every linked member has one ID/name
+  field pair below, including hidden members. The browser group name stays synchronized with Display Settings
+  and the Link dialog, and each device-name field renames its own channel only.
+- The Channels section hides chosen inputs, outputs and Aux in this browser. Hidden channels has its own
+  heading and Input, Output and Aux columns, matching Gain EQ overview and Channel EQ plots. Hidden channels stay
   active, and linked edits still reach them. Hidden detail pages offer Unhide channel and
   Open Gain page. Show all restores every channel, while section-header buttons restore inputs or outputs
-  independently. The dialog follows existing link colours, icons, ordering and stacked placement, and its
-  group-header checkboxes show mixed visibility and restore or hide every member of the group.
+  independently. The page follows existing link colours, icons, ordering and stacked placement, and its
+  group-header checkboxes show mixed visibility and restore or hide every member of the group. With grouping
+  enabled, visibility and overview selection show one toggle per group, and Channel EQ plots show one mixed-state
+  set of preferences per group. Hidden members remain included. Turning grouping off restores individual controls
+  without changing stored choices.
 - One control per link group shows the lowest visible member's processing strip, header tab and Gain EQ switch,
   labelled with group members. Matrix and routing graph keep individual visible channels. Routing and membership
   selectors retain every channel and put mixed-state group checkboxes in their group headers, including hidden
@@ -147,7 +168,8 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   channel of a group is copied to the others. The rows and columns follow the placement after every click, and
   stacked turns each group into a block with one header naming its members. The display settings sit below the
   two matrices as well.
-- Input, output and Aux detail pages share the order Bands, Selected band and Gain. HPF/LPF follow where
+- Input, output and Aux detail pages stack Selected band directly below Bands, with independent collapse
+  controls, and place Gain next. HPF/LPF follow where
   available, stacked vertically, then Gate or Comp and the remaining channel-specific sections.
 - Every setting that differs from the factory default (`resources/factory_config.bin`) has a bar on its left
   edge. Every page tab shows the number of its changed settings as a badge, and every channel tab shows a corner
@@ -175,7 +197,7 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   point and the filter's square on the EQ curve turn red with them, so no band point uses red as its own colour.
 - The meters hold their peak for 1.5 s and light a red top for 2 s after reaching 0 dB.
 - Every meter marks a threshold with a dashed line, the gate threshold on the inputs in cyan and the compressor
-  threshold on the outputs and the Aux in orange. Channels > Meters switches the mark off or shows it for every
+  threshold on the outputs and the Aux in orange. Display Settings > Meters switches the mark off or shows it for every
   gate and compressor, by default only for the ones that work. A gate works above -90 dB, a compressor at a ratio
   other than 1:1.0 with its threshold below +20 dB. A threshold off the meter's -60 to +12 dB shows no mark.
 - Output meters have an orange Limit lamp above the red top, lit while the device reports the output's limiter

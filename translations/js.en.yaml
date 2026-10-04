@@ -238,3 +238,18 @@
 "No visible input channels.": "No visible input channels."
 "Hidden members: %channels%": "Hidden members: %channels%"
 "No visible compressor channels.": "No visible compressor channels."
+
+"Gain page": "Gain page"
+"Gate page": "Gate page"
+"Comp page": "Comp page"
+"Matrix page": "Matrix page"
+"Channel pages": "Channel pages"
+"Aux page": "Aux page"
+"Auto EQ page": "Auto EQ page"
+"Panels": "Panels"
+
+"Display Settings": "Display Settings"
+"Browser-only name for %channels%. Up to %length% characters. Leave empty to use the group code.": "Browser-only name for %channels%. Up to %length% characters. Leave empty to use the group code."
+"Show or hide %panel%. Shared channel sections use the same setting on every channel page.": "Show or hide %panel%. Shared channel sections use the same setting on every channel page."
+"Select every linked member, including hidden channels. Clear every member when all are selected.": "Select every linked member, including hidden channels. Clear every member when all are selected."
+"Group preference for %channels%. Applies to every member, including hidden channels. Mixed means members differ.": "Group preference for %channels%. Applies to every member, including hidden channels. Mixed means members differ."

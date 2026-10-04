@@ -1,18 +1,19 @@
 import { Controller } from '@hotwired/stimulus';
 import { store } from '../lib/device.js';
-import { channelId, channelLabel, channelParts } from '../lib/channels.js';
+import { channelLabel } from '../lib/channels.js';
 import { linkGroups, linkMark, linkName } from '../lib/link.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
-import { getChannelView, onChannelView, channelMembers, displayedChannel } from '../lib/channelview.js';
+import { getChannelView, onChannelView, displayChannelParts, displayedChannel } from '../lib/channelview.js';
 
 /**
  * A channel ID with the channel's name next to it: "In1 DJ L". In an <option> as plain text "In1 · DJ L".
+ * Grouped processing captions show every member name and refresh after any member rename.
  * A linked input or output also shows its link group as the display settings ask: the code, the icon and the
  * colour, as on the channel tabs. Values: index (0..7 In, 8..15 Out, 18 Aux), link (false where the group
- * would mislead, as in the Link dialog, which shows the groups being edited).
+ * would mislead, as in the Link dialog), title (a page title omits the name already shown in its text field).
  */
 export default class extends Controller {
-    static values = { index: Number, link: { type: Boolean, default: true } };
+    static values = { index: Number, title: Boolean, link: { type: Boolean, default: true } };
 
     connect() {
         this.shown = null;
@@ -25,11 +26,11 @@ export default class extends Controller {
     }
 
     render(state) {
-        const { id, name } = channelParts(this.indexValue, state);
+        const grouped = !this.titleValue && getChannelView().grouped && !!this.element.closest('[data-linkplace-display-value=true]') && displayedChannel(this.indexValue, state);
+        const { id, name, label: caption, members } = displayChannelParts(this.indexValue, state, { grouped });
         const view = getLinkView();
         const { group, label } = this.group(state, view);
-        const members = channelMembers(this.indexValue, state);
-        const key = JSON.stringify([id, name, group, label, members, view.code, view.shape, view.colour, getChannelView()]);
+        const key = JSON.stringify([id, name, caption, group, label, members, view.code, view.shape, view.colour, getChannelView()]);
         if (key === this.shown) {
             return;
         }
@@ -38,21 +39,17 @@ export default class extends Controller {
             this.element.textContent = channelLabel(this.indexValue, state);
             return;
         }
+        // The leading ID carries the whole group; do not append a second member-ID list.
+        const idNode = this.element.querySelector('.ch__id');
+        if (idNode) idNode.textContent = id;
         const nameNode = this.element.querySelector('.ch__name');
         if (nameNode) {
             nameNode.textContent = name;
         }
-        this.element.classList.toggle('is-named', '' !== name);
-        this.element.title = channelLabel(this.indexValue, state);
+        this.element.classList.toggle('is-named', !!nameNode && '' !== name);
+        this.element.classList.toggle('is-grouped', grouped && members.length > 1);
+        this.element.title = caption;
         this.showLink(view, group, label);
-        this.element.querySelector('.channel-members')?.remove();
-        if (this.element.closest('[data-linkplace-display-value=true]') && getChannelView().grouped && displayedChannel(this.indexValue, state)) {
-            if (members.length > 1) {
-                const summary = document.createElement('span'); summary.className = 'channel-members';
-                summary.textContent = members.map(i => channelId(i)).join(', ');
-                this.element.append(summary);
-            }
-        }
     }
 
     /** {group, label}: the link group (1..) of this channel and its name, group 0 when it is alone, the Aux or not to be shown. */

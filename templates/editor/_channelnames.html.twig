@@ -1,0 +1,17 @@
+{% import 'editor/_widgets.html.twig' as w %}
+{# Device names remain individual writes. The settings page separates channel types; the dialog keeps its compact grid. #}
+    <div class="names{{ rows|default(false) ? ' names--rows' : '' }}">
+        {% for side, prefix in {inputs: 'In', outputs: 'Out'} %}
+            <div class="names__row" data-names-side="{{ side }}" role="group" aria-label="{{ (side == 'inputs' ? 'Input' : 'Output')|trans }}">
+            {% if rows|default(false) %}<strong class="names__heading" title="{{ 'editor.tip.name'|trans }}">{{ (side == 'inputs' ? 'Input' : 'Output')|trans }}</strong>{% endif %}
+            {% for i in 0..7 %}
+                {% set channel = 'inputs' == side ? i : 8 + i %}
+                <label title="{{ 'editor.tip.name'|trans }}">{{ prefix }}{{ i + 1 }} {{ w.text('%channel% name'|trans({'%channel%': prefix ~ (i + 1)}), side ~ '.' ~ i ~ '.name', [{command: 'channelName', args: {channel: channel, name: '@' ~ side ~ '.' ~ i ~ '.name'}}], 8) }}</label>
+            {% endfor %}
+            </div>
+        {% endfor %}
+        <div class="names__row" data-names-side="aux" role="group" aria-label="Aux">
+        {% if rows|default(false) %}<strong class="names__heading" title="{{ 'editor.tip.name'|trans }}">Aux</strong>{% endif %}
+        <label title="{{ 'editor.tip.name'|trans }}">Aux {{ w.text('Aux name', 'aux.name', [{command: 'channelName', args: {channel: 18, name: '@aux.name'}}], 8) }}</label>
+        </div>
+    </div>

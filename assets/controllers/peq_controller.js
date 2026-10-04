@@ -4,7 +4,8 @@ import { isChanged } from '../lib/defaults.js';
 import { getDefaults, getLabels, send, store } from '../lib/device.js';
 import { linkedMembers } from '../lib/link.js';
 import { faderDefault, paintRange } from '../lib/range.js';
-import { readPref, writePref } from '../lib/prefs.js';
+import { onPref } from '../lib/prefs.js';
+import { filterLabels, setFilterLabels } from '../lib/displayprefs.js';
 import { getPath } from '../lib/store.js';
 import { bandBypassed, bandIdle, bandPlotLabels, crossoverPlotLabels, curveRuns, drawFilterLabels, filterIdle, drawGrid, eqView, loadEqView, plotFor, plotHit, prepare, resetEqBands, response, saveEqView, singleFilter, stepFilterType } from '../lib/eq.js';
 import * as S from '../lib/scale.js';
@@ -45,14 +46,8 @@ export default class extends Controller {
         this.hovered = null;
         this.pressed = null;
         this.slopes = {};
-        const view = loadEqView(this.pathValue);
-        if (this.hasMagTarget && this.hasPhaseTarget) {
-            this.magTarget.checked = view.mag;
-            this.phaseTarget.checked = view.phase;
-        }
-        if (this.hasLabelsTarget) {
-            this.labelsTarget.checked = readPref('eq-filter-labels', {})[this.pathValue] === true;
-        }
+        this.showPreferences();
+        this.offPrefs = onPref(['eq-view', 'eq-filter-labels'], () => { this.showPreferences(); this.draw(); });
         this.unsubscribe = store.subscribe(() => this.refresh());
         // A press anywhere else lets go of the filter a press here held, which a touch needs (see press())
         this.outside = (event) => {
@@ -69,6 +64,7 @@ export default class extends Controller {
 
     disconnect() {
         this.unsubscribe?.();
+        this.offPrefs?.();
         document.removeEventListener('pointerdown', this.outside);
         this.resize?.disconnect();
     }
@@ -219,6 +215,16 @@ export default class extends Controller {
             (i, values) => this.setBand(i, values));
     }
 
+    /** Page controls and local shortcuts reflect the same saved channel view. */
+    showPreferences() {
+        const view = loadEqView(this.pathValue);
+        if (this.hasMagTarget && this.hasPhaseTarget) {
+            this.magTarget.checked = view.mag;
+            this.phaseTarget.checked = view.phase;
+        }
+        if (this.hasLabelsTarget) this.labelsTarget.checked = filterLabels(this.pathValue);
+    }
+
     toggleView() {
         saveEqView(this.pathValue, this.view.mag, this.view.phase);
         this.draw();
@@ -226,9 +232,7 @@ export default class extends Controller {
 
     /** All-filter labels are a browser preference and send no device command. */
     toggleLabels() {
-        writePref('eq-filter-labels', {
-            ...readPref('eq-filter-labels', {}), [this.pathValue]: this.labelsTarget.checked,
-        });
+        setFilterLabels(this.pathValue, this.labelsTarget.checked);
         this.draw();
     }
 
@@ -449,7 +453,9 @@ export default class extends Controller {
         const channel = this.channel;
         this.element.classList.toggle('is-offline', !channel);
         for (const node of this.element.querySelectorAll('input, select, button')) {
-            node.disabled = !channel;
+            // Browser display choices and panel headers stay available without device state.
+            const display = node.matches('[data-peq-target=mag], [data-peq-target=phase], [data-peq-target=labels], [data-action="collapse#toggle"]');
+            node.disabled = !channel && !display;
         }
         if (!channel) {
             this.draw();

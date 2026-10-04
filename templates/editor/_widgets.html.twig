@@ -57,7 +57,7 @@
 {% endmacro %}
 
 {% macro text(label, bind, send, maxlength, link = null) %}
-    <input type="text" class="text" aria-label="{{ label|trans }}" maxlength="{{ maxlength }}" data-controller="text"
+    <input type="text" class="text" title="{{ 'editor.tip.name'|trans }}" aria-label="{{ label|trans }}" maxlength="{{ maxlength }}" data-controller="text"
            data-action="change->text#change" data-text-bind-value="{{ bind }}" data-text-send-value="{{ send|json_encode }}"
            {% if link %} data-text-link-value="{{ link }}"{% endif %}>
 {% endmacro %}
@@ -92,10 +92,10 @@
 {% endmacro %}
 
 {# Channel ID with the channel's name and its link group next to it: 0..7 In1..In8, 8..15 Out1..Out8, 18 Aux.
-   options: class, link (false hides the link group, as in the Link dialog, which shows the groups being edited) #}
+   options: class, title (omits the name repeated by its edit field), link (false hides the link group, as in the Link dialog, which shows the groups being edited) #}
 {% macro ch(index, options = {}) -%}
     {%- set id = index < 8 ? 'In' ~ (index + 1) : (index < 16 ? 'Out' ~ (index - 7) : 'Aux') -%}
-    <span class="ch{{ options.class is defined ? ' ' ~ options.class }}" data-controller="channel" data-channel-index-value="{{ index }}"{% if options.link is defined and not options.link %} data-channel-link-value="false"{% endif %}><b class="ch__id">{{ id }}</b><span class="ch__name"></span></span>
+    <span class="ch{{ options.class is defined ? ' ' ~ options.class }}" data-controller="channel" data-channel-index-value="{{ index }}"{% if options.link is defined and not options.link %} data-channel-link-value="false"{% endif %}{% if options.title|default(false) %} data-channel-title-value="true"{% endif %}><b class="ch__id">{{ id }}</b>{% if not options.title|default(false) %}<span class="ch__name"></span>{% endif %}</span>
 {%- endmacro %}
 
 {# An <option> with the channel ID and name, value defaults to the channel index. #}

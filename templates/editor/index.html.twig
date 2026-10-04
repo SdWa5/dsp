@@ -37,17 +37,12 @@
                     <div class="menu__item">
                         <button type="button" class="menu__title">{{ 'editor.menu.channels'|trans }}</button>
                         <div class="menu__list">
-                            {{ _self.item('Channel display settings'|trans, 'display') }}
                             {{ _self.item('editor.menu.names'|trans, 'names') }}
                             {{ _self.item('editor.menu.link'|trans, 'link', 'editor.menu.link_hint'|trans) }}
                             {{ _self.item('editor.menu.copy'|trans, 'copy') }}
                             <hr>
                             {{ _self.item('editor.menu.sub'|trans, 'sub') }}
                             {{ _self.item('editor.menu.groups'|trans, 'groups') }}
-                            <hr>
-                            {{ include('editor/_linkview.html.twig', {name: 'link-placement', heading: 'menu__heading', check: 'menu__check'}) }}
-                            <hr>
-                            {{ include('editor/_meterview.html.twig') }}
                         </div>
                     </div>
                     <div class="menu__item">
@@ -58,6 +53,7 @@
                             <button type="button" data-action="editor#tab" data-editor-page-param="autoeq">{{ 'editor.menu.autoeq'|trans }}<small>{{ 'editor.menu.autoeq_hint'|trans }}</small></button>
                         </div>
                     </div>
+                    <button type="button" class="menu__title" title="{{ 'editor.tip.panel.display'|trans }}" data-action="editor#tab" data-editor-page-param="display">{{ 'Display Settings'|trans }}</button>
                     <div class="menu__item">
                         <button type="button" class="menu__title">{{ 'editor.menu.help'|trans }}</button>
                         <div class="menu__list">
@@ -114,6 +110,7 @@
             <section class="page" data-editor-target="page" data-page="matrix" hidden>{{ include('editor/page/_matrix.html.twig') }}</section>
             <section class="page" data-editor-target="page" data-page="aux" hidden>{{ include('editor/page/_aux.html.twig') }}</section>
             <section class="page" data-editor-target="page" data-page="autoeq" hidden>{{ include('editor/page/_autoeq.html.twig') }}</section>
+            <section class="page" data-editor-target="page" data-page="display" hidden>{{ include('editor/page/_display.html.twig') }}</section>
             {% for side in ['inputs', 'outputs'] %}
                 {% for i in 0..7 %}
                     <section class="page" data-editor-target="page" data-page="{{ side }}{{ i }}" hidden>

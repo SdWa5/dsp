@@ -3,7 +3,8 @@ import { getLabels, store } from '../lib/device.js';
 import { curveRuns, drawGrid, eqView, loadEqView, plotFor, prepare, response, saveEqView } from '../lib/eq.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
 import { curveColourSource, linkedPaths, nearestCurve } from '../lib/overview.js';
-import { readPref, writePref } from '../lib/prefs.js';
+import { onPref } from '../lib/prefs.js';
+import { overviewHidden, selectOverview } from '../lib/displayprefs.js';
 import { getChannelView, onChannelView, channelVisible, selectionState } from '../lib/channelview.js';
 
 // One colour per channel number: an input draws a solid line, the output of the same number a dashed one.
@@ -13,7 +14,6 @@ const AUX_COLOR = '#ff4081';
 const DASHES = { inputs: [], outputs: [6, 4], aux: [2, 3] };
 // A curve that is not the one pointed at, nor linked with it
 const DIMMED = '#8a8a8a';
-const HIDDEN = 'eq-overview-hidden';
 const VIEW = 'overview';
 
 /**
@@ -22,24 +22,16 @@ const VIEW = 'overview';
  * with both shown it is the fainter, thinner curve of each channel.
  * A switch per channel, or one mixed-state switch per link group, shows or hides its curves. It only changes the plot, the EQ bypass of the channel
  * stays as it is (the curve itself is flat while the channel's EQ is bypassed, as on its tab).
- * Linked channels share one EQ, so their curves and switches take one colour, the group's while the Channels menu
- * shows link colours, else the first member's. Pointing at a curve or a switch greys out every other curve and
+ * Linked channels share one EQ, so their curves and switches take one colour, the group's while display settings
+ * enable link colours, else the first member's. Pointing at a curve or a switch greys out every other curve and
  * switch, except the members of its link group.
  */
 export default class extends Controller {
     static targets = ['canvas', 'show', 'mag', 'phase'];
 
     connect() {
-        const hidden = readPref(HIDDEN, []);
-        this.hiddenPaths = new Set(Array.isArray(hidden) ? hidden : []);
-        this.showTargets.forEach((box) => {
-            box.checked = !this.hiddenPaths.has(box.value);
-        });
-        const view = loadEqView(VIEW);
-        if (this.hasMagTarget && this.hasPhaseTarget) {
-            this.magTarget.checked = view.mag;
-            this.phaseTarget.checked = view.phase;
-        }
+        this.showPreferences();
+        this.offPrefs = onPref(['eq-view', 'eq-overview-hidden'], () => { this.showPreferences(); this.schedule(true); });
         this.signature = '';
         this.hover = null;
         this.unsubscribe = store.subscribe(() => this.schedule());
@@ -52,6 +44,7 @@ export default class extends Controller {
 
     disconnect() {
         this.unsubscribe?.();
+        this.offPrefs?.();
         this.offView?.();
         this.offDisplay?.();
         this.resize?.disconnect();
@@ -60,9 +53,18 @@ export default class extends Controller {
     toggle(event) {
         const box = event.target;
         const paths = getChannelView().grouped ? linkedPaths(box.value, store.state) : [box.value];
-        paths.forEach(path => box.checked ? this.hiddenPaths.delete(path) : this.hiddenPaths.add(path));
-        writePref(HIDDEN, [...this.hiddenPaths]);
+        selectOverview(paths, box.checked);
         this.schedule(true);
+    }
+
+    showPreferences() {
+        this.hiddenPaths = overviewHidden();
+        this.showTargets.forEach(box => { box.checked = !this.hiddenPaths.has(box.value); });
+        const view = loadEqView(VIEW);
+        if (this.hasMagTarget && this.hasPhaseTarget) {
+            this.magTarget.checked = view.mag;
+            this.phaseTarget.checked = view.phase;
+        }
     }
 
     toggleView() {

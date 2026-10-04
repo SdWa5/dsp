@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { displayView, channelVisible, displayedChannel, representative, channelMembers, visibleRuns, channelLayout, visibleEdge, selectionState, setMaskBits, getChannelView, setChannelView, onChannelView } from '../lib/channelview.js';
+import { displayView, channelVisible, displayedChannel, representative, channelMembers, displayChannelParts, visibleRuns, channelLayout, visibleEdge, selectionState, setMaskBits, getChannelView, setChannelView, onChannelView } from '../lib/channelview.js';
 const side = () => Array.from({ length: 8 }, (_, i) => ({ link: 1 << i }));
 const state = () => { const inputs = side(), outputs = side(); inputs[0].link = 5; inputs[2].link = 0; outputs[1].link = 10; outputs[3].link = 0; return { inputs, outputs }; };
 const groups = [1, 0, 1, 0, 0, 0, 0, 0];
@@ -112,4 +112,28 @@ test('section Show all actions preserve Aux, the other side and grouping', () =>
         controller.showAll();
         assert.deepEqual(getChannelView(), { hidden: [], grouped: true });
     } finally { setChannelView({}); }
+});
+
+test('grouped captions include every input/output rename and hidden member in channel order', () => {
+    const data = state(), view = displayView({ hidden: [0], grouped: true });
+    data.inputs[0].name = 'DJ L'; data.inputs[2].name = 'DJ R';
+    data.outputs[1].name = 'Main L'; data.outputs[3].name = 'Main R';
+    assert.deepEqual(displayChannelParts(2, data, view), { members: [0, 2], id: 'In1, In3', name: 'DJ L, DJ R', label: 'In1 (DJ L), In3 (DJ R)' });
+    assert.equal(displayChannelParts(9, data, view).name, 'Main L, Main R');
+    data.inputs[2].name = 'New <R>';
+    assert.equal(displayChannelParts(0, data, view).name, 'DJ L, New <R>');
+    data.inputs[0].link = 9;
+    assert.equal(displayChannelParts(0, data, view).name, 'DJ L, In4');
+    assert.equal(displayChannelParts(0, data, { grouped: false }).name, 'DJ L');
+});
+test('group captions suppress redundant defaults and keep single channels and Aux individual', () => {
+    const data = state(), view = { grouped: true };
+    data.inputs[0].name = 'in 1'; data.inputs[2].name = 'In3';
+    assert.equal(displayChannelParts(0, data, view).name, '');
+    assert.deepEqual(displayChannelParts(7, null, view), { members: [7], id: 'In8', name: '', label: 'In8' });
+    data.aux = { name: 'FX' };
+    assert.deepEqual(displayChannelParts(18, data, view), { members: [18], id: 'Aux', name: 'FX', label: 'Aux (FX)' });
+    data.inputs[0].link = 255;
+    data.inputs.forEach((channel, index) => { channel.name = 'Name' + index; });
+    assert.equal(displayChannelParts(0, data, view).name, Array.from({ length: 8 }, (_, index) => 'Name' + index).join(', '));
 });

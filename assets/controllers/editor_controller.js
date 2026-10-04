@@ -3,15 +3,17 @@ import { Controller } from '@hotwired/stimulus';
 import { api, getDefaults, listen, on, send, status, store } from '../lib/device.js';
 import { changedPaths, pageChanges } from '../lib/defaults.js';
 import { describeConnection } from '../lib/connection.js';
-import { channelId, channelLabel, channelParts } from '../lib/channels.js';
-import { lcm, linkCommands, linkGroups, linkedMembers, LINK_NAME_LENGTH, linkMark, linkName, linkNameKey, linkUnits, toggleLink } from '../lib/link.js';
+import { channelId, channelLabel } from '../lib/channels.js';
+import { lcm, linkCommands, linkGroups, linkedMembers, linkMark, linkName, linkUnits, toggleLink } from '../lib/link.js';
 import { GAIN_MUTED, presetLabel, presetSlotInfo } from '../lib/scale.js';
-import { readPref, writePref } from '../lib/prefs.js';
-import { getLinkView, setLinkView } from '../lib/linkview.js';
-import { getChannelView, onChannelView, setChannelView, channelVisible, representative, channelMembers, channelLayout } from '../lib/channelview.js';
+import { readPref, writePref, onPref } from '../lib/prefs.js';
+import { getLinkView, setLinkView, onLinkView } from '../lib/linkview.js';
+import { getChannelView, onChannelView, setChannelView, channelVisible, representative, displayChannelParts, channelLayout } from '../lib/channelview.js';
+
+import { renderLinkNames } from '../lib/linknames.js';
 
 const THEMES = ['auto', 'light', 'dark'];
-/** How the channel tabs show link groups, each switched on its own in the Channels menu. */
+/** The changed-setting tooltip remains independent of browser display preferences. */
 const changedText = (count) => t(1 === count
     ? "%count% setting differs from the factory default"
     : "%count% settings differ from the factory default", { count });
@@ -35,6 +37,9 @@ export default class extends Controller {
             on('error', (message) => this.showError(message)),
             store.subscribe(() => this.showState()),
             onChannelView(() => { this.showState(); this.show(this.currentPage); }),
+            onPref('theme', () => { const theme = readPref('theme', 'auto'); this.applyTheme(THEMES.includes(theme) ? theme : 'auto'); }),
+            onPref('matrix-swapped', () => this.showMatrix(readPref('matrix-swapped', false))),
+            onLinkView(() => { this.linkViewSettings = { ...getLinkView() }; this.showLinkViewSettings(); this.showState(); if (this.linkDraft) this.showLinkDialog(); }),
         ];
         const page = window.location.hash.slice(1);
         this.show(this.pageTargets.some((p) => p.dataset.page === page) ? page : 'gain');
@@ -129,16 +134,17 @@ export default class extends Controller {
         }
     }
 
-    /** A channel tab: ID, name, a dot while muted (hollow for a gain at raw 0), the link group and a mark when it differs from the factory. */
+    /** A channel tab includes all representative member names, a dot while muted (hollow for a gain at raw 0), the link group and a mark when it differs from the factory. */
     showChannelTab(tab, state) {
         const side = tab.dataset.side;
         const index = Number(tab.dataset.index);
         const channel = ('outputs' === side ? 8 : 0) + index;
-        const { name } = channelParts(channel, state);
-        tab.querySelector('.chtab__name').textContent = name;
-        tab.querySelector('.chtab__id').textContent = getChannelView().grouped ? channelMembers(channel, state).map(i => channelId(i)).join(', ') : channelId(channel);
+        const caption = displayChannelParts(channel, state);
+        tab.querySelector('.chtab__name').textContent = caption.name;
+        tab.querySelector('.chtab__id').textContent = caption.id;
+        tab.classList.toggle('is-grouped', caption.members.length > 1);
         const marks = [];
-        const titles = [channelLabel(channel, state)];
+        const titles = [caption.label];
         if (state?.[side]?.[index]?.mute) {
             marks.push('<span class="chtab__mute" aria-hidden="true"></span>');
             titles.push(t("muted"));
@@ -315,34 +321,8 @@ export default class extends Controller {
      * only rebuilt when the groups change, so typing keeps its focus.
      */
     showLinkNames() {
-        const key = JSON.stringify(this.linkDraft);
-        if (!this.hasLinkNamesTarget || key === this.linkNamesKey) {
-            return;
-        }
-        this.linkNamesKey = key;
-        const fields = [];
-        for (const side of ['inputs', 'outputs']) {
-            const groups = this.linkDraft[side];
-            for (const unit of linkUnits(groups).filter((u) => u.length > 1)) {
-                const group = groups[unit[0]];
-                const channels = unit.map((i) => channelId(('outputs' === side ? 8 : 0) + i)).join(', ');
-                const label = document.createElement('label');
-                label.className = 'link-name';
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'text';
-                input.maxLength = LINK_NAME_LENGTH;
-                input.placeholder = `L${group}`;
-                input.value = linkName(this.linkViewSettings, side, groups, group);
-                input.dataset.key = linkNameKey(side, groups, group);
-                input.dataset.action = 'input->editor#renameLinkGroup';
-                input.setAttribute('aria-label', t('Name of the group %channels%', { channels }));
-                label.append(channels, input);
-                fields.push(label);
-            }
-        }
-        this.linkNamesTarget.replaceChildren(...fields);
-        this.linkNamesEmptyTarget.hidden = fields.length > 0;
+        if (this.hasLinkNamesTarget && this.linkDraft) renderLinkNames(this.linkNamesTarget, this.linkNamesEmptyTarget,
+            this.linkDraft, this.linkViewSettings, 'input->editor#renameLinkGroup');
     }
 
     renameLinkGroup(event) {
@@ -363,7 +343,7 @@ export default class extends Controller {
         this.showLinkDialog();
     }
 
-    /** The link display settings on every copy of their controls, in the Channels menu and in the Link dialog. */
+    /** The link display settings on every copy of their controls, on the Display Settings page and in the Link dialog. */
     showLinkViewSettings() {
         this.linkViewTargets.forEach((box) => {
             box.checked = Boolean(this.linkViewSettings[box.value]);

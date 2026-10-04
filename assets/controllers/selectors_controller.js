@@ -8,6 +8,7 @@ import { t } from '../lib/i18n.js';
 
 /** Additional selectors aggregate multi-channel binary choices in group headers. Individual choices stay complete; member IDs belong in tooltips. */
 export default class extends Controller {
+    static values = { compact: Boolean };
     connect() {
         this.extraHeads = [];
         this.offs = [store.subscribe(() => this.render()), onChannelView(() => this.render()), onLinkView(() => this.render())];
@@ -18,7 +19,7 @@ export default class extends Controller {
     }
     disconnect() { this.offs.forEach(off => off()); this.element.removeEventListener('change', this.changed); this.extraHeads.forEach(head => head.remove()); }
     choices() {
-        return [...this.element.querySelectorAll('.toggle--route, input[name=outputs], input[data-channelview-target=channel]')].map(element => {
+        return [...this.element.querySelectorAll('.toggle--route, input[name=outputs], input[data-channelview-target=channel], input[data-displaysettings-target=overview]')].map(element => {
             const label = element.matches('input') ? element.closest('label') : element;
             const index = Number(label.querySelector('[data-channel-index-value]')?.dataset.channelIndexValue);
             return { element, index };
@@ -28,8 +29,10 @@ export default class extends Controller {
         this.extraHeads.forEach(head => head.remove());
         this.extraHeads = [];
         this.element.querySelectorAll('.group-selector').forEach(label => label.remove());
-        if (!getChannelView().grouped) return;
         const choices = this.choices();
+        // Compact browser settings keep backing checkboxes for stored individual choices and recovery.
+        if (this.compactValue) choices.forEach(({ element }) => { element.closest('label').hidden = false; });
+        if (!getChannelView().grouped) return;
         if (!choices.length) return;
         const base = choices[0].index < 8 ? 0 : 8;
         const side = base ? 'outputs' : 'inputs';
@@ -47,6 +50,8 @@ export default class extends Controller {
             const ids = unit.map(i => channelId(base + i)).join(', ');
             const hidden = unit.filter(i => getChannelView().hidden.includes(base + i)).map(i => channelId(base + i));
             label.title = t('Linked: %channels%', { channels: ids }) + (hidden.length ? '\n' + t('Hidden members: %channels%', { channels: hidden.join(', ') }) : '');
+            label.title += '\n' + t('Select every linked member, including hidden channels. Clear every member when all are selected.');
+            box.title = label.title;
             const name = linkName(getLinkView(), side, groups, groups[unit[0]]) || `L${groups[unit[0]]}`;
             label.dataset.group = getLinkView().colour ? String(groups[unit[0]]) : '';
             let head = this.element.querySelector(`:scope > .link-block[data-link-group="${groups[unit[0]]}"] > .link-block__head`);
@@ -63,6 +68,7 @@ export default class extends Controller {
             mark.innerHTML = linkMark(getLinkView(), groups[unit[0]], name);
             label.append(box, mark);
             head.replaceChildren(label);
+            if (this.compactValue) members.forEach(({ element }) => { element.closest('label').hidden = true; });
             box.addEventListener('change', () => this.select(members, state.next));
         }
     }
@@ -74,8 +80,8 @@ export default class extends Controller {
     select(members, on) {
         if (members[0].element.matches('input')) {
             members.forEach(({ element }) => { element.checked = on; });
-            // Visibility checkboxes use their existing preference action; Auto EQ remains form-only.
-            if (members[0].element.matches('[data-channelview-target=channel]')) {
+            // Browser choices dispatch their existing preference action; Auto EQ remains form-only.
+            if (members[0].element.matches('[data-channelview-target=channel], [data-displaysettings-target=overview]')) {
                 members[0].element.dispatchEvent(new Event('change', { bubbles: true }));
             } else this.render();
             return;

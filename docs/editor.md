@@ -88,7 +88,7 @@ Every meter marks the threshold of its channel's dynamics with a dashed line. In
 outputs and the Aux their compressor (orange). Meter and thresholds share one dB scale (`Scale::meterDb()`), so
 the mark sits where the meter reads the threshold. The tooltip adds the threshold below the level.
 
-Channels > Meters holds two settings, kept per browser under `trackdsp-meter-threshold`. "Show gate/comp
+Display Settings > Meters holds two settings, kept per browser under `trackdsp-meter-threshold`. "Show gate/comp
 threshold" switches the mark on, and "Only when active" restricts it to dynamics that work. The device has no
 on switch for either, so `assets/lib/meters.js` decides from the values. A gate works above -90 dB (raw 0, the
 factory value). A compressor works at a ratio other than 1:1.0 with its threshold below +20 dB, the two settings
@@ -129,22 +129,62 @@ axis, the magnitude, or the phase while it shows alone.
 
 The EQ overview colours a curve and its switch by channel number. Linked channels share one EQ, so
 `curveColourSource()` in `assets/lib/overview.js` gives every member of a link group the same colour. That is the
-group's `--group` colour from `app.css` while the Channels menu shows link colours, read back from the switch's
+group's `--group` colour from `app.css` while display settings enable link colours, read back from the switch's
 `data-group`, else the colour of the group's first member. Pointing at a curve picks the nearest one within 6 px
 (`nearestCurve()`), pointing at a switch picks its curve. One `pointerover` handler on the switches finds the
 switch under the pointer, or else the link group's `.link-block` around it, so the block's head, border and gaps
 pick the group too. A block whose switches all grey out greys out with them. Every curve and switch outside that curve's link group
 (`linkedPaths()`) turns grey, and the greyed curves go below the others.
 
-## Channel display settings
+## Display Settings
 
-Channels > Channel display settings keeps `{hidden, grouped}` under `trackdsp-channel-display`. Hidden indices
+The header’s Display Settings button opens `#display` without adding a DSP tab or device change count. The page stays
+accessible when all channels are hidden. The settings entry sits outside Channels, which retains channel actions. Inline link and
+meter controls and the old channel-display modal have been replaced by the page.
+
+The page contains Appearance, Channels, Link Groups, Meters, EQ Plots, Matrix and Panels, in that order. Appearance
+sets theme and language using the existing theme key and locale cookie. Link Groups also edits browser group
+names with existing length and identity rules and shared colour/icon marks; link assignments stay in the Link dialog. EQ Plots shows overview
+magnitude/phase and curve selection plus independent magnitude/phase/filter labels for all 17 channels, including
+hidden channels. Hidden channels has its own heading. Visibility and Gain EQ overview use Input, Output and Aux
+columns, matching Channel EQ plots and stacking on narrow screens. Grouping and Show all have separate rows. Input and output EQ controls follow shared link placement and use one group heading when
+stacked. Grouping replaces linked member controls with one mixed-state Mag/Phase/Show all filters set,
+including hidden members. Aux stays separate. Group overview selectors show mixed selections. Matrix exposes the existing orientation.
+Channel names use separate Input, Output and Aux rows. Browser link-group names use separate Input and Output
+rows. Panels groups choices by page context in separate rows and enumerates each rendered collapse key once;
+shared channel sections retain one preference across pages. Controls wrap within each grouping row on narrow screens.
+All seven settings sections use the shared collapse controller with distinct `display.*` keys and start expanded.
+Their headings remain reachable when folded, their state survives reloads, and Panels also lists these keys.
+Link colours fill the whole stacked group frame, including padding around compact selectors. Member controls
+retain neutral backgrounds for legibility. Disabling link colours removes the fill, and dimmed overview groups
+return to a neutral background.
+Section headings and every preference control have English/German tooltips. Shared name, link and meter controls
+retain that help in their shortcut dialogs. Generated group-name and panel choices carry contextual help without
+rebuilding focused fields; aggregate selectors explain how selecting or clearing the whole group works.
+
+`prefs.js` retains existing storage formats and adds `onPref(keys, listener)` with disconnect cleanup. Writes
+keep a session copy even when storage is unavailable or throws. `displayprefs.js` shares EQ-label, overview and
+collapse updates. Group EQ edits notify once per preference key and preserve other fields and channels.
+Controllers subscribe so edits on the page and local shortcuts agree immediately. Theme,
+language, plots, Link-dialog display controls, matrix swap and panel headers remain shortcuts.
+Browser-only EQ choices and panel headers remain editable offline while processing controls stay disabled. A language change
+retains its existing reload behavior. Group-name fields rebuild on membership changes rather than meter updates
+and retain focus while typing. No preference action sends a device command or changes saved preset content. Channels also includes all 17
+individual device name fields through the same partial as the Names dialog. These fields use existing channelName
+commands, eight-character limits and live synchronization. They stay disabled offline, and the page explains
+that name edits write device settings and are included in presets.
+
+### Channel visibility and grouping
+
+The Channels section keeps `{hidden, grouped}` under `trackdsp-channel-display`. Hidden indices
 are individual input/output channels 0..15 or Aux at 18. All start visible and grouping starts disabled.
 Malformed preferences fall back to those defaults. Storage failures retain changes for the current visit.
 The settings send no API writes and do not affect changed-setting counts, presets or linked-write behavior.
 Section-header Show all buttons restore inputs or outputs independently without unhiding Aux or the other side.
 The global Show all restores every channel. Each section uses the shared link placement and marks while keeping
-visibility independently selectable for every member, even when one processing control per group is enabled.
+individual stored visibility for every member. With grouping disabled every member remains independently selectable;
+with grouping enabled one mixed-state group toggle replaces linked member controls. Entirely hidden groups stay
+available for recovery. Overview selectors follow the same rule, and unlinked channels and Aux remain individual.
 Its group-header selectors show checked, unchecked or mixed visibility, select every member when mixed or empty,
 and hide every member when fully selected. They reuse checkbox preference actions and send no device commands.
 
@@ -155,9 +195,22 @@ removes edges with hidden endpoints and keeps visible Aux beneath them. Hiding A
 Original channel indices, masks and group identities stay intact. Matrix and graph never combine link groups into a single channel.
 
 One control per link group chooses the lowest visible member as representative. Its strip, tab and EQ switch
-show group membership. Fully hidden groups disappear from processing views. A visible non-representative's
+show group membership. Tabs and EQ switches use `displayChannelParts()` to list every member name in channel
+order, including hidden members, with complete ID/name tooltips. Shared captions replace the leading ID with
+the full member-ID list before the names, with no appended duplicate. Ungrouping restores the individual ID. Default names remain suppressed unless needed
+to identify an unnamed member alongside renamed members. The shared renderer includes all member names in its
+cache so a non-representative rename updates immediately. Fully hidden groups disappear from processing views. A visible non-representative's
 individual detail URL remains usable and activates its representative's tab. An explicitly hidden channel URL
 shows a warning with Unhide channel and Open Gain page. Channel names and link assignments remain individual.
+Channel-page titles omit `.ch__name` because editable device-name fields already show those names.
+`linkname_controller.js` puts the browser group-name input in the title row using `renderLinkNames()` with
+member captions and repeated group-name marks suppressed. It retains shared identity, 12-character limits,
+colour/icon marks, focus during edits and live synchronization with Display Settings and the Link dialog.
+With grouping enabled the individual title ID is hidden, and every linked member appears below once with its
+ID and its own device-name input, including globally hidden members. Inputs retain single-channel commands
+and eight-character limits. Grouping off restores the current channel’s ID and one name field; the browser
+group-name input remains available while linked and disappears when unlinked. Aux stays individual.
+The inputs remain in the DOM while visibility changes so ordinary state updates preserve editing focus.
 Gate and Comp follow plots recover to a visible representative when their selected strip disappears. With no
 visible inputs Gate shows an empty state; with no visible outputs Comp displays Aux if visible, otherwise an empty state.
 
@@ -177,12 +230,14 @@ preserving unrelated bits. Auto EQ aggregates update individual form checkboxes 
 
 The shared channel editor places Bands, Selected band and Gain before HPF/LPF and channel-specific sections.
 Inputs then show Gate and FBQ, outputs show Comp and Delay, and Aux shows Comp, Select, AutoMix, Effect and Camera.
+Selected band sits directly below Bands in a shared vertical layout stack; both sections retain independent collapse controls.
 HPF and LPF retain their shared vertical stack. Existing collapse keys and bindings are retained.
 
-`ChannelDisplayTest` checks templates, section order and translations. JavaScript tests cover normalization,
+`ChannelDisplayTest` checks page inventory, menu order, templates, section order and translations. JavaScript tests cover normalization,
 storage failures, representative changes, layouts and real bound-control aggregate writes. The isolated browser
 regression intercepts every API request and checks 1440 px and 390 px views, hidden-page recovery, group selectors,
-both matrix orientations and every link placement. Provide an installed Playwright module and a running editor.
+both matrix orientations, every link placement and settings/shortcut synchronization. It also checks
+reloads, panel expansion, per-channel plot choices and storage fallback. Provide an installed Playwright module and a running editor.
 
 ```bash
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node tools/test-channel-display.mjs

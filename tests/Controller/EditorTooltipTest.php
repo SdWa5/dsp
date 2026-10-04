@@ -94,6 +94,47 @@ final class EditorTooltipTest extends WebTestCase
         );
     }
 
+    #[DataProvider('locales')]
+    public function testDisplaySettingsControlsHaveTranslatedTooltips(string $locale): void
+    {
+        $page = $this->page($locale);
+        $display = $page->filter('section[data-page=display]');
+        $tips = $this->tips($locale);
+        $controls = $display->filter('input, select, button, h1, h3');
+        self::assertGreaterThan(100, $controls->count());
+        $controls->each(static function (Crawler $control): void {
+            self::assertNotEmpty($control->attr('title'), $control->outerHtml().' has no tooltip');
+            self::assertStringNotContainsString('editor.tip.', (string) $control->attr('title'));
+        });
+        foreach (['theme', 'language', 'visibility', 'grouped', 'show_inputs', 'show_outputs', 'show_all', 'matrix'] as $key) {
+            $selector = match ($key) {
+                'theme', 'matrix' => '[data-displaysettings-target='.$key.']',
+                'language' => '[data-action="change->editor#language"]',
+                'visibility' => '[data-channelview-target=channel]',
+                'grouped' => '[data-channelview-target=grouped]',
+                'show_inputs', 'show_outputs' => '[data-channelview-side-param='.substr($key, 5).']',
+                default => '[data-action="channelview#showAll"]',
+            };
+            $display->filter($selector)->each(static function (Crawler $control) use ($tips, $key): void {
+                self::assertSame($tips['editor.tip.display.'.$key], $control->attr('title'));
+            });
+        }
+        foreach (['mag', 'phase', 'labels'] as $field) {
+            $display->filter('[data-displaysettings-target=eq][data-field='.$field.']')->each(static function (Crawler $control) use ($tips, $field): void {
+                self::assertSame($tips['editor.tip.eq_'.$field], $control->attr('title'));
+            });
+        }
+        $display->filter('[data-display-section]')->each(static function (Crawler $section) use ($tips): void {
+            self::assertSame($tips['editor.tip.panel.display_'.$section->attr('data-display-section')], $section->filter('.card__title .fold')->attr('title'));
+        });
+        self::assertSame($tips['editor.tip.panel.display'], $page->filter('nav.menu [data-editor-page-param=display]')->attr('title'));
+        foreach (['section[data-page=display]', '#dialog-names'] as $scope) {
+            $page->filter($scope.' [data-controller=text]')->each(static function (Crawler $control) use ($tips): void {
+                self::assertSame($tips['editor.tip.name'], $control->attr('title'));
+            });
+        }
+    }
+
     private function page(string $locale): Crawler
     {
         $client = self::createClient();
