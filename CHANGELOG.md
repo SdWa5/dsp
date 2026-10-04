@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.79.0] - 2026-10-04
+
+### Changed
+
+- Sub Control, Group Control, the Aux routes, AutoMix and Camera Select and the Auto EQ outputs leave out hidden channels, as the matrix and the routing graph already do. Their group checkboxes still reach hidden members, and a group with no visible member loses its checkbox. Display Settings keeps every channel, so a hidden one can be shown again.
+- The Auto EQ neither measures nor writes a hidden output. A checked hidden output keeps its box for when it shows again, and a start with hidden outputs only is refused with a message.
+- The "Hidden channels" heading in Display Settings is now "Channel Visibility" ("Kanalsichtbarkeit").
+
 ## [0.78.1] - 2026-10-04
 
 ### Fixed

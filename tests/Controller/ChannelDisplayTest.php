@@ -26,12 +26,19 @@ final class ChannelDisplayTest extends WebTestCase
         self::assertCount(0, $display->filter('[data-display-section=channels] [data-channelview-target=grouped]'));
         self::assertCount(1, $display->filter('.display-settings__row [data-action="channelview#showAll"]'));
         self::assertCount(1, $display->filter('[data-channelview-target=grouped]:not([checked])'));
-        self::assertSame('de' === $locale ? 'Ausgeblendete Kanäle' : 'Hidden channels', $display->filter('.display-settings__channels > h3')->text());
+        self::assertSame('de' === $locale ? 'Kanalsichtbarkeit' : 'Channel Visibility', $display->filter('.display-settings__channels > h3')->text());
         foreach (['channels', 'eq'] as $section) {
             self::assertSame(['inputs', 'outputs', 'aux'], $display->filter('[data-display-section='.$section.'] .channel-visibility > [data-display-side]')->each(static fn (Crawler $node): ?string => $node->attr('data-display-side')));
         }
 
         self::assertCount(2, $display->filter('[data-display-section=channels] fieldset[data-controller~=linkplace][data-controller~=selectors]'));
+        // Selector lists hide hidden channels everywhere but in Display Settings, which must keep them for recovery
+        $lists = $page->filter('[data-controller~=linkplace][data-controller~=selectors]');
+        $lists->each(static function (Crawler $list): void {
+            $recovery = null !== $list->closest('[data-display-section]');
+            self::assertSame($recovery ? null : 'true', $list->attr('data-linkplace-visible-value'), (string) $list->attr('class'));
+        });
+        self::assertCount(8, $page->filter('[data-linkplace-visible-value=true] input[name=outputs]'));
         foreach (['inputs', 'outputs'] as $side) {
             self::assertCount(1, $display->filter('legend [data-action="channelview#showSide"][data-channelview-side-param='.$side.']'));
         }

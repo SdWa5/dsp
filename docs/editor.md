@@ -155,7 +155,7 @@ The page contains Appearance, Channels, Link Groups, Meters, EQ Plots, Matrix an
 sets theme and language using the existing theme key and locale cookie. Link Groups also edits browser group
 names with existing length and identity rules and shared colour/icon marks, and chooses the Link matrix layout (lower half, upper half or full matrix) through the same `link-matrix-layout` preference as the matrix corner button; link assignments stay in the Link dialog. EQ Plots shows overview
 magnitude/phase and curve selection plus independent magnitude/phase/filter labels for all 17 channels, including
-hidden channels. Hidden channels has its own heading. Visibility and Gain EQ overview use Input, Output and Aux
+hidden channels. Channel Visibility has its own heading. Visibility and Gain EQ overview use Input, Output and Aux
 columns, matching Channel EQ plots and stacking on narrow screens. Show all has its own row in Channels, and grouping ("One control per link group") sits in Link Groups under its own heading below the placement. The Matrix card chooses the matrix rows (outputs and Aux, or inputs and Aux) as a radio pair through the same `matrix-swapped` preference as the corner button. Each has its own `channelview` controller, which writes only the part of the channel view it holds. Input and output EQ controls follow shared link placement and use one group heading when
 stacked. Grouping replaces linked member controls with one mixed-state Mag/Phase/Show all filters set,
 including hidden members. Aux stays separate. Group overview selectors show mixed selections. Matrix exposes the existing orientation.
@@ -197,7 +197,8 @@ available for recovery. Overview selectors follow the same rule, and unlinked ch
 Its group-header selectors show checked, unchecked or mixed visibility, select every member when mixed or empty,
 and hide every member when fully selected. They reuse checkbox preference actions and send no device commands.
 
-Visibility filters channel tabs, Gain/Gate/Comp/Delay strips and Gain EQ switches and curves. Matrix filters rows
+Visibility filters channel tabs, Gain/Gate/Comp/Delay strips, Gain EQ switches and curves, and the selector lists
+of Sub/Group Control, Aux routes, AutoMix/Camera Select and Auto EQ outputs. Matrix filters rows
 and columns in both orientations. Visible Aux retains its disabled self-route; hiding Aux suppresses its row
 and column. The graph compacts its outer columns,
 removes edges with hidden endpoints and keeps visible Aux beneath them. Hiding Aux removes its bottom row.
@@ -228,7 +229,11 @@ selection and update every member, including hidden members, while global visibi
 curves. Turning grouping off restores the individual switches without losing their selections.
 
 The shared `selectors` controller adds group checkboxes to Aux input/output routes, Sub/Group membership,
-AutoMix/Camera inputs and Auto EQ outputs. Individual controls remain complete even for hidden channels.
+AutoMix/Camera inputs and Auto EQ outputs. These lists carry `data-linkplace-visible-value`, so `itemHidden()` drops
+the individual control of a hidden channel without collapsing a link group to its representative. Display Settings
+keeps its own lists complete for recovery. A group selector still covers hidden members, and a group with no
+visible member loses its selector. The Auto EQ start takes only visible checked outputs (`visibleChannels()`), and a
+choice of hidden outputs only is refused with a message, so nothing is measured or written on a hidden channel.
 Group selectors appear in the existing stacked group headers. Normal and adjacent placement add headers at the
 first member, preserving individual channel order. There is no separate aggregate selector bar. Headers retain
 the chosen group name, colour and icon. Member IDs and hidden members appear in tooltips rather than repeating the individual channel labels.

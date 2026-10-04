@@ -18,7 +18,7 @@
     </fieldset>
     <fieldset class="card" data-display-section="channels" data-controller="collapse" data-collapse-key-value="display.channels"><legend class="card__title">{{ w.fold('editor.menu.channels', 'display_channels') }}</legend>
     <div class="display-settings__channels" data-controller="channelview">
-        <h3 title="{{ 'editor.tip.display.visibility'|trans }}">{{ 'Hidden channels'|trans }}</h3>
+        <h3 title="{{ 'editor.tip.display.visibility'|trans }}">{{ 'Channel Visibility'|trans }}</h3>
         <p>{{ 'Hidden channels remain active. Linked edits still reach hidden members.'|trans }}</p>
         <div class="channel-visibility">
             {% for side, title in {inputs: 'Input', outputs: 'Output'} %}

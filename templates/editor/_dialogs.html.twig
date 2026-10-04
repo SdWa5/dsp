@@ -148,7 +148,7 @@
             {{ w.fader('Threshold', m ~ '.threshold', send, 80, 180, 'threshold') }}
             {{ w.fader('Attack', m ~ '.attack', send, 0, 998, 'ms') }}
             {{ w.fader('Release', m ~ '.release', send, 0, 2999, 'ms') }}
-            <fieldset class="group" data-controller="linkplace selectors">
+            <fieldset class="group" data-controller="linkplace selectors" data-linkplace-visible-value="true">
                 <legend>{{ "Select"|trans }}</legend>
                 {% for i in 0..7 %}
                     {{ w.toggle(w.ch(i), m ~ '.select', send, null, {bit: i, class: 'toggle--route'}) }}
