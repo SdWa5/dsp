@@ -393,6 +393,18 @@ triangle. The bridge state updates the marks for hidden pages too. Restoring
 the defaults clears them. Missing or unreported values do not count. Theme, folds, link placement and graphical
 curve switches do not affect these marks.
 
+The comparison deviates from the factory file in two places. `getDefaults()` returns `referenceDefaults()` from
+`assets/lib/defaults.js`, which sets every input gain to 0 dB (raw 280), because the factory raw 0 mutes the input.
+`changedPaths()` and `isChanged()` skip `link`, since link membership groups channels rather than setting them.
+`src/Model/FactoryDefaults.php` stays a plain reading of the factory file.
+
+Display Settings > Changed settings holds two switches, kept per browser under `trackdsp-changed-view` by
+`assets/lib/changeview.js`. "Mark changed settings" covers the bar on a field (`.is-changed`), the triangle on a
+channel tab (`.chtab__changed`) and the bar on a page tab (`.tab__mark`). "Count changed settings" covers the
+badges (`.tab__count`). Switched off, they set `data-changed-marks` or `data-changed-counts` on `<html>`, and
+`app.css` hides by those. The tooltip follows `changedTitle()`. It gives the count while counts show, a plain
+"Settings differ from the factory default" while only the marks show, and nothing while both are off.
+
 | Tab | Settings counted |
 |---|---|
 | Gain | Input and output gain, phase and mute, input mode, Sub Control and Group Control |

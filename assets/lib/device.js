@@ -1,5 +1,6 @@
 // The editor's connection to the bridge: state store, write queue, event stream and API calls.
 // Every controller imports the same instances from here.
+import { referenceDefaults } from './defaults.js';
 import { commandKey, SendQueue } from './queue.js';
 import { Store } from './store.js';
 import { HistoryService } from './historyservice.js';
@@ -119,11 +120,14 @@ export function getLabels() {
     return labels;
 }
 
-/** Factory defaults in the shape of the state (App\Model\FactoryDefaults), rendered into the page. */
+/**
+ * Factory defaults in the shape of the state (App\Model\FactoryDefaults), rendered into the page, with the input
+ * gain at 0 dB (referenceDefaults()). Marks, counts and resets all compare against this.
+ */
 export function getDefaults() {
     if (null === defaults) {
         const node = document.getElementById('trackdsp-defaults');
-        defaults = node ? JSON.parse(node.textContent) : {};
+        defaults = referenceDefaults(node ? JSON.parse(node.textContent) : {});
     }
     return defaults;
 }

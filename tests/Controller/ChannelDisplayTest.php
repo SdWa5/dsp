@@ -53,7 +53,7 @@ final class ChannelDisplayTest extends WebTestCase
     {
         $page = self::createClient()->request('GET', '/');
         $display = $page->filter('section[data-page=display]');
-        self::assertSame(['appearance', 'channels', 'links', 'meters', 'eq', 'matrix', 'panels'], $display->filter('[data-display-section]')->each(static fn (Crawler $node): ?string => $node->attr('data-display-section')));
+        self::assertSame(['appearance', 'channels', 'links', 'changes', 'meters', 'eq', 'matrix', 'panels'], $display->filter('[data-display-section]')->each(static fn (Crawler $node): ?string => $node->attr('data-display-section')));
         $sections = $display->filter('[data-display-section]');
         $sections->each(static function (Crawler $section): void {
             self::assertSame('collapse', $section->attr('data-controller'));

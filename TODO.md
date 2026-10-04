@@ -89,12 +89,6 @@ also postponed. Any additional form proven to need a connection belongs here.
 - Consider moving the Aux page button from the function-page header to the channel selector, between the
   input and output channels. Review the placement with the Matrix and Sub Control Aux changes before
   deciding whether to move it.
-- Let the display of changed settings be switched in the UI, with two settings that each work on their own. The
-  first switches the marks, which are the bar on a changed field (`.is-changed`), the triangle on a channel tab
-  (`.chtab__changed`) and the colour of a changed function page tab. The second switches the amounts, which are
-  the count badges on the function page tabs (`.tab__count`). Keep both per browser like the link display
-  options (`assets/lib/linkview.js` through `assets/lib/prefs.js`) and place them next to those. Decide whether
-  the tooltip with the count (`changedText()` in `editor_controller.js`) follows the amount setting
 - Reset a setting to its factory default by clicking its changed mark. A double-click on a fader already does
   this for one value (`reset()` in `fader_controller.js`, `resetFader()` in `peq_controller.js`), and the PEQ's
   EQ Reset asks before it resets every band of a channel. A click on the mark of a field resets that field

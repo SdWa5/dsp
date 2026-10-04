@@ -55,6 +55,12 @@ editor:
         rows: Matrixzeilen
         outputs: Ausgänge und Aux
         inputs: Eingänge und Aux
+    change_view:
+        title: Geänderte Einstellungen
+        marks: Geänderte Einstellungen markieren
+        marks_tip: "Einen violetten Balken an jedem Feld zeigen, das vom Werksstandard abweicht, ein Dreieck an seinem Kanal-Tab und einen Balken an seinem Seiten-Tab."
+        counts: Geänderte Einstellungen zählen
+        counts_tip: "Die Anzahl geänderter Einstellungen an jedem Tab einer Funktionsseite zeigen."
     meter_view:
         title: Pegelanzeigen
         show: Gate-/Comp-Schwelle anzeigen
@@ -210,6 +216,7 @@ editor:
             display_appearance: "Farbschema des Browsers und Sprache des Editors wählen. Die Sprachauswahl lädt den Editor neu."
             display_channels: "Kanalsichtbarkeit wählen. Ausgeblendete Kanäle bleiben aktiv, außer „Ausgeblendete Kanäle stummschalten“ ist an. Die Kanalnamenfelder darunter bearbeiten Geräteeinstellungen."
             display_links: "Link-Gruppen-Markierungen, Anordnung, ein Steuerelement pro Link-Gruppe, das Layout der Link-Matrix und Browsernamen konfigurieren. Die Gruppenzugehörigkeit wird im Link-Dialog bearbeitet. Die Eckschaltfläche der Link-Matrix ändert dieselbe Browsereinstellung."
+            display_changes: "Wählen, ob vom Werksstandard abweichende Einstellungen markiert und gezählt werden. Die Eingangsverstärkung zählt ab 0 dB, Link-Gruppen zählen nie."
             display_meters: "Wählen, ob Pegelanzeigen Gate- oder Kompressorschwellen markieren und ob inaktive Schwellen ausgeblendet werden."
             display_eq: "Übersichtskurven sowie Betrag, Phase und Filterbeschriftungen der Kanaldiagramme wählen. Diese Einstellungen ändern keine Audiobearbeitung."
             display_matrix: "Die Matrixausrichtung wählen. Die Eckschaltfläche auf der Matrixseite ändert dieselbe Browsereinstellung."

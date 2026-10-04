@@ -141,7 +141,7 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .tabs, .chtabs { display: flex; gap: 2px; padding: 0 8px; background: var(--head); overflow-x: auto; scrollbar-width: thin; scrollbar-color: #ffffff40 transparent; }
 .matrix-wrap, .peq__table-wrap { scrollbar-width: thin; }
 .tab {
-    flex: none; background: none; border: 0; border-bottom: 3px solid transparent; color: var(--head-text);
+    position: relative; flex: none; background: none; border: 0; border-bottom: 3px solid transparent; color: var(--head-text);
     font-weight: 700; font-size: 14px; padding: 6px 12px 4px; cursor: pointer;
 }
 .tab:hover { background: #ffffff14; }
@@ -198,6 +198,12 @@ input[type=text], input[type=number], select { background: var(--field); color: 
     position: absolute; bottom: 0; left: 0; width: 0; height: 0; border-style: solid; border-width: 9px 0 0 9px;
     border-color: transparent transparent transparent var(--changed); content: '';
 }
+/* The bar of a changed page tab, a span of its own so a later click can find it */
+.tab__mark { display: none; position: absolute; top: 6px; bottom: 7px; left: 0; width: 4px; background: var(--changed); }
+.tab.is-changed .tab__mark { display: block; }
+/* Display Settings > Changed settings switches the marks and the counts off */
+[data-changed-marks] :is(.chtab__changed, .tab__mark) { display: none; }
+[data-changed-counts] .tab__count { display: none; }
 .tab__count {
     display: inline-block; min-width: 16px; margin-left: 5px; padding: 0 4px; border-radius: 8px; background: var(--changed);
     color: var(--changed-text); font-size: 10px; line-height: 16px; text-align: center; vertical-align: 1px;
@@ -411,9 +417,10 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .toggle--route { text-align: left; }
 .toggle--route .ch { gap: 4px; }
 .toggle.is-unknown { border-style: dashed; }
-/* Differs from the factory default: a bar on the left edge, a shape that reads without colour */
-.is-changed:is(.toggle, .choice, .text, .value, input, select, output, button),
-.fader.is-changed .fader__value { box-shadow: inset 4px 0 0 var(--changed); }
+/* Differs from the factory default: a bar on the left edge, a shape that reads without colour. The page tabs
+   carry a .tab__mark instead */
+:root:not([data-changed-marks]) :is(.toggle, .choice, .radios, .text, .value, input, select, output, button):not(.tab).is-changed,
+:root:not([data-changed-marks]) .fader.is-changed .fader__value { box-shadow: inset 4px 0 0 var(--changed); }
 .toggle:disabled, .is-disabled .toggle { opacity: .45; cursor: default; }
 .choice, .text { min-width: 0; }
 .value { font-variant-numeric: tabular-nums; }
