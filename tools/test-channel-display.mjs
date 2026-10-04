@@ -633,12 +633,12 @@ try {
         await page.locator('[data-editor-target=theme]').click();
         assert.equal(await settings.locator('[data-displaysettings-target=theme]').inputValue(), 'auto');
         await settings.locator('[data-displaysettings-target=theme]').selectOption('light');
-        await settings.locator('[data-displaysettings-target=matrix]').check();
+        await settings.locator('[data-displaysettings-target=matrix][value=inputs]').check();
         await go('matrix');
         assert.equal(await page.locator('.matrix:visible').getAttribute('data-swapped'), '1');
         await page.locator('.matrix:visible [data-action="editor#swapMatrix"]').click();
         await go('display');
-        assert.equal(await settings.locator('[data-displaysettings-target=matrix]').isChecked(), false);
+        assert.equal(await settings.locator('[data-displaysettings-target=matrix][value=outputs]').isChecked(), true);
         const eqChoice = (path, field) => settings.locator(`[data-displaysettings-target=eq][data-path="${path}"][data-field="${field}"]`);
         await eqChoice('inputs.0', 'phase').check();
         await eqChoice('inputs.0', 'labels').check();
@@ -797,7 +797,7 @@ try {
     await settings.locator('[data-displaysettings-target=eq][data-path="inputs.0"][data-field=phase]').check();
     await settings.locator('[data-displaysettings-target=eq][data-path="inputs.0"][data-field=labels]').check();
     await settings.locator('[data-displaysettings-target=panels] input[data-key="channel.curve"]').uncheck();
-    await settings.locator('[data-displaysettings-target=matrix]').check();
+    await settings.locator('[data-displaysettings-target=matrix][value=inputs]').check();
     await blocked.locator('[data-editor-page-param=inputs0]').evaluate(button => button.click());
     assert.equal(await blocked.locator('section[data-page=inputs0] [data-peq-target=phase]').isChecked(), true);
     assert.equal(await blocked.locator('section[data-page=inputs0] [data-peq-target=labels]').isChecked(), true);
@@ -805,7 +805,7 @@ try {
     await blocked.locator('[data-editor-page-param=display]').evaluate(button => button.click());
     assert.equal(await settings.locator('[data-displaysettings-target=theme]').inputValue(), 'dark');
     assert.equal(await settings.locator('[data-displaysettings-target=eq][data-path="inputs.0"][data-field=phase]').isChecked(), false);
-    assert.equal(await settings.locator('[data-displaysettings-target=matrix]').isChecked(), true);
+    assert.equal(await settings.locator('[data-displaysettings-target=matrix][value=inputs]').isChecked(), true);
     assert.equal(await settings.locator('[data-displaysettings-target=panels] input[data-key="channel.curve"]').isChecked(), false);
     assert.equal(await settings.locator('[data-displaysettings-target=eq][data-path="inputs.0"][data-field=labels]').isChecked(), true);
     assert.deepEqual(blockedErrors, []);

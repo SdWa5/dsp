@@ -43,6 +43,7 @@
     <fieldset class="card" data-display-section="links" data-controller="collapse" data-collapse-key-value="display.links"><legend class="card__title">{{ w.fold('Link Groups', 'display_links') }}</legend>
         {{ include('editor/_linkview.html.twig', {name: 'link-display-placement', heading: 'link-view__heading', check: 'check'}) }}
         {# Grouping changes how link groups show everywhere, so it sits with the placement, in an instance of its own #}
+        <span class="link-view__heading">{{ 'editor.link_view.controls'|trans }}</span>
         <label class="check" data-controller="channelview" title="{{ 'editor.tip.display.grouped'|trans }}"><input title="{{ 'editor.tip.display.grouped'|trans }}" type="checkbox" data-channelview-target="grouped" data-action="change->channelview#change">{{ 'One control per link group'|trans }}</label>
         {# The same browser preference as the corner button of the Link matrix #}
         <span class="link-view__heading">{{ 'editor.link_view.matrix'|trans }}</span>
@@ -92,7 +93,11 @@
         </div>
     </fieldset>
     <fieldset class="card" data-display-section="matrix" data-controller="collapse" data-collapse-key-value="display.matrix"><legend class="card__title">{{ w.fold('editor.tabs.matrix', 'display_matrix') }}</legend>
-        <label class="check" title="{{ 'editor.tip.display.matrix'|trans }}"><input title="{{ 'editor.tip.display.matrix'|trans }}" type="checkbox" data-displaysettings-target="matrix" data-action="change->displaysettings#matrix">{{ 'Inputs as matrix rows'|trans }}</label>
+        {# The same browser preference as the corner button of the routing matrix #}
+        <span class="link-view__heading">{{ 'editor.matrix_view.rows'|trans }}</span>
+        {% for key in ['outputs', 'inputs'] %}
+            <label class="check" title="{{ ('editor.tip.display.matrix_' ~ key)|trans }}"><input title="{{ ('editor.tip.display.matrix_' ~ key)|trans }}" type="radio" name="matrix-rows" value="{{ key }}" data-displaysettings-target="matrix" data-action="change->displaysettings#matrix"> {{ ('editor.matrix_view.' ~ key)|trans }}</label>
+        {% endfor %}
     </fieldset>
     <fieldset class="card" data-display-section="panels" data-controller="collapse" data-collapse-key-value="display.panels"><legend class="card__title">{{ w.fold('Panels', 'display_panels') }}</legend>
         <p>{{ 'Checked panels are expanded. Shared channel sections use the same preference on every channel page.'|trans }}</p>

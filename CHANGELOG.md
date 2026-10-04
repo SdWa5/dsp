@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.78.0] - 2026-10-04
+
+### Changed
+
+- The matrix orientation in Display Settings is a single choice of the matrix rows, "Outputs and Aux" or "Inputs and Aux", instead of the "Inputs as matrix rows" checkbox, as the Link matrix layout already is. Each option has its own tooltip.
+- "One control per link group" gets its own heading in the Link Groups card, so it no longer reads as a fourth placement.
+
+### Fixed
+
+- The PHP display and tooltip tests follow the moved grouping checkbox and the matrix radio pair. 0.77.0 had left two of them failing.
+
 ## [0.77.0] - 2026-10-04
 
 ### Changed

@@ -46,9 +46,14 @@ editor:
         names: Gruppennamen
         no_groups: Noch keine Link-Gruppen. Oben Kanäle verknüpfen, um ihre Gruppe zu benennen.
         matrix: Link-Matrix
+        controls: Steuerelemente verknüpfter Kanäle
         matrix_lower: Untere Hälfte
         matrix_upper: Obere Hälfte
         matrix_full: Volle Matrix
+    matrix_view:
+        rows: Matrixzeilen
+        outputs: Ausgänge und Aux
+        inputs: Eingänge und Aux
     meter_view:
         title: Pegelanzeigen
         show: Gate-/Comp-Schwelle anzeigen
@@ -100,7 +105,8 @@ editor:
             group_names: "Jeder Link-Gruppe einen nur im Browser gespeicherten Namen mit bis zu 12 Zeichen geben. Leer lassen, um den Gruppencode zu verwenden. Gerätekanalnamen und Link-Zuweisungen bleiben unverändert."
             overview_channel: "Diese Kanalkurve in der Gain-EQ-Übersicht anzeigen. Ihre Auswahl bleibt beim globalen Ausblenden erhalten und wird nach dem Einblenden wieder verwendet."
             channel_eq: "Betrags-, Phasen- und Filterbeschriftungsanzeige für jedes Kanaldiagramm unabhängig einstellen, auch für global ausgeblendete Kanäle."
-            matrix: "Eingänge und Aux als Matrixzeilen sowie Ausgänge und Aux als Spalten verwenden. Abwählen, um die Ausrichtung umzukehren. Routing-Verbindungen bleiben unverändert."
+            matrix_outputs: "Ausgänge und Aux als Matrixzeilen sowie Eingänge und Aux als Spalten verwenden. Routing-Verbindungen bleiben unverändert."
+            matrix_inputs: "Eingänge und Aux als Matrixzeilen sowie Ausgänge und Aux als Spalten verwenden. Routing-Verbindungen bleiben unverändert."
         gain: "Pegel des Kanals in dB. 0 dB lässt das Signal unverändert, die unterste Stufe schaltet ihn stumm."
         mute: "Schaltet den Kanal stumm. Der Gain behält seinen Wert."
         phase: "Polarität. Inverse dreht das Signal um, etwa für einen verkehrt verdrahteten Lautsprecher oder ein Mikrofon."
@@ -470,7 +476,6 @@ editor:
 "EQ Plots": "EQ-Diagramme"
 "Gain EQ overview": "EQ-Übersicht auf der Gain-Seite"
 "Channel EQ plots": "EQ-Diagramme der Kanäle"
-"Inputs as matrix rows": "Eingänge als Matrixzeilen"
 "Panels": "Abschnitte"
 "Display preferences affect this browser only. Channel name edits are device settings.": "Anzeigeeinstellungen gelten nur für diesen Browser. Kanalnamen sind Geräteeinstellungen."
 "No link groups are available. Link channels in the Link dialog to name their group.": "Es sind keine Link-Gruppen verfügbar. Verknüpfe Kanäle im Link-Dialog, um ihre Gruppe zu benennen."

@@ -47,9 +47,14 @@ editor:
         names: Group names
         no_groups: No link groups yet. Link channels above to name their group.
         matrix: Link matrix
+        controls: Controls of linked channels
         matrix_lower: Lower half
         matrix_upper: Upper half
         matrix_full: Full matrix
+    matrix_view:
+        rows: Matrix rows
+        outputs: Outputs and Aux
+        inputs: Inputs and Aux
     meter_view:
         title: Meters
         show: Show gate/comp threshold
@@ -101,7 +106,8 @@ editor:
             group_names: "Give each link group a browser-only name of up to 12 characters. Leave it empty to use the group code. Device channel names and link assignments remain unchanged."
             overview_channel: "Include this channel curve in the Gain EQ overview. Its selection is kept while the channel is hidden globally and returns when the channel is shown again."
             channel_eq: "Set magnitude, phase and filter-label visibility independently for every channel plot, including globally hidden channels."
-            matrix: "Use inputs and Aux as matrix rows, with outputs and Aux as columns. Clear this choice to reverse the orientation. Routing connections remain unchanged."
+            matrix_outputs: "Use outputs and Aux as matrix rows, with inputs and Aux as columns. Routing connections remain unchanged."
+            matrix_inputs: "Use inputs and Aux as matrix rows, with outputs and Aux as columns. Routing connections remain unchanged."
         gain: "Level of the channel in dB. 0 dB leaves the signal unchanged, the lowest step mutes it."
         mute: "Mutes the channel. The gain keeps its value."
         phase: "Polarity. Inverse turns the signal upside down, for a speaker or microphone wired the other way round."
@@ -471,7 +477,6 @@ editor:
 "EQ Plots": "EQ Plots"
 "Gain EQ overview": "Gain EQ overview"
 "Channel EQ plots": "Channel EQ plots"
-"Inputs as matrix rows": "Inputs as matrix rows"
 "Panels": "Panels"
 "Display preferences affect this browser only. Channel name edits are device settings.": "Display preferences affect this browser only. Channel name edits are device settings."
 "No link groups are available. Link channels in the Link dialog to name their group.": "No link groups are available. Link channels in the Link dialog to name their group."
