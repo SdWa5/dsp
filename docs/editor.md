@@ -151,7 +151,7 @@ columns, matching Channel EQ plots and stacking on narrow screens. Grouping and 
 stacked. Grouping replaces linked member controls with one mixed-state Mag/Phase/Show all filters set,
 including hidden members. Aux stays separate. Group overview selectors show mixed selections. Matrix exposes the existing orientation.
 Channel names use separate Input, Output and Aux rows. Browser link-group names use separate Input and Output
-rows. Panels groups choices by page context in separate rows and enumerates each rendered collapse key once;
+rows in both Display Settings and the Link dialog. Fields wrap within their side on narrow screens. Panels groups choices by page context in separate rows and enumerates each rendered collapse key once;
 shared channel sections retain one preference across pages. Controls wrap within each grouping row on narrow screens.
 All seven settings sections use the shared collapse controller with distinct `display.*` keys and start expanded.
 Their headings remain reachable when folded, their state survives reloads, and Panels also lists these keys.

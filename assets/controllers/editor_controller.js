@@ -317,12 +317,12 @@ export default class extends Controller {
     }
 
     /**
-     * One name field per link group being edited, keyed by the group's side and lowest channel. The fields are
+     * Input and output rows contain one name field per edited group, keyed by side and lowest channel. Fields are
      * only rebuilt when the groups change, so typing keeps its focus.
      */
     showLinkNames() {
         if (this.hasLinkNamesTarget && this.linkDraft) renderLinkNames(this.linkNamesTarget, this.linkNamesEmptyTarget,
-            this.linkDraft, this.linkViewSettings, 'input->editor#renameLinkGroup');
+            this.linkDraft, this.linkViewSettings, 'input->editor#renameLinkGroup', true);
     }
 
     renameLinkGroup(event) {
