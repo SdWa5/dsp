@@ -19,7 +19,7 @@
     <fieldset class="card" data-display-section="channels" data-controller="collapse" data-collapse-key-value="display.channels"><legend class="card__title">{{ w.fold('editor.menu.channels', 'display_channels') }}</legend>
     <div class="display-settings__channels" data-controller="channelview">
         <h3 title="{{ 'editor.tip.display.visibility'|trans }}">{{ 'Channel Visibility'|trans }}</h3>
-        <p>{{ 'Hidden channels remain active. Linked edits still reach hidden members.'|trans }}</p>
+        <p>{{ 'Hidden channels remain active unless Mute hidden channels is on. Linked edits still reach hidden members.'|trans }}</p>
         <div class="channel-visibility">
             {% for side, title in {inputs: 'Input', outputs: 'Output'} %}
                 <fieldset class="group channel-visibility__side" data-display-side="{{ side }}" data-controller="linkplace selectors" data-selectors-compact-value="true">
@@ -35,6 +35,8 @@
             </fieldset>
         </div>
         <div class="display-settings__row"><button type="button" class="toggle" title="{{ 'editor.tip.display.show_all'|trans }}" data-action="channelview#showAll">{{ 'Show all channels'|trans }}</button></div>
+        {# The one display setting that writes to the device: the Mute of each channel while it is hidden here #}
+        <label class="check hide-mute" data-controller="hidemute" title="{{ 'editor.tip.display.mute_hidden'|trans }}"><input title="{{ 'editor.tip.display.mute_hidden'|trans }}" type="checkbox" data-hidemute-target="on" data-action="change->hidemute#change"> {{ 'Mute hidden channels'|trans }}</label>
     </div>
         <h3 title="{{ 'editor.tip.name'|trans }}">{{ 'Channel Names'|trans }}</h3>
         <p>{{ 'Channel names are device settings and are saved with presets. Name edits write to the connected device.'|trans }}</p>
