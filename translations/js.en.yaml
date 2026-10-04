@@ -82,7 +82,7 @@
 "Taking the backup…": "Taking the backup…"
 "Every chosen output is hidden. Show it under Channel Visibility or choose a visible output.": "Every chosen output is hidden. Show it under Channel Visibility or choose a visible output."
 "Target %target% dB, gain %min%..%max% dB, %slew% dB/s": "Target %target% dB, gain %min%..%max% dB, %slew% dB/s"
-"The bridge is not running. Start it with bin/console trackdsp:bridge.": "The bridge is not running. Start it with bin/console trackdsp:bridge."
+"The bridge is not running. Start it with bin/console sdwa5-dsp:bridge.": "The bridge is not running. Start it with bin/console sdwa5-dsp:bridge."
 "Unknown: the device does not report this value": "Unknown: the device does not report this value"
 "Update rider": "Update rider"
 "Upper half, click for the full matrix": "Upper half, click for the full matrix"

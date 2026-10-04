@@ -10,7 +10,7 @@ export function describeConnection(status) {
     const demo = online && Boolean(status.demo);
     let banner = '';
     if (!status.bridge) {
-        banner = status.error || t("The bridge is not running. Start it with bin/console trackdsp:bridge.");
+        banner = status.error || t("The bridge is not running. Start it with bin/console sdwa5-dsp:bridge.");
     } else if (!status.connected) {
         banner = (status.target ? t("Not connected to %target%.", { target: status.target }) : t("Not connected."))+ (status.error ? ` ${status.error}` : '');
     } else if (demo) {

@@ -1,6 +1,6 @@
 [Unit]
 Description=Serve DHCP on end0 when no other DHCP server answers (Deco WAN port)
-Documentation=file:///srv/trackdsp/docs/vim3.md
+Documentation=file:///srv/sdwa5-dsp/docs/vim3.md
 After=systemd-networkd.service
 Requires=systemd-networkd.service
 

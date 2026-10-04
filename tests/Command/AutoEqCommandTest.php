@@ -16,7 +16,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * trackdsp:autoeq against a bridge subprocess on the simulated device, with a synthetic recording of pink
+ * sdwa5-dsp:autoeq against a bridge subprocess on the simulated device, with a synthetic recording of pink
  * noise through a +6 dB peak at 1 kHz.
  */
 final class AutoEqCommandTest extends KernelTestCase
@@ -28,7 +28,7 @@ final class AutoEqCommandTest extends KernelTestCase
     public static function setUpBeforeClass(): void
     {
         $peak = new FittedBand(Scale::hzToIndex(1000), Scale::dbToPeqGain(6.0), Scale::qToIndex(2.0));
-        self::$wav = sys_get_temp_dir().'/trackdsp-autoeq-'.bin2hex(random_bytes(4)).'.wav';
+        self::$wav = sys_get_temp_dir().'/sdwa5-dsp-autoeq-'.bin2hex(random_bytes(4)).'.wav';
         file_put_contents(self::$wav, Signals::wav([Signals::peak(Signals::pinkNoise(3 * Scale::SAMPLE_RATE), $peak)], 24));
     }
 
@@ -41,7 +41,7 @@ final class AutoEqCommandTest extends KernelTestCase
 
     protected function setUp(): void
     {
-        $this->directory = sys_get_temp_dir().'/trackdsp-autoeq-'.bin2hex(random_bytes(4));
+        $this->directory = sys_get_temp_dir().'/sdwa5-dsp-autoeq-'.bin2hex(random_bytes(4));
     }
 
     protected function tearDown(): void
@@ -56,7 +56,7 @@ final class AutoEqCommandTest extends KernelTestCase
      */
     private function autoEq(array $input): CommandTester
     {
-        $tester = new CommandTester((new Application(self::bootKernel()))->find('trackdsp:autoeq'));
+        $tester = new CommandTester((new Application(self::bootKernel()))->find('sdwa5-dsp:autoeq'));
         $tester->execute($input + ['--dir' => $this->directory], ['interactive' => false]);
 
         return $tester;
@@ -161,7 +161,7 @@ final class AutoEqCommandTest extends KernelTestCase
             Playback::hex(Commands::gain(8, Scale::dbToGain(-6.0))),
         ]]);
 
-        $tester = $this->autoEq(['outputs' => 'out1', '--socket' => $this->bridge?->socket, '--device' => 'trackdsp-test-none', '--settle' => '0', '--seconds' => '1']);
+        $tester = $this->autoEq(['outputs' => 'out1', '--socket' => $this->bridge?->socket, '--device' => 'sdwa5-dsp-test-none', '--settle' => '0', '--seconds' => '1']);
 
         self::assertStringContainsString('compressor at 1:1.0', $tester->getDisplay());
         self::assertStringContainsString('Set Limit, or 1:1.1 from +20 dB, before measuring.', $tester->getDisplay());
@@ -173,7 +173,7 @@ final class AutoEqCommandTest extends KernelTestCase
         $before = self::out1Peq($client);
         $tone = self::toneMode($client);
 
-        $tester = $this->autoEq(['outputs' => 'out1', '--socket' => $this->bridge?->socket, '--device' => 'trackdsp-test-none', '--settle' => '0', '--seconds' => '1']);
+        $tester = $this->autoEq(['outputs' => 'out1', '--socket' => $this->bridge?->socket, '--device' => 'sdwa5-dsp-test-none', '--settle' => '0', '--seconds' => '1']);
 
         self::assertSame(Command::FAILURE, $tester->getStatusCode());
         self::assertStringContainsString('Pink noise starts now', $tester->getDisplay());
@@ -196,7 +196,7 @@ final class AutoEqCommandTest extends KernelTestCase
 
     public function testFailsWithoutBridge(): void
     {
-        $tester = $this->autoEq(['outputs' => 'out1', '--socket' => sys_get_temp_dir().'/trackdsp-none.sock', '--wav' => [(string) self::$wav]]);
+        $tester = $this->autoEq(['outputs' => 'out1', '--socket' => sys_get_temp_dir().'/sdwa5-dsp-none.sock', '--wav' => [(string) self::$wav]]);
 
         self::assertSame(Command::FAILURE, $tester->getStatusCode());
         self::assertStringContainsString('not running', $tester->getDisplay());

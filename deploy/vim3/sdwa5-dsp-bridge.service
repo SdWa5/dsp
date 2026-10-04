@@ -1,0 +1,20 @@
+[Unit]
+Description=sdwa5-dsp bridge for the t.racks 8x8 on USB
+Documentation=file:///srv/sdwa5-dsp/docs/bridge.md
+StartLimitIntervalSec=0
+
+[Service]
+User=sdwa5-dsp
+Group=sdwa5-dsp
+WorkingDirectory=/srv/sdwa5-dsp
+ExecStart=/usr/bin/php /srv/sdwa5-dsp/bin/console sdwa5-dsp:bridge --target=usb --resync-interval=60
+Restart=always
+RestartSec=3
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/srv/sdwa5-dsp/var
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

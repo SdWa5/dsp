@@ -24,7 +24,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 final class EditorController extends AbstractController
 {
     public function __construct(
-        #[Autowire('%trackdsp.factory_config%')]
+        #[Autowire('%sdwa5_dsp.factory_config%')]
         private readonly string $factoryConfig,
         #[Autowire('%kernel.project_dir%/composer.json')]
         private readonly string $packageFile,

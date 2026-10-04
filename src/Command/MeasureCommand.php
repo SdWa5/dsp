@@ -40,7 +40,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  * --restore replays what a crashed measurement left in its restore file. Ctrl+C stops before the recording and
  * puts the device back.
  */
-#[AsCommand('trackdsp:measure', 'Play the test tone on outputs, record the interface and print levels and third-octave bands (needs a running bridge)')]
+#[AsCommand('sdwa5-dsp:measure|trackdsp:measure', 'Play the test tone on outputs, record the interface and print levels and third-octave bands (needs a running bridge)')]
 final class MeasureCommand extends Command implements SignalableCommandInterface
 {
     private const MIN_SECONDS = 2;
@@ -57,9 +57,9 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
     private ?Interrupt $interrupt = null;
 
     public function __construct(
-        #[Autowire('%trackdsp.bridge_socket%')]
+        #[Autowire('%sdwa5_dsp.bridge_socket%')]
         private readonly string $defaultSocket,
-        #[Autowire('%trackdsp.measure_dir%')]
+        #[Autowire('%sdwa5_dsp.measure_dir%')]
         private readonly string $defaultDirectory,
         private readonly RecorderFactory $recorders = new RecorderFactory(),
     ) {
@@ -84,7 +84,7 @@ final class MeasureCommand extends Command implements SignalableCommandInterface
             ->addOption('wav', null, InputOption::VALUE_REQUIRED, 'Analyse this recording instead of measuring, without the bridge')
             ->addOption('save', null, InputOption::VALUE_REQUIRED, 'Base name of the recording and its JSON in --dir (default: measure-<time>)')
             ->addOption('restore', null, InputOption::VALUE_NONE, 'Replay the restore file a crashed measurement left behind, and stop')
-            ->addOption('socket', 's', InputOption::VALUE_REQUIRED, 'Bridge socket (default: $TRACKDSP_BRIDGE_SOCKET or var/bridge.sock)')
+            ->addOption('socket', 's', InputOption::VALUE_REQUIRED, 'Bridge socket (default: $SDWA5_DSP_BRIDGE_SOCKET or var/bridge.sock)')
             ->addOption('dir', null, InputOption::VALUE_REQUIRED, 'Directory for recordings and results (default: var/measure)');
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-// A stand-in for trackdsp:bridge that answers from a script, see ScriptedBridge.
+// A stand-in for sdwa5-dsp:bridge that answers from a script, see ScriptedBridge.
 // Arguments: the socket path, a JSON list of status answers, the last one repeats, and optionally a JSON list
 // of write answers, null for taken and an error code for rejected, after which every write is taken.
 

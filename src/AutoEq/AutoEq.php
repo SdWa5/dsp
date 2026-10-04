@@ -19,7 +19,7 @@ use App\Protocol\Frame;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
- * The steps of the supervised auto EQ, shared by trackdsp:autoeq and the browser editor.
+ * The steps of the supervised auto EQ, shared by sdwa5-dsp:autoeq and the browser editor.
  *
  * Every recording is self-contained: it bypasses the bands the auto EQ owns on the chosen outputs and plays
  * the device's pink noise through Playback, which pauses the gain riders and puts tone, bands and riders back
@@ -35,7 +35,7 @@ final class AutoEq
 
     public function __construct(
         private readonly BridgeClient $bridge,
-        #[Autowire('%trackdsp.autoeq_dir%')]
+        #[Autowire('%sdwa5_dsp.autoeq_dir%')]
         private readonly string $directory,
         private readonly RecorderFactory $recorders = new RecorderFactory(),
         ?Interrupt $interrupt = null,
@@ -214,7 +214,7 @@ final class AutoEq
     {
         $data = json_decode((string) @file_get_contents($path), true, 64, \JSON_THROW_ON_ERROR);
         if (!\is_array($data) || Device::FILE_FORMAT !== ($data['format'] ?? null) || !\is_array($data['device'] ?? null)) {
-            throw new \InvalidArgumentException(\sprintf('"%s" is not a trackdsp backup.', basename($path)));
+            throw new \InvalidArgumentException(\sprintf('"%s" is not a sdwa5-dsp backup.', basename($path)));
         }
         $named = \is_array($data['autoeq'] ?? null) ? array_values(array_filter((array) ($data['autoeq']['outputs'] ?? []), 'is_int')) : [];
         $outputs ??= [] !== $named ? $named : range(Channel::output(1), Channel::output(Channel::OUTPUTS));

@@ -10,14 +10,14 @@ use App\Protocol\Scale;
 /**
  * Replaces arecord in the test environment: a recording is 2 s of pink noise through a +6 dB peak at 1 kHz
  * on the last channel, the mic channel of the auto EQ. Every channel before it holds the same noise without
- * the peak, STEP_DB lower and LAG samples later per channel. The device "trackdsp-test-none" fails like a
+ * the peak, STEP_DB lower and LAG samples later per channel. The device "sdwa5-dsp-test-none" fails like a
  * missing interface.
  *
  * $probe runs at the start of every recording, so a test sees the device while it records.
  */
 final class FakeRecorderFactory extends RecorderFactory
 {
-    public const FAILING = 'trackdsp-test-none';
+    public const FAILING = 'sdwa5-dsp-test-none';
     public const STEP_DB = -6.0;
     public const LAG = 48;
 

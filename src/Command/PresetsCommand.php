@@ -8,7 +8,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand('trackdsp:presets', 'List the preset names U01..U20 and F00 and which user slots are stored')]
+#[AsCommand('sdwa5-dsp:presets|trackdsp:presets', 'List the preset names U01..U20 and F00 and which user slots are stored')]
 final class PresetsCommand extends DeviceCommand
 {
     protected function handle(Matrix $dsp, InputInterface $input, SymfonyStyle $io): int

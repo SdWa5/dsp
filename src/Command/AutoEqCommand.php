@@ -34,15 +34,15 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  * them only after confirmation. --wav analyses existing recordings instead of measuring, --revert restores
  * a backup.
  */
-#[AsCommand('trackdsp:autoeq', 'Measure with pink noise and a measurement mic and fit the output PEQ to a target (needs a running bridge)')]
+#[AsCommand('sdwa5-dsp:autoeq|trackdsp:autoeq', 'Measure with pink noise and a measurement mic and fit the output PEQ to a target (needs a running bridge)')]
 final class AutoEqCommand extends Command implements SignalableCommandInterface
 {
     private ?Interrupt $interrupt = null;
 
     public function __construct(
-        #[Autowire('%trackdsp.bridge_socket%')]
+        #[Autowire('%sdwa5_dsp.bridge_socket%')]
         private readonly string $defaultSocket,
-        #[Autowire('%trackdsp.autoeq_dir%')]
+        #[Autowire('%sdwa5_dsp.autoeq_dir%')]
         private readonly string $defaultDirectory,
         private readonly RecorderFactory $recorders = new RecorderFactory(),
     ) {
@@ -70,7 +70,7 @@ final class AutoEqCommand extends Command implements SignalableCommandInterface
             ->addOption('tolerance', null, InputOption::VALUE_REQUIRED, 'Leave deviations up to this size alone, in dB', '1')
             ->addOption('apply', null, InputOption::VALUE_NONE, 'Write the bands without asking')
             ->addOption('revert', null, InputOption::VALUE_REQUIRED, 'Restore the PEQ of the outputs from this backup and stop')
-            ->addOption('socket', 's', InputOption::VALUE_REQUIRED, 'Bridge socket (default: $TRACKDSP_BRIDGE_SOCKET or var/bridge.sock)')
+            ->addOption('socket', 's', InputOption::VALUE_REQUIRED, 'Bridge socket (default: $SDWA5_DSP_BRIDGE_SOCKET or var/bridge.sock)')
             ->addOption('dir', null, InputOption::VALUE_REQUIRED, 'Directory for backups, recordings and results (default: var/autoeq)');
     }
 

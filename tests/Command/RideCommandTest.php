@@ -10,7 +10,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 
 /**
- * trackdsp:ride against a bridge subprocess on the simulated device, whose meters move between about
+ * sdwa5-dsp:ride against a bridge subprocess on the simulated device, whose meters move between about
  * -54 and -22 dB regardless of the gain.
  */
 final class RideCommandTest extends KernelTestCase
@@ -28,7 +28,7 @@ final class RideCommandTest extends KernelTestCase
      */
     private function ride(array $input): CommandTester
     {
-        $tester = new CommandTester((new Application(self::bootKernel()))->find('trackdsp:ride'));
+        $tester = new CommandTester((new Application(self::bootKernel()))->find('sdwa5-dsp:ride'));
         $tester->execute($input + ['--socket' => $this->bridge?->socket]);
 
         return $tester;
@@ -104,7 +104,7 @@ final class RideCommandTest extends KernelTestCase
 
     public function testFailsWithoutBridge(): void
     {
-        $tester = $this->ride(['channel' => 'in1', '--socket' => sys_get_temp_dir().'/trackdsp-none.sock']);
+        $tester = $this->ride(['channel' => 'in1', '--socket' => sys_get_temp_dir().'/sdwa5-dsp-none.sock']);
 
         self::assertSame(Command::FAILURE, $tester->getStatusCode());
         self::assertStringContainsString('not running', $tester->getDisplay());

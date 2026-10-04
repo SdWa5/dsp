@@ -9,7 +9,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand('trackdsp:mute', 'Mute a channel')]
+#[AsCommand('sdwa5-dsp:mute|trackdsp:mute', 'Mute a channel')]
 class MuteCommand extends DeviceCommand
 {
     protected const MUTE = true;

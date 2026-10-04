@@ -17,7 +17,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * trackdsp:measure against a bridge subprocess on the simulated device, with the fake recorder: the last
+ * sdwa5-dsp:measure against a bridge subprocess on the simulated device, with the fake recorder: the last
  * recorded channel holds pink noise through a +6 dB peak at 1 kHz, every channel before it the plain noise
  * 6 dB lower per channel.
  */
@@ -28,7 +28,7 @@ final class MeasureCommandTest extends KernelTestCase
 
     protected function setUp(): void
     {
-        $this->directory = sys_get_temp_dir().'/trackdsp-measure-'.bin2hex(random_bytes(4));
+        $this->directory = sys_get_temp_dir().'/sdwa5-dsp-measure-'.bin2hex(random_bytes(4));
     }
 
     protected function tearDown(): void
@@ -44,7 +44,7 @@ final class MeasureCommandTest extends KernelTestCase
      */
     private function measure(array $input): CommandTester
     {
-        $tester = new CommandTester((new Application(self::bootKernel()))->find('trackdsp:measure'));
+        $tester = new CommandTester((new Application(self::bootKernel()))->find('sdwa5-dsp:measure'));
         $tester->execute($input + ['--dir' => $this->directory, '--settle' => '0', '--seconds' => '2'], ['interactive' => false]);
 
         return $tester;
@@ -243,7 +243,7 @@ final class MeasureCommandTest extends KernelTestCase
     {
         $wav = $this->wav([Signals::sine(1000.0, 2 * Scale::SAMPLE_RATE, 0.5), array_fill(0, 2 * Scale::SAMPLE_RATE, 0.0)]);
 
-        $tester = $this->measure(['-c' => '1,2', '--wav' => $wav, '--socket' => sys_get_temp_dir().'/trackdsp-none.sock']);
+        $tester = $this->measure(['-c' => '1,2', '--wav' => $wav, '--socket' => sys_get_temp_dir().'/sdwa5-dsp-none.sock']);
 
         $tester->assertCommandIsSuccessful();
         $text = self::text($tester);
@@ -346,7 +346,7 @@ final class MeasureCommandTest extends KernelTestCase
 
     public function testFailsWithoutBridge(): void
     {
-        $tester = $this->measure(['outputs' => 'out3', '--socket' => sys_get_temp_dir().'/trackdsp-none.sock']);
+        $tester = $this->measure(['outputs' => 'out3', '--socket' => sys_get_temp_dir().'/sdwa5-dsp-none.sock']);
 
         self::assertSame(Command::FAILURE, $tester->getStatusCode());
         self::assertStringContainsString('not running', self::text($tester));
@@ -376,7 +376,7 @@ final class MeasureCommandTest extends KernelTestCase
             '--wav analyses an existing recording. Leave out the outputs.' => ['outputs' => 'out3', '--wav' => 'x.wav'],
         ];
         foreach ($cases as $message => $input) {
-            $tester = $this->measure($input + ['--socket' => sys_get_temp_dir().'/trackdsp-none.sock']);
+            $tester = $this->measure($input + ['--socket' => sys_get_temp_dir().'/sdwa5-dsp-none.sock']);
 
             self::assertSame(Command::INVALID, $tester->getStatusCode(), $message);
             self::assertStringContainsString($message, self::text($tester));

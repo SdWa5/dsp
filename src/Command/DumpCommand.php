@@ -9,7 +9,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand('trackdsp:dump', 'Read the configuration (26 pages) as hex or into a binary file')]
+#[AsCommand('sdwa5-dsp:dump|trackdsp:dump', 'Read the configuration (26 pages) as hex or into a binary file')]
 final class DumpCommand extends DeviceCommand
 {
     protected function configure(): void

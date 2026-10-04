@@ -6,10 +6,10 @@
 
 {% block body %}
     {% import 'editor/_widgets.html.twig' as w %}
-    <script type="application/json" id="trackdsp-labels">{{ labels|json_encode|raw }}</script>
-    <script type="application/json" id="trackdsp-defaults">{{ defaults|json_encode|raw }}</script>
-    <script type="application/json" id="trackdsp-i18n">{{ i18n|json_encode(constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP') b-or constant('JSON_HEX_APOS') b-or constant('JSON_HEX_QUOT'))|raw }}</script>
-    <script type="application/json" id="trackdsp-history">{{ history_units|json_encode|raw }}</script>
+    <script type="application/json" id="sdwa5-dsp-labels">{{ labels|json_encode|raw }}</script>
+    <script type="application/json" id="sdwa5-dsp-defaults">{{ defaults|json_encode|raw }}</script>
+    <script type="application/json" id="sdwa5-dsp-i18n">{{ i18n|json_encode(constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP') b-or constant('JSON_HEX_APOS') b-or constant('JSON_HEX_QUOT'))|raw }}</script>
+    <script type="application/json" id="sdwa5-dsp-history">{{ history_units|json_encode|raw }}</script>
     <div class="editor" data-controller="editor history changes">
         <header class="editor__head">
             <div class="bar">
@@ -71,7 +71,7 @@
                             {{ _self.item('editor.menu.about'|trans, 'about') }}
                             <hr>
                             <span class="menu__heading">{{ 'editor.menu.language'|trans }}</span>
-                            {% set chosen = app.request.cookies.get('trackdsp_locale') %}
+                            {% set chosen = app.request.cookies.get('sdwa5_dsp_locale') ?? app.request.cookies.get('trackdsp_locale') %}
                             {% for key, label in {auto: 'editor.menu.language_auto'|trans, en: 'English', de: 'Deutsch'} %}
                                 <label class="menu__check"><input type="radio" name="language" value="{{ key }}"{{ (chosen in ['en', 'de'] ? chosen : 'auto') == key ? ' checked' }}
                                     data-action="change->editor#language"{% if key != 'auto' %} lang="{{ key }}"{% endif %}> {{ label }}</label>

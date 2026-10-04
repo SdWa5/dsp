@@ -11,7 +11,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand('trackdsp:gain', 'Set the gain of a channel in dB (-60..+12)')]
+#[AsCommand('sdwa5-dsp:gain|trackdsp:gain', 'Set the gain of a channel in dB (-60..+12)')]
 final class GainCommand extends DeviceCommand
 {
     protected function configure(): void

@@ -5,18 +5,18 @@ They do not change the device settings. The device API and protocol are document
 
 ## Language
 
-Help > Language offers English, Deutsch and Automatic. English and Deutsch set the `trackdsp_locale` cookie
+Help > Language offers English, Deutsch and Automatic. English and Deutsch set the `sdwa5_dsp_locale` cookie
 for one year at `/`, with `SameSite=Lax` and `Secure` on HTTPS. Changing language reloads the page. Automatic
 removes this cookie and restores negotiation. The current page and the saved view preferences remain available.
 
 The first supported locale wins, in this order.
 
-1. The `trackdsp_locale` cookie, set by the menu.
-2. `TRACKDSP_LOCALE` in the server environment or `.env.local`, when set to `en` or `de`.
+1. The `sdwa5_dsp_locale` cookie, set by the menu.
+2. `SDWA5_DSP_LOCALE` in the server environment or `.env.local`, when set to `en` or `de`.
 3. The browser's `Accept-Language` header, including regional forms such as `de-AT`.
 4. English when none of these supplies a supported language.
 
-Unsupported cookie or server values fall through to the next choice. With an empty `TRACKDSP_LOCALE`, each
+Unsupported cookie or server values fall through to the next choice. With an empty `SDWA5_DSP_LOCALE`, each
 browser chooses its own language. The locale listener runs after routing and before Symfony's translation
 listeners. It applies to the editor route only. API requests and CLI commands keep their existing English messages.
 Errors, Auto EQ warnings and recording names returned by the API remain English until that API supplies message
@@ -91,7 +91,7 @@ Every meter marks the threshold of its channel's dynamics with a dashed line. In
 outputs and the Aux their compressor (orange). Meter and thresholds share one dB scale (`Scale::meterDb()`), so
 the mark sits where the meter reads the threshold. The tooltip adds the threshold below the level.
 
-Display Settings > Meters holds two settings, kept per browser under `trackdsp-meter-threshold`. "Show gate/comp
+Display Settings > Meters holds two settings, kept per browser under `sdwa5-dsp-meter-threshold`. "Show gate/comp
 threshold" switches the mark on, and "Only when active" restricts it to dynamics that work. The device has no
 on switch for either, so `assets/lib/meters.js` decides from the values. A gate works above -90 dB (raw 0, the
 factory value). A compressor works at a ratio other than 1:1.0 with its threshold below +20 dB, the two settings
@@ -101,7 +101,7 @@ An output meter has an orange Limit lamp above its red top, where the vendor edi
 lamp lights while the bridge's `limiting` field, byte 51 of the meter reply, has the output's bit set (bit 0 =
 Out1), and the tooltip then says "Limiter working". That reading of the byte rests on the captures, see
 `docs/protocol.md`, and is not yet confirmed on the device. The simulated device sets the bit of an output whose
-compressor works and whose level reaches its threshold. `trackdsp:meters` shows the same bit as LIMIT.
+compressor works and whose level reaches its threshold. `sdwa5-dsp:meters` shows the same bit as LIMIT.
 
 ## EQ curve views
 
@@ -188,11 +188,11 @@ that name edits write device settings and are included in presets.
 
 ### Channel visibility and grouping
 
-The Channels section keeps `{hidden, grouped}` under `trackdsp-channel-display`. Hidden indices
+The Channels section keeps `{hidden, grouped}` under `sdwa5-dsp-channel-display`. Hidden indices
 are individual input/output channels 0..15 or Aux at 18. All start visible and grouping starts disabled.
 Malformed preferences fall back to those defaults. Storage failures retain changes for the current visit.
 The settings send no API writes and do not affect changed-setting counts, presets or linked-write behavior, with
-one exception. "Mute hidden channels" (`hidemute_controller.js`, pref `trackdsp-hidden-mute` with `{on}`) sets
+one exception. "Mute hidden channels" (`hidemute_controller.js`, pref `sdwa5-dsp-hidden-mute` with `{on}`) sets
 the Mute of a channel when this browser hides it, and of every hidden channel when the option goes on.
 `hidingMutes()` in `assets/lib/hidemute.js` acts on changes only, so a page load never mutes, and it mutes only a
 channel known to play. It never unmutes, neither when a channel shows again nor when the option goes off. Each write
@@ -236,7 +236,7 @@ The inputs remain in the DOM while visibility changes so ordinary state updates 
 Gate and Comp follow plots recover to a visible representative when their selected strip disappears. With no
 visible inputs Gate shows an empty state; with no visible outputs Comp displays Aux if visible, otherwise an empty state.
 
-EQ overview curve selection remains separate under `trackdsp-eq-overview-hidden`. Group switches show mixed
+EQ overview curve selection remains separate under `sdwa5-dsp-eq-overview-hidden`. Group switches show mixed
 selection and update every member, including hidden members, while global visibility still suppresses hidden
 curves. Turning grouping off restores the individual switches without losing their selections.
 
@@ -274,7 +274,7 @@ both matrix orientations, every link placement and settings/shortcut synchroniza
 reloads, panel expansion, per-channel plot choices and storage fallback. Its `check-eq-overview.mjs` helper covers
 combined/separate layouts, canvas-specific hover, empty plots, live EQ changes and layout switches while collapsed.
 Provide an installed Playwright module and a running editor. The browser checks in `tools/` open
-`https://trackdsp.ddev.site`, which is ddev's default domain. Set `TRACKDSP_TEST_URL` when the project runs
+`https://sdwa5-dsp.ddev.site`, which is ddev's default domain. Set `SDWA5_DSP_TEST_URL` when the project runs
 under another domain.
 
 ```bash
@@ -416,13 +416,13 @@ clicked output resets (`channelReset()`). The bar of a page tab (`.tab.is-resett
 setting that page counts, on every channel (`pageReset()`). Both ask through `window.confirm` with the count. A
 capture-phase click listener takes these clicks before `editor#tab`. A mark that covers names only stays visible
 but is not resettable. The bulk resets write the store once and send one command per unit of the
-`#trackdsp-history` registry (`resetCommands()`, `getUnits()` in `device.js`), the same registry the undo replay
+`#sdwa5-dsp-history` registry (`resetCommands()`, `getUnits()` in `device.js`), the same registry the undo replay
 uses, and `HistoryPatchTest` checks that every factory default but names and links has such a unit. Every reset is
 one history entry, "Reset setting", "Reset channel" or "Reset page". Nothing reacts while the marks are off,
 offline or during a replay. On touch, where nothing hovers, a tap within 12 px of a changed field's left edge
 counts as a click on its bar.
 
-Display Settings > Changed settings holds two switches, kept per browser under `trackdsp-changed-view` by
+Display Settings > Changed settings holds two switches, kept per browser under `sdwa5-dsp-changed-view` by
 `assets/lib/changeview.js`. "Mark changed settings" covers the bar on a field (`.is-changed`), the triangle on a
 channel tab (`.chtab__changed`) and the bar on a page tab (`.tab__mark`). "Count changed settings" covers the
 badges (`.tab__count`). Switched off, they set `data-changed-marks` or `data-changed-counts` on `<html>`, and
@@ -482,7 +482,7 @@ clear the output.
 
 Sibling EQ comparison is available in the Gain-page overview. Its channel switches overlay the same
 PEQ/HPF/LPF response used on channel pages. The vendor batch shows the equivalent comparison on
-individual input and output pages; trackdsp keeps this function in the shared overview.
+individual input and output pages; sdwa5-dsp keeps this function in the shared overview.
 
 About reads the declared version from `composer.json`, so a release change appears before dependency install.
 

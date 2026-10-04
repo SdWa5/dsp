@@ -10,7 +10,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand('trackdsp:meters', 'Show the level meters in dB or their raw bytes')]
+#[AsCommand('sdwa5-dsp:meters|trackdsp:meters', 'Show the level meters in dB or their raw bytes')]
 final class MetersCommand extends DeviceCommand
 {
     protected function configure(): void

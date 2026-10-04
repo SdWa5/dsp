@@ -3,7 +3,7 @@
 namespace App\Bridge;
 
 /**
- * Talks to a running trackdsp:bridge over its unix socket.
+ * Talks to a running sdwa5-dsp:bridge over its unix socket.
  *
  * Errors are BridgeException with an HTTP-like code: 503 bridge not reachable, 409 device not connected,
  * 400 request rejected, 504 no answer in time.
@@ -87,7 +87,7 @@ final class BridgeClient
     {
         $stream = @stream_socket_client('unix://'.$this->socketPath, $errno, $errstr, $this->timeout);
         if (false === $stream) {
-            throw new BridgeException(\sprintf('The bridge is not running (%s: %s). Start it with bin/console trackdsp:bridge.', $this->socketPath, $errstr), 503);
+            throw new BridgeException(\sprintf('The bridge is not running (%s: %s). Start it with bin/console sdwa5-dsp:bridge.', $this->socketPath, $errstr), 503);
         }
 
         return $stream;

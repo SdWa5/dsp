@@ -19,7 +19,7 @@ final class EventsController
 {
     public function __construct(
         private readonly BridgeClient $bridge,
-        #[Autowire('%trackdsp.events_lifetime%')]
+        #[Autowire('%sdwa5_dsp.events_lifetime%')]
         private readonly int $lifetime = 300,
     ) {
     }

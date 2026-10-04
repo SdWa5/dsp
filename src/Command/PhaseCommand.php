@@ -9,7 +9,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand('trackdsp:phase', 'Set the phase of a channel')]
+#[AsCommand('sdwa5-dsp:phase|trackdsp:phase', 'Set the phase of a channel')]
 final class PhaseCommand extends DeviceCommand
 {
     private const MODES = ['normal', 'invert'];

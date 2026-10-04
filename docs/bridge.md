@@ -2,26 +2,26 @@
 
 The device accepts one controller at a time. It needs a session start (`10`), meters that are polled, and
 writes that arrive no faster than it acknowledges them. A hidraw handle cannot be shared either.
-`trackdsp:bridge` therefore owns the one connection and serves it to the web editor, which reaches it
+`sdwa5-dsp:bridge` therefore owns the one connection and serves it to the web editor, which reaches it
 through the JSON API.
 
 ```
 browser ──HTTP JSON──▶ ApiController ──┐
 browser ◀──SSE──────── EventsController ┤ unix socket, JSON lines
                                         ▼
-                               trackdsp:bridge ──▶ TCP 9761 | /dev/hidrawN | demo
+                               sdwa5-dsp:bridge ──▶ TCP 9761 | /dev/hidrawN | demo
 ```
 
 ## Running it
 
 ```bash
-bin/console trackdsp:bridge -t 192.168.68.10     # or usb, usb:/dev/hidrawN, demo
+bin/console sdwa5-dsp:bridge -t 192.168.68.10     # or usb, usb:/dev/hidrawN, demo
 ```
 
 | Option | Default | Meaning |
 |---|---|---|
-| `-t`, `--target` | the target of the last `connect` or `disconnect`, else `$TRACKDSP_TARGET` | device to connect to |
-| `-s`, `--socket` | `$TRACKDSP_BRIDGE_SOCKET`, else `var/bridge.sock` | unix socket |
+| `-t`, `--target` | the target of the last `connect` or `disconnect`, else `$SDWA5_DSP_TARGET` | device to connect to |
+| `-s`, `--socket` | `$SDWA5_DSP_BRIDGE_SOCKET`, else `var/bridge.sock` | unix socket |
 | `--meter-interval` | `0.3` | seconds between meter polls while a client listens |
 | `--resync-interval` | `60` | seconds between full re-reads of the device |
 | `--riders-file` | the socket path with `.riders.json` | where the gain riders are kept across restarts |
@@ -30,11 +30,11 @@ bin/console trackdsp:bridge -t 192.168.68.10     # or usb, usb:/dev/hidrawN, dem
 In ddev the bridge runs as a daemon of the web container (`.ddev/config.bridge.yaml`), the first time on the
 simulated device. `POST /api/connect` switches it to the real one, over USB (see the README) or the network.
 Every later start, also after `ddev restart`, is on the device it was last switched to. The daemon sets
-`TRACKDSP_TARGET=demo` rather than `--target=demo` for that reason. Its log is in `ddev logs -s web`, and `-v`
+`SDWA5_DSP_TARGET=demo` rather than `--target=demo` for that reason. Its log is in `ddev logs -s web`, and `-v`
 shows the info messages.
 
-The USB search reads the hidraw class in `TRACKDSP_HIDRAW_SYSFS` (default `/sys/class/hidraw`) and opens the
-nodes in `TRACKDSP_HIDRAW_DEV` (default `/dev`). ddev sets the second one to `/run/host-dev`, where the host's
+The USB search reads the hidraw class in `SDWA5_DSP_HIDRAW_SYSFS` (default `/sys/class/hidraw`) and opens the
+nodes in `SDWA5_DSP_HIDRAW_DEV` (default `/dev`). ddev sets the second one to `/run/host-dev`, where the host's
 `/dev` is mounted. The tests set the first one to a missing directory, so they never find a real device.
 
 The bridge stops on SIGINT and SIGTERM and removes its socket. It refuses to start while another bridge
@@ -143,12 +143,12 @@ PIN commands (`unlock`, `setPin`) are not among them. Integers must fit their fi
 builder would cut to one byte, or anything outside 0..65535, is rejected. Channel arguments must be a
 channel index (`00`–`0F`, `12`, `13`).
 
-Every write (any method except GET, HEAD and OPTIONS) needs the header `X-Trackdsp` with any value, or it
+Every write (any method except GET, HEAD and OPTIONS) needs the header `X-Sdwa5-Dsp` with any value, or it
 is refused with 403. A custom header forces a CORS preflight, which the app never allows, so another website
-open in the same browser cannot write to the device. `TRACKDSP_TRUSTED_HOSTS` limits the host names the app
+open in the same browser cannot write to the device. `SDWA5_DSP_TRUSTED_HOSTS` limits the host names the app
 answers to, which guards against DNS rebinding.
 
-`/api/discover` searches USB and the networks in `TRACKDSP_DISCOVERY_NETWORKS` (empty: the networks of the
+`/api/discover` searches USB and the networks in `SDWA5_DSP_DISCOVERY_NETWORKS` (empty: the networks of the
 local interfaces) for devices on TCP 9761. The device the bridge is connected to is listed without being
 contacted again. A device whose connections are all in use, for example by the vendor editor, answers ping
 but no TCP connect. It is listed as `busy` when the ARP table shows a host with its MAC prefix `00:04:a3`.
@@ -158,12 +158,12 @@ running) or 504 (no answer from the bridge in time).
 
 ### Preset files
 
-`/api/download` returns the live state as a preset file, `{"format": "trackdsp-8x8", "version": 1, "device":
+`/api/download` returns the live state as a preset file, `{"format": "sdwa5-dsp-8x8", "version": 1, "device":
 {...}, "riders": [...]}`, where `device.raw` is the 1277 byte configuration in hex, `device.groups` the group control
 and `riders` the running gain riders with their settings.
 `/api/preset` validates and returns a file for read-only inspection without a bridge or device connection.
 It constructs commands only to validate their ranges and uses the same parser as upload. Opening a file does
-not queue commands or replace riders. Its POST request requires the same `X-Trackdsp` header as upload.
+not queue commands or replace riders. Its POST request requires the same `X-Sdwa5-Dsp` header as upload.
 
 `/api/upload` turns a preset file into write frames (`Device::allFrames()`) and queues them like any write. An
 upload writes every setting a command can write:
@@ -188,7 +188,7 @@ upload over USB is about 300 frames and settles in about 7 s. A file with a valu
 (for example a crafted `raw`) is refused with 400 before anything is written.
 
 `/api/events` starts with `retry: 1000` and sends a `: ping` comment when nothing happened for 15 seconds.
-A stream ends after 300 seconds (`trackdsp.events_lifetime`), and `EventSource` reconnects by itself.
+A stream ends after 300 seconds (`sdwa5_dsp.events_lifetime`), and `EventSource` reconnects by itself.
 Without a bridge it sends one `status` event with `"bridge": false` and ends. The events are relayed from
 the bridge socket rather than through a Mercure hub, so the same setup works in ddev and in the
 FrankenPHP binary.

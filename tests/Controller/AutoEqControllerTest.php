@@ -33,15 +33,15 @@ final class AutoEqControllerTest extends WebTestCase
     {
         self::$bridge?->stop();
         self::$bridge = null;
-        unset($_SERVER['TRACKDSP_BRIDGE_SOCKET'], $_ENV['TRACKDSP_BRIDGE_SOCKET']);
+        unset($_SERVER['SDWA5_DSP_BRIDGE_SOCKET'], $_ENV['SDWA5_DSP_BRIDGE_SOCKET']);
     }
 
     protected function setUp(): void
     {
         \assert(null !== self::$bridge);
-        $_SERVER['TRACKDSP_BRIDGE_SOCKET'] = $_ENV['TRACKDSP_BRIDGE_SOCKET'] = self::$bridge->socket;
+        $_SERVER['SDWA5_DSP_BRIDGE_SOCKET'] = $_ENV['SDWA5_DSP_BRIDGE_SOCKET'] = self::$bridge->socket;
         $this->browser = self::createClient();
-        $directory = self::getContainer()->getParameter('trackdsp.autoeq_dir');
+        $directory = self::getContainer()->getParameter('sdwa5_dsp.autoeq_dir');
         self::assertIsString($directory);
         $this->directory = $directory;
         (new Filesystem())->remove($this->directory);
@@ -68,7 +68,7 @@ final class AutoEqControllerTest extends WebTestCase
     private function call(string $method, string $uri, array|string|null $body = null, int $status = 200): array
     {
         $content = \is_array($body) ? (string) json_encode($body) : ($body ?? '');
-        $this->browser->request($method, $uri, server: ['HTTP_X_TRACKDSP' => '1'], content: $content);
+        $this->browser->request($method, $uri, server: ['HTTP_X_SDWA5_DSP' => '1'], content: $content);
         $response = $this->browser->getResponse();
         self::assertSame($status, $response->getStatusCode(), (string) $response->getContent());
         $data = json_decode((string) $response->getContent(), true);

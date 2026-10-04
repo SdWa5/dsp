@@ -295,7 +295,7 @@ export default class extends Controller {
         this.recorderNoteTarget.hidden = this.recorder;
         const devices = this.devices ?? [];
         if (devices.length > 0 && this.devicesTarget.options.length !== devices.length) {
-            // The first fill selects the configured device (TRACKDSP_CAPTURE_DEVICE), later ones keep the choice
+            // The first fill selects the configured device (SDWA5_DSP_CAPTURE_DEVICE), later ones keep the choice
             const selected = this.devicesFilled ? this.devicesTarget.value : this.defaultDevice;
             this.devicesFilled = true;
             this.devicesTarget.replaceChildren(...devices.map((d) => new Option(`${d.name} (${d.id})`, d.id)));

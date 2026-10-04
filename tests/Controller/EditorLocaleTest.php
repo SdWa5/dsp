@@ -24,7 +24,7 @@ final class EditorLocaleTest extends WebTestCase
     {
         $client = self::createClient();
         if (null !== $cookie) {
-            $client->getCookieJar()->set(new Cookie('trackdsp_locale', $cookie));
+            $client->getCookieJar()->set(new Cookie('sdwa5_dsp_locale', $cookie));
         }
         $page = $client->request('GET', '/', server: null === $browser ? [] : ['HTTP_ACCEPT_LANGUAGE' => $browser]);
         self::assertResponseIsSuccessful();
@@ -35,10 +35,10 @@ final class EditorLocaleTest extends WebTestCase
         self::assertSame('de' === $locale ? 'Out3 mit Out5' : 'Out3 with Out5', $page->filter('#dialog-link [data-side=outputs][data-row="2"][data-column="4"]')->attr('aria-label'));
         self::assertSame('paramFreq', $page->filter('section[data-page=inputs0] [data-peq-target=paramFreq]')->attr('data-peq-target'));
         self::assertStringNotContainsString('editor.menu.', $page->filter('body')->text());
-        $messages = json_decode($page->filter('#trackdsp-i18n')->text(), true, flags: \JSON_THROW_ON_ERROR);
+        $messages = json_decode($page->filter('#sdwa5-dsp-i18n')->text(), true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($messages);
         self::assertSame('de' === $locale ? 'Hell' : 'Light', $messages['Light']);
-        $labels = json_decode($page->filter('#trackdsp-labels')->text(), true, flags: \JSON_THROW_ON_ERROR);
+        $labels = json_decode($page->filter('#sdwa5-dsp-labels')->text(), true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($labels);
         self::assertSame('de' === $locale ? 'Rosa Rauschen' : 'Pink Noise', $labels['TONE_MODES'][1]);
         self::assertSame('1:1.0', $labels['COMP_RATIOS'][0]);

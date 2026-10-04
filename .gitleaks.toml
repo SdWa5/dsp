@@ -1,4 +1,4 @@
-# Secret scanning configuration for trackdsp.
+# Secret scanning configuration for sdwa5-dsp.
 #
 # Extends the upstream rule set rather than replacing it, so new rules arrive with a gitleaks upgrade instead of
 # having to be copied in here. Adapted from sdwa5-3d.

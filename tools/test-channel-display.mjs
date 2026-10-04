@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { checkEqOverview } from './check-eq-overview.mjs';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({ headless: true });
-const url = process.env.TRACKDSP_TEST_URL || 'https://trackdsp.ddev.site';
+const url = process.env.SDWA5_DSP_TEST_URL || 'https://sdwa5-dsp.ddev.site';
 const results = [];
 // Cover static controls and the panel/name/group controls generated after connection.
 async function assertDisplayTooltips(settings) {
@@ -37,7 +37,7 @@ try {
                 constructor() {
                     super(); window.mockEvents = this;
                     setTimeout(() => {
-                        window.mockState = JSON.parse(document.getElementById('trackdsp-defaults').textContent);
+                        window.mockState = JSON.parse(document.getElementById('sdwa5-dsp-defaults').textContent);
                         window.mockState.inputs.forEach(channel => channel.link = 0);
                         window.mockState.outputs.forEach(channel => channel.link = 0);
                         window.mockState.inputs[0].link = 5;
@@ -165,7 +165,7 @@ try {
         const inputNamesBox = await linkNames.locator('[data-names-side=inputs]').boundingBox();
         const outputNamesBox = await linkNames.locator('[data-names-side=outputs]').boundingBox();
         assert.ok(outputNamesBox.y >= inputNamesBox.y + inputNamesBox.height);
-        await linkNames.screenshot({ path: `/tmp/trackdsp-link-group-name-rows-${width}.png` });
+        await linkNames.screenshot({ path: `/tmp/sdwa5-dsp-link-group-name-rows-${width}.png` });
         // Link matrix: aligned cells, gaps around groups only, and the corner cycling lower half, upper half, full matrix.
         const linkPlacementBefore = await page.locator('#dialog-link input[data-editor-target=linkPlacement]:checked').getAttribute('value');
         const inputMatrix = page.locator('#dialog-link table[data-side=inputs]');
@@ -225,7 +225,7 @@ try {
         await page.locator(`#dialog-link input[data-editor-target=linkPlacement][value=${linkPlacementBefore}]`).check();
         await page.locator('#dialog-link .dialog__close').click();
         assert.equal(writes.length, 0);
-        await detailHeading.screenshot({ path: `/tmp/trackdsp-group-detail-title-${width}.png` });
+        await detailHeading.screenshot({ path: `/tmp/sdwa5-dsp-group-detail-title-${width}.png` });
         // Editing a hidden group member renames that member alone through its existing command.
         const memberName = detailHeading.locator('[data-text-bind-value="inputs.0.name"]');
         await memberName.fill('Header L'); await memberName.dispatchEvent('change');
@@ -254,8 +254,8 @@ try {
         assert.equal(await pageLinkField.isVisible(), true);
         assert.equal(await detailTitle.locator('.ch__id:visible').count(), 0);
         await go('gain');
-        await page.locator('[data-editor-target=chtabs]').first().screenshot({ path: `/tmp/trackdsp-group-names-tabs-${width}.png` });
-        await page.locator('.eq-overview__switches').screenshot({ path: `/tmp/trackdsp-group-names-overview-${width}.png` });
+        await page.locator('[data-editor-target=chtabs]').first().screenshot({ path: `/tmp/sdwa5-dsp-group-names-tabs-${width}.png` });
+        await page.locator('.eq-overview__switches').screenshot({ path: `/tmp/sdwa5-dsp-group-names-overview-${width}.png` });
         await page.evaluate(() => {
             for (const [side, indices] of [['inputs', [0, 2]], ['outputs', [1, 3]]]) {
                 for (const index of indices) window.mockState[side][index].name = (side === 'inputs' ? 'In' : 'Out') + (index + 1);
@@ -268,7 +268,7 @@ try {
         const overviewGroup = page.locator('.eq-overview__switch input[value="inputs.0"]');
         assert.equal(await overviewGroup.evaluate(box => box.indeterminate), true);
         await overviewGroup.check();
-        await page.waitForFunction(() => !JSON.parse(localStorage.getItem('trackdsp-eq-overview-hidden')).includes('inputs.2'));
+        await page.waitForFunction(() => !JSON.parse(localStorage.getItem('sdwa5-dsp-eq-overview-hidden')).includes('inputs.2'));
         const incoming = page.locator('section[data-page=gain] .aux-routes__column').first();
         const aggregate = incoming.locator('.group-selector input');
         assert.equal(await aggregate.count(), 1);
@@ -385,7 +385,7 @@ try {
             assert.equal(await page.locator('.routing__node').count(), 15);
             await go('gain');
             if (placement === 'stacked') {
-                await incoming.screenshot({ path: `/tmp/trackdsp-selector-before-${width}.png` });
+                await incoming.screenshot({ path: `/tmp/sdwa5-dsp-selector-before-${width}.png` });
                 assert.equal(await incoming.locator('.link-block__head .group-selector').count(), 1,
                     'Stacked aggregate belongs inside its existing link-group header.');
                 const order = await incoming.locator('.toggle--route .ch').evaluateAll(nodes => nodes.map(node => node.dataset.channelIndexValue));
@@ -396,7 +396,7 @@ try {
                 assert.equal(await incoming.locator('.link-block__head .group-selector').count(), 1);
                 assert.equal(await incoming.locator(':scope > .link-selectors .group-selector').count(), 0);
                 assert.deepEqual(await incoming.locator('.toggle--route .ch').evaluateAll(nodes => nodes.map(node => node.dataset.channelIndexValue)), order);
-                await incoming.screenshot({ path: `/tmp/trackdsp-selector-stacked-${width}.png` });
+                await incoming.screenshot({ path: `/tmp/sdwa5-dsp-selector-stacked-${width}.png` });
             }
         }
         // Reload retains display preferences, and a linked-member URL remains accessible.
@@ -442,7 +442,7 @@ try {
                 assert.equal(hpf.x, lpf.x);
                 assert.ok(lpf.y >= hpf.y + hpf.height, 'HPF and LPF remain vertically stacked.');
             }
-            await panel.screenshot({ path: `/tmp/trackdsp-channel-order-${channel}-${width}.png` });
+            await panel.screenshot({ path: `/tmp/sdwa5-dsp-channel-order-${channel}-${width}.png` });
         }
         await go('gain');
         // Settings has its own header-menu entry at both viewport sizes.
@@ -492,7 +492,7 @@ try {
         ]) {
             const element = settings.locator(selector);
             await element.evaluate(node => node.scrollIntoView({ block: 'center' }));
-            await element.screenshot({ path: `/tmp/trackdsp-display-${name}-${width}.png` });
+            await element.screenshot({ path: `/tmp/sdwa5-dsp-display-${name}-${width}.png` });
         }
         await visibleCheck(18).uncheck();
         await settings.locator('[data-channelview-side-param=inputs]').click();
@@ -553,14 +553,14 @@ try {
             assert.equal(await settings.locator('[data-eq-side=inputs] .display-settings__eq:visible').count(), 6);
             assert.equal(await settings.locator('[data-eq-side=outputs] .display-settings__eq:visible').count(), 7);
             assert.equal(await settings.locator('[data-displaysettings-target=overview]:visible').count(), 11);
-            const saved = await page.evaluate(() => ['eq-view', 'eq-filter-labels', 'eq-overview-hidden'].map(key => localStorage.getItem('trackdsp-' + key)));
+            const saved = await page.evaluate(() => ['eq-view', 'eq-filter-labels', 'eq-overview-hidden'].map(key => localStorage.getItem('sdwa5-dsp-' + key)));
             await settings.locator('[data-channelview-target=grouped]').uncheck();
             assert.equal(await inputSection.locator('[data-channelview-target=channel]:visible').count(), 8);
             assert.equal(await inputSection.locator('.group-selector input').count(), 0);
             assert.equal(await settings.locator('[data-eq-side=inputs] .display-settings__eq:visible').count(), 8);
             assert.equal(await settings.locator('[data-displaysettings-target=overview]:visible').count(), 17);
             await settings.locator('[data-channelview-target=grouped]').check();
-            assert.deepEqual(await page.evaluate(() => ['eq-view', 'eq-filter-labels', 'eq-overview-hidden'].map(key => localStorage.getItem('trackdsp-' + key))), saved);
+            assert.deepEqual(await page.evaluate(() => ['eq-view', 'eq-filter-labels', 'eq-overview-hidden'].map(key => localStorage.getItem('sdwa5-dsp-' + key))), saved);
 
             const groupedTab = page.locator('.chtab[data-group="1"]:visible').first();
             const shadow = await groupedTab.evaluate(tab => getComputedStyle(tab).boxShadow);
@@ -592,7 +592,7 @@ try {
         assert.equal(await visibleCheck(15).isChecked(), true);
         assert.equal(await visibleCheck(18).isChecked(), false);
         await visibilityGroup.check();
-        await page.locator('section[data-page=display]').screenshot({ path: `/tmp/trackdsp-channel-display-${width}.png` });
+        await page.locator('section[data-page=display]').screenshot({ path: `/tmp/sdwa5-dsp-channel-display-${width}.png` });
         await page.locator('section[data-page=display] [data-action="channelview#showAll"]').click();
         assert.equal(await page.locator('section[data-page=display] [data-channelview-target=channel]:checked').count(), 17);
         // Device names share the existing individual write and both entry points update immediately.
@@ -613,7 +613,7 @@ try {
         assert.deepEqual(writes[0].body.commands, [{ command: 'channelName', args: { channel: 0, name: 'Desk R' } }]);
         writes.length = 0;
         await page.locator('#dialog-names .dialog__close').click();
-        await settings.locator('.display-settings__eq-list').screenshot({ path: `/tmp/trackdsp-display-eq-groups-${width}.png` });
+        await settings.locator('.display-settings__eq-list').screenshot({ path: `/tmp/sdwa5-dsp-display-eq-groups-${width}.png` });
         // Display sections use the same fold behavior, preferences and recovery headers as processing pages.
         for (const key of ['appearance', 'channels', 'links', 'meters', 'eq', 'matrix', 'panels']) {
             const section = settings.locator(`[data-display-section="${key}"]`);
@@ -751,7 +751,7 @@ try {
         const eqSection = settings.locator('[data-display-section=eq]');
         const eqFold = eqSection.locator(':scope > legend [data-collapse-target=toggle]');
         await eqFold.click();
-        await eqSection.screenshot({ path: `/tmp/trackdsp-display-collapsed-${width}.png` });
+        await eqSection.screenshot({ path: `/tmp/sdwa5-dsp-display-collapsed-${width}.png` });
         await page.reload();
         await eqFold.waitFor({ state: 'visible' });
         assert.equal(await eqFold.getAttribute('aria-expanded'), 'false');
@@ -762,9 +762,9 @@ try {
         assert.equal(await eqFold.getAttribute('aria-expanded'), 'false');
         await eqFold.click();
         await page.evaluate(() => window.scrollTo(0, 0));
-        await page.screenshot({ path: `/tmp/trackdsp-display-settings-${width}.png`, fullPage: true });
-        await page.screenshot({ path: `/tmp/trackdsp-display-settings-viewport-${width}.png` });
-        await settings.locator('.channel-visibility__side').first().screenshot({ path: `/tmp/trackdsp-display-group-fill-${width}.png` });
+        await page.screenshot({ path: `/tmp/sdwa5-dsp-display-settings-${width}.png`, fullPage: true });
+        await page.screenshot({ path: `/tmp/sdwa5-dsp-display-settings-viewport-${width}.png` });
+        await settings.locator('.channel-visibility__side').first().screenshot({ path: `/tmp/sdwa5-dsp-display-group-fill-${width}.png` });
         assert.deepEqual(writes, []);
         assert.deepEqual(errors, []);
         results.push({ width, preferences: 'persisted', aggregates: 'masked writes', matrix: 'both orientations', errors });
@@ -810,7 +810,7 @@ try {
     assert.equal(await settings.locator('[data-displaysettings-target=eq][data-path="inputs.0"][data-field=labels]').isChecked(), true);
     assert.deepEqual(blockedErrors, []);
     assert.deepEqual(blockedWrites, []);
-    await settings.locator('[data-display-section=channels]').screenshot({ path: '/tmp/trackdsp-display-channels-mobile.png' });
+    await settings.locator('[data-display-section=channels]').screenshot({ path: '/tmp/sdwa5-dsp-display-channels-mobile.png' });
     results.push({ storage: 'blocked', state: 'offline', shortcuts: 'synchronized', errors: blockedErrors });
     await blocked.close();
     console.log(JSON.stringify(results));

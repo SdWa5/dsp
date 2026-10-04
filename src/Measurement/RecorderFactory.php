@@ -13,10 +13,10 @@ use Symfony\Component\Process\Process;
 class RecorderFactory
 {
     /**
-     * @param string $defaultDevice capture device when none is given (TRACKDSP_CAPTURE_DEVICE)
+     * @param string $defaultDevice capture device when none is given (SDWA5_DSP_CAPTURE_DEVICE)
      */
     public function __construct(
-        #[Autowire('%env(TRACKDSP_CAPTURE_DEVICE)%')]
+        #[Autowire('%env(legacy:SDWA5_DSP_CAPTURE_DEVICE)%')]
         private readonly string $defaultDevice = 'default',
     ) {
     }

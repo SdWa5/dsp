@@ -9,7 +9,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand('trackdsp:route', 'Route inputs to an output, replacing its current routing')]
+#[AsCommand('sdwa5-dsp:route|trackdsp:route', 'Route inputs to an output, replacing its current routing')]
 final class RouteCommand extends DeviceCommand
 {
     protected function configure(): void

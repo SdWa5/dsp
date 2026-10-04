@@ -15,7 +15,7 @@ use App\Protocol\Frame;
  * lets the tone settle and records. Afterwards it switches the tone back, writes the restore, waits until the
  * device has it and starts the riders again, whatever went wrong. A restore that finds the device gone waits
  * for the bridge to reconnect and sends the frames again, which is safe because they carry absolute values.
- * Only a clean restore deletes the restore file. After a crash, trackdsp:measure --restore replays it, and no
+ * Only a clean restore deletes the restore file. After a crash, sdwa5-dsp:measure --restore replays it, and no
  * measurement starts while it is there, since its snapshot would take the unrestored device for the original.
  *
  * Errors: a failure before or during the recording is rethrown after the restore. A failed restore is thrown
@@ -25,7 +25,7 @@ use App\Protocol\Frame;
  * the writes check it every 0.1 s, and a recording that ends after it is thrown away. The restore ignores it.
  *
  * A lock next to the bridge socket keeps the measurements on one bridge apart: the auto EQ page,
- * trackdsp:autoeq and trackdsp:measure.
+ * sdwa5-dsp:autoeq and sdwa5-dsp:measure.
  */
 final class Playback
 {
@@ -56,7 +56,7 @@ final class Playback
         try {
             $file = $this->restorePath();
             if (file_exists($file)) {
-                throw new BridgeException(\sprintf('A measurement before this one did not put the device back. Run bin/console trackdsp:measure --restore to replay %s, or delete it to keep the device as it is.', $file), 409);
+                throw new BridgeException(\sprintf('A measurement before this one did not put the device back. Run bin/console sdwa5-dsp:measure --restore to replay %s, or delete it to keep the device as it is.', $file), 409);
             }
             $this->checkInterrupt();
             $status = $this->bridge->request('status');
@@ -195,7 +195,7 @@ final class Playback
             }
         }
         if (null !== $first) {
-            throw new BridgeException(\sprintf('The device was not put back: %s Once it is connected again, run bin/console trackdsp:measure --restore to replay %s.', $first->getMessage(), $file), (int) $first->getCode(), $first);
+            throw new BridgeException(\sprintf('The device was not put back: %s Once it is connected again, run bin/console sdwa5-dsp:measure --restore to replay %s.', $first->getMessage(), $file), (int) $first->getCode(), $first);
         }
         @unlink($file);
     }
@@ -339,7 +339,7 @@ final class Playback
     {
         $saved = json_decode((string) @file_get_contents($file), true);
         if (!\is_array($saved) || !\is_array($saved['frames'] ?? null) || !\is_array($saved['riders'] ?? null)) {
-            throw new \RuntimeException(\sprintf('%s is no restore file of trackdsp:measure.', $file));
+            throw new \RuntimeException(\sprintf('%s is no restore file of sdwa5-dsp:measure.', $file));
         }
         $frames = array_values(array_filter($saved['frames'], static fn (mixed $hex): bool => \is_string($hex) && 1 === preg_match('/^(?:[0-9a-fA-F]{2})+$/', $hex)));
         if (\count($frames) !== \count($saved['frames'])) {

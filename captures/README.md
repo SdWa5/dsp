@@ -58,7 +58,7 @@ reset. The user-owned files under `files/` remain unchanged.
 
 ## Parity survey
 
-The observed vendor surfaces and their trackdsp counterparts are indexed in
+The observed vendor surfaces and their sdwa5-dsp counterparts are indexed in
 [../docs/vendor-parity.md](../docs/vendor-parity.md). Original tab screenshots depict a working online preset,
 not factory defaults. Range screenshots in `tools/shots/ranges/` use the user-controlled default/max/min
 procedure. New `menu_*.png` and named-form shots were captured from the offline `win11-lightweight` VM
@@ -92,7 +92,7 @@ override was found in the inspected startup and language paths; indirect overrid
 The vendor-documented route is the main-menu Language entry followed by English or Chinese. That
 entry is unavailable in the inspected V1.0 UI, and no supported alternative was found in the checked
 code paths or documentation. Dormant translation handlers do not establish a usable vendor feature.
-The audit does not treat them as a confirmed trackdsp gap or request Chinese screenshots without a
+The audit does not treat them as a confirmed sdwa5-dsp gap or request Chinese screenshots without a
 normal entry path. The earlier in-memory resource-change experiment remains historical evidence in
 the JSON. Binary patching is outside the vendor-intended audit and is not a planned verification step.
 The installed VM binary identity and indirect runtime paths remain unverified. A different conclusion
@@ -137,6 +137,9 @@ view in 17. Those originals remain in the source folder and were not imported ag
 | 20 | `dlg_TfmGroupCtrl_current.png` |
 | 21 | `matrix_current.png` |
 | 22 | `dlg_TfmChannelName.png` |
+
+The folder path and the folder list in `file_open.png` and `file_save.png` are blanked, while the dialog title and
+the `*.prs` filter are kept.
 
 The Channel Name popup is shown over Matrix in screenshot 22. Its opening gesture was not recorded.
 Group Matrix screenshots establish empty/all masks and their byte position. The second batch below

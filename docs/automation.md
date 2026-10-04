@@ -1,9 +1,9 @@
 # Gain rider, compressor, auto EQ and measurements
 
 Three tools take routine level and EQ work off the operator. Each of them works from the browser editor and
-from the command line. The gain riders run inside the bridge (`trackdsp:bridge`). The auto EQ writes through
+from the command line. The gain riders run inside the bridge (`sdwa5-dsp:bridge`). The auto EQ writes through
 the bridge, so the browser editor stays usable at the same time. The compressor command talks to the device
-directly. A fourth command, `trackdsp:measure`, checks outputs one at a time with the test tone and prints
+directly. A fourth command, `sdwa5-dsp:measure`, checks outputs one at a time with the test tone and prints
 levels and third-octave bands. It runs on the command line only.
 
 ## Gain rider
@@ -37,10 +37,10 @@ file replaces the running riders with the ones in the file. A file without rider
 saved before 0.43.0, stops them.
 
 ```bash
-bin/console trackdsp:ride in1                              # ride In1 towards -18 dB
-bin/console trackdsp:ride in1 --level=-20 --min=-12 --max=0   # a second call changes the settings
-bin/console trackdsp:ride --list                           # running riders with gain, level and status
-bin/console trackdsp:ride in1 --stop
+bin/console sdwa5-dsp:ride in1                              # ride In1 towards -18 dB
+bin/console sdwa5-dsp:ride in1 --level=-20 --min=-12 --max=0   # a second call changes the settings
+bin/console sdwa5-dsp:ride --list                           # running riders with gain, level and status
+bin/console sdwa5-dsp:ride in1 --stop
 ```
 
 The rider reads the meters and adjusts the input gain of one channel so that its long term level stays at the
@@ -50,7 +50,7 @@ compressor's job.
 The riders run in the bridge, so they keep working without a browser and after the command has ended. The
 bridge polls the meters while a rider runs, also without a client. It keeps the settings in
 `<socket>.riders.json` (`var/bridge.riders.json` by default, `--riders-file` changes it) and starts the riders
-again after a restart. The auto EQ and `trackdsp:measure` pause the riders while they record and start them
+again after a restart. The auto EQ and `sdwa5-dsp:measure` pause the riders while they record and start them
 again afterwards.
 
 | Option | Browser field | Default | Meaning |
@@ -73,12 +73,12 @@ level. A meter at its floor counts as silence at any gain, since gain raw 0 read
 input is no pause. Its meter still shows the level, because the mute acts after it, so the rider keeps the
 gain right for the moment the input is unmuted.
 
-## Compressor: `trackdsp:compressor`
+## Compressor: `sdwa5-dsp:compressor`
 
 ```bash
-bin/console trackdsp:compressor out1,out2 --ratio=4 --threshold=-6 --attack=10 --release=200
-bin/console trackdsp:compressor out1,out2 --threshold=-10
-bin/console trackdsp:compressor aux --ratio=limit --threshold=-3
+bin/console sdwa5-dsp:compressor out1,out2 --ratio=4 --threshold=-6 --attack=10 --release=200
+bin/console sdwa5-dsp:compressor out1,out2 --threshold=-10
+bin/console sdwa5-dsp:compressor aux --ratio=limit --threshold=-3
 ```
 
 The 8x8 has compressors on the outputs and the Aux only. The command sets one or more values on several
@@ -111,7 +111,7 @@ A gain that differs only in its value cannot fix 1:1.0 on its own, because the 8
 
 ## Auto EQ
 
-The auto EQ runs from the **Auto EQ** page of the browser editor or from `trackdsp:autoeq`. Both do the same
+The auto EQ runs from the **Auto EQ** page of the browser editor or from `sdwa5-dsp:autoeq`. Both do the same
 measurement and the same fit, described below.
 
 ### In the browser
@@ -121,10 +121,10 @@ The page leads through four steps. Every step is one request to `/api/autoeq`, a
 
 Start and every recording answer with `warnings` about the chosen outputs, which the page lists above the steps
 until the next answer. An output at compressor ratio 1:1.0 with a gain other than 0 dB is warned about, because
-the fit would try to correct its exaggerated gain and its image above 24 kHz. `trackdsp:autoeq` prints the same
+the fit would try to correct its exaggerated gain and its image above 24 kHz. `sdwa5-dsp:autoeq` prints the same
 warnings before it measures. Neither refuses to measure.
 
-1. **Setup.** Choose the outputs, the capture device (preselected from `TRACKDSP_CAPTURE_DEVICE`), the mic
+1. **Setup.** Choose the outputs, the capture device (preselected from `SDWA5_DSP_CAPTURE_DEVICE`), the mic
    input, the seconds per position, the noise before each recording and the bands to use. Starting saves a
    backup of the device.
 2. **Measure.** **Record position** plays the pink noise, records and analyses one position. The recording
@@ -143,8 +143,8 @@ server.
 
 | Method | Path | Body | Does |
 |---|---|---|---|
-| GET | `/api/autoeq` | – | `{session, recorder, devices, device, backups}`: `recorder` is false without `arecord`, `device` is `TRACKDSP_CAPTURE_DEVICE` |
-| POST | `/api/autoeq/start` | `{"outputs": [8, 9], "bands": 7, "device": "default", "mic_channel": 1, "seconds": 8, "settle": 2}` | backup, new session. Without `device` it records from `TRACKDSP_CAPTURE_DEVICE` |
+| GET | `/api/autoeq` | – | `{session, recorder, devices, device, backups}`: `recorder` is false without `arecord`, `device` is `SDWA5_DSP_CAPTURE_DEVICE` |
+| POST | `/api/autoeq/start` | `{"outputs": [8, 9], "bands": 7, "device": "default", "mic_channel": 1, "seconds": 8, "settle": 2}` | backup, new session. Without `device` it records from `SDWA5_DSP_CAPTURE_DEVICE` |
 | POST | `/api/autoeq/record` | `{"verify": false}` | records one position, blocks until done, 409 while another measurement runs on the bridge |
 | POST | `/api/autoeq/upload?name=&verify=1` | a WAV file of up to 64 MB | adds it as a position, as a verify position with `verify=1` |
 | POST | `/api/autoeq/remove` | `{"index": 0}` | removes one recording |
@@ -157,13 +157,13 @@ server.
 Every answer except `GET` carries the session as `{"session": ...}`. Errors are `{"error": "..."}` with 400,
 409 (no device, or a measurement running), 500 (the recording failed), 503 or 504 as in the rest of the API.
 
-### On the command line: `trackdsp:autoeq`
+### On the command line: `sdwa5-dsp:autoeq`
 
 ```bash
-bin/console trackdsp:autoeq out1,out2 --device=plughw:CARD=UMC1820,DEV=0 --mic-channel=1 --positions=3
-bin/console trackdsp:autoeq out1,out2 --cal=ecm8000.txt --target=tilt:-1 --apply
-bin/console trackdsp:autoeq out1,out2 --wav=var/autoeq/measure-20260927-120000-1.wav
-bin/console trackdsp:autoeq out1,out2 --revert=var/autoeq/backup-20260927-120000.json
+bin/console sdwa5-dsp:autoeq out1,out2 --device=plughw:CARD=UMC1820,DEV=0 --mic-channel=1 --positions=3
+bin/console sdwa5-dsp:autoeq out1,out2 --cal=ecm8000.txt --target=tilt:-1 --apply
+bin/console sdwa5-dsp:autoeq out1,out2 --wav=var/autoeq/measure-20260927-120000-1.wav
+bin/console sdwa5-dsp:autoeq out1,out2 --revert=var/autoeq/backup-20260927-120000.json
 ```
 
 The auto EQ is supervised and runs before the show, not during it. One run does this:
@@ -185,14 +185,14 @@ The tone and the bands are restored when a recording fails. Ctrl+C before or dur
 skips the recording and ends the remaining positions. See [Restore](#restore) for a device that drops off. `--revert` restores the PEQ of the outputs from a backup. `--wav` analyses existing
 recordings instead of measuring and leaves the device untouched until the write.
 
-Only one measurement runs on a bridge at a time. The Auto EQ page, `trackdsp:autoeq` and `trackdsp:measure`
+Only one measurement runs on a bridge at a time. The Auto EQ page, `sdwa5-dsp:autoeq` and `sdwa5-dsp:measure`
 share the lock `<socket>.measure.lock` (`var/bridge.measure.lock` by default), and the one that comes second
 fails with "Another measurement is running on this bridge".
 
 ### Measurement
 
 - A mono measurement mic on an input of the interface, `--mic-channel` counts from 1. `--device` is the ALSA
-  capture device, by default `TRACKDSP_CAPTURE_DEVICE`, and `arecord -l` lists them. Recordings are 48 kHz,
+  capture device, by default `SDWA5_DSP_CAPTURE_DEVICE`, and `arecord -l` lists them. Recordings are 48 kHz,
   32 bit, with two channels at least. Asked for a single channel, plughw averages every input of a multichannel
   interface into it, while from two channels up it copies them one to one.
 - `--cal` reads a calibration file with "frequency dB" lines (the usual format of mic calibration files,
@@ -201,7 +201,7 @@ fails with "Another measurement is running on this bridge".
   1/6-octave bands on a 24-points-per-octave grid from 20 Hz to 20 kHz. Pink noise reads flat.
 - Several positions are averaged in the power domain, which evens out room modes at single spots.
 - ddev has `arecord` and the host's sound cards (`.ddev/docker-compose.alsa.yaml`). Inside ddev `default` is
-  the laptop's own codec, so `.env.local` names the interface in `TRACKDSP_CAPTURE_DEVICE`. PipeWire has to
+  the laptop's own codec, so `.env.local` names the interface in `SDWA5_DSP_CAPTURE_DEVICE`. PipeWire has to
   let go of the card first, `pactl set-card-profile <card> off`.
 
 ### Fit
@@ -226,21 +226,21 @@ usually room cancellations that more power cannot fill, so boosting them wastes 
 is the RBJ peaking biquad at 48 kHz. The 8x8's own filter shape is unconfirmed, so measure again after
 writing to verify.
 
-## Measurements: `trackdsp:measure`
+## Measurements: `sdwa5-dsp:measure`
 
-`trackdsp:measure` plays the device's test tone on some outputs through the bridge, records inputs of the
+`sdwa5-dsp:measure` plays the device's test tone on some outputs through the bridge, records inputs of the
 interface and prints their levels and third-octave bands. With `--reference` it also prints the transfer
 function of every channel against the reference loopback. It is meant for checking the measurement chain, the
 8x8 and the speakers one output at a time. Every recording stays in `--dir` with a JSON file of its results,
 so it can be analysed again later.
 
 ```bash
-bin/console trackdsp:measure out3 -c 1,2,6 --trim=-20             # pink noise on Out3 alone, Out8 keeps playing
-bin/console trackdsp:measure out7 -c 5,6 --relative=6             # a loopback against the reference loopback
-bin/console trackdsp:measure out3 -c 1,6 --reference=6            # delay, polarity and phase of Out3 at mic 1
-bin/console trackdsp:measure out7 -c 5 --signal=sine:100          # level of a 100 Hz sine
-bin/console trackdsp:measure -c 1 --signal=none                   # generator off: noise floor and hum
-bin/console trackdsp:measure -c 1,2,5,6 --wav=var/measure/stage1-loopback.wav   # no bridge needed
+bin/console sdwa5-dsp:measure out3 -c 1,2,6 --trim=-20             # pink noise on Out3 alone, Out8 keeps playing
+bin/console sdwa5-dsp:measure out7 -c 5,6 --relative=6             # a loopback against the reference loopback
+bin/console sdwa5-dsp:measure out3 -c 1,6 --reference=6            # delay, polarity and phase of Out3 at mic 1
+bin/console sdwa5-dsp:measure out7 -c 5 --signal=sine:100          # level of a 100 Hz sine
+bin/console sdwa5-dsp:measure -c 1 --signal=none                   # generator off: noise floor and hum
+bin/console sdwa5-dsp:measure -c 1,2,5,6 --wav=var/measure/stage1-loopback.wav   # no bridge needed
 ```
 
 The argument names the outputs to play, and every other output is muted for the recording. Without it every
@@ -261,7 +261,7 @@ output plays as set. One run does this:
 | Option | Default | Meaning |
 |---|---|---|
 | `-c`, `--channels` | 1 | inputs of the interface to record and analyse, counted from 1, for example `1,5,6` |
-| `-d`, `--device` | `TRACKDSP_CAPTURE_DEVICE` | ALSA capture device, recorded as for the auto EQ (see [Measurement](#measurement)) |
+| `-d`, `--device` | `SDWA5_DSP_CAPTURE_DEVICE` | ALSA capture device, recorded as for the auto EQ (see [Measurement](#measurement)) |
 | `--signal` | pink | `pink`, `white`, `sine:<Hz>` or `none`. A sine takes the nearest of the device's 31 frequencies (20 Hz to 20 kHz in third octaves) and is refused more than 1/6 octave away from it. `none` switches the generator off, so whatever arrives at the analog inputs plays |
 | `--trim` | 0 | dB added to the gain of every played output except the reference. Each output is trimmed from its own gain and held within -60..+12 dB. A trimmed output at compressor ratio 1:1.0 runs at 1:1.1 from +20 dB for the recording, see [Solo](#solo) |
 | `--allow-boost` | off | needed for a positive `--trim` |
@@ -274,7 +274,7 @@ output plays as set. One run does this:
 | `--wav` | – | analyses this recording instead of measuring, without the bridge. The JSON file is written only with `--save` |
 | `--save` | `measure-<time>` | base name of the recording and its JSON file in `--dir`. An existing file is never overwritten |
 | `--restore` | – | replays the restore file a crashed measurement left behind and stops, see [Restore](#restore) |
-| `-s`, `--socket` | `TRACKDSP_BRIDGE_SOCKET` or `var/bridge.sock` | bridge socket |
+| `-s`, `--socket` | `SDWA5_DSP_BRIDGE_SOCKET` or `var/bridge.sock` | bridge socket |
 | `--dir` | `var/measure` | directory for recordings and results |
 
 Symfony Console reads `-c=1,5,6` as `=1,5,6`. Write `-c 1,5,6` or `--channels=1,5,6`.
@@ -353,13 +353,13 @@ so no drift correction is needed.
 - The JSON file names `reference_input` and holds per channel a `transfer` with the lag, the delay in samples
   and in ms, the delay the phase leaves out (`aligned`), the polarity, the phase and the ratio of the peak, the
   mean coherence, the coherent range, the segments, the warnings and the bands.
-- The FFT runs in plain PHP. `trackdsp:measure` and `trackdsp:autoeq` switch PHP's JIT on at their start
+- The FFT runs in plain PHP. `sdwa5-dsp:measure` and `sdwa5-dsp:autoeq` switch PHP's JIT on at their start
   (`App\Measurement\Jit`), which makes it about twice as fast where the JIT is set to `off` with a buffer, as
   in `.ddev/php/jit.ini`. One pair of a 10 s recording then takes about 2 s in ddev.
 
 ### Restore
 
-`trackdsp:measure`, `trackdsp:autoeq` and the Auto EQ page share one restore:
+`sdwa5-dsp:measure`, `sdwa5-dsp:autoeq` and the Auto EQ page share one restore:
 
 - Before the setup, the frames that put the device back and the settings of the paused gain riders are saved
   to `<socket>.measure.restore.json` (`var/bridge.measure.restore.json` by default). A measurement whose
@@ -376,7 +376,7 @@ While a restore file is there, no measurement starts and the error names the fil
 would take the device as it was left for the original. Once the device is connected again, replay the file:
 
 ```bash
-bin/console trackdsp:measure --restore        # prints what it put back, or "Nothing to restore."
+bin/console sdwa5-dsp:measure --restore        # prints what it put back, or "Nothing to restore."
 ```
 
 Deleting the file instead keeps the device as it is. After a crash of the bridge, start it first, since the

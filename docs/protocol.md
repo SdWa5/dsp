@@ -47,7 +47,7 @@ Multi-byte values are little-endian.
 
 Linked channels: the vendor editor sends mute, phase, Line/Mic and +48V to every channel of the group, and
 gain, EQ, filters and the rest to the operated channel only (✓). Whether the 8x8 then copies those to the
-linked channels by itself is not measured. The trackdsp editor therefore sends every channel setting to every
+linked channels by itself is not measured. The sdwa5-dsp editor therefore sends every channel setting to every
 channel of the group, the channel name excepted, so a link group works the same on the device and in demo mode.
 Linking copies the master to every new slave (`2A`), and to a slave that moves to another group as well. The
 demo copies the name with the rest, and whether the 8x8 does is not measured, so the editor writes each new
@@ -144,7 +144,7 @@ Measured with the loopbacks of a UMC1820 on 2026-09-29. The procedures and the n
   The samples alternate between g and g², which mirrors the signal at 24 kHz, 15 dB below it at 3 dB of gain
   reduction and 10 dB below it at 6 dB.
 - Gain raw 0 mutes the channel, while the vendor editor shows it as -60 dB. This was measured on an input (IN5,
-  2026-09-29). trackdsp treats the outputs and the Aux the same, which is not measured yet.
+  2026-09-29). sdwa5-dsp treats the outputs and the Aux the same, which is not measured yet.
 - The meters tap after the gain and, on the outputs, after the compressor. They tap before the mute, so a muted
   channel keeps its reading. They read like an RMS meter.
 
@@ -209,14 +209,14 @@ The layout was first measured on `tests/fixtures/vendor/SdWa5_Default_Preset_3_D
 So the file carries neither the test tone, nor the delay unit, nor the EQ bypass. `Device::fromVendorPreset()`
 builds the configuration as `FF FF`, file bytes 16..1275 and the factory configuration for the rest, then sets those
 three to unknown, so that an upload leaves them on the device as they are. The editor's "Open preset file" takes
-such a file as well as a trackdsp JSON file, told apart by the magic. Opening inspects settings independently
+such a file as well as a sdwa5-dsp JSON file, told apart by the magic. Opening inspects settings independently
 of live state; applying them is a separate confirmed action. On 2026-10-03 the user supplied
 `files/SdWa5_Default_Preset_3_DSPs_eqbypass_testtone_delayft.prs` after saving with EQ bypass, test tone and feet
 selected. Both samples are byte-identical, including their 1278-byte length. This second sample adds no
 representation of those settings. On the same day the user reported that reopening offline resets test tone
 to its default while EQ bypass and delay unit stay unchanged. This observation concerns the vendor UI,
-not device writes. Trackdsp keeps omitted values unknown and does not reset hardware tone during an upload.
-Trackdsp does not write `.prs` files. The sample checksum is recorded in `captures/README.md`.
+not device writes. SdWa5 DSP keeps omitted values unknown and does not reset hardware tone during an upload.
+SdWa5 DSP does not write `.prs` files. The sample checksum is recorded in `captures/README.md`.
 
 ### Still open
 

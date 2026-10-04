@@ -1,14 +1,14 @@
 # Measurements
 
 The first measurements with a Behringer UMC1820, two measurement mics and the 8x8's own test tone, taken on
-2026-09-28 and 2026-09-29 with `trackdsp:measure` ([automation.md](automation.md#measurements-trackdspmeasure)).
+2026-09-28 and 2026-09-29 with `sdwa5-dsp:measure` ([automation.md](automation.md#measurements-sdwa5-dspmeasure)).
 This page lists the setup, the commands and the results. The facts about the 8x8 are also summarised in
 [protocol.md](protocol.md#signal-chain). The recordings and their JSON files stay in `var/measure/` on the
 measuring machine and are not part of the repository.
 
 ## Setup
 
-- The UMC1820 records at 48 kHz in `S32_LE` inside ddev, with `TRACKDSP_CAPTURE_DEVICE=plughw:CARD=UMC1820,DEV=0`.
+- The UMC1820 records at 48 kHz in `S32_LE` inside ddev, with `SDWA5_DSP_CAPTURE_DEVICE=plughw:CARD=UMC1820,DEV=0`.
   Mic 1 is on IN1 and mic 2 on IN2, with +48V on for inputs 1 to 4.
 - The loopbacks go to the rear line inputs as XLR, with +48V off for inputs 5 to 8, PAD pressed and the gain
   knobs at minimum. 8x8 OUT7 goes to IN5. 8x8 OUT6 goes to IN6 as the reference loopback, because the rack's
@@ -27,9 +27,9 @@ The runs below played Out7 against the reference. The compressor and gain settin
 through `/api/write` before each run and put back afterwards.
 
 ```bash
-ddev exec bin/trackdsp measure out7 -c 5,6 --relative=6 --reference-output=out6 --save=b1-out7-vs-out6
-ddev exec bin/trackdsp measure out7 -c 5,6 --relative=6 --reference-output=out6 --signal=sine:100 --save=b3-limit-40
-ddev exec bin/trackdsp measure out7 -c 5,6 --relative=6 --reference-output=out6 --trim=-6 --signal=sine:5k --save=img-5k-trim-6
+ddev exec bin/sdwa5-dsp measure out7 -c 5,6 --relative=6 --reference-output=out6 --save=b1-out7-vs-out6
+ddev exec bin/sdwa5-dsp measure out7 -c 5,6 --relative=6 --reference-output=out6 --signal=sine:100 --save=b3-limit-40
+ddev exec bin/sdwa5-dsp measure out7 -c 5,6 --relative=6 --reference-output=out6 --trim=-6 --signal=sine:5k --save=img-5k-trim-6
 ```
 
 ## Measurement chain
@@ -41,7 +41,7 @@ ddev exec bin/trackdsp measure out7 -c 5,6 --relative=6 --reference-output=out6 
 - The UMC1820 sometimes starts a capture with a click shorter than 5 ms, up to -16 dBFS on a line input that
   is silent afterwards. It never showed on the mic inputs. With the click in the analysis, a muted input read
   -75.5 instead of -108.7 dBFS, and the peak and the crest factor of quiet signals were wrong. Since 0.13.1
-  `trackdsp:measure` leaves the first 100 ms of every recording out of the analysis.
+  `sdwa5-dsp:measure` leaves the first 100 ms of every recording out of the analysis.
 
 ## B1: loopbacks
 
@@ -72,7 +72,7 @@ Pink noise on Out7, which takes In7 only unless the table says otherwise.
 - Pink noise plays 15 dB louder than the sine, -42.4 against -57.3 dBFS RMS with the same gains.
 - The sine frequency index lives at footer byte +50 of the configuration. Writes of 17, 5 and 0 each showed
   up there after a fresh read. Before 0.13.1 the model did not read it, so the editor showed 1 kHz whatever the
-  device held, and every restore of `trackdsp:measure` and the auto EQ wrote 1 kHz back.
+  device held, and every restore of `sdwa5-dsp:measure` and the auto EQ wrote 1 kHz back.
 
 ## Output gain at compressor ratio 1:1.0
 
@@ -122,7 +122,7 @@ from 23.5 to 24 kHz 19 dB higher. Every compressor adds the same image while it 
 
 At ratio 1:1.1 with the threshold at +20 dB, which is above the output ceiling of B5, the gain is exact and
 the spectrum stays flat within 0.2 dB up to 24 kHz at -20 dB. Limit at +20 dB keeps the gain exact without an
-image as well (B6). Since 0.13.1 `trackdsp:measure` runs a trimmed output at 1:1.0 that way for the recording
+image as well (B6). Since 0.13.1 `sdwa5-dsp:measure` runs a trimmed output at 1:1.0 that way for the recording
 and puts its compressor back afterwards. It warns about a played output at 1:1.0 whose own gain is not 0 dB.
 
 ## B3: limiter and threshold
@@ -256,7 +256,7 @@ value is logarithmic, with 128 steps per doubling of the amplitude or 21.26 step
 dB = (value - 15906) · 20 · log10(2) / 128
 ```
 
-The zero point puts the meters on the scale of the compressor threshold (limiter onset below). trackdsp shows
+The zero point puts the meters on the scale of the compressor threshold (limiter onset below). sdwa5-dsp shows
 everything below -90 dB as -90 dB. Before 0.14.0 it used another formula. Under it an idle input at 0 dB gain
 read -6.0 dB, the tone read -0.2 dB and a real step of 8.1 dB showed as 0.7 dB.
 
@@ -354,7 +354,7 @@ One cabinet of every type, measured indoors on 2026-09-29 with the amplifiers on
   MM14K #4 a SKRAM from Out4. An Achenbach 18 was fed from Out6. Every amplifier knob stood at half. The DIP
   switch gains were not noted.
 - The subs played full range, without a high-pass or a low-pass. Their compressors stood at 1:1.0 from +20 dB,
-  which `trackdsp:measure` switches to 1:1.1 for the recording.
+  which `sdwa5-dsp:measure` switches to 1:1.1 for the recording.
 - In3 to In7 stood at 0 dB. In1 and In2 stayed at raw 0, since the preset loops Out1 and Out2 back into them.
 - Out7 on IN5 was the reference loopback.
 - Mic 1 and mic 2 stood side by side on axis, about 1 m in front of the cabinet. For the later runs they stood
@@ -364,9 +364,9 @@ One cabinet of every type, measured indoors on 2026-09-29 with the amplifiers on
 - Every run played pink noise at `--trim=-20` for 10 s, unless the text says otherwise.
 
 ```bash
-ddev exec bin/trackdsp measure out3 -c 1,2,5 --reference-output=out7 --trim=-20 --save=s4-flexy
-ddev exec bin/trackdsp measure out1,out2 -c 1,2,5 --reference-output=out7 --trim=-20 --relative=1 --save=s4-c2c3-tecL-full
-ddev exec bin/trackdsp measure -c 1,2,5 --signal=none --save=s4-s1-floor-mm14k1-on
+ddev exec bin/sdwa5-dsp measure out3 -c 1,2,5 --reference-output=out7 --trim=-20 --save=s4-flexy
+ddev exec bin/sdwa5-dsp measure out1,out2 -c 1,2,5 --reference-output=out7 --trim=-20 --relative=1 --save=s4-c2c3-tecL-full
+ddev exec bin/sdwa5-dsp measure -c 1,2,5 --signal=none --save=s4-s1-floor-mm14k1-on
 ```
 
 ### S1: noise floor and hum
@@ -510,7 +510,7 @@ Mic 1 stood about 1 m in front of Tecnare L. The fit ran from 200 Hz to 16 kHz a
 the default limits.
 
 ```bash
-ddev exec bin/console trackdsp:autoeq out1,out2 -n --low=200 --high=16000
+ddev exec bin/console sdwa5-dsp:autoeq out1,out2 -n --low=200 --high=16000
 ```
 
 | | Deviation RMS | Deviation peak |
@@ -519,8 +519,8 @@ ddev exec bin/console trackdsp:autoeq out1,out2 -n --low=200 --high=16000
 | Predicted with the bands | 1.8 dB | 6.5 dB |
 | Measured with the bands | 1.8 dB | 5.5 dB |
 
-- The seven bands were written to both outputs through `/api/write`, recorded with `trackdsp:measure --trim=0`
-  and analysed with `trackdsp:autoeq --wav`. Measured and predicted deviation agree within 1.4 dB per third
+- The seven bands were written to both outputs through `/api/write`, recorded with `sdwa5-dsp:measure --trim=0`
+  and analysed with `sdwa5-dsp:autoeq --wav`. Measured and predicted deviation agree within 1.4 dB per third
   octave and 1.0 dB RMS. Above 1.25 kHz every band reads about 1 dB below the prediction, which is the level
   alignment of the fit rather than a band error. The largest difference lies at 400 and 500 Hz, where five bands
   overlap.
@@ -538,7 +538,7 @@ A UMC1820 line output fed In5 with pink noise in level steps. The rider ran with
 window up to +6 dB.
 
 ```bash
-ddev exec bin/console trackdsp:ride in5 --max=6 --allow-boost
+ddev exec bin/console sdwa5-dsp:ride in5 --max=6 --allow-boost
 ```
 
 | Time | Step | Rider gain | Average | Status |
@@ -562,14 +562,14 @@ ddev exec bin/console trackdsp:ride in5 --max=6 --allow-boost
 
 ## Transfer function
 
-`trackdsp:measure --reference` ([automation.md](automation.md#transfer-function)) analysed recordings from
+`sdwa5-dsp:measure --reference` ([automation.md](automation.md#transfer-function)) analysed recordings from
 the bench and from the speaker tests again on 2026-09-29, with no new measurements. The bench recording has Out6
 as the reference on IN6. The speaker recordings have Out7 as the reference on IN5. The mics stood about 1 m in
 front of each cabinet, somewhat farther for the later runs, and 1 m of air accounts for about 2.9 ms.
 
 ```bash
-ddev exec bin/trackdsp measure -c 5,6 --reference=6 --wav=var/measure/b1-out7-vs-out6.wav
-ddev exec bin/trackdsp measure -c 1,2,5 --reference=5 --wav=var/measure/s4-s2-tecL-hf.wav
+ddev exec bin/sdwa5-dsp measure -c 5,6 --reference=6 --wav=var/measure/b1-out7-vs-out6.wav
+ddev exec bin/sdwa5-dsp measure -c 1,2,5 --reference=5 --wav=var/measure/s4-s2-tecL-hf.wav
 ```
 
 | Recording | Mic 1 delay | Mic 2 delay | Polarity | Coherent range |

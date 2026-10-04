@@ -26,7 +26,7 @@ final class BridgeTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->socket = sys_get_temp_dir().'/trackdsp-test-'.bin2hex(random_bytes(4)).'.sock';
+        $this->socket = sys_get_temp_dir().'/sdwa5-dsp-test-'.bin2hex(random_bytes(4)).'.sock';
         $this->bridge = $this->bridge('demo');
         $this->client = $this->connectClient();
     }
@@ -256,7 +256,7 @@ final class BridgeTest extends TestCase
     public function testRidersRideTheGainAndSurviveARestart(): void
     {
         // The demo links In1 and In2, so a rider on In1 is the rider of both
-        $file = sys_get_temp_dir().'/trackdsp-test-'.bin2hex(random_bytes(4)).'.riders.json';
+        $file = sys_get_temp_dir().'/sdwa5-dsp-test-'.bin2hex(random_bytes(4)).'.riders.json';
         $this->restart($file);
         try {
             $before = $this->state()['inputs'][0]['gain'];
@@ -350,7 +350,7 @@ final class BridgeTest extends TestCase
 
     public function testRidersAreKeptPerPreset(): void
     {
-        $file = sys_get_temp_dir().'/trackdsp-test-'.bin2hex(random_bytes(4)).'.riders.json';
+        $file = sys_get_temp_dir().'/sdwa5-dsp-test-'.bin2hex(random_bytes(4)).'.riders.json';
         $this->restart($file);
         $channels = fn (): array => array_column($this->request('status')['result']['riders'], 'channel');
         $write = fn (Frame ...$frames): array => $this->request('write', ['frames' => array_map(self::hex(...), $frames)]);
@@ -383,7 +383,7 @@ final class BridgeTest extends TestCase
 
     public function testReadsARidersFileFromBeforePresets(): void
     {
-        $file = sys_get_temp_dir().'/trackdsp-test-'.bin2hex(random_bytes(4)).'.riders.json';
+        $file = sys_get_temp_dir().'/sdwa5-dsp-test-'.bin2hex(random_bytes(4)).'.riders.json';
         file_put_contents($file, json_encode([['channel' => 2, 'target' => -24]]));
         try {
             $this->restart($file);
@@ -518,7 +518,7 @@ final class BridgeTest extends TestCase
 
     private static function targetFile(): string
     {
-        return sys_get_temp_dir().'/trackdsp-test-'.bin2hex(random_bytes(4)).'.target.json';
+        return sys_get_temp_dir().'/sdwa5-dsp-test-'.bin2hex(random_bytes(4)).'.target.json';
     }
 
     public function testRefusesASecondBridgeOnTheSameSocket(): void

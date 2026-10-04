@@ -40,7 +40,7 @@ try {
   });
   await page.addInitScript(()=>{window.EventSource=class extends EventTarget{
    constructor(){super();window.mockEvents=this;setTimeout(()=>{
-    const s=JSON.parse(document.getElementById('trackdsp-defaults').textContent);
+    const s=JSON.parse(document.getElementById('sdwa5-dsp-defaults').textContent);
     Object.assign(s,{sub_extra:[0,0],tone_mode:0,tone_freq:0,working_status:0,device_id:1});
     s.inputs.forEach((c,i)=>c.link=1<<i);s.outputs.forEach((c,i)=>{c.link=1<<i;c.route=0x1000|1<<i;});
     s.inputs[0].link=3;s.inputs[1].link=0;s.outputs[0].link=3;s.outputs[1].link=0;
@@ -49,10 +49,10 @@ try {
     this.dispatchEvent(new MessageEvent('state',{data:JSON.stringify(s)}));
    },30);}close(){}
   };});
-  await page.goto((process.env.TRACKDSP_TEST_URL||'https://trackdsp.ddev.site')+'/#gain');
+  await page.goto((process.env.SDWA5_DSP_TEST_URL||'https://sdwa5-dsp.ddev.site')+'/#gain');
   await page.waitForFunction(()=>window.historyBaseline);
   remote=await page.evaluate(()=>window.historyBaseline);
-  units=await page.locator('#trackdsp-history').evaluate(e=>JSON.parse(e.textContent));
+  units=await page.locator('#sdwa5-dsp-history').evaluate(e=>JSON.parse(e.textContent));
   await page.evaluate(async()=>{const asset=performance.getEntriesByType('resource').find(e=>/\/assets\/lib\/device-[^/]+\.js/.test(e.name));window.testDevice=await import(asset.name);});
   const idle=async()=>page.waitForFunction(()=>!window.testDevice.history.history.busy&&!window.testDevice.history.history.pending.length&&!window.testDevice.history.history.current);
   const action=async(direction)=>{
@@ -105,7 +105,7 @@ try {
   await reset();await page.evaluate(async()=>{await testDevice.history.run('Recall preset',()=>testDevice.send([{command:'loadPreset',args:{number:1}}],false));});
   await action('undo');assert.equal(remote.outputs[0].gain,await page.evaluate(()=>historyBaseline.outputs[0].gain));
   assert.equal(writes.filter(w=>w.name==='write'&&w.body.commands.some(c=>c.command==='loadPreset')).length,1);
-  await page.screenshot({path:`/tmp/trackdsp-history-${width}.png`,fullPage:true});
+  await page.screenshot({path:`/tmp/sdwa5-dsp-history-${width}.png`,fullPage:true});
   assert.deepEqual(errors,[]);
   await page.reload();await page.waitForFunction(()=>window.testDevice===undefined&&window.historyBaseline);assert.equal(await page.locator('[data-history-target=undo]').isDisabled(),true);
   results.push({width,history:'controls, shortcuts, linked edits, masks, bulk operations and conflicts',errors});

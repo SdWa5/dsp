@@ -9,7 +9,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand('trackdsp:info', 'Show the device, its IP address and the active preset')]
+#[AsCommand('sdwa5-dsp:info|trackdsp:info', 'Show the device, its IP address and the active preset')]
 final class InfoCommand extends DeviceCommand
 {
     protected function handle(Matrix $dsp, InputInterface $input, SymfonyStyle $io): int

@@ -10,7 +10,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand('trackdsp:discover', 'Find devices on USB and on the local networks')]
+#[AsCommand('sdwa5-dsp:discover|trackdsp:discover', 'Find devices on USB and on the local networks')]
 final class DiscoverCommand extends Command
 {
     public function __construct(
@@ -21,7 +21,7 @@ final class DiscoverCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption('networks', null, InputOption::VALUE_REQUIRED, 'Comma-separated CIDRs such as 192.168.68.0/22 (default: $TRACKDSP_DISCOVERY_NETWORKS, else the local interfaces)');
+        $this->addOption('networks', null, InputOption::VALUE_REQUIRED, 'Comma-separated CIDRs such as 192.168.68.0/22 (default: $SDWA5_DSP_DISCOVERY_NETWORKS, else the local interfaces)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
