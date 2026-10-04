@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { displayView, channelVisible, displayedChannel, representative, channelMembers, displayChannelParts, visibleRuns, channelLayout, visibleEdge, selectionState, setMaskBits, getChannelView, setChannelView, onChannelView } from '../lib/channelview.js';
+import { displayView, channelVisible, displayedChannel, itemHidden, visibleChannels, representative, channelMembers, displayChannelParts, visibleRuns, channelLayout, visibleEdge, selectionState, setMaskBits, getChannelView, setChannelView, onChannelView } from '../lib/channelview.js';
 const side = () => Array.from({ length: 8 }, (_, i) => ({ link: 1 << i }));
 const state = () => { const inputs = side(), outputs = side(); inputs[0].link = 5; inputs[2].link = 0; outputs[1].link = 10; outputs[3].link = 0; return { inputs, outputs }; };
 const groups = [1, 0, 1, 0, 0, 0, 0, 0];
@@ -136,4 +136,22 @@ test('group captions suppress redundant defaults and keep single channels and Au
     data.inputs[0].link = 255;
     data.inputs.forEach((channel, index) => { channel.name = 'Name' + index; });
     assert.equal(displayChannelParts(0, data, view).name, Array.from({ length: 8 }, (_, index) => 'Name' + index).join(', '));
+});
+
+test('selector lists drop hidden channels without collapsing a link group, unlike processing views', () => {
+    const data = state(), view = displayView({ hidden: [7, 9], grouped: true });
+    // In1 and In3 are linked: a selector list keeps both, a processing view keeps the representative only
+    assert.equal(itemHidden(2, data, { visible: true }, view), false);
+    assert.equal(itemHidden(2, data, { display: true }, view), true);
+    assert.equal(itemHidden(7, data, { visible: true }, view), true);
+    assert.equal(itemHidden(9, data, { visible: true }, view), true);
+    assert.equal(itemHidden(18, data, { visible: true }, displayView({ hidden: [18] })), true);
+    // Without a flag nothing disappears, which keeps the Display Settings lists complete for recovery
+    assert.equal(itemHidden(7, data, {}, view), false);
+    assert.equal(itemHidden(2, data, { group: true }, view), true);
+});
+test('a run such as the Auto EQ takes only the visible channels of its list, in order', () => {
+    assert.deepEqual(visibleChannels([8, 9, 10, 15], displayView({ hidden: [9, 15] })), [8, 10]);
+    assert.deepEqual(visibleChannels([9], displayView({ hidden: [9] })), []);
+    assert.deepEqual(visibleChannels([8, 9], displayView({})), [8, 9]);
 });

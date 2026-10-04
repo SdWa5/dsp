@@ -79,6 +79,7 @@
 "Starting": "Startet"
 "Store the live settings as %preset% \"%name%\"?%warning%": "Die aktuellen Einstellungen als %preset% „%name%“ speichern?%warning%"
 "Taking the backup…": "Sicherung wird erstellt…"
+"Every chosen output is hidden. Show it under Channel Visibility or choose a visible output.": "Jeder gewählte Ausgang ist ausgeblendet. Ihn unter Kanalsichtbarkeit einblenden oder einen sichtbaren Ausgang wählen."
 "Target %target% dB, gain %min%..%max% dB, %slew% dB/s": "Ziel %target% dB, Gain %min%..%max% dB, %slew% dB/s"
 "The bridge is not running. Start it with bin/console trackdsp:bridge.": "Die Bridge läuft nicht. Start mit bin/console trackdsp:bridge."
 "Unknown: the device does not report this value": "Unbekannt. Das Gerät meldet diesen Wert nicht zurück."

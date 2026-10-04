@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus';
 import { store, history } from '../lib/device.js';
 import { channelId } from '../lib/channels.js';
-import { getChannelView, onChannelView, selectionState, setMaskBits } from '../lib/channelview.js';
+import { getChannelView, onChannelView, channelVisible, selectionState, setMaskBits } from '../lib/channelview.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
 import { linkGroups, linkUnits, linkName, linkMark } from '../lib/link.js';
 import { t } from '../lib/i18n.js';
@@ -40,6 +40,8 @@ export default class extends Controller {
         for (const unit of linkUnits(groups).filter(unit => unit.length > 1)) {
             const members = unit.map(i => choices.find(choice => choice.index === base + i)).filter(Boolean);
             if (members.length !== unit.length) continue;
+            // Lists that hide hidden channels also drop the selector of a group with no visible member.
+            if (this.hidesHidden() && unit.every(i => !channelVisible(base + i))) continue;
             const state = selectionState(members.map(choice => this.selected(choice.element)));
             const label = document.createElement('label');
             label.className = 'check group-selector';
@@ -72,6 +74,7 @@ export default class extends Controller {
             box.addEventListener('change', () => this.select(members, state.next));
         }
     }
+    hidesHidden() { return 'true' === this.element.dataset.linkplaceVisibleValue; }
     selected(element) {
         if (element.matches('input')) return element.checked;
         const widget = this.application.getControllerForElementAndIdentifier(element, 'toggle');

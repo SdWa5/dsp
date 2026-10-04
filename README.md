@@ -144,7 +144,7 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   linked titles use an editable group-name field without a repeated label. Every linked member has one ID/name
   field pair below, including hidden members. The browser group name stays synchronized with Display Settings
   and the Link dialog, and each device-name field renames its own channel only.
-- The Channels section hides chosen inputs, outputs and Aux in this browser. Hidden channels has its own
+- The Channels section hides chosen inputs, outputs and Aux in this browser. Channel Visibility has its own
   heading and Input, Output and Aux columns, matching Gain EQ overview and Channel EQ plots. Hidden channels stay
   active, and linked edits still reach them. Hidden detail pages offer Unhide channel and
   Open Gain page. Show all restores every channel, while section-header buttons restore inputs or outputs
@@ -155,8 +155,9 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   without changing stored choices.
 - One control per link group shows the lowest visible member's processing strip, header tab and Gain EQ switch,
   labelled with group members. Matrix and routing graph keep individual visible channels. Routing and membership
-  selectors retain every channel and put mixed-state group checkboxes in their group headers, including hidden
-  members. Group control labels show the group name and icon; their tooltips identify members.
+  selectors (Sub and Group Control, the Aux routes, AutoMix and Camera Select, the Auto EQ outputs) leave out
+  hidden channels, as the matrix does, and put mixed-state group checkboxes in their group headers, which still
+  include hidden members. The Auto EQ neither measures nor writes a hidden output, even when its box is checked. Group control labels show the group name and icon; their tooltips identify members.
   Enabling grouping preserves channel order and stacked placement. Auto EQ group
   selection changes its form only. Preferences survive reloads, or last for the visit if storage is blocked.
 - A link group can carry a name of up to 12 characters, typed in the Link dialog below the matrices. The name

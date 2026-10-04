@@ -40,6 +40,18 @@ export function representative(index, state, view = getChannelView()) {
 export function displayedChannel(index, state, view = getChannelView()) {
     return channelVisible(index, view) && (!view.grouped || representative(index, state, view) === index);
 }
+/**
+ * Whether a placed item disappears. display: processing views, which also collapse a link group to its representative
+ * when grouping is on. visible: selector lists, which drop hidden channels but keep every visible member. group: the
+ * lowest member stands for its group while grouping is on, hidden or not.
+ */
+export function itemHidden(index, state, { display = false, visible = false, group = false } = {}, view = getChannelView()) {
+    return (display && !displayedChannel(index, state, view))
+        || (visible && !channelVisible(index, view))
+        || (group && view.grouped && channelMembers(index, state)[0] !== index);
+}
+/** The visible channels of a list, in its order. A hidden channel takes no part in a run such as the Auto EQ. */
+export function visibleChannels(indices, view = getChannelView()) { return indices.filter(i => channelVisible(i, view)); }
 /** Filter placed runs without renumbering groups or channels. Routing never collapses a link group. */
 export function visibleRuns(groups, placement, base, view = getChannelView(), collapse = false) {
     const seen = new Set();

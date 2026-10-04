@@ -2,13 +2,13 @@
 {% import 'editor/_widgets.html.twig' as w %}
 {% set route = [{command: 'routing', args: {channel: 18, mask: '@aux.select'}}] %}
 <div class="aux-routes">
-    <fieldset class="aux-routes__column" data-controller="linkplace selectors">
+    <fieldset class="aux-routes__column" data-controller="linkplace selectors" data-linkplace-visible-value="true">
         <legend>{{ 'Input'|trans }}</legend>
         {% for b in 0..7 %}
             {{ w.toggle(w.ch(b), 'aux.select', route, null, {bit: b, class: 'toggle--route', aria: '%output% from %input%'|trans({'%output%': 'Aux', '%input%': 'In' ~ (b + 1)})}) }}
         {% endfor %}
     </fieldset>
-    <fieldset class="aux-routes__column" data-controller="linkplace selectors">
+    <fieldset class="aux-routes__column" data-controller="linkplace selectors" data-linkplace-visible-value="true">
         <legend>{{ 'Output'|trans }}</legend>
         {% for b in 0..7 %}
             {% set p_out = 'outputs.' ~ b ~ '.route' %}

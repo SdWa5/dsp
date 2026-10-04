@@ -2,6 +2,7 @@ import { t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { api, store, history } from '../lib/device.js';
 import { channelLabel } from '../lib/channels.js';
+import { visibleChannels } from '../lib/channelview.js';
 import { drawGrid, Plot, prepare } from '../lib/eq.js';
 
 const CURVES = [
@@ -57,7 +58,13 @@ export default class extends Controller {
     async start(event) {
         event.preventDefault();
         const form = event.target;
-        const outputs = [...form.elements.outputs].filter((c) => c.checked).map((c) => Number(c.value));
+        const checked = [...form.elements.outputs].filter((c) => c.checked).map((c) => Number(c.value));
+        // A hidden output keeps its checkbox for when it shows again, but is neither measured nor written
+        const outputs = visibleChannels(checked);
+        if (checked.length > 0 && 0 === outputs.length) {
+            this.say(t("Every chosen output is hidden. Show it under Channel Visibility or choose a visible output."), true);
+            return;
+        }
         const body = { outputs, device: form.elements.device.value };
         for (const name of ['bands', 'mic_channel', 'seconds', 'settle']) {
             body[name] = Number(form.elements[name].value);

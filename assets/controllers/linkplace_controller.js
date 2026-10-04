@@ -4,7 +4,7 @@ import { channelId } from '../lib/channels.js';
 import { t } from '../lib/i18n.js';
 import { linkGroups, linkMark, linkName, linkPlacement } from '../lib/link.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
-import { getChannelView, onChannelView, channelVisible, channelMembers, displayedChannel, visibleRuns } from '../lib/channelview.js';
+import { getChannelView, onChannelView, channelVisible, itemHidden, visibleRuns } from '../lib/channelview.js';
 
 /** The channel index (0..15) a node shows through its first channel label, 18 for Aux, -1 for none. */
 const channelOf = (node) => {
@@ -20,10 +20,11 @@ const channelOf = (node) => {
  * also gathers them in a block with one header that carries the group's code, icon and colour. Strips are too
  * tall to stack, so their block runs across. In a table (the matrix), the rows and the columns follow the order,
  * and stacked leaves a gap around every group and heads it with one bar outside the channel headers, which then
- * leave out their own marks.
+ * leave out their own marks. Values: display hides what the processing views hide, visible hides hidden channels
+ * only (the selector lists), group hides every member but the lowest while grouping is on.
  */
 export default class extends Controller {
-    static values = { display: Boolean, group: Boolean };
+    static values = { display: Boolean, visible: Boolean, group: Boolean };
     connect() {
         this.shown = null;
         if ('TABLE' === this.element.tagName) {
@@ -64,8 +65,7 @@ export default class extends Controller {
         for (const item of channels) {
             const index = channelOf(item);
             // Preference groups include hidden members so fully hidden groups remain recoverable.
-            item.hidden = (this.displayValue && !displayedChannel(index, store.state))
-                || (this.groupValue && getChannelView().grouped && channelMembers(index, store.state)[0] !== index);
+            item.hidden = itemHidden(index, store.state, { display: this.displayValue, visible: this.visibleValue, group: this.groupValue });
         }
         // Aux follows visibility but never enters input/output link ordering or blocks.
         const items = channels.filter(node => channelOf(node) < 16);

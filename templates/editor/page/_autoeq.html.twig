@@ -12,7 +12,7 @@
         <form class="card__body" data-action="autoeq#start">
             <fieldset class="group">
                 <legend>{{ "Outputs to correct"|trans }}</legend>
-                <div class="checks" data-controller="linkplace selectors">
+                <div class="checks" data-controller="linkplace selectors" data-linkplace-visible-value="true">
                     {% for o in 0..7 %}
                         <label class="check"><input type="checkbox" name="outputs" value="{{ 8 + o }}"{{ o < 2 ? ' checked' }}> {{ w.ch(8 + o) }}</label>
                     {% endfor %}

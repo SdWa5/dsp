@@ -485,7 +485,7 @@ editor:
 
 "Channel names are device settings and are saved with presets. Name edits write to the connected device.": "Channel names are device settings and are saved with presets. Name edits write to the connected device."
 "Channel Names": "Channel Names"
-"Hidden channels": "Hidden channels"
+"Channel Visibility": "Channel Visibility"
 
 "Separate plots": "Separate plots"
 "No visible curves selected.": "No visible curves selected."
