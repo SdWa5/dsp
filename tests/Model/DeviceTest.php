@@ -123,7 +123,7 @@ final class DeviceTest extends TestCase
     {
         $data = json_decode($this->dev->toJson(), true);
 
-        self::assertSame('trackdsp-8x8', $data['format']);
+        self::assertSame('sdwa5-dsp-8x8', $data['format']);
         self::assertSame(1, $data['version']);
         self::assertSame(
             ['preset_name', 'inputs', 'outputs', 'aux', 'footer', 'sub', 'groups', 'sub_extra', 'tone_mode', 'tone_freq',
@@ -263,7 +263,7 @@ final class DeviceTest extends TestCase
     {
         $file = self::vendorFile();
         self::assertTrue(Device::isVendorPreset($file));
-        self::assertFalse(Device::isVendorPreset('{"format":"trackdsp-8x8"}'));
+        self::assertFalse(Device::isVendorPreset('{"format":"sdwa5-dsp-8x8"}'));
 
         $d = Device::fromVendorPreset($file, self::factory());
 

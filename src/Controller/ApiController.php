@@ -28,7 +28,7 @@ final class ApiController
     public function __construct(
         private readonly BridgeClient $bridge,
         private readonly Discovery $discovery,
-        #[Autowire('%trackdsp.factory_config%')]
+        #[Autowire('%sdwa5_dsp.factory_config%')]
         private readonly string $factoryConfig,
     ) {
     }
@@ -155,9 +155,9 @@ final class ApiController
     }
 
     /**
-     * Sends every setting of a preset file (request body) to the device: a trackdsp JSON file or a .prs file of
+     * Sends every setting of a preset file (request body) to the device: a sdwa5-dsp JSON file or a .prs file of
      * the vendor editor, told apart by the vendor magic. The gain riders of the file then replace the running
-     * ones, after the gains they start from. A file without riders, as every vendor file and a trackdsp file from
+     * ones, after the gains they start from. A file without riders, as every vendor file and a sdwa5-dsp file from
      * before 0.43.0, stops them, as a recall of a user preset stored without riders does.
      */
     #[Route('/upload', methods: ['POST'])]

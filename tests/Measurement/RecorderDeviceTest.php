@@ -10,17 +10,17 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Records from a real capture device, for example
- * TRACKDSP_TEST_CAPTURE=plughw:CARD=UMC1820,DEV=0 vendor/bin/phpunit --group device.
+ * SDWA5_DSP_TEST_CAPTURE=plughw:CARD=UMC1820,DEV=0 vendor/bin/phpunit --group device.
  */
 #[Group('device')]
-#[RequiresEnvironmentVariable('TRACKDSP_TEST_CAPTURE')]
+#[RequiresEnvironmentVariable('SDWA5_DSP_TEST_CAPTURE')]
 final class RecorderDeviceTest extends TestCase
 {
     public function testRecordsOneSecond(): void
     {
-        $path = (string) tempnam(sys_get_temp_dir(), 'trackdsp-capture-');
+        $path = (string) tempnam(sys_get_temp_dir(), 'sdwa5-dsp-capture-');
         try {
-            (new Recorder((string) getenv('TRACKDSP_TEST_CAPTURE'), 1))->record(1, $path);
+            (new Recorder((string) getenv('SDWA5_DSP_TEST_CAPTURE'), 1))->record(1, $path);
             $wav = WavReader::read($path);
 
             self::assertSame(Recorder::RATE, $wav['rate']);

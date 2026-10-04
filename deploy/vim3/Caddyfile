@@ -1,11 +1,11 @@
-# trackdsp browser editor on plain HTTP, reachable from the crew wifi only
+# sdwa5-dsp browser editor on plain HTTP, reachable from the crew wifi only
 :80 {
-	root * /srv/trackdsp/public
+	root * /srv/sdwa5-dsp/public
 
 	# The event stream stays uncompressed so every event leaves at once
 	@compress not path /api/events
 	encode @compress zstd gzip
 
-	php_fastcgi unix//run/php/trackdsp.sock
+	php_fastcgi unix//run/php/sdwa5-dsp.sock
 	file_server
 }

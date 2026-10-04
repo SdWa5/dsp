@@ -90,7 +90,7 @@ final class EditorControllerTest extends WebTestCase
         foreach ($page->filter('[data-editor-dialog-param]')->each(static fn (Crawler $n): string => (string) $n->attr('data-editor-dialog-param')) as $dialog) {
             self::assertCount(1, $page->filter('dialog#dialog-'.$dialog), \sprintf('No dialog "%s".', $dialog));
         }
-        $labels = json_decode($page->filter('#trackdsp-labels')->text(), true, flags: \JSON_THROW_ON_ERROR);
+        $labels = json_decode($page->filter('#sdwa5-dsp-labels')->text(), true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($labels);
         self::assertSame('LK -48', $labels['SLOPES'][20]);
         // Option values are the raw values: not renumbered from 0
@@ -606,7 +606,7 @@ final class EditorControllerTest extends WebTestCase
             }
         }
         self::assertGreaterThan(100, \count($paths));
-        $defaults = json_decode(self::page()->filter('#trackdsp-defaults')->text(), true, flags: \JSON_THROW_ON_ERROR);
+        $defaults = json_decode(self::page()->filter('#sdwa5-dsp-defaults')->text(), true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($defaults);
         // Not preset content, or not in the configuration: these have no factory value
         $none = '/^(preset_name|working_status|device_id|ip|tone_mode|tone_freq|inputs\.\d\.phantom)$/';

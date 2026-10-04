@@ -1,18 +1,18 @@
 # This file is the entry point to configure your own services.
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    trackdsp.demo_config: '%kernel.project_dir%/resources/demo_config.bin'
+    sdwa5_dsp.demo_config: '%kernel.project_dir%/resources/demo_config.bin'
     # Read after a factory reset, the editor marks every setting that differs from it
-    trackdsp.factory_config: '%kernel.project_dir%/resources/factory_config.bin'
-    trackdsp.timeout: 1.0
-    trackdsp.bridge_socket_default: '%kernel.project_dir%/var/bridge.sock'
-    trackdsp.bridge_socket: '%env(default:trackdsp.bridge_socket_default:TRACKDSP_BRIDGE_SOCKET)%'
+    sdwa5_dsp.factory_config: '%kernel.project_dir%/resources/factory_config.bin'
+    sdwa5_dsp.timeout: 1.0
+    sdwa5_dsp.bridge_socket_default: '%kernel.project_dir%/var/bridge.sock'
+    sdwa5_dsp.bridge_socket: '%env(default:sdwa5_dsp.bridge_socket_default:legacy:SDWA5_DSP_BRIDGE_SOCKET)%'
     # Longest lifetime of one /api/events stream in seconds, the browser reconnects after it
-    trackdsp.events_lifetime: 300
+    sdwa5_dsp.events_lifetime: 300
     # Backups, recordings and the session of the auto EQ
-    trackdsp.autoeq_dir: '%kernel.project_dir%/var/autoeq'
-    # Recordings and results of trackdsp:measure
-    trackdsp.measure_dir: '%kernel.project_dir%/var/measure'
+    sdwa5_dsp.autoeq_dir: '%kernel.project_dir%/var/autoeq'
+    # Recordings and results of sdwa5-dsp:measure
+    sdwa5_dsp.measure_dir: '%kernel.project_dir%/var/measure'
 
 services:
     _defaults:
@@ -32,29 +32,29 @@ services:
 
     App\Transport\HidrawLocator:
         arguments:
-            $sysfsRoot: '%env(TRACKDSP_HIDRAW_SYSFS)%'
-            $devRoot: '%env(TRACKDSP_HIDRAW_DEV)%'
+            $sysfsRoot: '%env(legacy:SDWA5_DSP_HIDRAW_SYSFS)%'
+            $devRoot: '%env(legacy:SDWA5_DSP_HIDRAW_DEV)%'
 
     App\Transport\TransportFactory:
         arguments:
-            $demoConfigPath: '%trackdsp.demo_config%'
+            $demoConfigPath: '%sdwa5_dsp.demo_config%'
             # The demo restores it on a recall of F00
-            $factoryConfigPath: '%trackdsp.factory_config%'
-            $timeout: '%trackdsp.timeout%'
+            $factoryConfigPath: '%sdwa5_dsp.factory_config%'
+            $timeout: '%sdwa5_dsp.timeout%'
 
     App\Discovery\Discovery:
         arguments:
-            $networks: '%env(TRACKDSP_DISCOVERY_NETWORKS)%'
+            $networks: '%env(legacy:SDWA5_DSP_DISCOVERY_NETWORKS)%'
 
     App\Bridge\BridgeClient:
         arguments:
-            $socketPath: '%trackdsp.bridge_socket%'
+            $socketPath: '%sdwa5_dsp.bridge_socket%'
 
 when@test:
     parameters:
-        trackdsp.events_lifetime: 1
-        trackdsp.autoeq_dir: '%kernel.project_dir%/var/autoeq-test'
-        trackdsp.measure_dir: '%kernel.project_dir%/var/measure-test'
+        sdwa5_dsp.events_lifetime: 1
+        sdwa5_dsp.autoeq_dir: '%kernel.project_dir%/var/autoeq-test'
+        sdwa5_dsp.measure_dir: '%kernel.project_dir%/var/measure-test'
     services:
         # The default logger writes expected errors (404, 405) of the web tests to stderr
         logger:

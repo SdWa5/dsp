@@ -19,11 +19,11 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  * Starts, changes, stops and lists the gain riders of a running bridge. The riders run inside the bridge,
  * so they keep working after this command and without a browser, and they come back after a restart.
  */
-#[AsCommand('trackdsp:ride', 'Start, stop or list the gain riders of the bridge, which keep inputs at a target meter level')]
+#[AsCommand('sdwa5-dsp:ride|trackdsp:ride', 'Start, stop or list the gain riders of the bridge, which keep inputs at a target meter level')]
 final class RideCommand extends Command
 {
     public function __construct(
-        #[Autowire('%trackdsp.bridge_socket%')]
+        #[Autowire('%sdwa5_dsp.bridge_socket%')]
         private readonly string $defaultSocket,
     ) {
         parent::__construct();
@@ -44,7 +44,7 @@ final class RideCommand extends Command
             ->addOption('allow-boost', null, InputOption::VALUE_NONE, 'Allow a maximum above 0 dB')
             ->addOption('stop', null, InputOption::VALUE_NONE, 'Stop the rider of the channel')
             ->addOption('list', null, InputOption::VALUE_NONE, 'List the running riders with what they do right now')
-            ->addOption('socket', 's', InputOption::VALUE_REQUIRED, 'Bridge socket (default: $TRACKDSP_BRIDGE_SOCKET or var/bridge.sock)');
+            ->addOption('socket', 's', InputOption::VALUE_REQUIRED, 'Bridge socket (default: $SDWA5_DSP_BRIDGE_SOCKET or var/bridge.sock)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

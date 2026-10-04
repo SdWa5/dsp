@@ -11,7 +11,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 
 /**
- * The CLI against the simulated device (TRACKDSP_TARGET=demo in .env.test).
+ * The CLI against the simulated device (SDWA5_DSP_TARGET=demo in .env.test).
  */
 final class CliTest extends KernelTestCase
 {
@@ -28,7 +28,7 @@ final class CliTest extends KernelTestCase
 
     public function testInfo(): void
     {
-        $tester = $this->runCommand('trackdsp:info');
+        $tester = $this->runCommand('sdwa5-dsp:info');
 
         $tester->assertCommandIsSuccessful();
         self::assertStringContainsString('8x8Matrix V010', $tester->getDisplay());
@@ -38,7 +38,7 @@ final class CliTest extends KernelTestCase
 
     public function testPresets(): void
     {
-        $display = $this->runCommand('trackdsp:presets')->getDisplay();
+        $display = $this->runCommand('sdwa5-dsp:presets')->getDisplay();
 
         self::assertMatchesRegularExpression('/U02\s+Bulgaria26\s+yes\s+\*/', $display);
         self::assertMatchesRegularExpression('/U03\s+empty/', $display);
@@ -47,7 +47,7 @@ final class CliTest extends KernelTestCase
 
     public function testStatus(): void
     {
-        $display = $this->runCommand('trackdsp:status')->getDisplay();
+        $display = $this->runCommand('sdwa5-dsp:status')->getDisplay();
 
         self::assertStringContainsString('in1:MUTED in2:MUTED in3:on in4:on in5:MUTED(gain)', $display);
         self::assertStringContainsString('out8:MUTED', $display);
@@ -55,31 +55,31 @@ final class CliTest extends KernelTestCase
 
     public function testWrites(): void
     {
-        $tester = $this->runCommand('trackdsp:gain', ['channel' => 'in1', 'db' => '-6']);
+        $tester = $this->runCommand('sdwa5-dsp:gain', ['channel' => 'in1', 'db' => '-6']);
         $tester->assertCommandIsSuccessful();
         self::assertStringNotContainsString('mutes', $tester->getDisplay());
-        $this->runCommand('trackdsp:mute', ['channel' => 'out1'])->assertCommandIsSuccessful();
-        $this->runCommand('trackdsp:unmute', ['channel' => 'in1'])->assertCommandIsSuccessful();
-        $this->runCommand('trackdsp:phase', ['channel' => 'out3', 'mode' => 'invert'])->assertCommandIsSuccessful();
-        $this->runCommand('trackdsp:route', ['output' => 'out3', 'inputs' => 'in1,2'])->assertCommandIsSuccessful();
+        $this->runCommand('sdwa5-dsp:mute', ['channel' => 'out1'])->assertCommandIsSuccessful();
+        $this->runCommand('sdwa5-dsp:unmute', ['channel' => 'in1'])->assertCommandIsSuccessful();
+        $this->runCommand('sdwa5-dsp:phase', ['channel' => 'out3', 'mode' => 'invert'])->assertCommandIsSuccessful();
+        $this->runCommand('sdwa5-dsp:route', ['output' => 'out3', 'inputs' => 'in1,2'])->assertCommandIsSuccessful();
     }
 
     public function testTheLowestGainWarnsThatItMutes(): void
     {
-        $tester = $this->runCommand('trackdsp:gain', ['channel' => 'in1', 'db' => '-60']);
+        $tester = $this->runCommand('sdwa5-dsp:gain', ['channel' => 'in1', 'db' => '-60']);
 
         $tester->assertCommandIsSuccessful();
         self::assertStringContainsString('-60.0 dB is gain raw 0, which mutes the channel.', $tester->getDisplay());
-        self::assertStringNotContainsString('mutes', $this->runCommand('trackdsp:gain', ['channel' => 'in1', 'db' => '-59.5'])->getDisplay());
+        self::assertStringNotContainsString('mutes', $this->runCommand('sdwa5-dsp:gain', ['channel' => 'in1', 'db' => '-59.5'])->getDisplay());
     }
 
     public function testBoostNeedsFlag(): void
     {
-        $tester = $this->runCommand('trackdsp:gain', ['channel' => 'in1', 'db' => '3']);
+        $tester = $this->runCommand('sdwa5-dsp:gain', ['channel' => 'in1', 'db' => '3']);
 
         self::assertSame(Command::INVALID, $tester->getStatusCode());
         self::assertStringContainsString('--allow-boost', $tester->getDisplay());
-        $this->runCommand('trackdsp:gain', ['channel' => 'in1', 'db' => '3', '--allow-boost' => true])->assertCommandIsSuccessful();
+        $this->runCommand('sdwa5-dsp:gain', ['channel' => 'in1', 'db' => '3', '--allow-boost' => true])->assertCommandIsSuccessful();
     }
 
     /**
@@ -87,12 +87,12 @@ final class CliTest extends KernelTestCase
      */
     public static function invalidInput(): iterable
     {
-        yield 'unknown channel' => ['trackdsp:mute', ['channel' => 'out9']];
-        yield 'gain not a number' => ['trackdsp:gain', ['channel' => 'in1', 'db' => 'loud']];
-        yield 'gain out of range' => ['trackdsp:gain', ['channel' => 'in1', 'db' => '-70']];
-        yield 'phase mode' => ['trackdsp:phase', ['channel' => 'in1', 'mode' => 'flip']];
-        yield 'route output' => ['trackdsp:route', ['output' => 'out9', 'inputs' => '1']];
-        yield 'route inputs' => ['trackdsp:route', ['output' => '3', 'inputs' => '1,9']];
+        yield 'unknown channel' => ['sdwa5-dsp:mute', ['channel' => 'out9']];
+        yield 'gain not a number' => ['sdwa5-dsp:gain', ['channel' => 'in1', 'db' => 'loud']];
+        yield 'gain out of range' => ['sdwa5-dsp:gain', ['channel' => 'in1', 'db' => '-70']];
+        yield 'phase mode' => ['sdwa5-dsp:phase', ['channel' => 'in1', 'mode' => 'flip']];
+        yield 'route output' => ['sdwa5-dsp:route', ['output' => 'out9', 'inputs' => '1']];
+        yield 'route inputs' => ['sdwa5-dsp:route', ['output' => '3', 'inputs' => '1,9']];
     }
 
     /**
@@ -109,7 +109,7 @@ final class CliTest extends KernelTestCase
 
     public function testUnreachableTarget(): void
     {
-        $tester = $this->runCommand('trackdsp:info', ['--target' => '127.0.0.1:1']);
+        $tester = $this->runCommand('sdwa5-dsp:info', ['--target' => '127.0.0.1:1']);
 
         self::assertSame(Command::FAILURE, $tester->getStatusCode());
         self::assertStringContainsString('Cannot connect', $tester->getDisplay());
@@ -117,25 +117,25 @@ final class CliTest extends KernelTestCase
 
     public function testDumpToFileAndHex(): void
     {
-        $file = sys_get_temp_dir().'/trackdsp-dump-'.bin2hex(random_bytes(4)).'.bin';
+        $file = sys_get_temp_dir().'/sdwa5-dsp-dump-'.bin2hex(random_bytes(4)).'.bin';
         try {
-            $this->runCommand('trackdsp:dump', ['file' => $file])->assertCommandIsSuccessful();
+            $this->runCommand('sdwa5-dsp:dump', ['file' => $file])->assertCommandIsSuccessful();
             self::assertSame(1277, filesize($file));
         } finally {
             @unlink($file);
         }
 
-        $lines = explode("\n", trim($this->runCommand('trackdsp:dump')->getDisplay()));
+        $lines = explode("\n", trim($this->runCommand('sdwa5-dsp:dump')->getDisplay()));
         self::assertCount(26, $lines);
         self::assertStringStartsWith('00  ff ff 42 75', $lines[0]);
     }
 
     public function testMeters(): void
     {
-        $display = $this->runCommand('trackdsp:meters')->getDisplay();
+        $display = $this->runCommand('sdwa5-dsp:meters')->getDisplay();
         self::assertStringContainsString('Aux', $display);
         self::assertStringContainsString('Limiter', $display);
-        self::assertMatchesRegularExpression('/^([0-9a-f]{2} ){54}[0-9a-f]{2}$/', trim($this->runCommand('trackdsp:meters', ['--raw' => true])->getDisplay()));
+        self::assertMatchesRegularExpression('/^([0-9a-f]{2} ){54}[0-9a-f]{2}$/', trim($this->runCommand('sdwa5-dsp:meters', ['--raw' => true])->getDisplay()));
     }
 
     public function testMetersMarkTheOutputsWhoseLimiterWorks(): void

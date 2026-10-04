@@ -8,7 +8,7 @@
             <label title="{{ 'editor.tip.display.theme'|trans }}">{{ 'Colour theme'|trans }} <select title="{{ 'editor.tip.display.theme'|trans }}" data-displaysettings-target="theme" data-action="change->displaysettings#theme">
                 {% for key, label in {auto: 'Automatic'|trans, light: 'Light'|trans, dark: 'Dark'|trans} %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
             </select></label>
-            {% set chosen = app.request.cookies.get('trackdsp_locale') %}
+            {% set chosen = app.request.cookies.get('sdwa5_dsp_locale') %}
                 <label title="{{ 'editor.tip.display.language'|trans }}">{{ 'editor.menu.language'|trans }} <select title="{{ 'editor.tip.display.language'|trans }}" data-action="change->editor#language">
                     {% for key, label in {auto: 'editor.menu.language_auto'|trans, en: 'English', de: 'Deutsch'} %}
                         <option value="{{ key }}"{{ (chosen in ['en', 'de'] ? chosen : 'auto') == key ? ' selected' }}>{{ label }}</option>

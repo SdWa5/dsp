@@ -234,7 +234,7 @@ editor:
             names: "Names of the inputs, the outputs and the Aux, stored on the device."
             rider: "The gain rider keeps an input at a target level. It runs in the bridge, also without this page."
             help: "The commands the device accepts over RS232."
-            about: "Version and licence of trackdsp."
+            about: "Version and licence of sdwa5-dsp."
             autoeq_setup: "Which outputs to correct, which mic records and which bands the fit may use."
             autoeq_measure: "Records the device's pink noise at one or more mic positions."
             autoeq_fit: "Fits PEQ bands to the measured curve against the target curve."

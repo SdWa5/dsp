@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 
 export async function checkEqOverview(page, settings, width, go, preferences) {
     const saved = await page.evaluate(() => ({
-        display: JSON.parse(localStorage.getItem('trackdsp-channel-display') || '{}'),
-        hidden: JSON.parse(localStorage.getItem('trackdsp-eq-overview-hidden') || '[]'),
-        view: JSON.parse(localStorage.getItem('trackdsp-eq-view') || '{}').overview || { mag: true, phase: false },
+        display: JSON.parse(localStorage.getItem('sdwa5-dsp-channel-display') || '{}'),
+        hidden: JSON.parse(localStorage.getItem('sdwa5-dsp-eq-overview-hidden') || '[]'),
+        view: JSON.parse(localStorage.getItem('sdwa5-dsp-eq-view') || '{}').overview || { mag: true, phase: false },
         state: window.mockState,
     }));
     const layout = settings.locator('[data-displaysettings-target=separated]');
@@ -48,7 +48,7 @@ export async function checkEqOverview(page, settings, width, go, preferences) {
     }
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     await page.locator('.eq-overview').screenshot({
-        path: `/tmp/trackdsp-eq-overview-separated-${width}.png`,
+        path: `/tmp/sdwa5-dsp-eq-overview-separated-${width}.png`,
         style: '.editor__head, .editor__foot { visibility: hidden !important; }',
     });
 
@@ -79,7 +79,7 @@ export async function checkEqOverview(page, settings, width, go, preferences) {
     assert.equal(await settings.locator('[data-displaysettings-target=eq][data-path=overview][data-field=phase]').isChecked(), false);
     await select('inputs.2').uncheck();
     await preferences([], true);
-    const selection = await page.evaluate(() => localStorage.getItem('trackdsp-eq-overview-hidden'));
+    const selection = await page.evaluate(() => localStorage.getItem('sdwa5-dsp-eq-overview-hidden'));
     await go('gain');
     assert.equal(await page.locator('.eq-overview__switch input[value="inputs.0"]').evaluate(box => box.indeterminate), true);
     await shortcut.uncheck(); await drawn();
@@ -87,7 +87,7 @@ export async function checkEqOverview(page, settings, width, go, preferences) {
     assert.equal(await page.locator('.eq-overview__pane:visible').count(), 1);
     await go('display'); assert.equal(await layout.isChecked(), false);
     await layout.check();
-    assert.equal(await page.evaluate(() => localStorage.getItem('trackdsp-eq-overview-hidden')), selection);
+    assert.equal(await page.evaluate(() => localStorage.getItem('sdwa5-dsp-eq-overview-hidden')), selection);
     await go('gain'); await drawn();
     assert.equal(await page.locator('.eq-overview__switch input[value="inputs.0"]').evaluate(box => box.indeterminate), true);
 
@@ -99,7 +99,7 @@ export async function checkEqOverview(page, settings, width, go, preferences) {
     await preferences([...Array.from({ length: 16 }, (_, i) => i), 18], true);
     await drawn();
     for (const side of sides) assert.equal(await pane(side).locator('.eq-overview__empty').isVisible(), true);
-    assert.equal(await page.evaluate(() => localStorage.getItem('trackdsp-eq-overview-hidden')), selection);
+    assert.equal(await page.evaluate(() => localStorage.getItem('sdwa5-dsp-eq-overview-hidden')), selection);
     await preferences([], false);
     await go('display');
     for (let i = 0; i < 8; i++) await select(`inputs.${i}`).uncheck();

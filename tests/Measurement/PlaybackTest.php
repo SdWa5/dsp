@@ -207,7 +207,7 @@ final class PlaybackTest extends TestCase
         } catch (BridgeException $e) {
             self::assertSame(504, $e->getCode());
             self::assertStringStartsWith('The device did not take the writes within 0.2 s. The device was not put back: The device did not take', $e->getMessage());
-            self::assertStringContainsString('trackdsp:measure --restore', $e->getMessage());
+            self::assertStringContainsString('sdwa5-dsp:measure --restore', $e->getMessage());
         }
 
         // Every write after the setup is the restore, sent again while the queue does not drain
@@ -295,7 +295,7 @@ final class PlaybackTest extends TestCase
             self::fail('Expected a conflict.');
         } catch (BridgeException $e) {
             self::assertSame(409, $e->getCode());
-            self::assertStringContainsString('trackdsp:measure --restore', $e->getMessage());
+            self::assertStringContainsString('sdwa5-dsp:measure --restore', $e->getMessage());
         }
 
         self::assertSame([], $bridge->ops());

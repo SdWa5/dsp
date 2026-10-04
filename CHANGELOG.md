@@ -5,6 +5,41 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-10-05
+
+The project is renamed from trackdsp to sdwa5-dsp and published as `SdWa5/dsp`. It runs on the VIM3 at events,
+so this is the first release with a stable major version.
+
+### Added
+
+- MIT license.
+- A `legacy:` env var processor. Every `SDWA5_DSP_*` setting is also read under its old `TRACKDSP_*` name, and a
+  set old name takes precedence, so an installation from before the rename keeps its `.env.local`.
+- docs/vim3.md describes the migration of a board from the old names.
+- TODO entry for a separate dark and light switch of the plots.
+- The README names the vendor material that the MIT license does not cover, and says that the project is not
+  affiliated with Thomann.
+
+### Changed
+
+- **Breaking:** the package is `sdwa5/sdwa5-dsp`, the command line `bin/sdwa5-dsp`, the console commands
+  `sdwa5-dsp:*`, the settings `SDWA5_DSP_*`, the API header `X-Sdwa5-Dsp`, the ddev project `sdwa5-dsp`, and the
+  deploy files, system user and paths on the board use `sdwa5-dsp`. The old console names stay as aliases and
+  `bin/trackdsp` calls the new file until a later release.
+- The editor's per-browser settings move to the `sdwa5-dsp-` prefix. A value stored under `trackdsp-` is read once
+  and moved. The language cookie is `sdwa5_dsp_locale`, the old `trackdsp_locale` is still read, and choosing a
+  language deletes it.
+- The README, `composer.json` and the GitHub description name the gain riders, measurements and Auto EQ, and the
+  README status no longer speaks of a branch.
+- TODO.md: work left in an old clone is carried over to a fresh clone of `SdWa5/dsp` as a patch and never pushed.
+- `.gitignore` covers the ddev router certificates in `.ddev/traefik/`.
+
+### Removed
+
+- The TODO item for the repository rename and description, which this release resolves.
+- The folder path and the folder list from the vendor file dialog screenshots, and a private venue's network name
+  from docs/vim3.md, in every version before publication.
+
 ## [0.87.0] - 2026-10-04
 
 ### Added

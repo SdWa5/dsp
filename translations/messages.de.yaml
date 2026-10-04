@@ -233,7 +233,7 @@ editor:
             names: "Namen der Eingänge, der Ausgänge und des Aux, im Gerät gespeichert."
             rider: "Der Gain-Rider hält einen Eingang auf einem Zielpegel. Er läuft in der Bridge, auch ohne diese Seite."
             help: "Die Befehle, die das Gerät über RS232 annimmt."
-            about: "Version und Lizenz von trackdsp."
+            about: "Version und Lizenz von sdwa5-dsp."
             autoeq_setup: "Welche Ausgänge korrigiert werden, welches Mikrofon aufnimmt und welche Bänder die Anpassung nutzen darf."
             autoeq_measure: "Nimmt das rosa Rauschen des Geräts an einer oder mehreren Mikrofonpositionen auf."
             autoeq_fit: "Passt PEQ-Bänder an die gemessene Kurve gegen die Zielkurve an."

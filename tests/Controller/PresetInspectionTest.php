@@ -12,15 +12,15 @@ final class PresetInspectionTest extends WebTestCase
     protected function tearDown(): void
     {
         parent::tearDown();
-        unset($_SERVER['TRACKDSP_BRIDGE_SOCKET'], $_ENV['TRACKDSP_BRIDGE_SOCKET']);
+        unset($_SERVER['SDWA5_DSP_BRIDGE_SOCKET'], $_ENV['SDWA5_DSP_BRIDGE_SOCKET']);
     }
 
     public function testVendorFileOpensWithoutABridgeAndKeepsAbsentValuesUnknown(): void
     {
-        $_SERVER['TRACKDSP_BRIDGE_SOCKET'] = $_ENV['TRACKDSP_BRIDGE_SOCKET'] = sys_get_temp_dir().'/trackdsp-inspect-missing.sock';
+        $_SERVER['SDWA5_DSP_BRIDGE_SOCKET'] = $_ENV['SDWA5_DSP_BRIDGE_SOCKET'] = sys_get_temp_dir().'/sdwa5-dsp-inspect-missing.sock';
         $client = self::createClient();
         $file = (string) file_get_contents(__DIR__.'/../fixtures/vendor/SdWa5_Default_Preset_3_DSPs.prs');
-        $client->request('POST', '/api/preset', server: ['HTTP_X_TRACKDSP' => '1'], content: $file);
+        $client->request('POST', '/api/preset', server: ['HTTP_X_SDWA5_DSP' => '1'], content: $file);
         self::assertResponseIsSuccessful();
         $data = json_decode((string) $client->getResponse()->getContent(), true, flags: \JSON_THROW_ON_ERROR);
         self::assertCount(8, $data['device']['inputs']);
@@ -34,7 +34,7 @@ final class PresetInspectionTest extends WebTestCase
         self::assertSame(array_fill(0, 8, null), array_column($data['device']['outputs'], 'eq_bypass'));
         self::assertSame([], $data['riders']);
 
-        $client->request('POST', '/api/preset', server: ['HTTP_X_TRACKDSP' => '1'], content: substr($file, 0, 500));
+        $client->request('POST', '/api/preset', server: ['HTTP_X_SDWA5_DSP' => '1'], content: substr($file, 0, 500));
         self::assertResponseStatusCodeSame(400);
         $client->request('POST', '/api/preset', content: $file);
         self::assertResponseStatusCodeSame(403);
@@ -44,7 +44,7 @@ final class PresetInspectionTest extends WebTestCase
     {
         $bridge = new BridgeProcess();
         try {
-            $_SERVER['TRACKDSP_BRIDGE_SOCKET'] = $_ENV['TRACKDSP_BRIDGE_SOCKET'] = $bridge->socket;
+            $_SERVER['SDWA5_DSP_BRIDGE_SOCKET'] = $_ENV['SDWA5_DSP_BRIDGE_SOCKET'] = $bridge->socket;
             $client = self::createClient();
             $client->request('GET', '/api/state');
             $before = $client->getResponse()->getContent();
@@ -53,7 +53,7 @@ final class PresetInspectionTest extends WebTestCase
             $device = Device::parse((string) file_get_contents(__DIR__.'/../../resources/factory_config.bin'));
             $data = json_decode($device->toJson(), true, flags: \JSON_THROW_ON_ERROR);
             $data['riders'] = [['channel' => 7, 'target' => -24]];
-            $client->request('POST', '/api/preset', server: ['HTTP_X_TRACKDSP' => '1'], content: json_encode($data, \JSON_THROW_ON_ERROR));
+            $client->request('POST', '/api/preset', server: ['HTTP_X_SDWA5_DSP' => '1'], content: json_encode($data, \JSON_THROW_ON_ERROR));
             self::assertResponseIsSuccessful();
             $parsed = json_decode((string) $client->getResponse()->getContent(), true);
             self::assertSame($device->inputs[0]->gain, $parsed['device']['inputs'][0]['gain']);
@@ -66,7 +66,7 @@ final class PresetInspectionTest extends WebTestCase
             $invalidGain = $data;
             $invalidGain['device']['raw'] = substr_replace($data['device']['raw'], 'ffff', 2 * (Device::INPUT_BASE + 56), 4);
             foreach (['{broken', json_encode($bad, \JSON_THROW_ON_ERROR), json_encode($invalidGain, \JSON_THROW_ON_ERROR)] as $file) {
-                $client->request('POST', '/api/preset', server: ['HTTP_X_TRACKDSP' => '1'], content: $file);
+                $client->request('POST', '/api/preset', server: ['HTTP_X_SDWA5_DSP' => '1'], content: $file);
                 self::assertResponseStatusCodeSame(400);
             }
             $client->request('GET', '/api/state');

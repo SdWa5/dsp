@@ -15,16 +15,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
-#[AsCommand('trackdsp:bridge', 'Owns the device connection and serves it to the web editor over a unix socket')]
+#[AsCommand('sdwa5-dsp:bridge|trackdsp:bridge', 'Owns the device connection and serves it to the web editor over a unix socket')]
 final class BridgeCommand extends Command implements SignalableCommandInterface
 {
     private ?Bridge $bridge = null;
 
     public function __construct(
         private readonly TransportFactory $transports,
-        #[Autowire('%env(TRACKDSP_TARGET)%')]
+        #[Autowire('%env(legacy:SDWA5_DSP_TARGET)%')]
         private readonly string $defaultTarget,
-        #[Autowire('%trackdsp.bridge_socket%')]
+        #[Autowire('%sdwa5_dsp.bridge_socket%')]
         private readonly string $defaultSocket,
     ) {
         parent::__construct();
@@ -33,8 +33,8 @@ final class BridgeCommand extends Command implements SignalableCommandInterface
     protected function configure(): void
     {
         $this
-            ->addOption('target', 't', InputOption::VALUE_REQUIRED, 'auto, usb, usb:/dev/hidrawN, demo or host[:port]. Without it the bridge starts on the target of the last connect or disconnect, else on $TRACKDSP_TARGET')
-            ->addOption('socket', 's', InputOption::VALUE_REQUIRED, 'Unix socket path (default: $TRACKDSP_BRIDGE_SOCKET or var/bridge.sock)')
+            ->addOption('target', 't', InputOption::VALUE_REQUIRED, 'auto, usb, usb:/dev/hidrawN, demo or host[:port]. Without it the bridge starts on the target of the last connect or disconnect, else on $SDWA5_DSP_TARGET')
+            ->addOption('socket', 's', InputOption::VALUE_REQUIRED, 'Unix socket path (default: $SDWA5_DSP_BRIDGE_SOCKET or var/bridge.sock)')
             ->addOption('meter-interval', null, InputOption::VALUE_REQUIRED, 'Seconds between meter polls while a client listens', '0.3')
             ->addOption('resync-interval', null, InputOption::VALUE_REQUIRED, 'Seconds between full re-reads of the device', '60')
             ->addOption('riders-file', null, InputOption::VALUE_REQUIRED, 'Where the gain riders are kept across restarts (default: the socket path with .riders.json)')

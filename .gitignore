@@ -15,6 +15,8 @@ captures/manual.txt
 # Full-screen screenshots showing other windows
 tools/shots/screen.png
 tools/shots/screen_now.png
+# ddev router certificates, including the private key of the local dev certificate
+/.ddev/traefik/
 
 ###> symfony/framework-bundle ###
 /.env.local

@@ -5,7 +5,7 @@
 # It does nothing while the code is unchanged, and it never restarts with device writes still queued.
 set -u
 
-pid=$(pgrep -fxo 'php bin/console trackdsp:bridge') || exit 0
+pid=$(pgrep -fxo 'php bin/console sdwa5-dsp:bridge') || exit 0
 elapsed=$(ps -o etimes= -p "$pid" | tr -d ' ')
 [ -n "$elapsed" ] || exit 0
 # etimes counts whole seconds and rounds down, so the computed start can lie up to a second early. A file
@@ -18,9 +18,9 @@ changed=$(find src config bin/console composer.lock vendor/composer/installed.ph
 
 queued=$(curl -sf localhost/api/status | php -r 'echo json_decode(stream_get_contents(STDIN), true)["queued"] ?? 0;')
 if [ "${queued:-0}" -gt 0 ] 2>/dev/null; then
-    echo "trackdsp bridge: $changed changed, but $queued write(s) are queued. Not restarting; run it again later." >&2
+    echo "sdwa5-dsp bridge: $changed changed, but $queued write(s) are queued. Not restarting; run it again later." >&2
     exit 0
 fi
 
-echo "trackdsp bridge: $changed is newer than the running bridge, restarting it." >&2
-supervisorctl restart webextradaemons:trackdsp-bridge >/dev/null
+echo "sdwa5-dsp bridge: $changed is newer than the running bridge, restarting it." >&2
+supervisorctl restart webextradaemons:sdwa5-dsp-bridge >/dev/null

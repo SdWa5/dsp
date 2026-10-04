@@ -121,7 +121,7 @@ try {
     $link = static fn (string $file): string => '['.basename($file).'](../'.$file.')';
     $lines = [
         '# Vendor parity audit', '',
-        'This audit started from trackdsp '.$data['baseline'].' on '.$data['date'].'. '.(0 === $gaps ? 'The inventory audit is complete under the agreed outcome rule. Full vendor parity is not certified.' : 'Confirmed implementation gaps keep the audit open.'), '',
+        'This audit started from sdwa5-dsp '.$data['baseline'].' on '.$data['date'].'. '.(0 === $gaps ? 'The inventory audit is complete under the agreed outcome rule. Full vendor parity is not certified.' : 'Confirmed implementation gaps keep the audit open.'), '',
         'The inventory maps '.\count($data['pages']).' tabs, '.\count($data['forms']).' named forms and '.\count($data['menus']).' top-level menu entries to '.\count($features).' control groups. '.$counts['matched'].' are matched, '.$counts['unresolved'].' unresolved, '.$counts['confirmed gap'].' confirmed gaps and '.$counts['internal/helper'].' evidenced exclusions. '.$missing.' surfaces have no screenshot; their concrete evidence TODOs remain recorded. '.\count($pending).' feature or evidence outcomes remain unresolved.', '',
         'Matched means a counterpart exists in the editor or CLI. It does not certify hardware behavior. Unknown forms remain unresolved; their names do not prove they are internal helpers.', '',
         'The screenshots of the original tour show a running preset, not factory defaults. The range survey in tools/shots/ranges uses first-channel default, second-channel maximum and third-channel minimum, with faders only. Offline screenshots establish UI bounds, not accepted device writes.', '',
@@ -129,7 +129,7 @@ try {
         '```bash', 'ddev exec php tools/vendor-parity.php --write', 'ddev exec php tools/vendor-parity.php --check', 'ddev exec php tools/vendor-parity.php --require-complete', '```', '',
         'The check validates coverage, source counterparts, PNG paths, unresolved TODOs, exclusion evidence and document freshness. The completeness check fails for confirmed implementation gaps or unrecorded outcomes. Explicit unknowns with concrete TODOs satisfy the agreed audit rule. Neither command connects to a bridge or device.', '',
         '## Control counterparts', '',
-        '| ID | Vendor controls | Status | Trackdsp source | Findings and verification |', '|---|---|---|---|---|',
+        '| ID | Vendor controls | Status | SdWa5 DSP source | Findings and verification |', '|---|---|---|---|---|',
     ];
     foreach ($features as $id => $feature) {
         $sources = implode(', ', array_map(static fn (array $c): string => $link($c['file']), $feature['counterparts']));

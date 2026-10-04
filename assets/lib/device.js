@@ -6,7 +6,7 @@ import { Store } from './store.js';
 import { HistoryService } from './historyservice.js';
 import { historyMessage } from './history.js';
 
-export const HEADER = 'X-Trackdsp';
+export const HEADER = 'X-Sdwa5-Dsp';
 
 export const store = new Store();
 export const status = { connected: false, bridge: false, error: '', target: '', demo: false, riders: [] };
@@ -67,7 +67,7 @@ let units = null;
  * the state paths its arguments read. Guarded replay and the resets build their commands from it.
  */
 export function getUnits() {
-    units ??= typeof document === 'undefined' ? [] : JSON.parse(document.getElementById('trackdsp-history')?.textContent ?? '[]');
+    units ??= typeof document === 'undefined' ? [] : JSON.parse(document.getElementById('sdwa5-dsp-history')?.textContent ?? '[]');
     return units;
 }
 
@@ -125,7 +125,7 @@ let defaults = null;
 /** Value lists from App\Protocol\Labels, rendered into the page. */
 export function getLabels() {
     if (null === labels) {
-        const node = document.getElementById('trackdsp-labels');
+        const node = document.getElementById('sdwa5-dsp-labels');
         labels = node ? JSON.parse(node.textContent) : {};
     }
     return labels;
@@ -137,7 +137,7 @@ export function getLabels() {
  */
 export function getDefaults() {
     if (null === defaults) {
-        const node = document.getElementById('trackdsp-defaults');
+        const node = document.getElementById('sdwa5-dsp-defaults');
         defaults = referenceDefaults(node ? JSON.parse(node.textContent) : {});
     }
     return defaults;

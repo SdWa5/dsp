@@ -139,7 +139,7 @@ final class EditorTooltipTest extends WebTestCase
     private function page(string $locale): Crawler
     {
         $client = self::createClient();
-        $client->getCookieJar()->set(new Cookie('trackdsp_locale', $locale));
+        $client->getCookieJar()->set(new Cookie('sdwa5_dsp_locale', $locale));
         $page = $client->request('GET', '/');
         self::assertResponseIsSuccessful();
 

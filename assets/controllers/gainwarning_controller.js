@@ -6,7 +6,7 @@ import { readPref, writePref } from '../lib/prefs.js';
 import { EXACT_RATIO, EXACT_THRESHOLD, exaggeratesGain, format, GAIN_MAX, gainToDb, heardDb, heardGain } from '../lib/scale.js';
 
 const KEEP_THRESHOLD = 'gain-fix-keep-threshold';
-const CHANGED = 'trackdsp:gain-fix';
+const CHANGED = 'sdwa5-dsp:gain-fix';
 
 /**
  * Warns on an output strip of the Comp page while the output runs at compressor 1:1.0 with a gain other than

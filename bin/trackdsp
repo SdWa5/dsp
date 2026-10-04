@@ -1,50 +1,5 @@
 #!/usr/bin/env php
 <?php
 
-use App\Kernel;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
-
-/*
- * Short form of the device commands: "trackdsp info" runs "bin/console trackdsp:info".
- * A negative number such as the -6 in "trackdsp gain in1 -6" is passed as an argument, not as an option.
- * The Symfony runtime includes this file twice, so the rewrite must be idempotent.
- */
-$argv = $_SERVER['argv'];
-$command = $argv[1] ?? 'list';
-if ('list' === $command) {
-    $argv = [$argv[0], 'list', 'trackdsp'];
-} elseif (!str_starts_with($command, '-') && !str_contains($command, ':') && !in_array($command, ['help', 'completion'], true)) {
-    $argv[1] = 'trackdsp:'.$command;
-}
-if (!in_array('--', $argv, true) && preg_grep('/^-\d/', array_slice($argv, 2))) {
-    // Options first, then "--", then the arguments, so that -6 is read as an argument
-    $options = $arguments = [];
-    for ($i = 2; $i < count($argv); ++$i) {
-        if (in_array($argv[$i], ['-t', '--target'], true)) {
-            array_push($options, $argv[$i], $argv[++$i] ?? '');
-        } elseif (preg_match('/^-(-|[a-zA-Z])/', $argv[$i])) {
-            $options[] = $argv[$i];
-        } else {
-            $arguments[] = $argv[$i];
-        }
-    }
-    $argv = [$argv[0], $argv[1], ...$options, '--', ...$arguments];
-}
-$_SERVER['argv'] = $argv;
-$_SERVER['argc'] = count($argv);
-
-if (!is_dir(dirname(__DIR__).'/vendor')) {
-    throw new LogicException('Dependencies are missing. Try running "composer install".');
-}
-
-if (!is_file(dirname(__DIR__).'/vendor/autoload_runtime.php')) {
-    throw new LogicException('Symfony Runtime is missing. Try running "composer require symfony/runtime".');
-}
-
-require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
-
-return function (array $context) {
-    $kernel = new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
-
-    return new Application($kernel);
-};
+// Old name of bin/sdwa5-dsp, kept until every installation calls the new name (docs/vim3.md, "Migrating from trackdsp").
+return require __DIR__.'/sdwa5-dsp';

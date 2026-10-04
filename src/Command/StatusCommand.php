@@ -13,7 +13,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 /**
  * Reads the whole configuration rather than the mute page alone, since a gain at raw 0 mutes a channel too.
  */
-#[AsCommand('trackdsp:status', 'Show the mute state of all channels')]
+#[AsCommand('sdwa5-dsp:status|trackdsp:status', 'Show the mute state of all channels')]
 final class StatusCommand extends DeviceCommand
 {
     protected function handle(Matrix $dsp, InputInterface $input, SymfonyStyle $io): int

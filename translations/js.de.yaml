@@ -82,7 +82,7 @@
 "Taking the backup…": "Sicherung wird erstellt…"
 "Every chosen output is hidden. Show it under Channel Visibility or choose a visible output.": "Jeder gewählte Ausgang ist ausgeblendet. Ihn unter Kanalsichtbarkeit einblenden oder einen sichtbaren Ausgang wählen."
 "Target %target% dB, gain %min%..%max% dB, %slew% dB/s": "Ziel %target% dB, Gain %min%..%max% dB, %slew% dB/s"
-"The bridge is not running. Start it with bin/console trackdsp:bridge.": "Die Bridge läuft nicht. Start mit bin/console trackdsp:bridge."
+"The bridge is not running. Start it with bin/console sdwa5-dsp:bridge.": "Die Bridge läuft nicht. Start mit bin/console sdwa5-dsp:bridge."
 "Unknown: the device does not report this value": "Unbekannt. Das Gerät meldet diesen Wert nicht zurück."
 "Update rider": "Rider aktualisieren"
 "Upper half, click for the full matrix": "Obere Hälfte, klicken für die volle Matrix"

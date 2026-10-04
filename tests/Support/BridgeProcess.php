@@ -5,8 +5,8 @@ namespace App\Tests\Support;
 use Symfony\Component\Process\Process;
 
 /**
- * Runs bin/console trackdsp:bridge on the simulated device as a subprocess with its own socket.
- * A null target starts it without --target, on the saved target or else on $TRACKDSP_TARGET (demo in tests).
+ * Runs bin/console sdwa5-dsp:bridge on the simulated device as a subprocess with its own socket.
+ * A null target starts it without --target, on the saved target or else on $SDWA5_DSP_TARGET (demo in tests).
  */
 final class BridgeProcess
 {
@@ -18,12 +18,12 @@ final class BridgeProcess
      */
     public function __construct(?string $target = 'demo', ?array $savedTarget = null)
     {
-        $this->socket = sys_get_temp_dir().'/trackdsp-test-'.bin2hex(random_bytes(4)).'.sock';
+        $this->socket = sys_get_temp_dir().'/sdwa5-dsp-test-'.bin2hex(random_bytes(4)).'.sock';
         if (null !== $savedTarget) {
             file_put_contents($this->file('.target.json'), json_encode($savedTarget, \JSON_THROW_ON_ERROR));
         }
         $this->process = new Process(
-            ['php', 'bin/console', 'trackdsp:bridge', '--env=test', ...(null === $target ? [] : ['--target='.$target]), '--socket='.$this->socket, '--meter-interval=0.05'],
+            ['php', 'bin/console', 'sdwa5-dsp:bridge', '--env=test', ...(null === $target ? [] : ['--target='.$target]), '--socket='.$this->socket, '--meter-interval=0.05'],
             \dirname(__DIR__, 2),
         );
         $this->process->start();

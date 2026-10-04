@@ -61,7 +61,7 @@ final class TransportTest extends TestCase
 
     public function testHidrawLocatorMatchesVendorAndProduct(): void
     {
-        $this->sysfs = sys_get_temp_dir().'/trackdsp-sysfs-'.bin2hex(random_bytes(4));
+        $this->sysfs = sys_get_temp_dir().'/sdwa5-dsp-sysfs-'.bin2hex(random_bytes(4));
         foreach (['hidraw0' => '0003:0000046D:0000C52B', 'hidraw10' => '0003:00000168:00000821', 'hidraw2' => '0003:00000168:00000821'] as $node => $id) {
             mkdir($this->sysfs.'/'.$node.'/device', 0o777, true);
             file_put_contents($this->sysfs.'/'.$node.'/device/uevent', "DRIVER=hid-generic\nHID_ID=$id\nHID_NAME=Musicrown Dsp Process\n");
@@ -91,7 +91,7 @@ final class TransportTest extends TestCase
     public function testFactoryWaitsBrieflyAndRetriesMoreOverUsb(): void
     {
         // A regular file stands in for a hidraw node that never answers
-        $node = tempnam(sys_get_temp_dir(), 'trackdsp-hidraw-');
+        $node = tempnam(sys_get_temp_dir(), 'sdwa5-dsp-hidraw-');
         self::assertIsString($node);
         $start = microtime(true);
         try {

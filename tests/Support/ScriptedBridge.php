@@ -24,7 +24,7 @@ final class ScriptedBridge
      */
     public function __construct(array $statuses = [[]], array $writes = [])
     {
-        $this->socket = sys_get_temp_dir().'/trackdsp-scripted-'.bin2hex(random_bytes(4)).'.sock';
+        $this->socket = sys_get_temp_dir().'/sdwa5-dsp-scripted-'.bin2hex(random_bytes(4)).'.sock';
         $this->process = new Process(['php', __DIR__.'/scripted-bridge.php', $this->socket, json_encode($statuses, \JSON_THROW_ON_ERROR), json_encode($writes, \JSON_THROW_ON_ERROR)]);
         $this->process->start();
         $deadline = microtime(true) + 10;

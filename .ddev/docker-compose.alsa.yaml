@@ -1,4 +1,4 @@
-# Audio capture from the web container (arecord for the auto EQ and trackdsp:measure), also after replugging.
+# Audio capture from the web container (arecord for the auto EQ and sdwa5-dsp:measure), also after replugging.
 # The host's /dev/snd is bound as a directory, so a replugged interface shows up without a restart. ALSA's
 # character devices have the fixed major number 116, and the cgroup rule allows them only. The host gives the
 # nodes to the logged-in desktop user through the seat ACL of logind, and the container runs as that user. No

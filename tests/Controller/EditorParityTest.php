@@ -67,7 +67,7 @@ final class EditorParityTest extends WebTestCase
     {
         $page = self::createClient()->request('GET', '/');
         self::assertResponseIsSuccessful();
-        $defaults = json_decode($page->filter('#trackdsp-defaults')->text(), true, flags: \JSON_THROW_ON_ERROR);
+        $defaults = json_decode($page->filter('#sdwa5-dsp-defaults')->text(), true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($defaults);
         $ranges = $page->filter('input[type=range]');
         self::assertGreaterThan(150, $ranges->count());

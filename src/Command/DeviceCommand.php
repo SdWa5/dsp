@@ -20,7 +20,7 @@ abstract class DeviceCommand extends Command
 {
     public function __construct(
         protected readonly TransportFactory $transports,
-        #[Autowire('%env(TRACKDSP_TARGET)%')]
+        #[Autowire('%env(legacy:SDWA5_DSP_TARGET)%')]
         private readonly string $defaultTarget = 'auto',
     ) {
         parent::__construct();
@@ -28,7 +28,7 @@ abstract class DeviceCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption('target', 't', InputOption::VALUE_REQUIRED, 'auto, usb, usb:/dev/hidrawN, demo or host[:port] (default: $TRACKDSP_TARGET)');
+        $this->addOption('target', 't', InputOption::VALUE_REQUIRED, 'auto, usb, usb:/dev/hidrawN, demo or host[:port] (default: $SDWA5_DSP_TARGET)');
     }
 
     /**

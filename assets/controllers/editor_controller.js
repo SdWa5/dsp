@@ -1,4 +1,4 @@
-import { languageCookie, t } from '../lib/i18n.js';
+import { languageCookie, legacyLanguageCookie, t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { api, getDefaults, listen, on, send, status, store, history } from '../lib/device.js';
 import { changedPaths, pageChanges } from '../lib/defaults.js';
@@ -508,6 +508,7 @@ export default class extends Controller {
 
     language(event) {
         document.cookie = languageCookie(event.target.value, 'https:' === window.location.protocol);
+        document.cookie = legacyLanguageCookie('https:' === window.location.protocol);
         window.location.reload();
     }
 

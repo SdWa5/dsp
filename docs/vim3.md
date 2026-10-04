@@ -11,14 +11,14 @@ laptop or phone on the crew network opens the editor in a browser. The files in
 | Hostname | `sdwa5-dsp`, also `sdwa5-dsp.local` through Avahi |
 | Editor | `http://10.42.0.1/` and `http://192.168.68.11/` on the crew wifi `SdWa5`, `http://sdwa5-dsp.local/` on a normal LAN |
 | SSH | user `khadas`, key only, sudo with password |
-| App | `/srv/trackdsp`, owned by the system user `trackdsp` (groups `plugdev`, `audio`) |
+| App | `/srv/sdwa5-dsp`, owned by the system user `sdwa5-dsp` (groups `plugdev`, `audio`) |
 
 ## Services
 
 | Unit | Job |
 |---|---|
-| `trackdsp-bridge.service` | `bin/console trackdsp:bridge --target=usb --resync-interval=60` as `trackdsp`, socket `var/bridge.sock`, restarts 3 s after every exit, also while the 8x8 is unplugged |
-| `php8.4-fpm.service` | pool `trackdsp` on `/run/php/trackdsp.sock`, 16 workers. Every open editor tab holds one worker for its event stream |
+| `sdwa5-dsp-bridge.service` | `bin/console sdwa5-dsp:bridge --target=usb --resync-interval=60` as `sdwa5-dsp`, socket `var/bridge.sock`, restarts 3 s after every exit, also while the 8x8 is unplugged |
+| `php8.4-fpm.service` | pool `sdwa5-dsp` on `/run/php/sdwa5-dsp.sock`, 16 workers. Every open editor tab holds one worker for its event stream |
 | `caddy.service` | port 80, serves `public/`, passes PHP to the pool, leaves `/api/events` uncompressed |
 
 All three start at boot without a login. After a reboot the editor answers within about 25 seconds.
@@ -35,22 +35,22 @@ sudo apt-get install --no-install-recommends caddy php8.4-cli php8.4-fpm php8.4-
 Copy the app without the development files. On the laptop:
 
 ```bash
-git archive --format=tar -o trackdsp.tar main -- . ':!captures' ':!legacy' ':!tools' ':!tests'
-scp trackdsp.tar khadas@sdwa5-dsp.local:/tmp/
+git archive --format=tar -o sdwa5-dsp.tar main -- . ':!captures' ':!legacy' ':!tools' ':!tests'
+scp sdwa5-dsp.tar khadas@sdwa5-dsp.local:/tmp/
 ```
 
-On the board. The user `trackdsp` needs the groups `plugdev` (USB) and `audio` (auto EQ recordings):
+On the board. The user `sdwa5-dsp` needs the groups `plugdev` (USB) and `audio` (auto EQ recordings):
 
 ```bash
-sudo useradd --system --home-dir /var/lib/trackdsp --create-home --shell /usr/sbin/nologin trackdsp
-sudo usermod -aG plugdev,audio trackdsp
-sudo install -d -o trackdsp -g trackdsp -m 755 /srv/trackdsp
-sudo -u trackdsp tar -x -C /srv/trackdsp -f /tmp/trackdsp.tar
-cd /srv/trackdsp
-sudo -u trackdsp cp deploy/vim3/env.local.dist .env.local   # then set APP_SECRET
-sudo -u trackdsp env HOME=/var/lib/trackdsp composer install --no-dev --classmap-authoritative --no-interaction
-sudo -u trackdsp env HOME=/var/lib/trackdsp composer dump-env prod
-sudo -u trackdsp php bin/console asset-map:compile
+sudo useradd --system --home-dir /var/lib/sdwa5-dsp --create-home --shell /usr/sbin/nologin sdwa5-dsp
+sudo usermod -aG plugdev,audio sdwa5-dsp
+sudo install -d -o sdwa5-dsp -g sdwa5-dsp -m 755 /srv/sdwa5-dsp
+sudo -u sdwa5-dsp tar -x -C /srv/sdwa5-dsp -f /tmp/sdwa5-dsp.tar
+cd /srv/sdwa5-dsp
+sudo -u sdwa5-dsp cp deploy/vim3/env.local.dist .env.local   # then set APP_SECRET
+sudo -u sdwa5-dsp env HOME=/var/lib/sdwa5-dsp composer install --no-dev --classmap-authoritative --no-interaction
+sudo -u sdwa5-dsp env HOME=/var/lib/sdwa5-dsp composer dump-env prod
+sudo -u sdwa5-dsp php bin/console asset-map:compile
 ```
 
 `composer install` runs `importmap:install`, which fetches the browser libraries from the internet.
@@ -59,19 +59,19 @@ USB access and the services:
 
 ```bash
 sudo rm -f /etc/udev/rules.d/99-trackdsp.rules    # older name of the same rule
-sudo install -m 644 udev/70-trackdsp.rules /etc/udev/rules.d/
+sudo install -m 644 udev/70-sdwa5-dsp.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules && sudo udevadm trigger
-sudo -u trackdsp php bin/trackdsp info -t usb
+sudo -u sdwa5-dsp php bin/sdwa5-dsp info -t usb
 
-sudo install -m 644 deploy/vim3/trackdsp-bridge.service /etc/systemd/system/
-sudo install -m 644 deploy/vim3/php-fpm-trackdsp.conf /etc/php/8.4/fpm/pool.d/trackdsp.conf
+sudo install -m 644 deploy/vim3/sdwa5-dsp-bridge.service /etc/systemd/system/
+sudo install -m 644 deploy/vim3/php-fpm-sdwa5-dsp.conf /etc/php/8.4/fpm/pool.d/sdwa5-dsp.conf
 sudo cp -a /etc/caddy/Caddyfile /etc/caddy/Caddyfile.dist
 sudo install -m 644 deploy/vim3/Caddyfile /etc/caddy/Caddyfile
-sudo install -m 755 deploy/vim3/16-trackdsp /etc/update-motd.d/
+sudo install -m 755 deploy/vim3/16-sdwa5-dsp /etc/update-motd.d/
 sudo install -m 755 deploy/vim3/sdwa5-wan-dhcp /usr/local/sbin/
 sudo install -m 644 deploy/vim3/sdwa5-wan-dhcp.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now trackdsp-bridge sdwa5-wan-dhcp
+sudo systemctl enable --now sdwa5-dsp-bridge sdwa5-wan-dhcp
 sudo systemctl restart php8.4-fpm caddy
 ```
 
@@ -81,16 +81,39 @@ The wifi fallback is `/etc/netplan/30-wifi-sdwa5.yaml` (mode 600, see [Network](
 
 ## Update
 
-Copy the new archive as above, extract it over `/srv/trackdsp` (`.env.local`, `.env.local.php` and `var/` stay),
-then run `composer install`, `asset-map:compile` and `sudo systemctl restart trackdsp-bridge php8.4-fpm`.
+Copy the new archive as above, extract it over `/srv/sdwa5-dsp` (`.env.local`, `.env.local.php` and `var/` stay),
+then run `composer install`, `asset-map:compile` and `sudo systemctl restart sdwa5-dsp-bridge php8.4-fpm`.
+
+## Migrating from trackdsp
+
+Until 1.0.0 the project was called trackdsp, and a board installed before that runs it under the old names. It
+keeps working after an update over `/srv/trackdsp` as long as nothing is renamed. The old `TRACKDSP_*` variables
+still apply and take precedence over the new `SDWA5_DSP_*` defaults, the old console names (`trackdsp:bridge` and
+the rest) are aliases, `bin/trackdsp` calls `bin/sdwa5-dsp`, and the editor carries over its per-browser settings
+and the language cookie. The migration to the new names runs in one session on the board:
+
+```bash
+sudo systemctl disable --now trackdsp-bridge
+sudo systemctl stop php8.4-fpm caddy
+sudo usermod -l sdwa5-dsp -d /var/lib/sdwa5-dsp -m trackdsp && sudo groupmod -n sdwa5-dsp trackdsp
+sudo mv /srv/trackdsp /srv/sdwa5-dsp
+sudo -u sdwa5-dsp sed -i 's/^TRACKDSP_/SDWA5_DSP_/' /srv/sdwa5-dsp/.env.local
+sudo rm /etc/systemd/system/trackdsp-bridge.service /etc/php/8.4/fpm/pool.d/trackdsp.conf \
+    /etc/update-motd.d/16-trackdsp /etc/udev/rules.d/70-trackdsp.rules
+sudo mv /var/backups/*-trackdsp-port-2026-09-27.tar.gz /var/backups/gitiglitzer-trackdsp-port-2026-09-27.tar.gz
+```
+
+Then copy the new archive and run the installation from "USB access and the services" onward, followed by
+`composer dump-env prod`, so that `.env.local.php` carries the new names. `grep TRACKDSP_ /srv/sdwa5-dsp/.env.local.php`
+must come back empty. The `bin/trackdsp` file and the aliases are removed in a later release.
 
 ## Checks
 
 ```bash
 curl -s http://sdwa5-dsp.local/api/status        # "connected":true, "transport":"usb:/dev/hidraw0"
 curl -sN -m 4 http://sdwa5-dsp.local/api/events  # meters about three times a second
-ssh khadas@sdwa5-dsp.local 'systemctl status trackdsp-bridge caddy php8.4-fpm --no-pager'
-ssh khadas@sdwa5-dsp.local 'journalctl -u trackdsp-bridge -f'
+ssh khadas@sdwa5-dsp.local 'systemctl status sdwa5-dsp-bridge caddy php8.4-fpm --no-pager'
+ssh khadas@sdwa5-dsp.local 'journalctl -u sdwa5-dsp-bridge -f'
 ```
 
 The login banner shows the state of the bridge and the web server and every editor address.

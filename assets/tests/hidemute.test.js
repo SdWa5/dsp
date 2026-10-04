@@ -45,7 +45,7 @@ test('the option is kept per browser and reaches every listener', () => {
         setHideMute({ on: true });
         off();
         assert.deepEqual(seen, [{ on: true }]);
-        assert.equal(items.get('trackdsp-hidden-mute'), '{"on":true}');
+        assert.equal(items.get('sdwa5-dsp-hidden-mute'), '{"on":true}');
     } finally {
         delete globalThis.localStorage;
     }

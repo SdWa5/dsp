@@ -3,14 +3,16 @@
  * localStorage. Storage may be blocked or missing, so reads fall back and writes last for the visit only.
  * A string is stored as it is, which keeps the theme value of older versions readable. Anything else as JSON.
  */
-const PREFIX = 'trackdsp-';
+const PREFIX = 'sdwa5-dsp-';
+// Prefix before the rename to sdwa5-dsp. A value stored only under it is read once and copied to the new key.
+const LEGACY_PREFIX = 'trackdsp-';
 const session = new Map();
 const listeners = new Set();
 
 export function readPref(key, fallback) {
     let raw = session.get(key) ?? null;
     if (raw === null) {
-        try { raw = globalThis.localStorage?.getItem(PREFIX + key) ?? null; } catch { /* Use the fallback. */ }
+        try { raw = globalThis.localStorage?.getItem(PREFIX + key) ?? migrate(key); } catch { /* Use the fallback. */ }
     }
     if (null === raw) {
         return fallback;
@@ -25,6 +27,16 @@ export function readPref(key, fallback) {
     } catch {
         return fallback;
     }
+}
+
+/** Copies a value stored under the old prefix to the new key and returns it, or null. */
+function migrate(key) {
+    const raw = globalThis.localStorage?.getItem(LEGACY_PREFIX + key) ?? null;
+    if (null !== raw) {
+        globalThis.localStorage.setItem(PREFIX + key, raw);
+        globalThis.localStorage.removeItem(LEGACY_PREFIX + key);
+    }
+    return raw;
 }
 
 /** Store the existing wire format and notify local copies, even if storage is unavailable. */

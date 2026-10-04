@@ -13,6 +13,6 @@ test('the threshold display settings reach every listener and are kept', () => {
     setMeterView({ show: false });
     assert.deepEqual(seen, [{ show: true, active: false }]);
     assert.deepEqual(getMeterView(), { show: false, active: true });
-    assert.equal(items.get('trackdsp-meter-threshold'), '{"show":false,"active":true}');
+    assert.equal(items.get('sdwa5-dsp-meter-threshold'), '{"show":false,"active":true}');
     delete globalThis.localStorage;
 });

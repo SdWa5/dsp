@@ -9,7 +9,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 
 /**
- * trackdsp:compressor against the simulated device (TRACKDSP_TARGET=demo in .env.test).
+ * sdwa5-dsp:compressor against the simulated device (SDWA5_DSP_TARGET=demo in .env.test).
  */
 final class CompressorCommandTest extends KernelTestCase
 {
@@ -18,7 +18,7 @@ final class CompressorCommandTest extends KernelTestCase
      */
     private function runCommand(array $input): CommandTester
     {
-        $tester = new CommandTester((new Application(self::bootKernel()))->find('trackdsp:compressor'));
+        $tester = new CommandTester((new Application(self::bootKernel()))->find('sdwa5-dsp:compressor'));
         $tester->execute($input);
 
         return $tester;

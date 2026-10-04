@@ -23,7 +23,7 @@ final class Device
     public const AUX_BASE = 512;
     public const OUTPUT_BASE = 606;
     public const FOOTER_BASE = 1214;
-    public const FILE_FORMAT = 'trackdsp-8x8';
+    public const FILE_FORMAT = 'sdwa5-dsp-8x8';
     public const FILE_VERSION = 1;
     /** Start of a preset file saved by the vendor editor (.prs) */
     public const VENDOR_MAGIC = '**8x8MatrixV010*';
@@ -209,7 +209,7 @@ final class Device
     {
         $data = json_decode($json, true, 64, \JSON_THROW_ON_ERROR);
         if (!\is_array($data) || self::FILE_FORMAT !== ($data['format'] ?? null) || !\is_array($data['device'] ?? null)) {
-            throw new \InvalidArgumentException('Not a trackdsp-8x8 preset file.');
+            throw new \InvalidArgumentException('Not a sdwa5-dsp-8x8 preset file.');
         }
         $dd = $data['device'];
         $raw = hex2bin((string) ($dd['raw'] ?? '')) ?: '';

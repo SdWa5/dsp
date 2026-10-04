@@ -1,8 +1,8 @@
 {
-    "name": "trackdsp-assets",
+    "name": "sdwa5-dsp-assets",
     "private": true,
     "type": "module",
-    "description": "Browser code of the trackdsp editor. No build step and no dependencies, AssetMapper serves assets/ as is.",
+    "description": "Browser code of the sdwa5-dsp editor. No build step and no dependencies, AssetMapper serves assets/ as is.",
     "scripts": {
         "test": "node --test assets/tests/*.test.js"
     }

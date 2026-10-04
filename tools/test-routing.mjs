@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({ headless: true });
-const url = process.env.TRACKDSP_TEST_URL || 'https://trackdsp.ddev.site';
+const url = process.env.SDWA5_DSP_TEST_URL || 'https://sdwa5-dsp.ddev.site';
 const results = [];
 try {
     for (const width of [1440, 390]) {
@@ -23,7 +23,7 @@ try {
                 constructor() {
                     super(); window.mockEvents = this;
                     setTimeout(() => {
-                        const state = JSON.parse(document.getElementById('trackdsp-defaults').textContent);
+                        const state = JSON.parse(document.getElementById('sdwa5-dsp-defaults').textContent);
                         state.inputs.forEach(channel => channel.link = 0);
                         state.outputs.forEach((channel, i) => { channel.link = 0; channel.route = 0x1000 | (1 << i); });
                         state.inputs[0].link = 5; state.outputs[1].link = 10;
@@ -62,7 +62,7 @@ try {
                 assert.equal(await page.locator('.routing__preview').count(), 1);
                 assert.equal(await node(second).evaluate(n => n.classList.contains('is-target')), true);
                 assert.equal(writes.length, 0);
-                await page.locator('.routing').screenshot({ path: `/tmp/trackdsp-routing-drag-${width}.png` });
+                await page.locator('.routing').screenshot({ path: `/tmp/sdwa5-dsp-routing-drag-${width}.png` });
             }
             await page.mouse.up();
         };
@@ -208,7 +208,7 @@ try {
         assert.equal(await node('input:0').count(), 0); assert.equal(await node('aux:8').count(), 0);
         assert.equal(await page.locator('.routing.is-editing').count(), 0);
         assert.deepEqual(writes, []); assert.deepEqual(errors, []);
-        await page.locator('.routing').screenshot({ path: `/tmp/trackdsp-routing-edited-${width}.png` });
+        await page.locator('.routing').screenshot({ path: `/tmp/sdwa5-dsp-routing-edited-${width}.png` });
         if (width === 390) {
             await graph.evaluate(svg => svg.scrollIntoView({ block: 'center' }));
             const bounds = await graph.boundingBox();

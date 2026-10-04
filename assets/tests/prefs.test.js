@@ -6,7 +6,7 @@ beforeEach(async () => ({ readPref, writePref, onPref } = await import(`../lib/p
 
 const memory = () => {
     const items = new Map();
-    return { getItem: (k) => items.get(k) ?? null, setItem: (k, v) => items.set(k, String(v)), items };
+    return { getItem: (k) => items.get(k) ?? null, setItem: (k, v) => items.set(k, String(v)), removeItem: (k) => items.delete(k), items };
 };
 
 afterEach(() => {
@@ -22,7 +22,7 @@ test('falls back without storage', () => {
 test('strings stay raw, other values round-trip as JSON', () => {
     globalThis.localStorage = memory();
     writePref('theme', 'dark');
-    assert.equal(globalThis.localStorage.items.get('trackdsp-theme'), 'dark');
+    assert.equal(globalThis.localStorage.items.get('sdwa5-dsp-theme'), 'dark');
     assert.equal(readPref('theme', 'auto'), 'dark');
     writePref('collapsed', { 'gain:Input': true });
     assert.deepEqual(readPref('collapsed', {}), { 'gain:Input': true });
@@ -32,9 +32,9 @@ test('strings stay raw, other values round-trip as JSON', () => {
 
 test('a value of the wrong type falls back', () => {
     globalThis.localStorage = memory();
-    globalThis.localStorage.setItem('trackdsp-swapped', '"yes"');
+    globalThis.localStorage.setItem('sdwa5-dsp-swapped', '"yes"');
     assert.equal(readPref('swapped', false), false);
-    globalThis.localStorage.setItem('trackdsp-collapsed', '{broken');
+    globalThis.localStorage.setItem('sdwa5-dsp-collapsed', '{broken');
     assert.deepEqual(readPref('collapsed', {}), {});
 });
 
@@ -60,8 +60,23 @@ test('a failed write supersedes a stale stored value for this visit', () => {
 
 test('arrays and records do not masquerade as one another', () => {
     globalThis.localStorage = memory();
-    globalThis.localStorage.setItem('trackdsp-collapsed', '[]');
-    globalThis.localStorage.setItem('trackdsp-eq-overview-hidden', '{}');
+    globalThis.localStorage.setItem('sdwa5-dsp-collapsed', '[]');
+    globalThis.localStorage.setItem('sdwa5-dsp-eq-overview-hidden', '{}');
     assert.deepEqual(readPref('collapsed', {}), {});
     assert.deepEqual(readPref('eq-overview-hidden', []), []);
+});
+
+test('a value stored under the trackdsp prefix is read once and moved to the new key', () => {
+    globalThis.localStorage = memory();
+    globalThis.localStorage.setItem('trackdsp-channel-display', '{"display":"groups"}');
+    assert.deepEqual(readPref('channel-display', {}), { display: 'groups' });
+    assert.equal(globalThis.localStorage.items.get('sdwa5-dsp-channel-display'), '{"display":"groups"}');
+    assert.equal(globalThis.localStorage.items.has('trackdsp-channel-display'), false);
+});
+
+test('the new key wins over a leftover trackdsp key', () => {
+    globalThis.localStorage = memory();
+    globalThis.localStorage.setItem('trackdsp-theme', 'light');
+    globalThis.localStorage.setItem('sdwa5-dsp-theme', 'dark');
+    assert.equal(readPref('theme', 'auto'), 'dark');
 });

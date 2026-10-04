@@ -1,12 +1,12 @@
 # The device bridge runs next to php-fpm, started and restarted by the web container's supervisor.
 # The first start is on the simulated device. Switch it with POST /api/connect {"target": "192.168.68.10"}.
 # Every later start, also after `ddev restart`, is on the device it was last switched to, which the bridge
-# keeps in var/bridge.target.json. TRACKDSP_TARGET is set here rather than --target, because an explicit
+# keeps in var/bridge.target.json. SDWA5_DSP_TARGET is set here rather than --target, because an explicit
 # --target would win over that file.
 # Logs: ddev logs -s web
 web_extra_daemons:
-  - name: trackdsp-bridge
-    command: "TRACKDSP_TARGET=demo php bin/console trackdsp:bridge"
+  - name: sdwa5-dsp-bridge
+    command: "SDWA5_DSP_TARGET=demo php bin/console sdwa5-dsp:bridge"
     directory: /var/www/html
 
 # A running bridge keeps the code it was started with. After every `ddev exec` and `ddev composer`, the hook
@@ -14,8 +14,8 @@ web_extra_daemons:
 # writes are queued. It stays silent when nothing changed.
 hooks:
   # Runs on the host: an exec task would itself be a `ddev exec` and fire post-exec again without end.
-  # TRACKDSP_BRIDGE_RELOAD stops the nested call, which inherits it.
+  # SDWA5_DSP_BRIDGE_RELOAD stops the nested call, which inherits it.
   post-exec:
-    - exec-host: '[ -n "${TRACKDSP_BRIDGE_RELOAD:-}" ] || TRACKDSP_BRIDGE_RELOAD=1 ddev exec .ddev/bridge-reload.sh'
+    - exec-host: '[ -n "${SDWA5_DSP_BRIDGE_RELOAD:-}" ] || SDWA5_DSP_BRIDGE_RELOAD=1 ddev exec .ddev/bridge-reload.sh'
   post-composer:
-    - exec-host: '[ -n "${TRACKDSP_BRIDGE_RELOAD:-}" ] || TRACKDSP_BRIDGE_RELOAD=1 ddev exec .ddev/bridge-reload.sh'
+    - exec-host: '[ -n "${SDWA5_DSP_BRIDGE_RELOAD:-}" ] || SDWA5_DSP_BRIDGE_RELOAD=1 ddev exec .ddev/bridge-reload.sh'

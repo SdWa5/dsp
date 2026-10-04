@@ -9,7 +9,7 @@ use App\Tests\Support\BridgeProcess;
 use PHPUnit\Framework\TestCase;
 
 /**
- * trackdsp:bridge as a real process, spoken to through BridgeClient.
+ * sdwa5-dsp:bridge as a real process, spoken to through BridgeClient.
  */
 final class BridgeProcessTest extends TestCase
 {
@@ -65,7 +65,7 @@ final class BridgeProcessTest extends TestCase
     {
         $bridge = new BridgeProcess();
         try {
-            $second = new \Symfony\Component\Process\Process(['php', 'bin/console', 'trackdsp:bridge', '--env=test', '-t', 'demo', '-s', $bridge->socket], \dirname(__DIR__, 2));
+            $second = new \Symfony\Component\Process\Process(['php', 'bin/console', 'sdwa5-dsp:bridge', '--env=test', '-t', 'demo', '-s', $bridge->socket], \dirname(__DIR__, 2));
             $second->run();
             self::assertSame(1, $second->getExitCode());
             self::assertStringContainsString('already running', $second->getOutput());
@@ -104,6 +104,6 @@ final class BridgeProcessTest extends TestCase
         $this->expectException(BridgeException::class);
         $this->expectExceptionCode(503);
 
-        (new BridgeClient(sys_get_temp_dir().'/trackdsp-missing.sock', 0.5))->request('ping');
+        (new BridgeClient(sys_get_temp_dir().'/sdwa5-dsp-missing.sock', 0.5))->request('ping');
     }
 }

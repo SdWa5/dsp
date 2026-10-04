@@ -1,13 +1,17 @@
-# trackdsp
+# sdwa5-dsp
 
-Editor, command line and PHP library for the Thomann **t.racks 8x8 Matrix** DSP on Linux.
+Editor, command line and PHP library for the Thomann **t.racks 8x8 Matrix** DSP on Linux, with gain riders,
+measurements and Auto EQ.
 It talks to the device over **USB** (hidraw) or **LAN** (TCP 9761) with the protocol reverse-engineered from the
 Windows vendor software "the t.racks 8x8 Matrix Digital Processor Editor". The protocol is described in
 [docs/protocol.md](docs/protocol.md).
 
+Until 1.0.0 the project was called trackdsp. The old settings, console names and `bin/trackdsp` still work, and
+[docs/vim3.md](docs/vim3.md#migrating-from-trackdsp) describes the migration of an installation.
+
 ## Status
 
-This branch rewrites the first implementation (Python and PySide6, kept in [legacy/python/](legacy/python/)) on
+sdwa5-dsp rewrites the first implementation (Python and PySide6, kept in [legacy/python/](legacy/python/)) on
 Symfony. The protocol library, the device model, the command line, the device bridge and the JSON API are done and
 tested against the vendor editor captures and the live device over LAN. The browser editor covers the main vendor
 functions and adds gain riders and Auto EQ. The [vendor inventory audit](docs/vendor-parity.md) is complete
@@ -23,7 +27,7 @@ and packaging remain in [TODO.md](TODO.md).
 - Development: [ddev](https://ddev.com/) (PHP 8.4 in a container, no PHP on the host needed)
 - Runtime: PHP 8.4 with PHP-FPM and Caddy, as on the Khadas VIM3 ([docs/vim3.md](docs/vim3.md)). Planned: the
   FrankenPHP static binary, no system PHP
-- USB access without root: the udev rule in [udev/70-trackdsp.rules](udev/70-trackdsp.rules)
+- USB access without root: the udev rule in [udev/70-sdwa5-dsp.rules](udev/70-sdwa5-dsp.rules)
 - Auto EQ and measurements: `arecord` (alsa-utils, ddev has it), a measurement mic and an audio interface
 
 ## Installation
@@ -38,7 +42,7 @@ ddev composer install
 For USB, install the udev rule once:
 
 ```bash
-sudo cp udev/70-trackdsp.rules /etc/udev/rules.d/
+sudo cp udev/70-sdwa5-dsp.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
 
@@ -49,12 +53,12 @@ ddev reaches an 8x8 on the laptop's USB through [.ddev/docker-compose.hidraw.yam
 It mounts the host's `/dev` at `/run/host-dev`, so a replugged device shows up without a restart, and allows
 the hidraw devices only. The container runs as the desktop user, so the udev rule above is all it needs. The
 hidraw major number is assigned at boot. If `awk '$2=="hidraw"' /proc/devices` shows another value than 242,
-set it as `TRACKDSP_HIDRAW_MAJOR` in `.ddev/.env` and run `ddev restart`.
+set it as `SDWA5_DSP_HIDRAW_MAJOR` in `.ddev/.env` and run `ddev restart`.
 
 ddev records from the laptop's sound cards through [.ddev/docker-compose.alsa.yaml](.ddev/docker-compose.alsa.yaml).
 It binds the host's `/dev/snd` and allows the ALSA devices only, so a replugged interface also shows up without a
 restart. Inside ddev `default` is the laptop's own codec, so name the interface in `.env.local`, for example
-`TRACKDSP_CAPTURE_DEVICE=plughw:CARD=UMC1820,DEV=0` (`arecord -l` lists the cards). PipeWire opens a card whenever a
+`SDWA5_DSP_CAPTURE_DEVICE=plughw:CARD=UMC1820,DEV=0` (`arecord -l` lists the cards). PipeWire opens a card whenever a
 desktop stream uses it, so hand the interface to ALSA before measuring with `pactl set-card-profile <card> off`
 (`pactl list cards short` names the card) and switch its profile back on afterwards.
 
@@ -65,24 +69,24 @@ The appliance setup on a Khadas VIM3 (bridge, PHP-FPM, Caddy, systemd units) is 
 
 ### Command line
 
-`bin/trackdsp` is the short form of `bin/console trackdsp:<command>`.
+`bin/sdwa5-dsp` is the short form of `bin/console sdwa5-dsp:<command>`.
 
 ```bash
-bin/trackdsp discover                  # devices on USB and the local networks
-bin/trackdsp info -t 192.168.68.10     # device, IP, active preset
-bin/trackdsp presets                   # preset names U01..U20, F00, and which slots are stored
-bin/trackdsp status                    # mute state of all channels, MUTED(gain) for a gain at raw 0
-bin/trackdsp gain in1 -6               # boosts above 0 dB only with --allow-boost, -60 mutes
-bin/trackdsp mute out1                 # and unmute out1
-bin/trackdsp phase out3 invert         # or normal
-bin/trackdsp route out3 1,2            # Out3 gets In1 + In2, "none" for no input
-bin/trackdsp dump config.bin           # raw configuration, hex without a file
-bin/trackdsp meters                    # levels in dB on the threshold scale, --raw for the bytes
+bin/sdwa5-dsp discover                  # devices on USB and the local networks
+bin/sdwa5-dsp info -t 192.168.68.10     # device, IP, active preset
+bin/sdwa5-dsp presets                   # preset names U01..U20, F00, and which slots are stored
+bin/sdwa5-dsp status                    # mute state of all channels, MUTED(gain) for a gain at raw 0
+bin/sdwa5-dsp gain in1 -6               # boosts above 0 dB only with --allow-boost, -60 mutes
+bin/sdwa5-dsp mute out1                 # and unmute out1
+bin/sdwa5-dsp phase out3 invert         # or normal
+bin/sdwa5-dsp route out3 1,2            # Out3 gets In1 + In2, "none" for no input
+bin/sdwa5-dsp dump config.bin           # raw configuration, hex without a file
+bin/sdwa5-dsp meters                    # levels in dB on the threshold scale, --raw for the bytes
 ```
 
 The target is `auto` (the first device that discovery finds, USB before the network), `usb` (first USB device),
-`usb:/dev/hidrawN`, `demo` (simulated device) or `host[:port]`. Pass it with `-t` or set `TRACKDSP_TARGET` in
-`.env.local`. Discovery searches `TRACKDSP_DISCOVERY_NETWORKS` (comma-separated CIDRs such as
+`usb:/dev/hidrawN`, `demo` (simulated device) or `host[:port]`. Pass it with `-t` or set `SDWA5_DSP_TARGET` in
+`.env.local`. Discovery searches `SDWA5_DSP_DISCOVERY_NETWORKS` (comma-separated CIDRs such as
 `192.168.68.0/22`), by default the networks of the local interfaces. Inside ddev, run the commands with
 `ddev exec` and set the LAN in `.env.local`, since the container only sees its own network.
 
@@ -91,18 +95,18 @@ although the device answers ping. Close the vendor editor first.
 
 ### Browser editor
 
-`https://trackdsp.ddev.site` in ddev. It has the Gain, Gate, Comp, Delay, Matrix, Aux and Auto EQ pages, a tab per
+`https://sdwa5-dsp.ddev.site` in ddev. It has the Gain, Gate, Comp, Delay, Matrix, Aux and Auto EQ pages, a tab per
 input and output with the EQ curve, live meters and the File, Edit, Device, Channels, Tools and Help menus. The Comp page
 also holds the Aux compressor, after the outputs, and Sub Control on the Gain page and in its dialog holds the Aux
 gain, mute and separate input/output routing selectors between its input and output strip. An input's tab also carries its gate, and an
 output's tab its compressor and delay, with the same controls as on the Gate, Comp and Delay pages. The editor
 talks to the bridge through the JSON API below. A ddev with another `project_tld` needs its host names in
-`TRACKDSP_TRUSTED_HOSTS` in `.env.local`, or the app answers 400 "Untrusted Host".
+`SDWA5_DSP_TRUSTED_HOSTS` in `.env.local`, or the app answers 400 "Untrusted Host".
 
 - Help > Language chooses English, Deutsch or Automatic. A choice is remembered for this browser. Automatic
-  uses `TRACKDSP_LOCALE=en` or `de` from `.env.local`, then the browser language, then English. The CLI and
+  uses `SDWA5_DSP_LOCALE=en` or `de` from `.env.local`, then the browser language, then English. The CLI and
   messages returned by the bridge and API stay in English. See [docs/editor.md](docs/editor.md).
-- File > Open preset file inspects a trackdsp JSON file or vendor `.prs` file without a bridge or connected
+- File > Open preset file inspects a sdwa5-dsp JSON file or vendor `.prs` file without a bridge or connected
   device. The read-only dialog shows channel settings and Aux, Sub, Group and rider settings independently of
   live state. Apply to device is a separate confirmed action, available when connected. The two inspected `.prs` samples carry no test tone, delay unit or EQ bypass, so those
   stay as they are. The second sample saved with these controls changed is byte-identical to the first.
@@ -277,7 +281,7 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   buttons set 1:1.1 from +20 dB, one keeping the gain value ("Exact gain") and one moving the gain to the level
   heard before ("Keep level"). Each button names the gain it sets, and "Keep level" says how far it falls short
   where the level lies beyond +12 dB. "Keep threshold" makes them leave the threshold as set. On a linked output
-  the buttons fix the whole link group. The Auto EQ page and `trackdsp:autoeq` warn about it before
+  the buttons fix the whole link group. The Auto EQ page and `sdwa5-dsp:autoeq` warn about it before
   measuring.
 - On a channel tab, EQ Bypass is red while it is on, like a band's Bypass, and every band's Bypass then shows red too,
   with a tooltip that EQ Bypass does it. Each band keeps its own bypass, so switching EQ Bypass off brings it back.
@@ -289,7 +293,7 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
 
 ### Bridge and JSON API
 
-The web editor reaches the device through `trackdsp:bridge`, which owns the connection, merges fast writes and
+The web editor reaches the device through `sdwa5-dsp:bridge`, which owns the connection, merges fast writes and
 publishes state and meters. In ddev it runs by itself, the first time on the simulated device. The connect
 dialog of the editor, or `POST /api/connect` with `{"target":"usb"}`, switches it to an 8x8 on the laptop's USB.
 Its Demo button switches it back to the simulated device, which the dialog's target field does not offer.
@@ -299,34 +303,34 @@ The simulated device keeps stored presets in memory until the bridge restarts, a
 factory default from `resources/factory_config.bin`.
 
 ```bash
-bin/console trackdsp:bridge -t 192.168.68.10                  # outside ddev
+bin/console sdwa5-dsp:bridge -t 192.168.68.10                  # outside ddev
 curl -s localhost/api/state                                   # inside ddev: ddev exec curl ...
 curl -s -XPOST localhost/api/write -d '{"command":"mute","args":{"channel":8,"on":true}}'
 curl -s -XPOST localhost/api/connect -d '{"target":"192.168.68.10"}'
 curl -sN localhost/api/events                                 # server-sent events: status, state, meters
 ```
 
-Writes need the header `X-Trackdsp`, and `TRACKDSP_TRUSTED_HOSTS` lists the host names the app answers to.
+Writes need the header `X-Sdwa5-Dsp`, and `SDWA5_DSP_TRUSTED_HOSTS` lists the host names the app answers to.
 The socket protocol and every endpoint are described in [docs/bridge.md](docs/bridge.md).
 
 ### Gain rider, compressor, auto EQ and measurements
 
 ```bash
-bin/console trackdsp:ride in1 --level=-18                          # the bridge keeps the DJ input at -18 dB
-bin/console trackdsp:ride --list                                   # and in1 --stop ends it
-bin/console trackdsp:compressor out1,out2 --ratio=4 --threshold=-6 # the other values stay as they are
-bin/console trackdsp:autoeq out1,out2 --device=plughw:CARD=UMC1820,DEV=0 --positions=3   # needs the bridge
-bin/console trackdsp:autoeq out1,out2 --revert=var/autoeq/backup-<time>.json
-bin/console trackdsp:measure out3 -c 1,6 --trim=-20                # Out3 alone, mic on input 1, Out8's loopback on 6
-bin/console trackdsp:measure out3 -c 1,6 --reference=6            # plus delay, polarity and phase against the loopback
-bin/console trackdsp:measure -c 1,6 --wav=var/measure/<name>.wav   # analyse a recording again, no bridge needed
-bin/console trackdsp:measure --restore                             # put the device back after a crashed measurement
+bin/console sdwa5-dsp:ride in1 --level=-18                          # the bridge keeps the DJ input at -18 dB
+bin/console sdwa5-dsp:ride --list                                   # and in1 --stop ends it
+bin/console sdwa5-dsp:compressor out1,out2 --ratio=4 --threshold=-6 # the other values stay as they are
+bin/console sdwa5-dsp:autoeq out1,out2 --device=plughw:CARD=UMC1820,DEV=0 --positions=3   # needs the bridge
+bin/console sdwa5-dsp:autoeq out1,out2 --revert=var/autoeq/backup-<time>.json
+bin/console sdwa5-dsp:measure out3 -c 1,6 --trim=-20                # Out3 alone, mic on input 1, Out8's loopback on 6
+bin/console sdwa5-dsp:measure out3 -c 1,6 --reference=6            # plus delay, polarity and phase against the loopback
+bin/console sdwa5-dsp:measure -c 1,6 --wav=var/measure/<name>.wav   # analyse a recording again, no bridge needed
+bin/console sdwa5-dsp:measure --restore                             # put the device back after a crashed measurement
 ```
 
 The gain riders run inside the bridge and come back after a restart. The auto EQ plays the device's pink noise,
 records the measurement mic, fits up to 7 PEQ bands to a target and writes them only after confirmation. It records
-from `TRACKDSP_CAPTURE_DEVICE` unless `--device` names another ALSA capture device. All three
-are also in the browser editor. `trackdsp:measure` plays the test tone on some outputs alone while the reference
+from `SDWA5_DSP_CAPTURE_DEVICE` unless `--device` names another ALSA capture device. All three
+are also in the browser editor. `sdwa5-dsp:measure` plays the test tone on some outputs alone while the reference
 output keeps playing for the loopback, records the interface and prints levels and third-octave bands. With
 `--reference` it adds the transfer function of every channel against the loopback, with delay, polarity,
 coherence and the phase per band. It keeps
@@ -360,7 +364,7 @@ file_put_contents('preset.json', $device->toJson());    // same file format as t
 | `App\Automation` | the gain rider |
 | `App\Measurement` | FFT, WAV reader, spectrum and third-octave analysis, transfer function, levels, responses, calibration files, `arecord` recorder, the test tone, the solo plan and the playback that puts the device back |
 | `App\AutoEq` | target curves, the PEQ fitter, and the measure, backup, apply and revert steps shared by the command and the browser session |
-| `App\Command` | the `trackdsp:*` console commands |
+| `App\Command` | the `sdwa5-dsp:*` console commands |
 | `App\Controller` | the browser editor, the JSON API, the auto EQ API and the event stream |
 | `App\EventListener` | the header check for API writes |
 
@@ -382,7 +386,7 @@ with concrete TODOs satisfy the agreed inventory-audit completion rule; the gate
 The bridge runs as a ddev daemon and keeps the code it was started with. After every `ddev exec` and
 `ddev composer`, a hook in `.ddev/config.bridge.yaml` restarts it once `src/`, `config/`, the lock file or `.env`
 changed since its start, unless device writes are queued. A restart reconnects to the last target and loses
-presets stored on the simulated device. `ddev exec supervisorctl restart webextradaemons:trackdsp-bridge`
+presets stored on the simulated device. `ddev exec supervisorctl restart webextradaemons:sdwa5-dsp-bridge`
 restarts it by hand.
 
 ```bash
@@ -396,7 +400,7 @@ subprocess) and the JSON API against the simulated device. The measurement and f
 known filters, and in the test environment a fake recorder stands in for `arecord`. The page test checks that every
 binding, command template, preset button, controller and action of the browser editor exists.
 Tests in the PHPUnit group `device` talk to real hardware and are excluded by default.
-`ddev exec 'TRACKDSP_TEST_CAPTURE=plughw:CARD=UMC1820,DEV=0 vendor/bin/phpunit --group device'` records one second
+`ddev exec 'SDWA5_DSP_TEST_CAPTURE=plughw:CARD=UMC1820,DEV=0 vendor/bin/phpunit --group device'` records one second
 from that capture device and needs a live signal on input 1, a connected mic is enough.
 
 ## Authors
@@ -406,4 +410,13 @@ from that capture device and needs a live signal on input 1, a connected mic is 
 
 ## License
 
-No license has been chosen yet.
+MIT, see [LICENSE](LICENSE).
+
+**Not ours to license**: the screenshots of the vendor editor in `tools/shots/` (all but `tools/shots/app/`), the
+menu data decoded from the vendor installer (`captures/vendor_menu_resources.json`), the control and dialog
+structures read from the vendor editor (`captures/page_tour.json`, `captures/dialogs.json`,
+`captures/dialogs_open.json`, `captures/aux_dialogs.json` and `captures/editor_hidden_windows.txt`) and the factory
+configuration read from the device (`resources/factory_config.bin`). They are kept as interoperability evidence, and
+the MIT license does not cover them.
+
+sdwa5-dsp is not affiliated with or endorsed by Thomann. The product names only say which device it works with.

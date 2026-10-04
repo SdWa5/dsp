@@ -1,9 +1,9 @@
 {
-    "name": "gitiglitzer/trackdsp",
-    "description": "Editor, CLI and library for the Thomann t.racks 8x8 Matrix DSP over USB-HID or LAN",
-    "version": "0.87.0",
+    "name": "sdwa5/sdwa5-dsp",
+    "description": "Editor, CLI and PHP library for the Thomann t.racks 8x8 Matrix DSP over USB or LAN, with gain riders, measurements and Auto EQ",
+    "version": "1.0.0",
     "type": "project",
-    "license": "proprietary",
+    "license": "MIT",
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {

@@ -1,15 +1,15 @@
 # USB access to the 8x8 from the web container (bridge and CLI), also after replugging.
 # The container's own /dev is a snapshot from its start, so the host's /dev is mounted next to it and
-# TRACKDSP_HIDRAW_DEV points the device search there. The cgroup rule allows the hidraw character devices
-# only. The host gives the nodes to the desktop user through the udev rule in udev/70-trackdsp.rules, and the
+# SDWA5_DSP_HIDRAW_DEV points the device search there. The cgroup rule allows the hidraw character devices
+# only. The host gives the nodes to the desktop user through the udev rule in udev/70-sdwa5-dsp.rules, and the
 # container runs as that user. No privileged mode and no host PID namespace.
 # The hidraw major number is assigned at boot, see `awk '$2=="hidraw"' /proc/devices`. Another value goes into
-# .ddev/.env as TRACKDSP_HIDRAW_MAJOR.
+# .ddev/.env as SDWA5_DSP_HIDRAW_MAJOR.
 services:
   web:
     volumes:
       - /dev:/run/host-dev
     device_cgroup_rules:
-      - "c ${TRACKDSP_HIDRAW_MAJOR:-242}:* rmw"
+      - "c ${SDWA5_DSP_HIDRAW_MAJOR:-242}:* rmw"
     environment:
-      - TRACKDSP_HIDRAW_DEV=/run/host-dev
+      - SDWA5_DSP_HIDRAW_DEV=/run/host-dev

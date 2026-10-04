@@ -124,7 +124,7 @@
     "manual": "https://images.thomann.de/pics/atg/atgdata/document/manual/490507_c_490507_r1_en_online.pdf#page=33",
     "observed_availability": "The user VM screenshots have no Language menu. The official V1.0 resource sets LanguageSel.Visible=false, and startup explicitly selects English.",
     "supported_alternative": "No supported alternative was found in the inspected startup/language paths or documentation. The language click handlers have no direct call sites in the disassembly; their presence alone does not establish a usable entry.",
-    "audit_conclusion": "Language switching is documented but unavailable in the inspected V1.0 UI. Dormant handlers and bundled translations are not counted as accessible functionality or as a confirmed trackdsp parity gap. Binary patching is excluded from this audit.",
+    "audit_conclusion": "Language switching is documented but unavailable in the inspected V1.0 UI. Dormant handlers and bundled translations are not counted as accessible functionality or as a confirmed sdwa5-dsp parity gap. Binary patching is excluded from this audit.",
     "remaining_uncertainty": "Installed VM binary identity and indirect runtime paths remain unverified. A normal entry would need an unmodified build and a vendor-documented procedure or a reproduced supported UI path. Until then, do not request Chinese screenshots or implement parity solely from hidden forms."
   },
   "further_language_analysis": {

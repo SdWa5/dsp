@@ -19,7 +19,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * Values that are not given keep what the compressor of each channel holds on the device. The byte called knee has no
  * option, because the vendor editor has no control for it and its meaning is unmeasured. It keeps the device's value.
  */
-#[AsCommand('trackdsp:compressor', 'Set the compressor of outputs or the Aux')]
+#[AsCommand('sdwa5-dsp:compressor|trackdsp:compressor', 'Set the compressor of outputs or the Aux')]
 final class CompressorCommand extends DeviceCommand
 {
     private const VALUES = ['ratio', 'attack', 'release', 'threshold'];
