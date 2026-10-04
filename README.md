@@ -325,6 +325,7 @@ bin/console sdwa5-dsp:measure out3 -c 1,6 --trim=-20                # Out3 alone
 bin/console sdwa5-dsp:measure out3 -c 1,6 --reference=6            # plus delay, polarity and phase against the loopback
 bin/console sdwa5-dsp:measure -c 1,6 --wav=var/measure/<name>.wav   # analyse a recording again, no bridge needed
 bin/console sdwa5-dsp:measure --restore                             # put the device back after a crashed measurement
+bin/console sdwa5-dsp:filter-shapes out7 -i 5 -r 6                 # measure the PEQ, HPF and LPF shapes against the model
 ```
 
 The gain riders run inside the bridge and come back after a restart. The auto EQ plays the device's pink noise,

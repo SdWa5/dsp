@@ -5,6 +5,30 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-10-05
+
+### Added
+
+- `sdwa5-dsp:filter-shapes` walks PEQ types, HPF and LPF slopes, delay and polarity on one output and compares
+  each loopback measurement with the filter model.
+- `App\Filter` models the 8x8's filters with `Biquad`, `Crossover`, `Prototype`, `BesselNorm`, `Section`, `Chain`
+  and `Complex`.
+- `App\Measurement\ShapeMatch` and `FilterCase` divide a setting's recording by the base recording and describe
+  one setting.
+- `tests/fixtures/filter-shapes.json` holds a walk of Out7, and `DeviceShapesTest` checks the model against it.
+- docs/automation.md documents the command, and the README lists it.
+
+### Changed
+
+- The auto EQ fits with the 8x8's measured peak shape instead of the RBJ peaking biquad.
+- `Playback::apply()` writes settings inside one run, so several recordings share the tone and one restore.
+- `Solo` warns when every input an output takes is muted or at gain raw 0, because the test tone enters the inputs
+  before their gain and mute.
+
+### Removed
+
+- The TODO entry about the old laptop clone.
+
 ## [1.0.0] - 2026-10-05
 
 The project is renamed from trackdsp to sdwa5-dsp and published as `SdWa5/dsp`. It runs on the VIM3 at events,

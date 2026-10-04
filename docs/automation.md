@@ -223,8 +223,9 @@ Q step), so nothing is lost when they are written.
 
 Peaks are cut as measured. A dip counts only as far as it survives 1-octave smoothing. Narrow dips are
 usually room cancellations that more power cannot fill, so boosting them wastes headroom. The filter model
-is the RBJ peaking biquad at 48 kHz. The 8x8's own filter shape is unconfirmed, so measure again after
-writing to verify.
+is the 8x8's own peak at 48 kHz, which the loopback walk of `sdwa5-dsp:filter-shapes` measured (`App\Filter\Biquad`).
+A boost has its poles at the band's frequency with the band's Q, so a band is wider than the RBJ peak of the
+same Q. Measure again after writing to verify the fit.
 
 ## Measurements: `sdwa5-dsp:measure`
 
@@ -385,3 +386,18 @@ replay goes through it.
 Ctrl+C or SIGTERM sets a flag that the settle and the wait for the device check every 0.1 s. The recording then
 does not start, a recording that ends after the signal is dropped, and the restore runs without waiting for
 another signal.
+
+## Filter shapes: `sdwa5-dsp:filter-shapes`
+
+```bash
+bin/console sdwa5-dsp:filter-shapes out7 --input=5 --reference-output=out6 --reference=6
+bin/console sdwa5-dsp:filter-shapes out7 --input=5 --reference=6 --cases=peq,hpf
+```
+
+The command walks filter settings on one output and measures each one over the output's loopback against a
+reference loopback. Both outputs play pink noise alone, and the other outputs are muted as in `sdwa5-dsp:measure`.
+The first recording takes the output as set, and every later setting is divided by it, which leaves that setting's
+own magnitude and phase. Each setting is then compared with the filter model in `App\Filter`. `--cases` takes `all`,
+the groups `timing`, `peq`, `hpf` and `lpf`, or single case ids such as `peak-1k,hpf-lk24`. The tone, the gains and
+every changed filter value are put back afterwards, also after Ctrl+C. The JSON in `var/measure/` keeps the points
+of every setting, and `tests/fixtures/filter-shapes.json` was taken from a walk of Out7 on 2026-09-30.

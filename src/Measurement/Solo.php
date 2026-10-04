@@ -160,9 +160,21 @@ final readonly class Solo
         if ([] === $asked) {
             $warnings[] = 'No output is routed and unmuted, only the reference output plays.';
         }
+        $inputs = \is_array($state['inputs'] ?? null) ? array_values($state['inputs']) : [];
         foreach ($played as $channel) {
-            if (0 === self::int($channels[$channel], 'route')) {
+            $route = self::int($channels[$channel], 'route');
+            if (0 === $route) {
                 $warnings[] = \sprintf('%s has no input routed, so it plays nothing.', Channel::label($channel));
+                continue;
+            }
+            // The test tone enters every input before its gain and its mute, and gain raw 0 mutes as well
+            $routed = array_values(array_filter(range(0, Channel::INPUTS - 1), static fn (int $in): bool => (bool) (($route >> $in) & 1)));
+            $silent = array_values(array_filter($routed, static fn (int $in): bool => \is_array($inputs[$in] ?? null) && (true === ($inputs[$in]['mute'] ?? false) || 0 === self::int($inputs[$in], 'gain', Scale::GAIN_UNITY))));
+            if ($silent === $routed) {
+                $warnings[] = \sprintf(
+                    '%s takes %s, which %s muted or at gain raw 0, so it plays nothing. The test tone enters the inputs before their gain and mute.',
+                    Channel::label($channel), self::labels($routed), 1 === \count($routed) ? 'is' : 'are all',
+                );
             }
         }
         foreach ($asked as $channel) {

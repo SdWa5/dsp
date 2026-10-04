@@ -66,6 +66,8 @@ final class SoloTest extends TestCase
         ]), self::hex($solo->restore));
         self::assertSame(['Out1, Out2 are linked and play together.', 'Out8 was muted and plays for the recording.'], $solo->notes);
         self::assertSame([
+            // In the demo, In1 and In2 are muted and In5 to In8 at gain raw 0
+            'Out8 takes In1, In2, which are all muted or at gain raw 0, so it plays nothing. The test tone enters the inputs before their gain and mute.',
             'Out1 has its compressor on (Limit from 0.0 dB), which can hold the level down.',
             'Out2 has its compressor on (Limit from 0.0 dB), which can hold the level down.',
             'The test tone was already on (White Noise). It goes back on after the recording.',
@@ -164,12 +166,33 @@ final class SoloTest extends TestCase
 
         self::assertSame([
             'Out3 has no input routed, so it plays nothing.',
+            'Out7 takes In1, In2, which are all muted or at gain raw 0, so it plays nothing. The test tone enters the inputs before their gain and mute.',
+            'Out8 takes In1, In2, which are all muted or at gain raw 0, so it plays nothing. The test tone enters the inputs before their gain and mute.',
             'Out3 is set to +5.0 dB with its compressor at 1:1.0, where the 8x8 exaggerates every gain but 0 dB and adds the spectrum mirrored at 24 kHz.',
             'Output group 1 holds Out3 at 80 %.',
             'Sub control mutes Out7.',
             'The Aux takes In1+In2 and is not muted. If the test tone enters at the inputs, the Aux plays it too.',
             'The reference output Out8 is not flat (PEQ 2, -6.0 dB at compressor 1:1.0, delay), so its loopback carries these settings.',
         ], $solo->warnings);
+    }
+
+    public function testWarnsWhenEveryRoutedInputIsSilent(): void
+    {
+        $state = self::demo();
+        \assert(\is_array($state['outputs']) && \is_array($state['outputs'][6]) && \is_array($state['inputs']) && \is_array($state['inputs'][6]) && \is_array($state['inputs'][7]));
+        $state['outputs'][6]['route'] = 0b11000000;
+        $state['inputs'][6]['gain'] = 0;
+        $state['inputs'][7]['mute'] = true;
+        $warning = 'Out7 takes In7, In8, which are all muted or at gain raw 0, so it plays nothing. The test tone enters the inputs before their gain and mute.';
+
+        self::assertContains($warning, Solo::plan($state, [Channel::output(7)])->warnings);
+
+        // The demo has In8 at gain raw 0 as well
+        $state['inputs'][7] = ['gain' => 280, 'mute' => false] + $state['inputs'][7];
+        self::assertNotContains($warning, Solo::plan($state, [Channel::output(7)])->warnings);
+
+        $state['outputs'][6]['route'] = 0b1000000;
+        self::assertContains('Out7 takes In7, which is muted or at gain raw 0, so it plays nothing. The test tone enters the inputs before their gain and mute.', Solo::plan($state, [Channel::output(7)])->warnings);
     }
 
     public function testRefusesWhatCannotPlayAlone(): void
