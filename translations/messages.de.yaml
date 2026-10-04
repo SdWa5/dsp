@@ -45,6 +45,10 @@ editor:
         stacked: Pro Link-Gruppe gestapelt
         names: Gruppennamen
         no_groups: Noch keine Link-Gruppen. Oben Kanäle verknüpfen, um ihre Gruppe zu benennen.
+        matrix: Link-Matrix
+        matrix_lower: Untere Hälfte
+        matrix_upper: Obere Hälfte
+        matrix_full: Volle Matrix
     meter_view:
         title: Pegelanzeigen
         show: Gate-/Comp-Schwelle anzeigen
@@ -90,6 +94,9 @@ editor:
             placement_normal: "Kanäle in ihrer ursprünglichen numerischen Reihenfolge belassen."
             placement_side: "Verknüpfte Kanalmitglieder nebeneinander anordnen und ihre einzelnen Steuerelemente beibehalten."
             placement_stacked: "Verknüpfte Mitglieder unter einer gemeinsamen Überschrift mit Name, Symbol und Farbe zusammenfassen. Hohe Bearbeitungsstreifen bleiben nebeneinander."
+            link_matrix_lower: "Jedes Kanalpaar im Link-Dialog einmal unterhalb der Diagonale zeigen, mit den Spaltenköpfen unter der Matrix. Eine leuchtende Zelle entfernt den späteren Kanal des Paars aus seiner Gruppe."
+            link_matrix_upper: "Jedes Kanalpaar im Link-Dialog einmal oberhalb der Diagonale zeigen, mit den Zeilenköpfen rechts. Eine leuchtende Zelle entfernt den späteren Kanal des Paars aus seiner Gruppe."
+            link_matrix_full: "Die volle Matrix des Link-Dialogs mit beiden Hälften zeigen. Eine leuchtende Zelle entfernt ihren Spaltenkanal aus seiner Gruppe."
             group_names: "Jeder Link-Gruppe einen nur im Browser gespeicherten Namen mit bis zu 12 Zeichen geben. Leer lassen, um den Gruppencode zu verwenden. Gerätekanalnamen und Link-Zuweisungen bleiben unverändert."
             overview_channel: "Diese Kanalkurve in der Gain-EQ-Übersicht anzeigen. Ihre Auswahl bleibt beim globalen Ausblenden erhalten und wird nach dem Einblenden wieder verwendet."
             channel_eq: "Betrags-, Phasen- und Filterbeschriftungsanzeige für jedes Kanaldiagramm unabhängig einstellen, auch für global ausgeblendete Kanäle."
@@ -193,7 +200,7 @@ editor:
             display: "Darstellung, Kanäle, Links, Pegelanzeigen, Diagramme, Matrixausrichtung und aufgeklappte Abschnitte für diesen Browser einstellen."
             display_appearance: "Farbschema des Browsers und Sprache des Editors wählen. Die Sprachauswahl lädt den Editor neu."
             display_channels: "Kanalsichtbarkeit und gruppierte Steuerelemente wählen. Ausgeblendete Kanäle bleiben aktiv. Die Kanalnamenfelder darunter bearbeiten Geräteeinstellungen."
-            display_links: "Link-Gruppen-Markierungen, Anordnung und Browsernamen konfigurieren. Die Gruppenzugehörigkeit wird im Link-Dialog bearbeitet."
+            display_links: "Link-Gruppen-Markierungen, Anordnung, das Layout der Link-Matrix und Browsernamen konfigurieren. Die Gruppenzugehörigkeit wird im Link-Dialog bearbeitet. Die Eckschaltfläche der Link-Matrix ändert dieselbe Browsereinstellung."
             display_meters: "Wählen, ob Pegelanzeigen Gate- oder Kompressorschwellen markieren und ob inaktive Schwellen ausgeblendet werden."
             display_eq: "Übersichtskurven sowie Betrag, Phase und Filterbeschriftungen der Kanaldiagramme wählen. Diese Einstellungen ändern keine Audiobearbeitung."
             display_matrix: "Die Matrixausrichtung wählen. Die Eckschaltfläche auf der Matrixseite ändert dieselbe Browsereinstellung."

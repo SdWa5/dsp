@@ -43,6 +43,11 @@
     </fieldset>
     <fieldset class="card" data-display-section="links" data-controller="collapse" data-collapse-key-value="display.links"><legend class="card__title">{{ w.fold('Link Groups', 'display_links') }}</legend>
         {{ include('editor/_linkview.html.twig', {name: 'link-display-placement', heading: 'link-view__heading', check: 'check'}) }}
+        {# The same browser preference as the corner button of the Link matrix #}
+        <span class="link-view__heading">{{ 'editor.link_view.matrix'|trans }}</span>
+        {% for key in ['lower', 'upper', 'full'] %}
+            <label class="check" title="{{ ('editor.tip.display.link_matrix_' ~ key)|trans }}"><input title="{{ ('editor.tip.display.link_matrix_' ~ key)|trans }}" type="radio" name="link-matrix-layout" value="{{ key }}" data-displaysettings-target="linkMatrix" data-action="change->displaysettings#linkMatrix"> {{ ('editor.link_view.matrix_' ~ key)|trans }}</label>
+        {% endfor %}
         <h3 title="{{ 'editor.tip.display.group_names'|trans }}">{{ 'editor.link_view.names'|trans }}</h3>
         <div class="link-names__list link-names__list--rows" data-displaysettings-target="names"></div>
         <p data-displaysettings-target="namesEmpty">{{ 'No link groups are available. Link channels in the Link dialog to name their group.'|trans }}</p>

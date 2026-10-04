@@ -200,6 +200,18 @@ try {
             assert.equal(await inputMatrix.locator('.matrix__corner').evaluate(button => document.activeElement === button), true);
         }
         assert.equal(await inputMatrix.getAttribute('data-layout'), 'lower');
+        // Display Settings holds the same preference as the corner button, in both directions
+        const displayLayout = () => page.evaluate(() => document.querySelector('section[data-page=display] input[name=link-matrix-layout]:checked')?.value);
+        assert.equal(await displayLayout(), 'lower');
+        await inputMatrix.locator('.matrix__corner').click();
+        assert.equal(await displayLayout(), 'upper');
+        await page.evaluate(() => {
+            const radio = document.querySelector('section[data-page=display] input[name=link-matrix-layout][value=full]');
+            radio.checked = true; radio.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        assert.equal(await inputMatrix.getAttribute('data-layout'), 'full');
+        await inputMatrix.locator('.matrix__corner').click();
+        assert.equal(await inputMatrix.getAttribute('data-layout'), 'lower');
         // Pointing at an empty cell fades every channel that a click there would not change
         await page.locator(`#dialog-link input[data-editor-target=linkPlacement][value=normal]`).check();
         await inputMatrix.locator('.link-cell[data-row="3"][data-column="1"]').hover();

@@ -165,7 +165,7 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   groups change.
 - The Link dialog is a channel x channel matrix per side. A cell links its row and column channel, and linked
   channels form a group that lights as a block. The lowest channel of a group is copied to the others. The corner
-  button cycles three layouts, kept per browser. The lower half (the default) shows each channel pair once with the
+  button cycles three layouts, kept per browser and also selectable in the Link Groups card of Display Settings. The lower half (the default) shows each channel pair once with the
   column headers below it, the upper half mirrors it on the diagonal with the row headers on the right, and the full
   matrix shows both halves. In a half a lit cell takes the later channel of its pair out of its group, in the full
   matrix the column channel. Pointing at a cell or a header fades every channel a click there would not change. The
