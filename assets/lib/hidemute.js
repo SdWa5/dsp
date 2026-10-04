@@ -1,17 +1,14 @@
 import { readPref, writePref } from './prefs.js';
 
-// "Mute hidden channels": a per-browser option that sets the Mute of a channel while this browser hides it. It is the
-// only display setting that writes to the device. The record lists the channels this browser muted itself, so showing
-// a channel again unmutes only those and leaves a channel muted that was muted before it was hidden.
+// "Mute hidden channels": a per-browser option that sets the Mute of a channel when this browser hides it. It is the
+// only display setting that writes to the device. It never unmutes: a channel shown again, or the option switched
+// off, leaves every Mute as it is.
 const KEY = 'hidden-mute';
 const listeners = new Set();
 let current = null;
 
-const channel = (i) => Number.isInteger(i) && i >= 0 && (i < 16 || 18 === i);
-
 export function hideMuteView(value) {
-    const muted = Array.isArray(value?.muted) ? [...new Set(value.muted.filter(channel))].sort((a, b) => a - b) : [];
-    return { on: true === value?.on, muted };
+    return { on: true === value?.on };
 }
 
 export function getHideMute() {
@@ -38,18 +35,14 @@ export function mutePath(index) {
 }
 
 /**
- * What to write when the hidden channels or the option change. prev and next are {hidden, on}, muted is the record,
- * isMuted(index) answers true, false or null for unknown. Acts on changes only, so a page load never mutes anything.
- * A channel is muted only while it is known to play, and unmuted only when this browser muted it and it still is.
- * Returns the channels to mute and to unmute and the new record.
+ * The channels to mute when the hidden channels or the option change. prev and next are {hidden, on}, isMuted(index)
+ * answers true, false or null for unknown. Acts on changes only, so a page load never mutes anything: a channel that
+ * turns hidden while the option is on, or every hidden channel when the option goes on. Only a channel known to play
+ * is muted. Nothing is ever unmuted.
  */
-export function hidingMutes(prev, next, muted, isMuted) {
-    const record = new Set(muted);
-    const shouldMute = next.on ? next.hidden.filter((i) => !prev.on || !prev.hidden.includes(i)) : [];
-    const release = prev.on && !next.on ? [...record] : [...record].filter((i) => !next.hidden.includes(i));
-    const mute = shouldMute.filter((i) => !record.has(i) && false === isMuted(i));
-    const unmute = release.filter((i) => true === isMuted(i));
-    release.forEach((i) => record.delete(i));
-    mute.forEach((i) => record.add(i));
-    return { mute, unmute, muted: [...record].sort((a, b) => a - b) };
+export function hidingMutes(prev, next, isMuted) {
+    if (!next.on) {
+        return [];
+    }
+    return next.hidden.filter((i) => (!prev.on || !prev.hidden.includes(i)) && false === isMuted(i));
 }

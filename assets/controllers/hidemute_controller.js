@@ -5,8 +5,8 @@ import { getHideMute, onHideMute, setHideMute, hidingMutes, mutePath } from '../
 
 /**
  * The "Mute hidden channels" option under Channel Visibility. On every change of the hidden channels or of the option
- * it mutes the channels this browser hides and unmutes the ones it had muted when they show again. Each channel is
- * written on its own, without its link group, so visible members keep playing. One undo step per change.
+ * it mutes the channels this browser hides. It never unmutes. Each channel is written on its own, without its link
+ * group, so visible members keep playing. One undo step per change.
  */
 export default class extends Controller {
     static targets = ['on'];
@@ -31,7 +31,7 @@ export default class extends Controller {
     }
 
     change() {
-        setHideMute({ ...getHideMute(), on: this.onTarget.checked });
+        setHideMute({ on: this.onTarget.checked });
     }
 
     apply() {
@@ -41,7 +41,7 @@ export default class extends Controller {
         }
         const prev = this.prev;
         this.prev = next;
-        // Offline or during undo and redo nothing is written, and the record stays as it is
+        // Offline or during undo and redo nothing is written
         if (null === store.state || history.locked) {
             return;
         }
@@ -49,19 +49,16 @@ export default class extends Controller {
             const value = store.get(mutePath(i));
             return 'boolean' === typeof value ? value : null;
         };
-        const plan = hidingMutes(prev, next, getHideMute().muted, isMuted);
-        const writes = [...plan.mute.map((i) => [i, true]), ...plan.unmute.map((i) => [i, false])];
-        if (writes.length > 0) {
-            history.begin('Mute hidden channels');
-            for (const [i, on] of writes) {
-                store.set(mutePath(i), on);
-            }
-            store.notify();
-            send(writes.map(([channel, on]) => ({ command: 'mute', args: { channel, on } })));
-            history.end();
+        const mute = hidingMutes(prev, next, isMuted);
+        if (0 === mute.length) {
+            return;
         }
-        if (JSON.stringify(plan.muted) !== JSON.stringify(getHideMute().muted)) {
-            setHideMute({ ...getHideMute(), muted: plan.muted });
+        history.begin('Mute hidden channels');
+        for (const i of mute) {
+            store.set(mutePath(i), true);
         }
+        store.notify();
+        send(mute.map((channel) => ({ command: 'mute', args: { channel, on: true } })));
+        history.end();
     }
 }

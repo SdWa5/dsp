@@ -95,7 +95,7 @@ editor:
             show_inputs: "Alle acht Eingänge anzeigen. Die Sichtbarkeit der Ausgänge und des Aux bleibt unverändert."
             show_outputs: "Alle acht Ausgänge anzeigen. Die Sichtbarkeit der Eingänge und des Aux bleibt unverändert."
             show_all: "Alle Eingänge, Ausgänge und Aux anzeigen. Die aktuelle Einstellung für Link-Gruppen-Steuerelemente bleibt erhalten."
-            mute_hidden: "Einen Kanal auf dem Gerät stummschalten, solange dieser Browser ihn ausblendet, und wieder freigeben, wenn er erscheint. Geschrieben wird nur dieser Kanal, nicht seine Link-Gruppe, und ein Kanal, der schon vor dem Ausblenden stumm war, bleibt stumm. Anders als die übrigen Anzeigeeinstellungen schreibt dies auf das Gerät."
+            mute_hidden: "Einen Kanal auf dem Gerät stummschalten, wenn dieser Browser ihn ausblendet. Einblenden oder Ausschalten dieser Option hebt die Stummschaltung nie auf. Geschrieben wird nur dieser Kanal, nicht seine Link-Gruppe. Anders als die übrigen Anzeigeeinstellungen schreibt dies auf das Gerät."
             link_code: "Den Code oder Browsernamen jeder Link-Gruppe anzeigen. Link-Zuweisungen bleiben unverändert."
             link_shape: "Das individuelle Symbol jeder Link-Gruppe in der Oberfläche anzeigen."
             link_colour: "Link-Gruppen-Farben an Kanalmarkierungen, Gruppenüberschriften und Browser-Gruppennamen anzeigen."
