@@ -299,11 +299,71 @@ The graph puts a single Aux node between input and output columns in a separate 
 places Aux below both outer columns, and `routingPath()` keeps direct connections clear of its box.
 `data-aux="1"` distinguishes the central node's two roles from a connection. Its hover lights both incoming and
 outgoing routes; individual edges light their endpoints. Matrix headers keep their source or destination role.
-The graph remains read-only. Missing routing masks produce no edges, and disconnected controls are disabled.
+The graph edits connections in either direction between Input/Output, Input/Aux and Aux/Output nodes.
+Dragging previews a line and marks compatible targets. A completed gesture toggles one route only when it
+moves at least five CSS pixels and ends on a valid node. Same-side drops, Aux-to-Aux and empty-space drops do
+nothing. Pointer capture supports mouse and touch; transparent HTML node surfaces prevent touch scrolling while blank graph
+space remains scrollable. Enter or Space selects the first endpoint and activates the second. Escape cancels.
+Double-click an existing connection to remove it; its wider transparent hit area is keyboard focusable and
+accepts Delete, Backspace, Enter or Space. Removal never creates a missing route.
+
+`routingEdit()` and `routingRemoval()` read the latest destination mask, preserve unrelated bits and build the
+existing routing command. The shared store updates Matrix and all Aux selectors immediately. Missing reported
+masks disable destinations. Graph writes remain independent per output, including linked outputs, matching
+Matrix cells. Existing command-queue errors appear in the editor's error line. No protocol changes are involved.
+Gestures cancel when the graph is reconstructed, disconnected, collapsed or hidden by navigation. Meter events
+do not reconstruct nodes or interrupt gestures. Translated instructions, node/edge tooltips and a live region
+provide accessible feedback. Aux remains in its separate bottom row.
 
 Regression tests cover matrix orientations and commands, both Sub Control views, translated labels, independent
 incoming/outgoing masks, preserved bits, shared-store synchronization, hover behavior and all link placements.
 The demo transport tests use isolated state and do not contact a shared bridge or hardware.
+`node tools/test-routing.mjs` runs mocked desktop/mobile graph checks with every API request intercepted.
+It covers both drag directions, all route kinds, preserved bits, shared-view synchronization, link placements,
+keyboard and edge removal, touch capture/cancellation, hidden channels and lifecycle cancellation.
+
+## Undo and redo
+
+The Edit menu holds Undo, Redo and Clear History. Each entry names the action and its first setting, for example
+"Undo Change setting (Out1 Gain)", and a disabled entry explains why in its tooltip. Ctrl/Cmd+Z undoes,
+Ctrl/Cmd+Shift+Z and Ctrl+Y redo. Inside a text field the browser's own text undo applies instead. Results and
+conflicts are announced in a polite live region below the header.
+
+History covers device settings only. Browser preferences such as Display Settings, folds, theme, language and
+navigation never enter it. It lives in browser memory, keeps up to 100 actions and is cleared by a reload, a
+disconnect or a change of target. A new edit after an undo clears redo.
+
+`assets/lib/history.js` (`EditHistory`) records one action per gesture. A fader or graph drag, a committed text
+edit, a toggle, a reset, a group selection or a gain correction is one action, and a wheel burst on the same
+control within 500 ms is one action. Linked members are recorded together, including hidden ones. The store's
+`onEdit()` hook captures every touched field before its first local change, so an unchanged value records nothing.
+`store.remote` keeps the last incoming bridge state apart from optimistic overlays, and incoming state, meters
+and rider movements never create entries. `assets/lib/historyservice.js` (`HistoryService`) finalizes an action
+only after the send queue has drained, the bridge reports no queued writes or resync, and a fresh state read
+confirms the values. The last write to a field takes the value the bridge normalized it to. A failed write
+triggers a refresh and clears history; if the state cannot be read back either, history says so and stays empty.
+An action that changes a value the device never reported ends history at that point with an explanation.
+
+Bulk operations run through `HistoryService.run()`, which diffs the state before and after and records one action.
+That covers preset and factory recall, applying a preset file, copying a channel, changing links, Auto EQ
+Apply and Revert, and manual gain-rider changes. Undoing a recall restores the live settings only; stored slots
+and the active-slot number stay as they are. Storing presets, connecting, downloading files and the Auto EQ
+measurement are not recorded. While a measurement runs, history is suspended.
+
+Replay sends only the affected fields to `POST /api/history`. Mask fields such as routing and selections restore
+only the bits that changed. `App\Bridge\HistoryPatch` builds each command from the current bridge state, so other
+compressor, filter, PEQ and selector values stay intact, and replays the original channels without following
+link groups changed since. It checks every expected value, link membership and the affected rider settings
+before queueing anything; one conflict rejects the whole replay, leaves the history position unchanged and names
+the setting. Rider settings are restored through the bridge's rider list, without new measurements or Auto EQ
+session changes, and rider ticks pause until the replayed frames are written.
+
+`node --test assets/tests/history.test.js assets/tests/historyservice.test.js` covers grouping, branching, limits,
+masks, unknown values, queue failures and rider canonicalization. `tests/Bridge/HistoryPatchTest.php` builds
+every editable command family and checks routing bits 0, 7 and 8, compound commands and changed link membership.
+`tests/Controller/HistoryControllerTest.php` replays against a private simulated bridge and asserts that a
+conflict queues nothing. `node tools/test-history.mjs` runs mocked desktop/mobile checks for the menu, shortcuts,
+native text undo, linked edits, masks, bulk operations, conflicts and display changes.
 
 ## Page change marks
 

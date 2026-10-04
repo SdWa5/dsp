@@ -15,7 +15,7 @@
     {% endif %}
 {% endmacro %}
 {# Hovering a cell, a header or a part of the graph brings out the same routing in both #}
-<div class="matrix-page" data-controller="routefocus" data-action="pointerover->routefocus#over pointerleave->routefocus#leave routing:rendered->routefocus#reapply">
+<div class="matrix-page" data-controller="routefocus" data-action="pointerover->routefocus#over pointerleave->routefocus#leave routing:rendered->routefocus#reapply routing:editing->routefocus#leave">
 <div class="matrix-wrap fold-panel" data-controller="collapse" data-collapse-key-value="matrix.matrix">
     <h3 class="fold-panel__title">{{ w.fold('Matrix', 'matrix') }}</h3>
     {# The signal runs from In to Out: the In headers sit on the left or at the top, the Out headers on the right or at the bottom #}
@@ -62,8 +62,11 @@
         </table>
     {% endfor %}
 </div>
-<div class="routing fold-panel" data-controller="collapse routing" data-collapse-key-value="matrix.graph">
+<div class="routing fold-panel" data-controller="collapse routing" data-collapse-key-value="matrix.graph" data-action="dblclick->routing#remove keydown->routing#removeKey">
     <h3 class="fold-panel__title">{{ w.fold('Routing graph', 'routing_graph') }}</h3>
-    <svg class="routing__graph" data-routing-target="svg" role="img" aria-label="{{ 'Routing graph'|trans }}"></svg>
+    <p id="routing-help" class="routing__help">{{ 'Drag between compatible channels to toggle a route. Enter or Space selects an endpoint; Escape cancels.'|trans }}</p>
+    <p class="routing__help">{{ 'Double-click a connection to remove it.'|trans }}</p>
+    <svg class="routing__graph" data-routing-target="svg" role="group" aria-label="{{ 'Routing graph'|trans }}" aria-describedby="routing-help"></svg>
+    <p class="routing__announcement" data-routing-target="announcement" role="status" aria-live="polite" aria-atomic="true"></p>
 </div>
 </div>

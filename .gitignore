@@ -40,3 +40,4 @@ tools/shots/screen_now.png
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+/files/

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Automation\RiderSettings;
+use App\Bridge\HistoryPatch;
 use App\Model\FactoryDefaults;
 use App\Protocol\Labels;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -37,6 +38,7 @@ final class EditorController extends AbstractController
     {
         return $this->render('editor/index.html.twig', [
             'labels' => $this->labels(),
+            'history_units' => HistoryPatch::units(),
             'i18n' => $this->catalogue('js'),
             'device_ids' => array_combine(range(1, 254), range(1, 254)),
             'rider_defaults' => (new RiderSettings(0))->toArray(),

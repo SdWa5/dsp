@@ -74,6 +74,8 @@ final class Bridge
     private string $error = '';
     /** @var array<int, GainRider> input channel => rider */
     private array $riders = [];
+    /** Rider ticks stay suspended while guarded replay frames are being drained. */
+    private bool $historyDraining = false;
     /** @var array<int, list<array<string, mixed>>> user preset slot 1..20 => settings of the riders stored with it */
     private array $presetRiders = [];
 
@@ -304,6 +306,7 @@ final class Bridge
         $this->dsp = null;
         $this->state = null;
         $this->resync = null;
+        $this->historyDraining = false;
         $this->info = '';
         $this->queue->clear();
         $this->statusDirty = true;
@@ -431,6 +434,8 @@ final class Bridge
                 return $this->state()->toDevice()->toArray();
             case 'write':
                 return $this->write($request['frames'] ?? null);
+            case 'history':
+                return $this->history($request);
             case 'connect':
                 $target = $request['target'] ?? $this->target;
                 if (!\is_string($target) || '' === trim($target)) {
@@ -523,6 +528,44 @@ final class Bridge
     }
 
     /**
+     * Validates the entire replay, including rider and link preconditions, before changing anything.
+     *
+     * @param array<string, mixed> $request
+     *
+     * @return array{queued: int}
+     */
+    private function history(array $request): array
+    {
+        $state = $this->state()->toDevice()->toArray();
+        if (!\is_array($request['changes'] ?? null) || !\is_array($request['guards'] ?? [])) {
+            throw new BridgeException('Invalid history patch.', 400);
+        }
+        if ($this->queue->count() > 0 || null !== $this->resync || $this->resyncPending) {
+            throw new BridgeException('History is waiting for device writes.', 409);
+        }
+        $frames = HistoryPatch::frames($state, $request['changes'], $request['guards'] ?? []);
+        $riders = null;
+        if (isset($request['riders'])) {
+            $riders = [];
+            foreach (HistoryRiders::prepare($this->riderSettings(), $request['riders']) as $settings) {
+                $riders[$settings['channel']] = new GainRider(RiderSettings::fromArray($settings['channel'], $settings));
+            }
+        }
+        // One bridge dispatch prevents another client or rider tick from interleaving validation.
+        if (null !== $riders) {
+            $this->riders = $riders;
+            $this->saveRiders();
+        }
+        if ([] !== $frames) {
+            $this->historyDraining = true;
+            $this->write(array_map(static fn (Frame $frame): string => bin2hex(\chr($frame->cmd).$frame->data), $frames));
+        }
+        $this->statusDirty = true;
+
+        return ['queued' => $this->queue->count()];
+    }
+
+    /**
      * @return array{queued: int}
      */
     private function write(mixed $frames): array
@@ -565,6 +608,12 @@ final class Bridge
      */
     private function ride(array $levels, float $now): void
     {
+        if ($this->historyDraining) {
+            if ($this->queue->count() > 0) {
+                return;
+            }
+            $this->historyDraining = false;
+        }
         if ([] === $this->riders || null === $this->state) {
             return;
         }

@@ -23,6 +23,7 @@ export default class extends Controller {
     disconnect() { this.off?.(); }
 
     over(event) {
+        if (event.target.closest('.routing.is-editing')) return;
         const holder = event.target.closest(HOLDERS);
         this.apply(holder && this.element.contains(holder) ? routingFocus(holder.dataset) : null);
     }

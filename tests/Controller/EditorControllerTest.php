@@ -403,10 +403,14 @@ final class EditorControllerTest extends WebTestCase
         $graph = self::page()->filter('section[data-page=matrix] .matrix-page > [data-controller~=routing]');
         self::assertCount(1, $graph);
         self::assertSame('matrix.graph', $graph->attr('data-collapse-key-value'));
+        self::assertSame('dblclick->routing#remove keydown->routing#removeKey', $graph->attr('data-action'));
+        self::assertCount(2, $graph->filter('.routing__help'));
         // The matrix folds on its own, with a title as the graph has
         self::assertCount(1, self::page()->filter('section[data-page=matrix] .matrix-wrap.fold-panel[data-collapse-key-value="matrix.matrix"] > .fold-panel__title [data-collapse-target=toggle]'));
-        self::assertCount(1, $graph->filter('svg[data-routing-target=svg]'));
-        // The graph only shows the routing, the matrix sets it
+        self::assertCount(1, $graph->filter('svg[data-routing-target=svg][role=group][aria-describedby="routing-help"]'));
+        self::assertCount(1, $graph->filter('#routing-help'));
+        self::assertCount(1, $graph->filter('[data-routing-target=announcement][role=status][aria-live=polite][aria-atomic=true]'));
+        // Dynamic graph nodes write through the same routing command as Matrix cells.
         self::assertCount(0, $graph->filter('[data-toggle-send-value], [data-fader-send-value]'));
     }
 
@@ -414,7 +418,7 @@ final class EditorControllerTest extends WebTestCase
     {
         $page = self::page()->filter('section[data-page=matrix] .matrix-page');
         self::assertSame('routefocus', $page->attr('data-controller'));
-        self::assertSame('pointerover->routefocus#over pointerleave->routefocus#leave routing:rendered->routefocus#reapply', $page->attr('data-action'));
+        self::assertSame('pointerover->routefocus#over pointerleave->routefocus#leave routing:rendered->routefocus#reapply routing:editing->routefocus#leave', $page->attr('data-action'));
         $page->filter('table.matrix')->each(static function (Crawler $table): void {
             // Every cell is one connection, its source and output match the bit and path of its toggle
             $table->filter('td[data-source]')->each(static function (Crawler $cell): void {

@@ -1,6 +1,6 @@
 import { t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
-import { api, store } from '../lib/device.js';
+import { api, store, history } from '../lib/device.js';
 import { channelLabel } from '../lib/channels.js';
 import { drawGrid, Plot, prepare } from '../lib/eq.js';
 
@@ -166,7 +166,16 @@ export default class extends Controller {
     /** One API call that answers with the session. True when it worked. */
     step(message, path, body = {}) {
         return this.run(message, async () => {
-            const data = await api(path, body);
+            const write = () => api(path, body);
+            const bulk = ['autoeq/apply', 'autoeq/revert'].includes(path);
+            const measurement = path === 'autoeq/record';
+            if (measurement) { history.suspended = true; history.history.notify(); }
+            let data;
+            try {
+                const outputs = path === 'autoeq/revert' && body.backup ? null : this.session?.outputs;
+                const paths = history.history.paths.filter(p => /^outputs\.[0-7]\.peq\./.test(p) && (!outputs || outputs.includes(8 + Number(p.split('.')[1]))));
+                data = bulk ? await history.run(path === 'autoeq/apply' ? 'Apply Auto EQ' : 'Restore Auto EQ bands', write, { paths }) : await write();
+            } finally { if (measurement) { history.suspended = false; history.history.notify(); } }
             if (undefined !== data.warnings) {
                 this.warn(data.warnings);
             }

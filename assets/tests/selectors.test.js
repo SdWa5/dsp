@@ -14,7 +14,7 @@ function editor(state) {
     const writes = [];
     const Bound = new Function('Controller', 'store', 'send', 'getDefaults', 'getLabels', 'linkedMembers', 'isChanged', 'format',
         body('../lib/bound_controller.js'))(class {}, store, commands => writes.push(...commands), () => state, () => ({}), linkedMembers, isChanged, () => '');
-    const Selector = new Function('Controller', 'setMaskBits', body('../controllers/selectors_controller.js'))(class {}, setMaskBits);
+    const Selector = new Function('Controller', 'setMaskBits', 'history', body('../controllers/selectors_controller.js'))(class {}, setMaskBits, { begin() {}, end() {} });
     const aggregate = new Selector(); aggregate.render = () => {};
     const widgets = new Map();
     aggregate.application = { getControllerForElementAndIdentifier: element => widgets.get(element) };

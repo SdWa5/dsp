@@ -31,6 +31,8 @@ export class Store {
      */
     constructor(hold = 1500, clock = () => Date.now()) {
         this.state = null;
+        this.remote = null;
+        this.editListeners = new Set();
         this.hold = hold;
         this.clock = clock;
         this.edits = new Map();
@@ -46,12 +48,15 @@ export class Store {
         if (null === this.state) {
             return;
         }
+        for (const listener of this.editListeners) listener(path, this.get(path), value, this.state);
         setPath(this.state, path, value);
         this.edits.set(path, { value, at: this.clock() });
     }
 
     /** State from the bridge. Recent local edits are laid over it. */
     replace(state) {
+        this.remote = null === state ? null : structuredClone(state);
+        state = null === state ? null : structuredClone(state);
         const now = this.clock();
         for (const [path, edit] of this.edits) {
             if (now - edit.at > this.hold) {
@@ -62,6 +67,11 @@ export class Store {
         }
         this.state = state;
         this.notify();
+    }
+
+    onEdit(listener) {
+        this.editListeners.add(listener);
+        return () => this.editListeners.delete(listener);
     }
 
     subscribe(listener) {

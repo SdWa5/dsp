@@ -12,6 +12,7 @@ export class SendQueue {
         this.running = null;
         this.serial = 0;
         this.barrier = 0;
+        this.outcomes = new Set();
     }
 
     /**
@@ -33,6 +34,7 @@ export class SendQueue {
         if (null === this.running) {
             this.running = this.run().finally(() => {
                 this.running = null;
+                if (this.pending.size) this.flush();
             });
         }
         return this.running;
@@ -43,12 +45,16 @@ export class SendQueue {
             const batch = [...this.pending.values()];
             this.pending.clear();
             try {
-                await this.post(batch);
+                const result = await this.post(batch);
+                this.outcomes.forEach(fn => fn({ batch, result, error: null }));
             } catch (error) {
                 this.onError(error);
+                this.outcomes.forEach(fn => fn({ batch, error }));
             }
         }
     }
+
+    subscribe(fn) { this.outcomes.add(fn); return () => this.outcomes.delete(fn); }
 
     get size() {
         return this.pending.size;

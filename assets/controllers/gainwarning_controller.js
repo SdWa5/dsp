@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
-import { send, store } from '../lib/device.js';
+import { send, store, history } from '../lib/device.js';
 import { t } from '../lib/i18n.js';
 import { linkedMembers } from '../lib/link.js';
 import { readPref, writePref } from '../lib/prefs.js';
@@ -73,6 +73,7 @@ export default class extends Controller {
         if (!comp || undefined === gain) {
             return;
         }
+        history.begin('Correct output gain');
         const members = linkedMembers(store.get(side) ?? [], Number(index));
         const base = this.channelValue - Number(index);
         const commands = [];
@@ -91,5 +92,6 @@ export default class extends Controller {
         }
         store.notify();
         send(commands, false);
+        history.end();
     }
 }

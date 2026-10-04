@@ -92,7 +92,7 @@ although the device answers ping. Close the vendor editor first.
 ### Browser editor
 
 `https://trackdsp.ddev.site` in ddev. It has the Gain, Gate, Comp, Delay, Matrix, Aux and Auto EQ pages, a tab per
-input and output with the EQ curve, live meters and the File, Device, Channels, Tools and Help menus. The Comp page
+input and output with the EQ curve, live meters and the File, Edit, Device, Channels, Tools and Help menus. The Comp page
 also holds the Aux compressor, after the outputs, and Sub Control on the Gain page and in its dialog holds the Aux
 gain, mute and separate input/output routing selectors between its input and output strip. An input's tab also carries its gate, and an
 output's tab its compressor and delay, with the same controls as on the Gate, Comp and Delay pages. The editor
@@ -222,6 +222,12 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   block of a link group works as its switch.
 - The Gain page also carries Sub Control next to the channel strips and Group Control below them, the same
   controls as in their dialogs.
+- Edit > Undo and Redo, or Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z and Ctrl+Y, step through up to 100 device edits of this
+  browser session. A drag, a group selection, a preset recall, an applied preset file or Auto EQ Apply counts as
+  one action, and linked members are undone together. Replay restores only the changed fields and bits, so later
+  changes elsewhere stay. If a setting changed since, the step is refused and the setting named. Display
+  preferences, navigation and incoming device state are not recorded. A reload, disconnect or target change
+  clears history. See [docs/editor.md](docs/editor.md#undo-and-redo).
 - The Gain page starts and shows the gain riders. A rider on a linked input rides its link group as one, and
   starting, changing or stopping it on any member does so for the whole group. A user preset stores the running
   riders and brings them back on recall, and the factory default runs with none.
@@ -235,7 +241,11 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   input-to-output, input-to-Aux and Aux-to-output connections. Direct lines avoid the Aux box. Hovering a cell
   or line highlights its connection and endpoints in both views; hovering Aux highlights both its incoming
   and outgoing connections. Link placement and group headings apply to inputs and outputs; Aux stays independent.
-  The graph is read-only.
+  Drag between compatible channel nodes in either direction to toggle a connection. A preview follows the
+  pointer and valid destinations light up. Double-click a connection to remove it. Keyboard users can select
+  endpoints with Enter or Space, cancel with Escape, or remove a focused connection with Delete.
+  Touch drags capture the pointer and prevent scrolling from nodes; blank graph space remains scrollable.
+  Edits preserve unrelated mask bits and use the same per-destination commands as the matrix.
 - The Gate and Comp pages plot the curve of a gate or compressor above their strips, input level against output
   level from -100 to +20 dB with the threshold as a red dot, as the vendor editor does. The plot follows the strip
   touched last, which is outlined, and starts at In1 and Out1. Every input tab draws its gate and every output tab
@@ -349,6 +359,12 @@ ddev exec php tools/vendor-parity.php --require-complete
 
 The last command fails for confirmed implementation gaps or unrecorded evidence outcomes. Explicit unknowns
 with concrete TODOs satisfy the agreed inventory-audit completion rule; the gate does not certify hardware parity.
+
+The bridge runs as a ddev daemon and keeps the code it was started with. After every `ddev exec` and
+`ddev composer`, a hook in `.ddev/config.bridge.yaml` restarts it once `src/`, `config/`, the lock file or `.env`
+changed since its start, unless device writes are queued. A restart reconnects to the last target and loses
+presets stored on the simulated device. `ddev exec supervisorctl restart webextradaemons:trackdsp-bridge`
+restarts it by hand.
 
 ```bash
 ddev exec composer ci          # coding standard, PHPStan level 8, PHPUnit, browser code tests (node --test)

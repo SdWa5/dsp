@@ -25,6 +25,11 @@ try {
         page.on('pageerror', e => errors.push(e.message));
         await page.route('**/api/**', async route => {
             if (route.request().method() !== 'GET') writes.push({ url: route.request().url(), body: route.request().postDataJSON() });
+            if (route.request().url().endsWith('/status')) { await route.fulfill({ json: { connected: true, target: 'mock', riders: [], queued: 0, resync: null } }); return; }
+            if (route.request().url().endsWith('/state')) { await route.fulfill({ json: await page.evaluate(async () => {
+                const asset = performance.getEntriesByType('resource').find(entry => /\/assets\/lib\/device-[^/]+\.js/.test(entry.name));
+                const device = await import(asset.name); return structuredClone(device.store.state);
+            }) }); return; }
             await route.fulfill({ json: route.request().url().endsWith('/autoeq') ? { session: null, devices: [], backups: [], recorder: false, device: '' } : {} });
         });
         await page.addInitScript(() => {
