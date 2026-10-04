@@ -121,14 +121,16 @@ final class ChannelDisplayTest extends WebTestCase
     public function testCommonSectionsPrecedeSpecialSectionsInConsistentOrder(): void
     {
         $page = self::createClient()->request('GET', '/');
-        foreach (['inputs0' => ['bands', 'selected', 'gain', 'hpf', 'lpf', 'gate', 'fbq'], 'outputs0' => ['bands', 'selected', 'gain', 'hpf', 'lpf', 'comp', 'delay'], 'aux' => ['bands', 'selected', 'gain', 'comp', 'select', 'automix', 'effect', 'camera']] as $channel => $expected) {
+        foreach (['inputs0' => ['peq', 'bands', 'selected', 'gain', 'hpf', 'lpf', 'gate', 'fbq'], 'outputs0' => ['peq', 'bands', 'selected', 'gain', 'hpf', 'lpf', 'comp', 'delay'], 'aux' => ['peq', 'bands', 'selected', 'gain', 'comp', 'select', 'automix', 'effect', 'camera']] as $channel => $expected) {
             $keys = $page->filter('section[data-page='.$channel.'] .peq__panel [data-collapse-key-value]')->each(static fn (Crawler $node): string => explode('.', (string) $node->attr('data-collapse-key-value'))[1]);
             self::assertSame($expected, $keys, $channel);
             $stack = $page->filter('section[data-page='.$channel.'] .peq__band-stack');
             self::assertCount(1, $stack);
             self::assertContains('group-stack', explode(' ', (string) $stack->attr('class')));
             $prefix = 'aux' === $channel ? 'aux' : 'channel';
-            self::assertSame([$prefix.'.bands', $prefix.'.selected'], $stack->children()->each(static fn (Crawler $node): ?string => $node->attr('data-collapse-key-value')));
+            self::assertSame($prefix.'.peq', $stack->attr('data-collapse-key-value'));
+            self::assertSame([$prefix.'.bands', $prefix.'.selected'], $stack->children()->filter('fieldset')->each(static fn (Crawler $node): ?string => $node->attr('data-collapse-key-value')));
+            self::assertSame('PEQ', trim($stack->children()->filter('legend')->text()));
         }
     }
 

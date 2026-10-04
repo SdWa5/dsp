@@ -1,6 +1,11 @@
 import { t } from './i18n.js';
 
-/** Enumerate each shared collapse key once, using the rendered, translated section title. */
+const panelTitle = (panel) => panel.querySelector('[data-collapse-target=toggle]')?.textContent.trim();
+
+/**
+ * Enumerate each shared collapse key once, using the rendered, translated section title. A panel inside another
+ * one carries its parent's title as well, as in "Channel pages / PEQ / Bands".
+ */
 export function panelOptions(root) {
     const contexts = { gain: 'Gain page', gate: 'Gate page', comp: 'Comp page', matrix: 'Matrix page',
         display: 'Display Settings', channel: 'Channel pages', aux: 'Aux page', autoeq: 'Auto EQ page' };
@@ -8,8 +13,10 @@ export function panelOptions(root) {
     for (const panel of root.querySelectorAll('[data-collapse-key-value]')) {
         const key = panel.dataset.collapseKeyValue;
         if (entries.has(key)) continue;
-        const title = panel.querySelector('[data-collapse-target=toggle]')?.textContent.trim();
-        if (title) entries.set(key, { key, label: `${t(contexts[key.split('.')[0]] ?? 'Panels')} / ${title}` });
+        const title = panelTitle(panel);
+        const parent = panel.parentElement?.closest('[data-collapse-key-value]');
+        const path = [t(contexts[key.split('.')[0]] ?? 'Panels'), parent ? panelTitle(parent) : null, title].filter(Boolean);
+        if (title) entries.set(key, { key, label: path.join(' / ') });
     }
     return [...entries.values()];
 }

@@ -98,6 +98,14 @@ test('panel inventory lists shared keys once with translated context and rendere
     assert.deepEqual(panelOptions(root), [{ key: 'channel.hpf', label: 'Channel pages / HighPass' }, { key: 'aux.comp', label: 'Aux page / Comp' }, { key: 'display.eq', label: 'Display Settings / EQ Plots' }]);
 });
 
+test('a nested panel names its parent panel between the page and its own title', () => {
+    const peq = { dataset: { collapseKeyValue: 'channel.peq' }, querySelector: () => ({ textContent: 'PEQ' }), parentElement: { closest: () => null } };
+    const bands = { dataset: { collapseKeyValue: 'channel.bands' }, querySelector: () => ({ textContent: 'Bands' }), parentElement: { closest: () => peq } };
+    const root = { querySelectorAll: () => [peq, bands] };
+    assert.deepEqual(panelOptions(root), [{ key: 'channel.peq', label: 'Channel pages / PEQ' }, { key: 'channel.bands', label: 'Channel pages / PEQ / Bands' }]);
+    assert.deepEqual(panelRows(panelOptions(root)).map((row) => row.label), ['Channel pages']);
+});
+
 test('group EQ choices include hidden members and preserve mixed preferences when grouping changes', () => {
     const state = { inputs: Array.from({ length: 8 }, () => ({ link: 0 })), outputs: Array.from({ length: 8 }, () => ({ link: 0 })) };
     state.inputs[2].link = (1 << 2) | (1 << 6);

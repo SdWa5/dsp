@@ -481,6 +481,7 @@ editor:
 "EQ Plots": "EQ Plots"
 "Gain EQ overview": "Gain EQ overview"
 "Channel EQ plots": "Channel EQ plots"
+"PEQ": "PEQ"
 "Panels": "Panels"
 "Display preferences affect this browser only. Channel name edits are device settings.": "Display preferences affect this browser only. Channel name edits are device settings."
 "No link groups are available. Link channels in the Link dialog to name their group.": "No link groups are available. Link channels in the Link dialog to name their group."
