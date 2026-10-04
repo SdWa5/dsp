@@ -3,7 +3,7 @@
 set -uo pipefail
 export PATH="$HOME/.local/bin:$PATH"
 PY="$HOME/.local/share/trackdsp/bin/python"
-OUT=/mnt/c/Users/GitiGlitzer/Projekte/T.rack/tools/shots/app
+OUT="${WIN_HOME:-/mnt/c/Users/$USER}/Projekte/T.rack/tools/shots/app"
 mkdir -p "$OUT"
 
 echo "==> Kommandozeile: trackdsp -t 192.168.68.10 info"

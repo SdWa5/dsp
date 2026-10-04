@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Projekt nach ~/trackdsp-src kopieren, mit install-linux.sh installieren, Tests laufen lassen.
 set -euo pipefail
-SRC=/mnt/c/Users/GitiGlitzer/Projekte/T.rack
+SRC="${WIN_HOME:-/mnt/c/Users/$USER}/Projekte/T.rack"
 DST="$HOME/trackdsp-src"
 rm -rf "$DST"
 mkdir -p "$DST"

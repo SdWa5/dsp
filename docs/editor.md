@@ -273,7 +273,9 @@ regression intercepts every API request and checks 1440 px and 390 px views, hid
 both matrix orientations, every link placement and settings/shortcut synchronization. It also checks
 reloads, panel expansion, per-channel plot choices and storage fallback. Its `check-eq-overview.mjs` helper covers
 combined/separate layouts, canvas-specific hover, empty plots, live EQ changes and layout switches while collapsed.
-Provide an installed Playwright module and a running editor.
+Provide an installed Playwright module and a running editor. The browser checks in `tools/` open
+`https://trackdsp.ddev.site`, which is ddev's default domain. Set `TRACKDSP_TEST_URL` when the project runs
+under another domain.
 
 ```bash
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node tools/test-channel-display.mjs

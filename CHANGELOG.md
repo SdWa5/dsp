@@ -5,6 +5,26 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.87.0] - 2026-10-04
+
+### Added
+
+- Secret scanning with gitleaks over the working tree and the full history, as a CI job and in `.gitleaks.toml`.
+
+### Changed
+
+- The CI workflow runs on push and on demand with read-only permissions, and no longer on pull requests.
+- The browser checks in `tools/` default to `https://trackdsp.ddev.site`, and `TRACKDSP_TEST_URL` overrides it.
+- The WSL tools in `legacy/python/tools/` take the Windows home from `WIN_HOME`, falling back to the current user.
+- The clone URL and the credits name the repository `SdWa5/dsp` and the handle GitiGlitzer.
+- TODO.md records that `.prs` writing is decided, and that the vendor parity evidence, the `.prs` work and the
+  meter red top wait for a session with the DSP.
+
+### Removed
+
+- The compare links at the end of this file, because the history was rewritten before publication and their
+  commit hashes no longer exist.
+
 ## [0.86.0] - 2026-10-04
 
 ### Changed
@@ -1205,21 +1225,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows tools used for the protocol discovery (GUI automation, USBPcap captures)
 - USB captures, test logs and screenshots of the vendor editor
 
-[0.16.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/49d84ea...main
-[0.15.2]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/613f252...49d84ea
-[0.15.1]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/840ca13...613f252
-[0.15.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/011da6f...840ca13
-[0.14.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/66d6b82...011da6f
-[0.13.1]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d45de7f...66d6b82
-[0.13.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/9494c73...d45de7f
-[0.12.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/1bb70a3...9494c73
-[0.11.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c378966...1bb70a3
-[0.10.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/c432438...c378966
-[0.9.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/de8a921...c432438
-[0.8.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/d94e3e1...de8a921
-[0.7.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/60ef138...d94e3e1
-[0.6.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/eac219d...60ef138
-[0.5.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/287c410...eac219d
-[0.4.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/36cccde...287c410
-[0.3.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/compare/10b4636...36cccde
-[0.2.0]: https://github.com/GitiGlitzer/dsp_linux_8x8/commit/10b4636

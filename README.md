@@ -29,8 +29,8 @@ and packaging remain in [TODO.md](TODO.md).
 ## Installation
 
 ```bash
-git clone git@github.com:GitiGlitzer/dsp_linux_8x8.git
-cd dsp_linux_8x8
+git clone git@github.com:SdWa5/dsp.git
+cd dsp
 ddev start
 ddev composer install
 ```
