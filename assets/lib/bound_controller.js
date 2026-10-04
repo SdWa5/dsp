@@ -1,6 +1,6 @@
 import { Controller } from '@hotwired/stimulus';
 import { store, send, getDefaults, getLabels } from './device.js';
-import { isChanged } from './defaults.js';
+import { factoryValue, isChanged } from './defaults.js';
 import { linkedMembers } from './link.js';
 import { format } from './scale.js';
 
@@ -44,6 +44,19 @@ export default class extends Controller {
 
     changed(state) {
         return isChanged(state, getDefaults(), this.bindValue);
+    }
+
+    /** Whether a click on the changed mark can reset this widget: it writes to the device and holds no name or link. */
+    canReset() {
+        return 0 < this.sendValue.length && !/(?:^|\.)(?:name|link)$/.test(this.bindValue) && !this.element.classList.contains('is-disabled');
+    }
+
+    /** Writes the factory value through the widget's own write, so linked channels follow. */
+    resetToDefault() {
+        const value = factoryValue(getDefaults(), this.bindValue, this.current, this.bitValue ?? -1);
+        if (null !== value && value !== this.current) {
+            this.commit(value);
+        }
     }
 
     setDisabled(disabled) {

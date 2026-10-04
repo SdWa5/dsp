@@ -50,6 +50,11 @@ export default class extends BoundController {
         if (null !== value) this.set(value);
     }
 
+    /** The changed mark resets a fader as its double-click does, with the default the page gives it. */
+    resetToDefault() {
+        this.reset();
+    }
+
     typed() {
         const value = parse(this.fmtValue, this.labelTarget.value, store.state, getLabels());
         if (null === value) {

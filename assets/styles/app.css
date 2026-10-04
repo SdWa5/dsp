@@ -200,9 +200,17 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 }
 /* The bar of a changed page tab, a span of its own so a later click can find it */
 .tab__mark { display: none; position: absolute; top: 6px; bottom: 7px; left: 0; width: 4px; background: var(--changed); }
-.tab.is-changed .tab__mark { display: block; }
+:root:not([data-changed-marks]) .tab.is-changed .tab__mark { display: block; }
 /* Display Settings > Changed settings switches the marks and the counts off */
 [data-changed-marks] :is(.chtab__changed, .tab__mark) { display: none; }
+/* A click on a mark resets what it marks (changes_controller.js), a name alone cannot be reset */
+.chtab__changed.is-resettable, .tab.is-resettable .tab__mark { cursor: pointer; }
+.tab.is-resettable .tab__mark::before { position: absolute; inset: -6px -6px -6px -4px; content: ''; }
+.changed-mark {
+    position: fixed; z-index: 30; width: 8px; min-width: 0; margin: 0; padding: 0; border: 0; border-radius: 0;
+    background: var(--changed); cursor: pointer;
+}
+.changed-mark:hover { width: 10px; box-shadow: 0 0 0 1px var(--changed-text); }
 [data-changed-counts] .tab__count { display: none; }
 .tab__count {
     display: inline-block; min-width: 16px; margin-left: 5px; padding: 0 4px; border-radius: 8px; background: var(--changed);

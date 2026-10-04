@@ -69,7 +69,7 @@ final class HistoryControllerTest extends WebTestCase
         $browser = self::createClient();
         foreach (['en', 'de'] as $locale) {
             $crawler = $browser->request('GET', '/', server: ['HTTP_ACCEPT_LANGUAGE' => $locale]);
-            self::assertSame(1, $crawler->filter('[data-controller="editor history"]')->count());
+            self::assertSame(1, $crawler->filter('[data-controller="editor history changes"]')->count());
             self::assertSame(3, $crawler->filter('button[data-history-target]')->count());
             self::assertSame('polite', $crawler->filter('[data-history-target="announcement"]')->attr('aria-live'));
             $units = json_decode($crawler->filter('#trackdsp-history')->text(), true);

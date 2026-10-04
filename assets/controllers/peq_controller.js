@@ -200,13 +200,34 @@ export default class extends Controller {
     }
 
     eqBypass() {
-        const on = !this.channel.eq_bypass;
+        this.setEqBypass(!this.channel.eq_bypass);
+    }
+
+    setEqBypass(on) {
         const commands = this.members().map(({ path, channel }) => {
             store.set(`${path}.eq_bypass`, on);
             return { command: 'eqBypass', args: { channel, on } };
         });
         send(commands);
         store.notify();
+    }
+
+    /** Sets one marked field (a band value, a filter value or EQ Bypass) back to its factory value, on linked channels too. */
+    resetField(node) {
+        const path = node.dataset.resetPath;
+        const value = path && this.channel ? getPath(getDefaults(), `${this.pathValue}.${path}`) : null;
+        if (undefined === value || null === value) {
+            return;
+        }
+        const [head, band, field] = path.split('.');
+        if ('peq' === head) {
+            this.setBand(Number(band), { [field]: value });
+        } else if ('eq_bypass' === head) {
+            this.setEqBypass(value);
+        } else {
+            store.set(`${this.pathValue}.${path}`, value);
+            this.sendFilter(head);
+        }
     }
 
     reset() {
@@ -465,7 +486,11 @@ export default class extends Controller {
         }
         this.selected = Math.min(this.selected, channel.peq.length - 1);
         const factory = getPath(getDefaults(), this.pathValue);
-        const mark = (node, path) => node?.classList.toggle('is-changed', isChanged(channel, factory, path));
+        const mark = (node, path) => {
+            node?.classList.toggle('is-changed', isChanged(channel, factory, path));
+            // The changed mark resets the field through resetField()
+            if (node) node.dataset.resetPath = path;
+        };
         const active = document.activeElement;
         channel.peq.forEach((b, i) => {
             const set = (targets, value) => {

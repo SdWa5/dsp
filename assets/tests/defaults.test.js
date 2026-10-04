@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { changedPaths, isChanged, pageChanges, referenceDefaults } from '../lib/defaults.js';
+import { changedPaths, factoryValue, isChanged, pageChanges, referenceDefaults } from '../lib/defaults.js';
 
 const defaults = {
     inputs: [{ name: 'In1', gain: 0, link: 1, peq: [{ gain: 120, bypass: false }] }],
@@ -109,4 +109,11 @@ test('the reference defaults put every input gain at 0 dB and leave the rest', (
     assert.equal(isChanged({ inputs: [{ gain: 280 }] }, reference, 'inputs.0.gain'), false);
     assert.equal(isChanged({ inputs: [{ gain: 0 }] }, reference, 'inputs.0.gain'), true);
     assert.deepEqual(referenceDefaults({}), {});
+});
+
+test('the value a reset writes, whole or one bit of a mask', () => {
+    assert.equal(factoryValue(defaults, 'inputs.0.gain', 220), 0);
+    assert.equal(factoryValue(defaults, 'outputs.0.route', 0b110, 0), 0b111);
+    assert.equal(factoryValue(defaults, 'outputs.0.route', 0b111, 2), 0b011);
+    assert.equal(factoryValue(defaults, 'inputs.0.phantom', true), null);
 });

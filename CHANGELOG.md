@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.85.0] - 2026-10-04
+
+### Added
+
+- A click on a changed mark resets what it marks to the factory default. The bar of a field resets that field, and linked channels follow. The triangle of a channel tab resets the channel and its linked channels, and the bar of a page tab resets that page on every channel, both after a confirmation with the count. Names and link groups stay, and every reset is one undo step ("Reset setting", "Reset channel", "Reset page").
+
+### Fixed
+
+- The bars of changed page tabs stayed visible while "Mark changed settings" was off (0.84.0).
+
 ## [0.84.0] - 2026-10-04
 
 ### Added

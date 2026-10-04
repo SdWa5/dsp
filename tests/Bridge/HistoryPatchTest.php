@@ -6,6 +6,7 @@ use App\Bridge\BridgeException;
 use App\Bridge\HistoryPatch;
 use App\Model\Device;
 use App\Model\DeviceState;
+use App\Model\FactoryDefaults;
 use App\Protocol\Commands;
 use PHPUnit\Framework\TestCase;
 
@@ -15,6 +16,33 @@ final class HistoryPatchTest extends TestCase
     private function state(): array
     {
         return Device::parse((string) file_get_contents(__DIR__.'/../../resources/demo_config.bin'))->toArray();
+    }
+
+    public function testEveryFactoryDefaultExceptNamesAndLinksHasAnOwnerUnit(): void
+    {
+        // A reset by the changed mark sends the commands of these units (resetCommands() in assets/lib/reset.js)
+        $owned = [];
+        foreach (HistoryPatch::units() as $unit) {
+            foreach ($unit['args'] as $arg) {
+                if (\is_string($arg) && str_starts_with($arg, '@')) {
+                    $owned[substr($arg, 1)] = true;
+                }
+            }
+        }
+        $leaves = [];
+        $walk = static function (mixed $node, string $path) use (&$walk, &$leaves): void {
+            if (!\is_array($node)) {
+                $leaves[] = $path;
+
+                return;
+            }
+            foreach ($node as $key => $child) {
+                $walk($child, '' === $path ? (string) $key : $path.'.'.$key);
+            }
+        };
+        $walk(FactoryDefaults::fromFile(__DIR__.'/../../resources/factory_config.bin'), '');
+        $missing = array_values(array_filter($leaves, static fn (string $path): bool => !isset($owned[$path]) && !preg_match('/(?:^|\.)(?:name|link)$/', $path)));
+        self::assertSame([], $missing);
     }
 
     public function testCompoundAndMaskedReplayPreserveUnrelatedSettings(): void

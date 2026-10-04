@@ -60,9 +60,20 @@ export async function api(path, body = undefined, method = 'POST') {
 
 export const queue = new SendQueue((commands) => api('write', { commands }), (error) => emit('error', error.message));
 
+let units = null;
+
+/**
+ * The editable-field registry (App\Bridge\HistoryPatch::units()), rendered into the page: every device command with
+ * the state paths its arguments read. Guarded replay and the resets build their commands from it.
+ */
+export function getUnits() {
+    units ??= typeof document === 'undefined' ? [] : JSON.parse(document.getElementById('trackdsp-history')?.textContent ?? '[]');
+    return units;
+}
+
 /** Session-only history. The server supplies the editable-field registry used by guarded replay. */
 export const history = new HistoryService({ store, queue, api, status, updateStatus,
-    units: typeof document === 'undefined' ? [] : JSON.parse(document.getElementById('trackdsp-history')?.textContent ?? '[]'),
+    units: getUnits(),
     report: message => reportError(historyMessage(message)) });
 
 /**

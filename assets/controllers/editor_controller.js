@@ -2,6 +2,7 @@ import { languageCookie, t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { api, getDefaults, listen, on, send, status, store, history } from '../lib/device.js';
 import { changedPaths, pageChanges } from '../lib/defaults.js';
+import { isKept } from '../lib/reset.js';
 import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel } from '../lib/channels.js';
 import { LINK_MATRIX_LAYOUTS, lcm, linkCellShown, linkCommands, linkFocus, linkGaps, linkGroups, linkedMembers, linkMark, linkMatrixLayout, linkName, linkUnits, toggleLinkCell } from '../lib/link.js';
@@ -134,6 +135,8 @@ export default class extends Controller {
                 const count = pages[tab.dataset.page]?.length ?? 0;
                 const badge = tab.querySelector('.tab__count');
                 tab.classList.toggle('is-changed', count > 0);
+                // A click on its bar resets the page, unless only names differ (changes_controller.js)
+                tab.classList.toggle('is-resettable', (pages[tab.dataset.page] ?? []).some((path) => !isKept(path)));
                 tab.title = changedTitle(count, getChangeView());
                 badge.hidden = 0 === count;
                 badge.textContent = count > 0 ? String(count) : '';
@@ -173,9 +176,12 @@ export default class extends Controller {
             if (group > 0) {
                 titles.push(t("linked with %channels%", { channels: members.filter((m) => m !== index).map((m) => channelId(('outputs' === side ? 8 : 0) + m)).join(', ') }));
             }
-            const count = changedPaths(state[side]?.[index], getDefaults()[side]?.[index]).length;
+            const paths = changedPaths(state[side]?.[index], getDefaults()[side]?.[index]);
+            const count = paths.length;
             if (count > 0) {
-                marks.push('<span class="chtab__changed" aria-hidden="true"></span>');
+                // A click on the triangle resets the channel, unless only its name differs (changes_controller.js)
+                const resettable = paths.some((path) => !isKept(path));
+                marks.push(`<span class="chtab__changed${resettable ? ' is-resettable' : ''}" aria-hidden="true"></span>`);
                 const title = changedTitle(count, getChangeView());
                 if ('' !== title) {
                     titles.push(title);

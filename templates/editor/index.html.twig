@@ -10,7 +10,7 @@
     <script type="application/json" id="trackdsp-defaults">{{ defaults|json_encode|raw }}</script>
     <script type="application/json" id="trackdsp-i18n">{{ i18n|json_encode(constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP') b-or constant('JSON_HEX_APOS') b-or constant('JSON_HEX_QUOT'))|raw }}</script>
     <script type="application/json" id="trackdsp-history">{{ history_units|json_encode|raw }}</script>
-    <div class="editor" data-controller="editor history">
+    <div class="editor" data-controller="editor history changes">
         <header class="editor__head">
             <div class="bar">
                 <nav class="menu" aria-label="{{ 'editor.menu.label'|trans }}">
