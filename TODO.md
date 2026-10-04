@@ -1,13 +1,5 @@
 # TODO
 
-## First
-
-- Check the old clone on the laptop for uncommitted or unpushed work before touching anything in Automation or
-  related to it. Work on the Automation items had already started there, and an auto mode session may have stopped
-  when the battery ran empty. Its history predates the rewrite of 2026-10-04, so nothing from it is pushed anywhere.
-  Run `git status` and `git log origin/main..` there, carry what is left over with `git format-patch` or `git diff`
-  onto a feature branch of a fresh clone of `SdWa5/dsp`, and delete the old clone afterwards
-
 ## Rewrite
 
 - Browser editor: check every page and dialog against the device, with a harmless round trip per control

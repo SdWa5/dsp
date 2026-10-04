@@ -3,10 +3,13 @@
 namespace App\Tests\Support;
 
 use App\AutoEq\FittedBand;
+use App\Filter\Biquad;
+use App\Filter\Section;
+use App\Measurement\Fft;
 use App\Protocol\Scale;
 
 /**
- * Test signals: seeded pink noise, sines, a peaking filter in the time domain and WAV encoding.
+ * Test signals: seeded pink noise, sines, filters in the time and the frequency domain, delays and WAV encoding.
  */
 final class Signals
 {
@@ -57,12 +60,19 @@ final class Signals
      */
     public static function peak(array $samples, FittedBand $band): array
     {
-        $a = 10 ** ($band->db() / 40);
-        $w0 = 2 * M_PI * $band->hz() / Scale::SAMPLE_RATE;
-        $alpha = sin($w0) / (2 * $band->qValue());
-        $a0 = 1 + $alpha / $a;
-        [$b0, $b1, $b2] = [(1 + $alpha * $a) / $a0, -2 * cos($w0) / $a0, (1 - $alpha * $a) / $a0];
-        [$a1, $a2] = [-2 * cos($w0) / $a0, (1 - $alpha / $a) / $a0];
+        return self::biquad($samples, $band->biquad());
+    }
+
+    /**
+     * Runs the samples through a biquad in the time domain.
+     *
+     * @param list<float> $samples
+     *
+     * @return list<float>
+     */
+    public static function biquad(array $samples, Biquad $filter): array
+    {
+        [$b0, $b1, $b2, $a1, $a2] = [$filter->b0, $filter->b1, $filter->b2, $filter->a1, $filter->a2];
         [$x1, $x2, $y1, $y2] = [0.0, 0.0, 0.0, 0.0];
         $out = [];
         foreach ($samples as $x) {
@@ -72,6 +82,34 @@ final class Signals
         }
 
         return $out;
+    }
+
+    /**
+     * Runs the samples through any filter by its frequency response, in one FFT with room for the filter's
+     * tail. This is how the fake recorder plays an output's filters, crossovers included.
+     *
+     * @param list<float> $samples
+     *
+     * @return list<float>
+     */
+    public static function filter(array $samples, Section $filter, int $rate = Scale::SAMPLE_RATE): array
+    {
+        $count = \count($samples);
+        $size = 2 ** (int) ceil(log($count + $rate / 4, 2));
+        $fft = new Fft($size);
+        [$re, $im] = $fft->transform(array_pad($samples, $size, 0.0));
+        for ($k = 0; $k <= $size / 2; ++$k) {
+            [$hr, $hi] = $filter->at($k * $rate / $size);
+            [$re[$k], $im[$k]] = [$re[$k] * $hr - $im[$k] * $hi, $re[$k] * $hi + $im[$k] * $hr];
+            if ($k > 0 && $k < $size / 2) {
+                // A real filter has the conjugate response at the negative frequencies
+                [$re[$size - $k], $im[$size - $k]] = [$re[$k], -$im[$k]];
+            }
+        }
+        // The bin at half the rate is its own mirror and stays real
+        $im[$size / 2] = 0.0;
+
+        return \array_slice($fft->inverse(array_values($re), array_values($im))[0], 0, $count);
     }
 
     /**

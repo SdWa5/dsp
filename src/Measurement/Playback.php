@@ -88,6 +88,20 @@ final class Playback
     }
 
     /**
+     * Writes frames from inside the recording closure of a run, waits until the device has them and lets the
+     * signal settle, for several recordings in one run. The run's restore has to put back what they change.
+     *
+     * @param list<Frame> $frames
+     */
+    public function apply(array $frames, float $settle): void
+    {
+        $this->checkInterrupt();
+        $this->write(array_map(self::hex(...), $frames));
+        $this->drain(true);
+        $this->settle($settle);
+    }
+
+    /**
      * Replays the restore file a crashed run left behind and deletes it. Returns what it replayed, or null when
      * there was nothing to restore.
      *

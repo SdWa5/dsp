@@ -13,7 +13,9 @@ use App\Protocol\Scale;
  * the peak, STEP_DB lower and LAG samples later per channel. The device "sdwa5-dsp-test-none" fails like a
  * missing interface.
  *
- * $probe runs at the start of every recording, so a test sees the device while it records.
+ * $probe runs at the start of every recording, so a test sees the device while it records. $shape, when set,
+ * gets every channel by its 1-based number and returns what the recording holds instead, for example the noise
+ * through the filters the device has at that moment.
  */
 final class FakeRecorderFactory extends RecorderFactory
 {
@@ -23,6 +25,9 @@ final class FakeRecorderFactory extends RecorderFactory
 
     /** @var (\Closure(): void)|null */
     public static ?\Closure $probe = null;
+
+    /** @var (\Closure(int, list<float>): list<float>)|null */
+    public static ?\Closure $shape = null;
 
     public function create(string $device, int $channels): Recorder
     {
@@ -49,6 +54,9 @@ final class FakeRecorderFactory extends RecorderFactory
                     $channels[] = array_merge(array_fill(0, $lag, 0.0), array_map(static fn (float $x): float => $x * $gain, \array_slice($noise, 0, max(0, \count($noise) - $lag))));
                 }
                 $channels[] = $samples;
+                if (null !== FakeRecorderFactory::$shape) {
+                    $channels = array_map(FakeRecorderFactory::$shape, range(1, \count($channels)), $channels);
+                }
                 file_put_contents($path, Signals::wav($channels, 24));
 
                 return $path;

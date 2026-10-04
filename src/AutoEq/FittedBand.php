@@ -2,6 +2,7 @@
 
 namespace App\AutoEq;
 
+use App\Filter\Biquad;
 use App\Protocol\Scale;
 
 /**
@@ -37,51 +38,28 @@ final readonly class FittedBand
     }
 
     /**
-     * Magnitude in dB at $hz of an RBJ cookbook peaking filter at 48 kHz. The 8x8's own filter shape is
-     * not documented, so the verification measurement is what counts.
+     * The band as the 8x8's peaking filter at 48 kHz (see Biquad).
      */
-    public function responseAt(float $hz): float
+    public function biquad(): Biquad
     {
-        $db = $this->db();
-        if (0.0 === $db) {
-            return 0.0;
-        }
-        $a = 10 ** ($db / 40);
-        $w0 = 2 * M_PI * $this->hz() / Scale::SAMPLE_RATE;
-        $alpha = sin($w0) / (2 * $this->qValue());
-        $cw = cos($w0);
-        [$b0, $b1, $b2] = [1 + $alpha * $a, -2 * $cw, 1 - $alpha * $a];
-        [$a0, $a1, $a2] = [1 + $alpha / $a, -2 * $cw, 1 - $alpha / $a];
-        $w = 2 * M_PI * $hz / Scale::SAMPLE_RATE;
-        [$c1, $s1, $c2, $s2] = [cos($w), sin($w), cos(2 * $w), sin(2 * $w)];
-        $num = ($b0 + $b1 * $c1 + $b2 * $c2) ** 2 + ($b1 * $s1 + $b2 * $s2) ** 2;
-        $den = ($a0 + $a1 * $c1 + $a2 * $c2) ** 2 + ($a1 * $s1 + $a2 * $s2) ** 2;
-
-        return 10 * log10($num / $den);
+        return Biquad::peq(0, $this->hz(), $this->db(), $this->qValue());
     }
 
     /**
-     * Phase in degrees at $hz of the same RBJ peaking filter, -180..180. A boost leads below the centre
-     * frequency and lags above it, a cut the other way round.
+     * Magnitude in dB at $hz.
+     */
+    public function responseAt(float $hz): float
+    {
+        return Scale::PEQ_GAIN_UNITY === $this->gain ? 0.0 : $this->biquad()->db($hz);
+    }
+
+    /**
+     * Phase in degrees at $hz, -180..180. A boost leads below the centre frequency and lags above it, a cut the
+     * other way round.
      */
     public function phaseAt(float $hz): float
     {
-        $db = $this->db();
-        if (0.0 === $db) {
-            return 0.0;
-        }
-        $a = 10 ** ($db / 40);
-        $w0 = 2 * M_PI * $this->hz() / Scale::SAMPLE_RATE;
-        $alpha = sin($w0) / (2 * $this->qValue());
-        $cw = cos($w0);
-        [$b0, $b1, $b2] = [1 + $alpha * $a, -2 * $cw, 1 - $alpha * $a];
-        [$a0, $a1, $a2] = [1 + $alpha / $a, -2 * $cw, 1 - $alpha / $a];
-        $w = 2 * M_PI * $hz / Scale::SAMPLE_RATE;
-        [$c1, $s1, $c2, $s2] = [cos($w), sin($w), cos(2 * $w), sin(2 * $w)];
-        // H(e^jw) = (b0 + b1·e^-jw + b2·e^-2jw) / (a0 + a1·e^-jw + a2·e^-2jw)
-        $phase = atan2(-($b1 * $s1 + $b2 * $s2), $b0 + $b1 * $c1 + $b2 * $c2) - atan2(-($a1 * $s1 + $a2 * $s2), $a0 + $a1 * $c1 + $a2 * $c2);
-
-        return rad2deg(atan2(sin($phase), cos($phase)));
+        return Scale::PEQ_GAIN_UNITY === $this->gain ? 0.0 : $this->biquad()->degrees($hz);
     }
 
     public function with(?int $freq = null, ?int $gain = null, ?int $q = null): self

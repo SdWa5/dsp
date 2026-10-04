@@ -1,7 +1,7 @@
 {
     "name": "sdwa5/sdwa5-dsp",
     "description": "Editor, CLI and PHP library for the Thomann t.racks 8x8 Matrix DSP over USB or LAN, with gain riders, measurements and Auto EQ",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "type": "project",
     "license": "MIT",
     "minimum-stability": "stable",
