@@ -28,8 +28,11 @@ export default class extends BoundController {
 
     render(value) {
         const byGain = '' !== this.mutedByValue && GAIN_MUTED === store.get(this.mutedByValue);
-        const on = byGain || (this.bitValue >= 0 ? Boolean(((value ?? 0) >> this.bitValue) & 1) : Boolean(value));
+        const own = this.bitValue >= 0 ? Boolean(((value ?? 0) >> this.bitValue) & 1) : Boolean(value);
+        const on = byGain || own;
         this.element.classList.toggle('is-on', on);
+        // Muted by the gain alone: outlined, so it reads apart from a pressed Mute button
+        this.element.classList.toggle('is-gain', byGain && !own);
         this.element.classList.toggle('is-unknown', null === value);
         this.element.setAttribute('aria-pressed', on ? 'true' : 'false');
         // A state message goes on a line of its own above the tooltip from the page

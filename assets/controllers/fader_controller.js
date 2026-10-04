@@ -2,7 +2,7 @@ import { t } from '../lib/i18n.js';
 import BoundController from '../lib/bound_controller.js';
 import { getDefaults, getLabels, store } from '../lib/device.js';
 import { compActive } from '../lib/meters.js';
-import { faderDefault, knobMuted, paintRange } from '../lib/range.js';
+import { faderDefault, knobHollow, knobMuted, paintRange } from '../lib/range.js';
 import { parse } from '../lib/scale.js';
 
 /**
@@ -93,7 +93,7 @@ export default class extends BoundController {
         }
     }
 
-    /** The filled part of the track, and the red knob of a muted gain. */
+    /** The filled part of the track, and the red knob of a muted gain: filled for its Mute button, a ring for its lowest step. */
     paint() {
         paintRange(this.inputTarget);
         const mute = '' !== this.mutedByValue && true === store.get(this.mutedByValue);
@@ -101,6 +101,7 @@ export default class extends BoundController {
         // No state yet is not an off compressor
         const off = null !== comp && 'object' === typeof comp && !compActive(comp);
         this.element.classList.toggle('is-muted', off || knobMuted(this.fmtValue, Number(this.inputTarget.value), mute));
+        this.element.classList.toggle('is-muted-gain', !off && knobHollow(this.fmtValue, Number(this.inputTarget.value), mute));
         if ('' !== this.mutedByValue || '' !== this.compValue || 'delay' === this.fmtValue) {
             // A state message goes on a line of its own above the tooltip from the page
             this.tip ??= this.element.title;

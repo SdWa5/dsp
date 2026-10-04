@@ -191,10 +191,12 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   restores its factory default. Gain keeps its unity override; delay returns to no delay.
 - A gain at its lowest step shows as "Muted", because raw 0 mutes the channel although the vendor editor shows
   it as -60 dB. Typing "mute" sets it. -59.5 dB is the lowest gain that passes signal. The channel's Mute button lights up then as well,
-  without setting the mute flag.
+  without setting the mute flag. It is outlined in red then, where its own mute fills it.
 - The other way round, a muted channel turns its gain fader's knob red, on every page, in Sub Control and in
-  Group Control. A gain at the bottom does the same. Only the knob turns red, the track keeps its colour. The
-  fader's tooltip says when its Mute button mutes it.
+  Group Control. A gain at the bottom turns the knob into a red ring instead, so a filled red knob means the Mute
+  button mutes and a ring means the gain does. Only the knob changes, the track keeps its colour. The fader's
+  tooltip says when its Mute button mutes it.
+- A setting that differs from the factory default is marked in violet, far from the mute red.
 - A compressor that is off, at ratio 1:1.0 or with its threshold at +20 dB, turns the knobs of all its faders red,
   on the Comp page, the output tabs, the Aux page and in the Aux compressor dialog.
 - An output delay fader's knob turns red at 0, no delay, on the Delay page and the output tabs.

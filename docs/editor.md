@@ -48,7 +48,10 @@ does in one sentence and names the unit where the value has one.
 
 Every fader puts the double-click default hint after its tooltip. A gain fader turns its knob red (`is-muted`)
 while its gain sits at raw 0, the bottom, or while the mute named by `options.muted_by` is set, and the mute puts
-"Muted by its Mute button" above its tooltip. A compressor fader with `options.comp`, the compressor's path, turns
+"Muted by its Mute button" above its tooltip. A gain at raw 0 without that mute also gets `is-muted-gain`
+(`knobHollow()` in `assets/lib/range.js`), which draws the knob as a red ring. Its Mute button gets `is-gain` in
+`toggle_controller.js` and is outlined like the channel tab's, so a filled red means the button mutes. The
+changed marks use `--changed`, a violet in both themes, so they do not read as a mute. A compressor fader with `options.comp`, the compressor's path, turns
 its knob red while that compressor is off, by `compActive()` in `assets/lib/meters.js` (ratio 1:1.0 or threshold
 +20 dB), and says so above its tooltip. An output delay fader (format `delay`) turns its knob red at 0 samples,
 which is no delay, and puts "No delay" above its tooltip. The echo delays of the Effect dialog keep their colour at

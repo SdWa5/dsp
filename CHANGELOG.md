@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.82.0] - 2026-10-04
+
+### Changed
+
+- A gain muted by its lowest step alone looks apart from its Mute button. The Mute button is outlined in red instead of filled, as on the channel tab, and the gain knob becomes a red ring instead of a filled red knob.
+- Changed settings are marked in violet instead of crimson, so a mark no longer reads as a mute, in both themes.
+
 ## [0.81.1] - 2026-10-04
 
 ### Changed
