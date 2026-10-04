@@ -146,7 +146,9 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   and the Link dialog, and each device-name field renames its own channel only.
 - The Channels section hides chosen inputs, outputs and Aux in this browser. Channel Visibility has its own
   heading and Input, Output and Aux columns, matching Gain EQ overview and Channel EQ plots. Hidden channels stay
-  active, and linked edits still reach them. Hidden detail pages offer Unhide channel and
+  active, and linked edits still reach them. The option "Mute hidden channels", off by default, mutes a channel on
+  the device while this browser hides it and unmutes it when it shows again. It writes that channel only, not its
+  link group, and leaves a channel muted that was muted before it was hidden. Hidden detail pages offer Unhide channel and
   Open Gain page. Show all restores every channel, while section-header buttons restore inputs or outputs
   independently. The page follows existing link colours, icons, ordering and stacked placement, and its
   group-header checkboxes show mixed visibility and restore or hide every member of the group. With grouping

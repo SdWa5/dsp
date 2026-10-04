@@ -32,6 +32,7 @@ final class ChannelDisplayTest extends WebTestCase
         }
 
         self::assertCount(2, $display->filter('[data-display-section=channels] fieldset[data-controller~=linkplace][data-controller~=selectors]'));
+        self::assertCount(1, $display->filter('[data-display-section=channels] [data-controller=hidemute] input[type=checkbox][data-hidemute-target=on]:not([checked])'));
         // Selector lists hide hidden channels everywhere but in Display Settings, which must keep them for recovery
         $lists = $page->filter('[data-controller~=linkplace][data-controller~=selectors]');
         $lists->each(static function (Crawler $list): void {

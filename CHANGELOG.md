@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.80.0] - 2026-10-04
+
+### Added
+
+- "Mute hidden channels" under Channel Visibility, off by default and kept per browser. While it is on, hiding a playing channel mutes it on the device and showing it again unmutes it. A channel that was muted before it was hidden stays muted. Only that channel is written, not its link group, each change is one undo step, and a page load never mutes anything. It is the one display setting that writes to the device, and its tooltip says so.
+
 ## [0.79.0] - 2026-10-04
 
 ### Changed

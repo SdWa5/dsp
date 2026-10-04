@@ -188,7 +188,13 @@ that name edits write device settings and are included in presets.
 The Channels section keeps `{hidden, grouped}` under `trackdsp-channel-display`. Hidden indices
 are individual input/output channels 0..15 or Aux at 18. All start visible and grouping starts disabled.
 Malformed preferences fall back to those defaults. Storage failures retain changes for the current visit.
-The settings send no API writes and do not affect changed-setting counts, presets or linked-write behavior.
+The settings send no API writes and do not affect changed-setting counts, presets or linked-write behavior, with
+one exception. "Mute hidden channels" (`hidemute_controller.js`, pref `trackdsp-hidden-mute` with `{on, muted}`) sets
+the Mute of a channel while this browser hides it. `hidingMutes()` in `assets/lib/hidemute.js` acts on changes only,
+so a page load never mutes. It mutes a hidden channel only while it is known to play, records it, and unmutes only
+recorded channels that are still muted when they show again or the option goes off. Each write targets that channel
+alone, not its link group, and every change is one undo step "Mute hidden channels". Nothing is written while offline
+or during undo and redo. A preset stored meanwhile contains the mute, and a muted member differs from its group.
 Section-header Show all buttons restore inputs or outputs independently without unhiding Aux or the other side.
 The global Show all restores every channel. Each section uses the shared link placement and marks while keeping
 individual stored visibility for every member. With grouping disabled every member remains independently selectable;
