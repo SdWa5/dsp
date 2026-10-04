@@ -1,0 +1,24 @@
+# Secret scanning configuration for trackdsp.
+#
+# Extends the upstream rule set rather than replacing it, so new rules arrive with a gitleaks upgrade instead of
+# having to be copied in here. Adapted from sdwa5-3d.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Local development artefacts and Symfony's committed dev secret"
+# `gitleaks dir` does not respect .gitignore, so a local run would otherwise report a developer's own working
+# directory. The ddev pattern is narrow on purpose, because files under `.ddev/` are tracked and must be scanned.
+#
+# `.env.dev` carries the APP_SECRET that Symfony's recipe commits for the dev environment. It signs nothing outside
+# a developer's machine. Production sets its own value in `.env.local` (`deploy/vim3/env.local.dist`). The path is
+# allowlisted rather than the commit, because the history rewrite before publication changed every commit SHA.
+paths = [
+  '''^\.ddev/traefik/''',
+  '''^\.php-cs-fixer\.cache$''',
+  '''^\.phpunit\.cache/''',
+  '''^vendor/''',
+  '''^var/''',
+  '''^assets/vendor/''',
+  '''^\.env\.dev$''',
+]

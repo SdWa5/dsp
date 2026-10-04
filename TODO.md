@@ -25,15 +25,16 @@
 - Packaging: `trackdsp:serve`, FrankenPHP static binary, installer, desktop entry
 - Vendor preset files: trackdsp reads `.prs` (docs/protocol.md). Both supplied samples are byte-identical.
   The user confirmed that reopening offline resets test tone to its default while EQ bypass and delay unit
-  stay unchanged. Decide whether trackdsp writes `.prs`, then check any generated file by loading it in the
-  offline vendor editor and comparing all represented settings.
+  stay unchanged. Decided on 2026-10-04 that trackdsp writes `.prs`. The work waits for a session with the
+  DSP. Check every generated file by loading it in the offline vendor editor and comparing all represented settings.
 - Localization of the CLI. The browser editor has English and German catalogues in `translations/`
 - Localization of messages returned by the bridge and API, including Auto EQ warnings and recording names.
   Return message codes and parameters so the browser can translate them without changing CLI output
 - Remove `legacy/python/` once the rewrite has reached parity
 - The meters light their red top at 0 dB, which on the calibrated scale lies 12.5 to 14.8 dB below the output
   ceiling. For programme with a crest factor of 12 to 15 dB that is about where its peaks reach the ceiling,
-  while a sine or a limited signal lights it that much too early. Decide where the red top belongs
+  while a sine or a limited signal lights it that much too early. Decide where the red top belongs. The
+  decision waits for a session with the DSP (2026-10-04)
 
 ## Vendor parity evidence
 
@@ -43,7 +44,8 @@ uses the control ID of the parity inventory; existing Protocol and Rewrite items
 ### Unresolved offline evidence
 
 The inventory audit is complete. These individual unknowns remain recorded for evidence work; no additional
-screenshot queue is active. An unknown entry path does not imply a connected-device requirement. Inspect
+screenshot queue is active. On 2026-10-04 the user put these items off until a session with the DSP.
+An unknown entry path does not imply a connected-device requirement. Inspect
 resources and handlers read-only before requesting another capture. Do not connect hardware for these items.
 
 - VP-phantom-pot. The user-proposed Gain-page shot is saved as gain_phantom_candidate.png. Use a read-only Windows control dump to determine whether TfmPhantomPotent is embedded there or separate. If separate, find its offline entry path and capture labels and bounds. Device writes remain postponed; its eight unlabelled sliders are not assigned roles from the form name alone.

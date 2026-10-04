@@ -10,7 +10,9 @@ trackdsp -t usb info
 echo "==> trackdsp -t usb status"
 trackdsp -t usb status
 echo "==> GUI über USB"
+export WIN_HOME="${WIN_HOME:-/mnt/c/Users/$USER}"
 "$PY" - <<'EOF'
+import os
 import time
 from PySide6.QtWidgets import QApplication
 from trackdsp.gui.main import MainWindow
@@ -27,6 +29,6 @@ d = got.get("dev")
 print("Plattform:", app.platformName(), "| Titel:", w.windowTitle())
 if d:
     print(f"Preset U{d.active_preset:02d} {d.preset_name} | IP (per USB gelesen): {d.ip} | Pegelabfragen: {got.get('m', 0)}")
-w.grab().save("/mnt/c/Users/GitiGlitzer/Projekte/T.rack/tools/shots/app/linux_usb_Gain.png")
+w.grab().save(os.environ["WIN_HOME"] + "/Projekte/T.rack/tools/shots/app/linux_usb_Gain.png")
 w.close(); app.processEvents()
 EOF

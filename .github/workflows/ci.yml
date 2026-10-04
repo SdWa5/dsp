@@ -2,7 +2,12 @@ name: CI
 
 on:
   push:
-  pull_request:
+  workflow_dispatch:
+
+# The token gets read access and nothing else. No job writes to the repository or reads `secrets`. A fork's pull
+# request runs nothing, because there is no `pull_request` trigger, as in the sibling repositories.
+permissions:
+  contents: read
 
 jobs:
   php:
@@ -32,3 +37,29 @@ jobs:
           node-version: '24'
       - name: Browser code tests
         run: node --test assets/tests/*.test.js
+
+  # Secret scanning, on the working tree and on the full history, as in sdwa5-3d. A public repository publishes
+  # every past commit at once, so the gate stops the next secret rather than finding a current one. The CLI is used
+  # directly, because gitleaks/gitleaks-action needs a licence key for organization-owned repositories.
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GITLEAKS_VERSION: 8.30.1
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install gitleaks
+        run: |
+          curl -sSfL -o /tmp/gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          /tmp/gitleaks version
+
+      - name: Scan the working tree
+        run: /tmp/gitleaks dir . --redact --no-banner --config .gitleaks.toml
+
+      - name: Scan the full history
+        run: /tmp/gitleaks git . --redact --no-banner --config .gitleaks.toml
