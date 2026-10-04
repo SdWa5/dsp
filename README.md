@@ -156,7 +156,8 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   set of preferences per group. Hidden members remain included. Turning grouping off restores individual controls
   without changing stored choices.
 - One control per link group shows the lowest visible member's processing strip, header tab and Gain EQ switch,
-  labelled with group members. Matrix and routing graph keep individual visible channels. Routing and membership
+  labelled with group members. There it takes the place of the placement, and a note below the placement options
+  says so, since the placement then orders only the Matrix, the routing graph and the selector lists. Matrix and routing graph keep individual visible channels. Routing and membership
   selectors (Sub and Group Control, the Aux routes, AutoMix and Camera Select, the Auto EQ outputs) leave out
   hidden channels, as the matrix does, and put mixed-state group checkboxes in their group headers, which still
   include hidden members. The Auto EQ neither measures nor writes a hidden output, even when its box is checked. Group control labels show the group name and icon; their tooltips identify members.

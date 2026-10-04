@@ -169,6 +169,8 @@ final class EditorControllerTest extends WebTestCase
             $radios = self::page()->filter($scope.' input[data-editor-target=linkPlacement]');
             self::assertSame(['normal', 'side', 'stacked'], $radios->each(static fn (Crawler $n): string => (string) $n->attr('value')));
             self::assertSame([$name], array_values(array_unique($radios->each(static fn (Crawler $n): string => (string) $n->attr('name')))));
+            // The note on where the placement still applies while grouping is on, hidden until then
+            self::assertCount(1, self::page()->filter($scope.' .link-view__scope[hidden][data-editor-target=placementScope][title]'));
         }
         // The Link dialog is one channel x channel matrix per side, with the diagonal disabled
         $matrices = self::page()->filter('#dialog-link table.link-matrix');

@@ -30,7 +30,7 @@ const changedText = (count) => t(1 === count
  */
 export default class extends Controller {
     static targets = ['tab', 'page', 'online', 'banner', 'bannerText', 'number', 'error', 'dialog', 'status', 'target', 'slots',
-        'storeName', 'linkMatrix', 'file', 'scanButton', 'scanStatus', 'found', 'theme', 'matrix', 'linkView', 'linkPlacement', 'chtabs', 'linkNames', 'linkNamesEmpty', 'channelWarning', 'channelWarningText'];
+        'storeName', 'linkMatrix', 'file', 'scanButton', 'scanStatus', 'found', 'theme', 'matrix', 'linkView', 'linkPlacement', 'placementScope', 'chtabs', 'linkNames', 'linkNamesEmpty', 'channelWarning', 'channelWarningText'];
 
     connect() {
         const theme = readPref('theme', 'auto');
@@ -43,7 +43,7 @@ export default class extends Controller {
             on('status', () => this.showStatus()),
             on('error', (message) => this.showError(message)),
             store.subscribe(() => this.showState()),
-            onChannelView(() => { this.showState(); this.show(this.currentPage); }),
+            onChannelView(() => { this.showLinkViewSettings(); this.showState(); this.show(this.currentPage); }),
             onPref('theme', () => { const theme = readPref('theme', 'auto'); this.applyTheme(THEMES.includes(theme) ? theme : 'auto'); }),
             onPref('matrix-swapped', () => this.showMatrix(readPref('matrix-swapped', false))),
             onPref('link-matrix-layout', () => { this.linkMatrixLayout = linkMatrixLayout(readPref('link-matrix-layout', 'lower')); if (this.linkDraft) this.showLinkDialog(); }),
@@ -433,6 +433,9 @@ export default class extends Controller {
         });
         this.linkPlacementTargets.forEach((radio) => {
             radio.checked = radio.value === this.linkViewSettings.placement;
+        });
+        this.placementScopeTargets.forEach((note) => {
+            note.hidden = !getChannelView().grouped;
         });
     }
 

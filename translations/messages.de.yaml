@@ -45,6 +45,7 @@ editor:
         stacked: Pro Link-Gruppe gestapelt
         names: Gruppennamen
         no_groups: Noch keine Link-Gruppen. Oben Kanäle verknüpfen, um ihre Gruppe zu benennen.
+        placement_scope: Mit einem Steuerelement pro Link-Gruppe ordnet die Anordnung nur noch Matrix, Routing-Diagramm und Auswahllisten.
         matrix: Link-Matrix
         controls: Steuerelemente verknüpfter Kanäle
         matrix_lower: Untere Hälfte
@@ -89,7 +90,8 @@ editor:
             theme: "Automatisch folgt dem Farbschema des Systems. Hell und Dunkel überschreiben es für diesen Browser."
             language: "Automatisch verwendet die Server-/Browsersprache. Englisch oder Deutsch speichert ein Sprach-Cookie und lädt den Editor neu."
             visibility: "Diesen Kanal in Navigation, Bearbeitungsseiten, Matrix, Routing-Diagramm und Gain-EQ-Übersicht anzeigen. Ausgeblendete Kanäle bleiben aktiv, außer „Ausgeblendete Kanäle stummschalten“ ist an, und erhalten weiterhin verknüpfte Änderungen."
-            grouped: "Ein Steuerelement je verknüpfter Bearbeitungsgruppe und eine Gruppenauswahl mit gemischtem Zustand für Sichtbarkeit, Übersichtsauswahl und Kanal-EQ-Einstellungen anzeigen. Matrix, Routing und Mitgliedsauswahlen behalten einzelne Kanäle. Gruppenänderungen schließen ausgeblendete Mitglieder ein."
+            grouped: "Ein Steuerelement je verknüpfter Bearbeitungsgruppe und eine Gruppenauswahl mit gemischtem Zustand für Sichtbarkeit, Übersichtsauswahl und Kanal-EQ-Einstellungen anzeigen. Matrix, Routing und Mitgliedsauswahlen behalten einzelne Kanäle. Auf Kanalreitern, Kanalzügen und EQ-Schaltern ersetzt dies die Anordnung, die dann nur noch Matrix, Routing-Diagramm und Auswahllisten ordnet. Gruppenänderungen schließen ausgeblendete Mitglieder ein."
+            placement_scope: "Ein Steuerelement pro Link-Gruppe ist an. Kanalreiter, Kanalzüge und EQ-Schalter zeigen ein Steuerelement pro Gruppe, daher ordnet die Anordnung nur noch Matrix, Routing-Diagramm und Auswahllisten."
             show_inputs: "Alle acht Eingänge anzeigen. Die Sichtbarkeit der Ausgänge und des Aux bleibt unverändert."
             show_outputs: "Alle acht Ausgänge anzeigen. Die Sichtbarkeit der Eingänge und des Aux bleibt unverändert."
             show_all: "Alle Eingänge, Ausgänge und Aux anzeigen. Die aktuelle Einstellung für Link-Gruppen-Steuerelemente bleibt erhalten."

@@ -633,6 +633,7 @@ details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
 .has-link-focus .link-matrix :is(td, th[data-index]):not(.is-focus) { opacity: 0.35; }
 .link-view { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin: 0; padding: 8px 0 0; border: 0; }
 .link-view__heading { flex-basis: 100%; color: var(--muted); font-size: 11px; }
+.link-view__scope { flex-basis: 100%; color: var(--muted); font-size: 11px; font-style: italic; }
 /* A name field per link group being edited, the code as placeholder */
 .link-names__list { display: flex; flex-wrap: wrap; gap: 6px 16px; }
 .link-names__list:empty { display: none; }

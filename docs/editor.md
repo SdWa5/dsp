@@ -210,7 +210,10 @@ and column. The graph compacts its outer columns,
 removes edges with hidden endpoints and keeps visible Aux beneath them. Hiding Aux removes its bottom row.
 Original channel indices, masks and group identities stay intact. Matrix and graph never combine link groups into a single channel.
 
-One control per link group chooses the lowest visible member as representative. Its strip, tab and EQ switch
+One control per link group chooses the lowest visible member as representative. On tabs, strips and EQ switches it
+takes the place of the placement. While it is on, `.link-view__scope` below both copies of the placement options
+(`placementScope` targets, shown by `showLinkViewSettings()`) says the placement orders only the Matrix, the routing
+graph and the selector lists. Its strip, tab and EQ switch
 show group membership. Tabs and EQ switches use `displayChannelParts()` to list every member name in channel
 order, including hidden members, with complete ID/name tooltips. Shared captions replace the leading ID with
 the full member-ID list before the names, with no appended duplicate. Ungrouping restores the individual ID. Default names remain suppressed unless needed
