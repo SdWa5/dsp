@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.75.0] - 2026-10-04
+
+### Added
+
+- The Link matrices get a corner button like the routing matrix. It cycles the lower half with the column headers below it (the default), the upper half mirrored on the diagonal with the row headers on the right, and the full matrix. The choice is kept per browser.
+- In a half a lit cell takes the later channel of its pair out of its group, so every member stays removable. The full matrix keeps the column rule.
+- Pointing at a Link matrix cell or header fades every channel a click there would not change, as on the Matrix page.
+- Unit tests cover the half layouts, the click rule and the hover focus, and the channel display browser test checks the layouts, cell alignment and gaps in every placement.
+
+### Fixed
+
+- Stacked placement leaves a gap in the Link matrix only before and after a link group, no longer before every unlinked channel. Header backgrounds stay out of the gap, as in the routing matrix.
+- Empty and lit Link matrix cells share their top edge instead of sitting 1 px apart on the text baseline.
+
 ## [0.74.0] - 2026-10-04
 
 ### Added

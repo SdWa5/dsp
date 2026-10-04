@@ -163,11 +163,14 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   stands wherever the code would (L1, L2, ...), so it shows when "Group code or name" is on. It is kept in the
   browser with the other display settings and stays with the group's lowest channel, so it survives when other
   groups change.
-- The Link dialog is a channel x channel matrix per side. A cell links its row and column channel, linked channels
-  form a group that lights as a block, and a lit cell takes the column channel out of its group. The lowest
-  channel of a group is copied to the others. The rows and columns follow the placement after every click, and
-  stacked turns each group into a block with one header naming its members. The display settings sit below the
-  two matrices as well.
+- The Link dialog is a channel x channel matrix per side. A cell links its row and column channel, and linked
+  channels form a group that lights as a block. The lowest channel of a group is copied to the others. The corner
+  button cycles three layouts, kept per browser. The lower half (the default) shows each channel pair once with the
+  column headers below it, the upper half mirrors it on the diagonal with the row headers on the right, and the full
+  matrix shows both halves. In a half a lit cell takes the later channel of its pair out of its group, in the full
+  matrix the column channel. Pointing at a cell or a header fades every channel a click there would not change. The
+  rows and columns follow the placement after every click, and stacked turns each group into a block with one
+  header naming its members and a gap before and after it. The display settings sit below the two matrices as well.
 - Input, output and Aux detail pages stack Selected band directly below Bands, with independent collapse
   controls, and place Gain next. HPF/LPF follow where
   available, stacked vertically, then Gate or Comp and the remaining channel-specific sections.

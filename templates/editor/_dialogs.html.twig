@@ -43,14 +43,14 @@
 <dialog class="dialog dialog--wide" id="dialog-link" data-editor-target="dialog">
     {{ _self.dialog('link', 'Link', 'link') }}
     <form class="dialog__form" data-action="editor#link">
-        <p class="dialog__note">{{ "A cell links its row and column channel, and linked channels form a group, which lights as a block. A lit cell takes the column channel out of its group. The lowest channel of a group is copied to the others. The rows and columns follow the placement below."|trans }}</p>
-        <div class="link-matrices">
+        <p class="dialog__note">{{ "A cell links its row and column channel, and linked channels form a group, which lights as a block. A lit cell takes the later of its two channels out of its group, in the full matrix the column channel. The lowest channel of a group is copied to the others. The rows and columns follow the placement below, and the corner button switches between the lower half, the upper half and the full matrix."|trans }}</p>
+        <div class="link-matrices" data-action="pointerover->editor#linkFocus pointerleave->editor#linkBlur">
         {% for side, prefix in {inputs: 'In', outputs: 'Out'} %}
             {% set base = 'inputs' == side ? 0 : 8 %}
             <div class="matrix-wrap">
             <table class="matrix link-matrix" data-editor-target="linkMatrix" data-side="{{ side }}">
                 <thead>
-                    <tr><th></th>{% for k in 0..7 %}<th scope="col" data-index="{{ k }}">{{ w.ch(base + k, {link: false}) }}</th>{% endfor %}</tr>
+                    <tr><th class="link-matrix__corner"><button type="button" class="matrix__corner" data-action="editor#cycleLinkMatrix"></button></th>{% for k in 0..7 %}<th scope="col" data-index="{{ k }}">{{ w.ch(base + k, {link: false}) }}</th>{% endfor %}</tr>
                 </thead>
                 <tbody>
                     {% for i in 0..7 %}
