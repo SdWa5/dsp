@@ -130,8 +130,9 @@ export default class extends Controller {
         for (const tab of this.tabTargets) {
             if (tab.dataset.side) {
                 this.showChannelTab(tab, state);
+            } else if (tab.classList.contains('chtab')) {
+                this.showAuxTab(tab, state);
             } else {
-                if (tab.dataset.page === 'aux') tab.hidden = !channelVisible(18);
                 const count = pages[tab.dataset.page]?.length ?? 0;
                 const badge = tab.querySelector('.tab__count');
                 tab.classList.toggle('is-changed', count > 0);
@@ -196,6 +197,36 @@ export default class extends Controller {
         tab.title = titles.join(', ');
     }
 
+    /** The Aux channel tab: its name, a dot while muted (hollow for a gain at raw 0) and a mark when it differs from the factory. */
+    showAuxTab(tab, state) {
+        const caption = displayChannelParts(18, state);
+        tab.querySelector('.chtab__name').textContent = caption.name;
+        const marks = [];
+        const titles = [caption.label];
+        if (state?.aux?.mute) {
+            marks.push('<span class="chtab__mute" aria-hidden="true"></span>');
+            titles.push(t("muted"));
+        } else if (GAIN_MUTED === state?.aux?.gain) {
+            marks.push('<span class="chtab__mute is-gain" aria-hidden="true"></span>');
+            titles.push(t("muted by its gain"));
+        }
+        const paths = state ? changedPaths(state.aux, getDefaults().aux, 'aux') : [];
+        if (paths.length > 0) {
+            // A click on the triangle resets the Aux, unless only its name differs (changes_controller.js)
+            marks.push(`<span class="chtab__changed${paths.some((path) => !isKept(path)) ? ' is-resettable' : ''}" aria-hidden="true"></span>`);
+            const title = changedTitle(paths.length, getChangeView());
+            if ('' !== title) {
+                titles.push(title);
+            }
+        }
+        const html = marks.join('');
+        const box = tab.querySelector('.chtab__marks');
+        if (box.innerHTML !== html) {
+            box.innerHTML = html;
+        }
+        tab.title = titles.join(', ');
+    }
+
     /**
      * The channel tabs placed by the link placement (normal, side by side or stacked). The DOM order stays.
      * Stacked: every link group gets a header with its code, icon and colour above its column, and its members
@@ -205,12 +236,14 @@ export default class extends Controller {
         const placement = null === state ? 'normal' : this.linkViewSettings.placement;
         const groups = { inputs: linkGroups(state?.inputs ?? []), outputs: linkGroups(state?.outputs ?? []) };
         const layouts = { inputs: channelLayout(groups.inputs, placement, 0), outputs: channelLayout(groups.outputs, placement, 8) };
-        const offset = { inputs: 0, outputs: layouts.inputs.columns };
+        // The Aux takes one column between the sides while it is shown
+        const aux = channelVisible(18) ? 1 : 0;
+        const offset = { inputs: 0, outputs: layouts.inputs.columns + aux };
         const rows = lcm(layouts.inputs.rows, layouts.outputs.rows);
         const units = { inputs: layouts.inputs.units, outputs: layouts.outputs.units };
         const header = 'stacked' === placement && Object.entries(units).some(([side, units]) => units.some(unit => groups[side][unit[0]] > 0)) ? 1 : 0;
         this.chtabsTargets.forEach((box) => {
-            box.style.setProperty('--chtab-columns', String(Math.max(1, layouts.inputs.columns + layouts.outputs.columns)));
+            box.style.setProperty('--chtab-columns', String(Math.max(1, layouts.inputs.columns + aux + layouts.outputs.columns)));
             box.classList.toggle('is-stacked', rows > 1 || header > 0);
             box.style.gridTemplateRows = rows > 1 || header > 0 ? `${header ? 'auto ' : ''}repeat(${rows}, 1fr)` : '';
         });
@@ -226,6 +259,11 @@ export default class extends Controller {
             tab.style.gridRow = alone ? `1 / span ${header + rows}` : `${header + (cell.row - 1) * scale + 1} / span ${cell.span * scale}`;
             // The gap between the inputs and the outputs goes before the first output column
             tab.classList.toggle('is-split', 'outputs' === side && 1 === cell.column);
+        }
+        for (const tab of this.tabTargets.filter((t) => t.classList.contains('chtab') && !t.dataset.side)) {
+            tab.hidden = !aux;
+            tab.style.gridColumn = String(layouts.inputs.columns + 1);
+            tab.style.gridRow = `1 / span ${header + rows}`;
         }
         for (const tab of this.tabTargets.filter(t => t.dataset.side)) {
             const match = /^(inputs|outputs)([0-7])$/.exec(this.currentPage ?? '');

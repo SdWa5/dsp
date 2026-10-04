@@ -82,3 +82,12 @@ test('reset commands: one per owning unit, its arguments read after the writes',
     // The state itself stays untouched until the caller writes it
     assert.equal(state.outputs[0].gain, 100);
 });
+
+test('an Aux reset covers the Aux alone and keeps its name', () => {
+    const state = defaults();
+    state.aux = { name: 'FX', gain: 200, select: 2 };
+    const plan = channelReset(state, defaults(), 'aux', 0);
+    assert.deepEqual(plan.writes, [{ path: 'aux.gain', value: 280 }, { path: 'aux.select', value: 0 }]);
+    assert.equal(plan.kept, 1);
+    assert.deepEqual(plan.members, [0]);
+});

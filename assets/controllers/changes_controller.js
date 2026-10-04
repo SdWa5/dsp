@@ -124,7 +124,7 @@ export default class extends Controller {
         const page = event.target.closest?.('.tab.is-resettable .tab__mark');
         let done = false;
         if (triangle) {
-            done = this.resetChannel(triangle.closest('[data-side]'));
+            done = this.resetChannel(triangle.closest('.chtab'));
         } else if (page) {
             done = this.resetPage(page.closest('.tab'));
         } else if ('touch' === this.pointerType) {
@@ -153,13 +153,14 @@ export default class extends Controller {
 
     /** Returns whether the click was taken, which it is once a confirmation was asked, answered or not. */
     resetChannel(tab) {
-        const side = tab?.dataset.side;
-        const index = Number(tab?.dataset.index);
+        // The Aux tab carries no side and resets the Aux alone
+        const side = tab?.dataset.side ?? 'aux';
+        const index = Number(tab?.dataset.index ?? 0);
         const plan = channelReset(store.state, getDefaults(), side, index);
         if (0 === plan.count) {
             return false;
         }
-        const channels = plan.members.map((i) => channelId(('outputs' === side ? 8 : 0) + i)).join(', ');
+        const channels = 'aux' === side ? channelId(18) : plan.members.map((i) => channelId(('outputs' === side ? 8 : 0) + i)).join(', ');
         const message = 1 === plan.count
             ? 'Reset %channels% to the factory default? This changes %count% setting and keeps the names.'
             : 'Reset %channels% to the factory default? This changes %count% settings and keeps the names.';

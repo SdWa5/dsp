@@ -112,6 +112,9 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   mode Apply sets up a preset on the simulated device.
 - A named channel shows its name next to its ID wherever the ID appears, for example "Out1 Main L" or
   "Out1 (Main L)" in lists. A name that only repeats the ID is left out.
+- The Aux has a channel tab of its own between In8 and Out1, where Sub Control places it as well, since it mixes
+  inputs and feeds outputs. It opens the Aux page and shows the mute dot and the changed triangle like any channel
+  tab. It has no link group, keeps its column in every link placement and disappears when the Aux is hidden.
 - The channel tabs show a dot for a muted channel, a hollow one for a channel whose gain mutes it, and the link
   group. Display Settings and the Link dialog set how a link group shows on the tabs and in the Link matrix, kept
   in the browser. The code (L1, L2, ..., on by default), an icon per group (circle, square, triangle, diamond) and a

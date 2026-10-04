@@ -86,9 +86,6 @@ also postponed. Any additional form proven to need a connection belongs here.
 
 ## Editor
 
-- Consider moving the Aux page button from the function-page header to the channel selector, between the
-  input and output channels. Review the placement with the Matrix and Sub Control Aux changes before
-  deciding whether to move it.
 - Link crossover points between outputs, so that a frequency set on one filter also lands on its partner, for
   example the HighPass of Out1 on the LowPass of Out2. Every pair links the frequency, and optionally the slope
   as well, which keeps the two sides of a crossover the same type and order, for example Linkwitz-Riley 24 on
