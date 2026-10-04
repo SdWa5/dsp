@@ -85,7 +85,7 @@
                 <button type="button" class="online" data-editor-target="online" data-action="editor#open" data-editor-dialog-param="connect" title="{{ 'editor.tip.bar.online'|trans }}">{{ 'editor.bar.offline'|trans }}</button>
             </div>
             <div class="tabs" role="tablist" aria-label="{{ 'editor.tabs.pages'|trans }}">
-                {% for page in ['gain', 'gate', 'comp', 'delay', 'matrix', 'aux', 'autoeq'] %}
+                {% for page in ['gain', 'gate', 'comp', 'delay', 'matrix', 'autoeq'] %}
                     <button type="button" role="tab" class="tab" data-editor-target="tab" data-page="{{ page }}"
                             data-action="editor#tab" data-editor-page-param="{{ page }}"><span class="tab__mark" aria-hidden="true"></span>{{ ('editor.tabs.' ~ page)|trans }}<span class="tab__count" hidden></span></button>
                 {% endfor %}
@@ -99,6 +99,13 @@
                             <b class="chtab__id">{{ prefix }}{{ i + 1 }}</b><span class="chtab__name"></span><span class="chtab__marks"></span>
                         </button>
                     {% endfor %}
+                    {# The Aux sits between the inputs and the outputs, as in Sub Control: it mixes inputs and feeds outputs #}
+                    {% if 'inputs' == side %}
+                        <button type="button" role="tab" class="chtab chtab--aux is-split" data-editor-target="tab" data-page="aux"
+                                data-action="editor#tab" data-editor-page-param="aux">
+                            <b class="chtab__id">Aux</b><span class="chtab__name"></span><span class="chtab__marks"></span>
+                        </button>
+                    {% endif %}
                 {% endfor %}
             </div>
         </header>

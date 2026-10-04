@@ -15,9 +15,12 @@ const plan = (defaults, paths) => {
 /**
  * Every changed setting of channel index on side (inputs, outputs) and of the channels linked with it, since a
  * linked channel follows every edit of its group. The routing is the one exception and is reset on the clicked
- * channel only, as each output of a group keeps its own sources.
+ * channel only, as each output of a group keeps its own sources. The Aux (side aux) has no link group.
  */
 export function channelReset(state, defaults, side, index) {
+    if ('aux' === side) {
+        return { ...plan(defaults, changedPaths(state?.aux, defaults?.aux, 'aux')), members: [0] };
+    }
     const members = linkedMembers(state?.[side] ?? [], index);
     const paths = members.flatMap((member) => changedPaths(state?.[side]?.[member], defaults?.[side]?.[member], `${side}.${member}`)
         .filter((path) => member === index || !path.endsWith('.route')));

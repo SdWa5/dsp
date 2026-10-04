@@ -73,14 +73,19 @@ final class EditorControllerTest extends WebTestCase
         $page = self::page();
         self::assertSame('t.racks 8x8 Matrix Editor', $page->filter('title')->text());
         self::assertCount(24, $page->filter('section.page'));
-        self::assertCount(7, $page->filter('.tab'));
+        self::assertCount(6, $page->filter('.tab'));
         // The changed-setting count stays hidden until the state arrives
-        self::assertCount(7, $page->filter('.tab > .tab__count[hidden]'));
-        self::assertCount(7, $page->filter('.tab > .tab__mark'));
+        self::assertCount(6, $page->filter('.tab > .tab__count[hidden]'));
+        self::assertCount(6, $page->filter('.tab > .tab__mark'));
         $changes = $page->filter('[data-display-section=changes] [data-controller=changeview]');
         self::assertCount(1, $changes->filter('input[data-changeview-target=marks]'));
         self::assertCount(1, $changes->filter('input[data-changeview-target=counts]'));
-        self::assertCount(16, $page->filter('.chtab'));
+        self::assertCount(17, $page->filter('.chtab'));
+        // The Aux is a channel tab between In8 and Out1, and no longer a function page tab
+        self::assertCount(0, $page->filter('.tab[data-page=aux]'));
+        $tabs = $page->filter('.chtab')->each(static fn (Crawler $n): string => (string) $n->attr('data-page'));
+        self::assertSame(['inputs7', 'aux', 'outputs0'], \array_slice($tabs, 7, 3));
+        self::assertSame('aux', $page->filter('.chtab--aux')->attr('data-editor-page-param'));
         self::assertCount(20, $page->filter('dialog'));
         foreach ($page->filter('[data-editor-dialog-param]')->each(static fn (Crawler $n): string => (string) $n->attr('data-editor-dialog-param')) as $dialog) {
             self::assertCount(1, $page->filter('dialog#dialog-'.$dialog), \sprintf('No dialog "%s".', $dialog));
@@ -189,8 +194,8 @@ final class EditorControllerTest extends WebTestCase
         self::assertSame(['0', '1', '2', '3', '4', '5', '6', '7'], $outputs->filter('tbody th')->each(static fn (Crawler $n): string => (string) $n->attr('data-index')));
         self::assertSame('Out3 with Out5', $outputs->filter('tbody tr')->eq(2)->filter('.link-cell')->eq(4)->attr('aria-label'));
         self::assertSame('editor#linkCell', $outputs->filter('.link-cell')->first()->attr('data-action'));
-        // The gap between inputs and outputs starts at Out1 until the tabs are reordered
-        self::assertSame('outputs0', self::page()->filter('.chtab.is-split')->attr('data-page'));
+        // The gaps around the Aux tab start at the Aux and at Out1 until the tabs are reordered
+        self::assertSame(['aux', 'outputs0'], self::page()->filter('.chtab.is-split')->each(static fn (Crawler $n): string => (string) $n->attr('data-page')));
     }
 
     public function testEveryMeterCanMarkItsThreshold(): void

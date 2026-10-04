@@ -249,6 +249,11 @@ choice of hidden outputs only is refused with a message, so nothing is measured 
 Group selectors appear in the existing stacked group headers. Normal and adjacent placement add headers at the
 first member, preserving individual channel order. There is no separate aggregate selector bar. Headers retain
 the chosen group name, colour and icon. Member IDs and hidden members appear in tooltips rather than repeating the individual channel labels.
+The Aux tab (`.chtab--aux`, `data-page="aux"`) sits in the channel tab row between the inputs and the outputs and
+carries no `data-side`, so the link placement code passes it by. `placeChannelTabs()` gives it the column after
+the inputs, spanning every row, and shifts the outputs by one column while the Aux is visible. `showAuxTab()` shows
+its mute dot and changed triangle, and a click on that triangle resets the Aux alone (`channelReset(…, 'aux')`).
+The function page tabs are Gain, Gate, Comp, Delay, Matrix and Auto EQ.
 Stacked channel tabs omit their individual group-edge shadow because their shared header already marks the group.
 Mixed or empty groups select all members; fully selected groups clear all. Tooltips identify hidden members.
 Shared masks produce one combined masked write; Aux output choices update each existing output mask separately,

@@ -152,6 +152,7 @@ input[type=text], input[type=number], select { background: var(--field); color: 
     border: 1px solid #ffffff22; border-radius: 4px; background: #ffffff0d; color: var(--head-text); cursor: pointer; overflow: hidden;
 }
 .chtab--outputs { background: #0000001f; }
+.chtab--aux { background: #ffffff1a; }
 .chtab.is-split { margin-left: 6px; }
 /* Stacked per link group: the tabs of a column share its height */
 .chtabs.is-stacked .chtab { min-height: 30px; }

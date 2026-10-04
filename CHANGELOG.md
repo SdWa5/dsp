@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.86.0] - 2026-10-04
+
+### Changed
+
+- The Aux moved from the function page tabs to a channel tab of its own between In8 and Out1, as in Sub Control. It shows the mute dot and the changed triangle, whose click resets the Aux after a confirmation. It keeps its column in every link placement and hides with the Aux.
+
 ## [0.85.0] - 2026-10-04
 
 ### Added
