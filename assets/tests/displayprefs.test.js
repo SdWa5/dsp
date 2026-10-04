@@ -1,9 +1,49 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readPref, writePref, onPref } from '../lib/prefs.js';
-import { EQ_PATHS, filterLabels, setFilterLabels, overviewHidden, selectOverview, setPanelCollapsed, eqPreferencePaths, eqPreferenceSelection, setEqPreference } from '../lib/displayprefs.js';
+import { EQ_PATHS, filterLabels, setFilterLabels, overviewHidden, selectOverview, setPanelCollapsed, eqPreferencePaths, eqPreferenceSelection, setEqPreference, overviewSeparated, setOverviewSeparated } from '../lib/displayprefs.js';
 import { loadEqView, saveEqView } from '../lib/eq.js';
 import { panelOptions, panelRows } from '../lib/displaypanels.js';
+
+test('overview layout defaults to combined and rejects malformed stored values', () => {
+    assert.equal(overviewSeparated(), false);
+    for (const value of ['garbage', '1', '{}', '[]', 'null', '"true"']) {
+        writePref('eq-overview-separated', value);
+        assert.equal(overviewSeparated(), false);
+    }
+    writePref('eq-overview-separated', true);
+    assert.equal(overviewSeparated(), true);
+    setOverviewSeparated(false);
+});
+
+test('overview layout notifies shortcuts without changing selections or EQ views', () => {
+    writePref('eq-overview-hidden', ['inputs.2', 'aux']);
+    saveEqView('overview', false, true);
+    const hidden = [...overviewHidden()], view = loadEqView('overview');
+    const notices = [], off = onPref('eq-overview-separated', key => notices.push(key));
+    setOverviewSeparated(true);
+    assert.equal(overviewSeparated(), true);
+    assert.deepEqual([...overviewHidden()], hidden);
+    assert.deepEqual(loadEqView('overview'), view);
+    off();
+    setOverviewSeparated(false);
+    assert.deepEqual(notices, ['eq-overview-separated']);
+    saveEqView('overview', true, false);
+});
+
+test('overview layout remains readable during this visit when storage throws', () => {
+    const storage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+    Object.defineProperty(globalThis, 'localStorage', { configurable: true, get() { throw new Error('blocked'); } });
+    try {
+        setOverviewSeparated(true);
+        assert.equal(overviewSeparated(), true);
+        setOverviewSeparated(false);
+        assert.equal(overviewSeparated(), false);
+    } finally {
+        if (storage) Object.defineProperty(globalThis, 'localStorage', storage);
+        else delete globalThis.localStorage;
+    }
+});
 
 test('the EQ catalogue contains every channel and preserves per-channel settings', () => {
     assert.equal(EQ_PATHS.length, 17);

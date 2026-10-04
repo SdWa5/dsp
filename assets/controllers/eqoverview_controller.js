@@ -2,9 +2,9 @@ import { Controller } from '@hotwired/stimulus';
 import { getLabels, store } from '../lib/device.js';
 import { curveRuns, drawGrid, eqView, loadEqView, plotFor, prepare, response, saveEqView } from '../lib/eq.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
-import { curveColourSource, linkedPaths, nearestCurve } from '../lib/overview.js';
+import { curveColourSource, linkedPaths, nearestCurve, overviewPlots } from '../lib/overview.js';
 import { onPref } from '../lib/prefs.js';
-import { overviewHidden, selectOverview } from '../lib/displayprefs.js';
+import { overviewHidden, selectOverview, overviewSeparated, setOverviewSeparated } from '../lib/displayprefs.js';
 import { getChannelView, onChannelView, channelVisible, selectionState } from '../lib/channelview.js';
 
 // One colour per channel number: an input draws a solid line, the output of the same number a dashed one.
@@ -17,7 +17,8 @@ const DIMMED = '#8a8a8a';
 const VIEW = 'overview';
 
 /**
- * The EQ curves of every input, every output and the Aux in one plot, as the vendor editor shows them on its Gain page.
+ * The EQ curves of every input, output and Aux share one plot by default. A browser preference separates them
+ * into three plots without changing channel selections. Hover geometry belongs to each canvas, never another plot.
  * Mag and Phase show the magnitude, the phase or both, as on a channel tab. The phase reads in degrees on the axis, and
  * with both shown it is the fainter, thinner curve of each channel.
  * A switch per channel, or one mixed-state switch per link group, shows or hides its curves. It only changes the plot, the EQ bypass of the channel
@@ -27,18 +28,19 @@ const VIEW = 'overview';
  * switch, except the members of its link group.
  */
 export default class extends Controller {
-    static targets = ['canvas', 'show', 'mag', 'phase'];
+    static targets = ['canvas', 'plots', 'show', 'mag', 'phase', 'separated'];
 
     connect() {
-        this.showPreferences();
-        this.offPrefs = onPref(['eq-view', 'eq-overview-hidden'], () => { this.showPreferences(); this.schedule(true); });
         this.signature = '';
         this.hover = null;
+        this.drawn = new Map();
+        this.showPreferences();
+        this.offPrefs = onPref(['eq-view', 'eq-overview-hidden', 'eq-overview-separated'], () => { this.showPreferences(); this.schedule(true); });
         this.unsubscribe = store.subscribe(() => this.schedule());
         this.offView = onLinkView(() => this.schedule(true));
         this.offDisplay = onChannelView(() => this.schedule(true));
         this.resize = new ResizeObserver(() => this.schedule(true));
-        this.resize.observe(this.canvasTarget);
+        this.canvasTargets.forEach(canvas => this.resize.observe(canvas));
         this.schedule(true);
     }
 
@@ -48,6 +50,8 @@ export default class extends Controller {
         this.offView?.();
         this.offDisplay?.();
         this.resize?.disconnect();
+        if (this.frame) cancelAnimationFrame(this.frame);
+        this.frame = null;
     }
 
     toggle(event) {
@@ -58,6 +62,17 @@ export default class extends Controller {
     }
 
     showPreferences() {
+        const separated = overviewSeparated();
+        if (this.separated !== separated) {
+            this.hover = null;
+            this.drawn.clear();
+        }
+        this.separated = separated;
+        this.separatedTarget.checked = separated;
+        this.plotsTarget.classList.toggle('is-separated', separated);
+        for (const pane of this.plotsTarget.children) {
+            pane.hidden = (pane.dataset.overviewSide === 'combined') === separated;
+        }
         this.hiddenPaths = overviewHidden();
         this.showTargets.forEach(box => { box.checked = !this.hiddenPaths.has(box.value); });
         const view = loadEqView(VIEW);
@@ -72,6 +87,8 @@ export default class extends Controller {
         this.schedule(true);
     }
 
+    separate() { setOverviewSeparated(this.separatedTarget.checked); }
+
     get view() {
         return this.hasMagTarget && this.hasPhaseTarget ? eqView(this.magTarget.checked, this.phaseTarget.checked) : eqView();
     }
@@ -83,7 +100,7 @@ export default class extends Controller {
 
     /** The pointer over the plot points at the nearest curve within a few pixels, or at none. */
     hoverPlot(event) {
-        this.point(nearestCurve(this.drawn ?? [], event.offsetX, event.offsetY));
+        this.point(nearestCurve(this.drawn.get(event.currentTarget) ?? [], event.offsetX, event.offsetY));
     }
 
     /**
@@ -157,15 +174,27 @@ export default class extends Controller {
         const channels = shown.map((path) => [path, store.get(path)]).filter(([, channel]) => channel);
         const view = this.view;
         const { colour, lit } = this.paintSwitches(state, getLinkView().colour);
-        const signature = JSON.stringify([view, this.hover, [...colour], channels.map(([path, c]) => [path, c.peq, c.hpf, c.lpf, c.eq_bypass])]);
+        const signature = JSON.stringify([this.separated, view, this.hover, lit, [...colour], channels.map(([path, c]) => [path, c.peq, c.hpf, c.lpf, c.eq_bypass])]);
         if (signature === this.signature) {
             return;
         }
-        const canvas = prepare(this.canvasTarget);
-        if (null === canvas) {
-            return;
+        // A collapsed or hidden page has zero-size canvases. Cache only after all visible plots were drawn.
+        const plots = overviewPlots(channels, this.separated);
+        let complete = true;
+        for (const { key, channels: selected } of plots) {
+            const target = this.canvasTargets.find(canvas => canvas.dataset.overviewSide === key);
+            target.parentElement.querySelector('.eq-overview__empty').hidden = selected.length > 0 && (view.mag || view.phase);
+            complete = this.drawCanvas(target, selected, view, colour, lit) && complete;
         }
-        this.signature = signature;
+        if (complete) this.signature = signature;
+    }
+
+    /** Draw and retain hit-test coordinates in this canvas's CSS pixels. */
+    drawCanvas(target, channels, view, colour, lit) {
+        const canvas = prepare(target);
+        if (null === canvas) {
+            return false;
+        }
         const { g, width, height } = canvas;
         const plot = plotFor(view, width, height);
         drawGrid(g, plot, width, height, view);
@@ -198,6 +227,7 @@ export default class extends Controller {
         }
         g.globalAlpha = 1;
         g.setLineDash([]);
-        this.drawn = curves.map(({ path, runs }) => ({ path, runs: runs.flatMap(([, lines]) => lines) }));
+        this.drawn.set(target, curves.map(({ path, runs }) => ({ path, runs: runs.flatMap(([, lines]) => lines) })));
+        return true;
     }
 }

@@ -1,5 +1,6 @@
 /** Browser regression checks use isolated state and intercept every API request, including writes. */
 import assert from 'node:assert/strict';
+import { checkEqOverview } from './check-eq-overview.mjs';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({ headless: true });
 const url = process.env.TRACKDSP_TEST_URL || 'https://trackdsp.ddev.site';
@@ -635,6 +636,7 @@ try {
         await page.locator('[data-eqoverview-target=phase]').uncheck();
         await go('display');
         assert.equal(await eqChoice('overview', 'phase').isChecked(), false);
+        await checkEqOverview(page, settings, width, go, preferences);
         const threshold = settings.locator('[data-meterview-target=show]');
         await threshold.uncheck();
         assert.equal(await settings.locator('[data-meterview-target=active]').isDisabled(), true);
@@ -712,6 +714,14 @@ try {
     });
     await blocked.goto(url + '/#display');
     const settings = blocked.locator('section[data-page=display]');
+    await settings.locator('[data-displaysettings-target=separated]').check();
+    await blocked.locator('.tab[data-editor-page-param=gain]').evaluate(button => button.click());
+    assert.equal(await blocked.locator('[data-eqoverview-target=separated]').isChecked(), true);
+    assert.equal(await blocked.locator('.eq-overview__pane:visible').count(), 3);
+    assert.equal(await blocked.locator('.eq-overview__empty:visible').count(), 3);
+    await blocked.locator('[data-eqoverview-target=separated]').uncheck();
+    await blocked.locator('[data-editor-page-param=display]').evaluate(button => button.click());
+    assert.equal(await settings.locator('[data-displaysettings-target=separated]').isChecked(), false);
     assert.equal(await settings.locator('[data-controller=text]:disabled').count(), 17);
     await settings.locator('[data-displaysettings-target=theme]').selectOption('dark');
     await settings.locator('[data-displaysettings-target=eq][data-path="inputs.0"][data-field=phase]').check();

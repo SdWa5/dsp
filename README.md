@@ -211,7 +211,10 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   The grey curve stays after letting go, until a click lands elsewhere. Clicking into a field of a band's row selects
   that band. Pointing at a filter's point, its table row, the selected band's faders or a filter's group does the same and
   greys out the points and controls of every other filter.
-- The Gain page starts with an EQ overview, the EQ curves of every input (solid), output (dashed) and the Aux (dotted) in one plot.
+- The Gain page starts with an EQ overview, the EQ curves of every input (solid), output (dashed) and the Aux (dotted) in one plot by default.
+  Separate plots in Display Settings or beside Mag and Phase switches to labelled Input, Output and Aux plots.
+  They share the existing curve selections and axes, arrange in columns on desktop and stack on narrow screens.
+  Empty plots explain that no visible curves are selected. The layout preference stays in this browser and sends no device writes.
   Mag and Phase switch the plot as on a channel tab. A switch per channel, or per link group when grouping is
   enabled, shows or hides its curves, kept in the browser. It changes nothing on the device. Linked channels share one EQ, so their curves and switches share one
   colour, the group's while Channels shows link colours, else the first member's. Pointing at a curve or a switch

@@ -1,12 +1,21 @@
 {% import 'editor/_widgets.html.twig' as w %}
 <div class="strips eq-overview" data-controller="collapse eqoverview" data-collapse-key-value="gain.eq">
     <h2 class="strips__title">{{ w.fold('EQ overview', 'eq_overview') }}</h2>
-    {# Magnitude, phase or both, as on a channel tab. Only a view, so no drag hint #}
+    {# Layout and magnitude/phase share browser preferences with Display Settings. #}
     <div class="peq__bar">
         <label title="{{ 'editor.tip.eq_mag'|trans }}"><input type="checkbox" checked data-eqoverview-target="mag" data-action="eqoverview#toggleView"> {{ "Mag"|trans }}</label>
         <label title="{{ 'editor.tip.eq_phase'|trans }}"><input type="checkbox" data-eqoverview-target="phase" data-action="eqoverview#toggleView"> {{ "Phase"|trans }}</label>
+        <label title="{{ 'editor.tip.eq_separate'|trans }}"><input type="checkbox" data-eqoverview-target="separated" data-action="change->eqoverview#separate"> {{ 'Separate plots'|trans }}</label>
     </div>
-    <canvas class="eq-overview__plot" data-eqoverview-target="canvas" data-action="pointermove->eqoverview#hoverPlot pointerleave->eqoverview#unhover"></canvas>
+    <div class="eq-overview__plots" data-eqoverview-target="plots">
+        {% for side, title in {combined: 'EQ overview', inputs: 'Input', outputs: 'Output', aux: 'Aux'} %}
+            <figure class="eq-overview__pane" data-overview-side="{{ side }}"{% if side != 'combined' %} hidden{% endif %}>
+                <figcaption{% if side == 'combined' %} hidden{% endif %}>{{ title|trans }}</figcaption>
+                <canvas class="eq-overview__plot" aria-label="{{ title|trans }}" data-eqoverview-target="canvas" data-overview-side="{{ side }}" data-action="pointermove->eqoverview#hoverPlot pointerleave->eqoverview#unhover"></canvas>
+                <p class="eq-overview__empty" hidden>{{ 'No visible curves selected.'|trans }}</p>
+            </figure>
+        {% endfor %}
+    </div>
     <div class="eq-overview__switches" data-action="pointerover->eqoverview#hoverSwitch pointerleave->eqoverview#unhover" role="group" aria-label="{{ "Curves shown"|trans }}">
         {% for side in ['inputs', 'outputs'] %}
             <span class="eq-overview__side" data-controller="linkplace" data-linkplace-display-value="true">
