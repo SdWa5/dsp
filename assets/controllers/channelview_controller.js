@@ -1,7 +1,10 @@
 import { Controller } from '@hotwired/stimulus';
 import { getChannelView, onChannelView, setChannelView } from '../lib/channelview.js';
 
-/** Preferences remain editable without a bridge and never write to device state. */
+/**
+ * Preferences remain editable without a bridge and never write to device state. One instance holds the visibility
+ * checkboxes, another the grouping checkbox, so each writes only the part it has targets for.
+ */
 export default class extends Controller {
     static targets = ['channel', 'grouped'];
     connect() { this.off = onChannelView(() => this.render()); this.render(); }
@@ -9,9 +12,14 @@ export default class extends Controller {
     render() {
         const view = getChannelView();
         this.channelTargets.forEach(box => { box.checked = !view.hidden.includes(Number(box.value)); });
-        this.groupedTarget.checked = view.grouped;
+        if (this.hasGroupedTarget) this.groupedTarget.checked = view.grouped;
     }
-    change() { setChannelView({ hidden: this.channelTargets.filter(box => !box.checked).map(box => Number(box.value)), grouped: this.groupedTarget.checked }); }
+    change() {
+        const view = { ...getChannelView() };
+        if (this.hasChannelTarget) view.hidden = this.channelTargets.filter(box => !box.checked).map(box => Number(box.value));
+        if (this.hasGroupedTarget) view.grouped = this.groupedTarget.checked;
+        setChannelView(view);
+    }
     /** Side actions restore only that side and preserve Aux and the other side's visibility. */
     showSide(event) {
         const base = event.params.side === 'inputs' ? 0 : event.params.side === 'outputs' ? 8 : null;
