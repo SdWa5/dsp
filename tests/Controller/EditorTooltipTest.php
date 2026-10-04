@@ -106,9 +106,10 @@ final class EditorTooltipTest extends WebTestCase
             self::assertNotEmpty($control->attr('title'), $control->outerHtml().' has no tooltip');
             self::assertStringNotContainsString('editor.tip.', (string) $control->attr('title'));
         });
-        foreach (['theme', 'language', 'visibility', 'grouped', 'show_inputs', 'show_outputs', 'show_all', 'matrix'] as $key) {
+        foreach (['theme', 'language', 'visibility', 'grouped', 'show_inputs', 'show_outputs', 'show_all', 'matrix_outputs', 'matrix_inputs'] as $key) {
             $selector = match ($key) {
-                'theme', 'matrix' => '[data-displaysettings-target='.$key.']',
+                'theme' => '[data-displaysettings-target=theme]',
+                'matrix_outputs', 'matrix_inputs' => '[data-displaysettings-target=matrix][value='.substr($key, 7).']',
                 'language' => '[data-action="change->editor#language"]',
                 'visibility' => '[data-channelview-target=channel]',
                 'grouped' => '[data-channelview-target=grouped]',

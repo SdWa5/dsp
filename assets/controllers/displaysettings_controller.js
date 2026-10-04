@@ -24,7 +24,9 @@ export default class extends Controller {
     render() {
         const theme = readPref('theme', 'auto');
         this.themeTarget.value = ['auto', 'light', 'dark'].includes(theme) ? theme : 'auto';
-        this.matrixTarget.checked = readPref('matrix-swapped', false);
+        // Inputs as rows is the swapped orientation
+        const swapped = readPref('matrix-swapped', false);
+        this.matrixTargets.forEach(radio => { radio.checked = ('inputs' === radio.value) === swapped; });
         const layout = linkMatrixLayout(readPref('link-matrix-layout', 'lower'));
         this.linkMatrixTargets.forEach(radio => { radio.checked = radio.value === layout; });
         this.separatedTarget.checked = overviewSeparated();
@@ -48,7 +50,7 @@ export default class extends Controller {
         });
     }
     theme() { writePref('theme', this.themeTarget.value); }
-    matrix() { writePref('matrix-swapped', this.matrixTarget.checked); }
+    matrix(event) { writePref('matrix-swapped', 'inputs' === event.target.value); }
     linkMatrix(event) { writePref('link-matrix-layout', linkMatrixLayout(event.target.value)); }
     separate() { setOverviewSeparated(this.separatedTarget.checked); }
     eq(event) {

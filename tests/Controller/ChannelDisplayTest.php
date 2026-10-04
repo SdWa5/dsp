@@ -19,9 +19,11 @@ final class ChannelDisplayTest extends WebTestCase
         self::assertSame('de' === $locale ? 'Kanalnamen' : 'Channel Names', $display->filter('[data-display-section=channels] > h3')->text());
         self::assertSame([...range(0, 15), 18], $display->filter('[data-channelview-target=channel]')->each(static fn (Crawler $node): int => (int) $node->attr('value')));
         self::assertCount(17, $display->filter('[data-channelview-target=channel][checked]'));
-        self::assertCount(2, $display->filter('.display-settings__channels > .display-settings__row'));
+        self::assertCount(1, $display->filter('.display-settings__channels > .display-settings__row'));
         self::assertCount(1, $display->filter('[data-display-side=aux] [data-channelview-target=channel][value=18]'));
-        self::assertCount(1, $display->filter('.display-settings__row [data-channelview-target=grouped]'));
+        // Grouping sits with the placement in Link Groups, in a channelview controller of its own
+        self::assertCount(1, $display->filter('[data-display-section=links] [data-controller=channelview] [data-channelview-target=grouped]'));
+        self::assertCount(0, $display->filter('[data-display-section=channels] [data-channelview-target=grouped]'));
         self::assertCount(1, $display->filter('.display-settings__row [data-action="channelview#showAll"]'));
         self::assertCount(1, $display->filter('[data-channelview-target=grouped]:not([checked])'));
         self::assertSame('de' === $locale ? 'Ausgeblendete Kanäle' : 'Hidden channels', $display->filter('.display-settings__channels > h3')->text());
