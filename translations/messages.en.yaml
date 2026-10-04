@@ -96,7 +96,7 @@ editor:
             show_inputs: "Show all eight inputs. Output visibility and Aux visibility remain unchanged."
             show_outputs: "Show all eight outputs. Input visibility and Aux visibility remain unchanged."
             show_all: "Show all inputs, outputs and Aux. Keep the current link-group control preference."
-            mute_hidden: "Mute a channel on the device while this browser hides it, and unmute it when it shows again. Only that channel is written, not its link group, and a channel muted before it was hidden stays muted. Unlike the other display settings this writes to the device."
+            mute_hidden: "Mute a channel on the device when this browser hides it. Showing it again or switching this off never unmutes it. Only that channel is written, not its link group. Unlike the other display settings this writes to the device."
             link_code: "Show each link group code or its browser name. Link assignments remain unchanged."
             link_shape: "Show the distinct icon for each link group throughout the interface."
             link_colour: "Show link-group colours on channel marks, group headings and browser group-name fields."
