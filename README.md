@@ -175,8 +175,8 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   matrix the column channel. Pointing at a cell or a header fades every channel a click there would not change. The
   rows and columns follow the placement after every click, and stacked turns each group into a block with one
   header naming its members and a gap before and after it. The display settings sit below the two matrices as well.
-- Input, output and Aux detail pages stack Selected band directly below Bands, with independent collapse
-  controls, and place Gain next. HPF/LPF follow where
+- Input, output and Aux detail pages hold Bands and Selected band in one PEQ section. PEQ folds both, and each of
+  the two still folds on its own. Gain comes next. HPF/LPF follow where
   available, stacked vertically, then Gate or Comp and the remaining channel-specific sections.
 - Every setting that differs from the factory default (`resources/factory_config.bin`) has a bar on its left
   edge. Every page tab shows the number of its changed settings as a badge, and every channel tab shows a corner

@@ -153,8 +153,10 @@ final class EditorControllerTest extends WebTestCase
         });
         self::assertCount(16, self::page()->filter('[data-collapse-key-value="channel.curve"]'));
         $panels->each(static function (Crawler $panel): void {
-            self::assertCount(1, $panel->filter('[data-collapse-target=toggle]'));
-            self::assertSame('true', $panel->filter('[data-collapse-target=toggle]')->attr('aria-expanded'));
+            // A nested panel (Bands inside PEQ) has a toggle of its own, which the outer panel does not count
+            $own = $panel->filter('[data-collapse-target=toggle]')->reduce(static fn (Crawler $toggle): bool => $toggle->closest('[data-controller~=collapse]')?->getNode(0) === $panel->getNode(0));
+            self::assertCount(1, $own);
+            self::assertSame('true', $own->attr('aria-expanded'));
         });
         // The dialogs show the same strips without a fold
         self::assertCount(0, self::page()->filter('dialog [data-controller~=collapse]'));

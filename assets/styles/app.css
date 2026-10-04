@@ -311,6 +311,8 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .group__caption { text-align: center; color: var(--muted); }
 .group-stack { display: flex; flex-direction: column; gap: 6px; }
 .peq__band-stack { min-width: 0; max-width: 100%; }
+/* Bands and Selected band sit inside the PEQ frame as sub-sections without a frame of their own */
+.peq__band-stack > .group { padding: 0 0 4px; border: 0; }
 .group__row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
 .group__row label { display: inline-flex; gap: 6px; align-items: center; }
 

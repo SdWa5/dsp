@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.83.0] - 2026-10-04
+
+### Changed
+
+- The channel pages hold Bands and Selected band in one PEQ section, which folds both at once. Each of them still folds on its own, and saved fold states stay as they were. The Panels list names them "PEQ / Bands" and "PEQ / Selected band".
+
 ## [0.82.0] - 2026-10-04
 
 ### Changed

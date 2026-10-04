@@ -20,8 +20,9 @@
                 data-action="pointerdown->peq#pointerdown pointermove->peq#pointermove pointerup->peq#pointerup pointercancel->peq#pointerup wheel->peq#wheel dblclick->peq#doubleClick pointerleave->peq#unhover"></canvas>
     </div>
     <div class="peq__panel">
-        {# Selected-band controls stay below the band table, with independent collapse keys. #}
-        <div class="group-stack peq__band-stack">
+        {# One PEQ section with the band table and the selected band below it, each folding on its own as well #}
+        <fieldset class="group group-stack peq__band-stack" data-controller="collapse" data-collapse-key-value="{{ fold }}.peq">
+        <legend>{{ w.fold('PEQ', 'peq') }}</legend>
         <fieldset class="group peq__table-wrap" data-controller="collapse" data-collapse-key-value="{{ fold }}.bands">
         <legend>{{ w.fold('Bands', 'peq') }}</legend>
         <table class="peq__table">
@@ -54,7 +55,7 @@
                 </div>
             {% endfor %}
         </fieldset>
-        </div>
+        </fieldset>
         {% block common %}{% endblock %}
         {% if filters %}
         {# Keep the crossover controls stacked vertically while preserving shared section order. #}

@@ -115,8 +115,6 @@ also postponed. Any additional form proven to need a connection belongs here.
   the pairing on both filters, and decide what happens when one partner is in a link group, where the change
   then reaches every channel of that group. The system tuning (Automation, step 6) needs matching crossover
   filters as well and could set them through such a pair
-- Combine the channel page’s Bands and Selected band sections into one section, or place both
-  inside a shared parent section. Preserve their controls and collapse behavior across input, output and Aux pages.
 - (low priority) Expose all Aux compressor settings directly on the Aux page, like the output channel
   compressor sections, instead of requiring the Aux compressor modal for ratio, attack and release.
   Reuse the shared compressor controls and preserve Aux-specific ranges and the adjacent curve.

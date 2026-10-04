@@ -256,7 +256,10 @@ preserving unrelated bits. Auto EQ aggregates update individual form checkboxes 
 
 The shared channel editor places Bands, Selected band and Gain before HPF/LPF and channel-specific sections.
 Inputs then show Gate and FBQ, outputs show Comp and Delay, and Aux shows Comp, Select, AutoMix, Effect and Camera.
-Selected band sits directly below Bands in a shared vertical layout stack; both sections retain independent collapse controls.
+Bands and Selected band sit inside one PEQ section (`fieldset.peq__band-stack`, key `channel.peq` or `aux.peq`),
+which folds both at once, while each of the two keeps its own fold and key. The inner sections draw no frame of
+their own. The Panels list in Display Settings names a nested section with its parent, as in
+"Channel pages / PEQ / Bands" (`panelOptions()` in `assets/lib/displaypanels.js`).
 HPF and LPF retain their shared vertical stack. Existing collapse keys and bindings are retained.
 
 `ChannelDisplayTest` checks page inventory, menu order, templates, section order and translations. JavaScript tests cover normalization,

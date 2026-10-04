@@ -480,6 +480,7 @@ editor:
 "EQ Plots": "EQ-Diagramme"
 "Gain EQ overview": "EQ-Übersicht auf der Gain-Seite"
 "Channel EQ plots": "EQ-Diagramme der Kanäle"
+"PEQ": "PEQ"
 "Panels": "Abschnitte"
 "Display preferences affect this browser only. Channel name edits are device settings.": "Anzeigeeinstellungen gelten nur für diesen Browser. Kanalnamen sind Geräteeinstellungen."
 "No link groups are available. Link channels in the Link dialog to name their group.": "Es sind keine Link-Gruppen verfügbar. Verknüpfe Kanäle im Link-Dialog, um ihre Gruppe zu benennen."
