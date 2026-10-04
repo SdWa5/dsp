@@ -5,6 +5,35 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.71.0] - 2026-10-04
+
+### Added
+
+- Display Settings provides a dedicated browser preference page for appearance, channels, link groups, meters, EQ plots, matrix orientation and panel expansion. Each settings section folds independently and remembers its browser state.
+- English/German tooltips explain all Display Settings controls and section headings, including generated group-name fields, group selectors and shared panel choices.
+- Linked input/output detail pages provide a synchronized browser-only link-group name field, preserving shared marks, name limits and individual device rename bindings.
+- Channel names are editable in the Channels section through shared device controls, with the Names dialog retained as a synchronized shortcut.
+- Shared preference notifications synchronize page controls with local shortcuts, including channel-specific EQ choices, overview selections and group names.
+- Regression tests cover preference compatibility, malformed storage, session fallback, translated page inventory and mocked desktop/mobile synchronization.
+
+### Changed
+
+- Display Settings separates channel names into Input, Output and Aux rows, link-group names into Input and Output rows, and panel choices into page rows. Controls within each row wrap together on narrow screens.
+- Selected band controls sit below PEQ Bands on input, output and Aux pages, retaining independent collapse controls.
+- Display Settings has its own header-menu entry. Channels retains channel actions. The page replaces the channel-display modal and inline link and meter options.
+- One control per link group also consolidates Display Settings visibility, Gain EQ overview selections and channel EQ options. Mixed-state group controls include hidden members, retain individual stored choices and stay available for hidden-group recovery.
+- Display preferences preserve existing keys and defaults. Hidden channels remain independently configurable, and shared panel keys appear once.
+
+### Fixed
+
+- Channel-page titles omit repeated names. The group-name input occupies the title row without a duplicate label. Grouped pages show one ID/name field pair for every linked member below, including hidden members, with no repeated leader ID. Every device rename keeps its individual binding.
+- Grouped channel tabs and Gain EQ overview switches show every member name, including hidden members. Live member renames refresh their captions and tooltips. Shared channel captions put all member IDs once before the names, with no repeated suffix; individual display remains unchanged.
+- Link colours fill whole stacked group frames, including padding around compact selectors. Member controls remain readable, disabling colours removes the fill, and dimmed overview groups remain neutral.
+- Hidden channels has its own heading. Its Input, Output and Aux columns match Gain EQ overview and Channel EQ plots; columns stack on narrow screens. Grouping and Show all retain separate rows. Group-name fields share link colours and icons in both entry points.
+- Channel EQ settings follow shared link ordering and stacked group headings without hiding individual preferences.
+- Browser-only EQ display controls and panel headers remain editable while offline.
+- Browser preference writes remain readable for the current visit when storage is unavailable or rejects a write.
+
 ## [0.70.0] - 2026-10-03
 
 ### Added

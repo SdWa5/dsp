@@ -100,7 +100,7 @@ test('visibility group controls dispatch the existing preference action without 
     let changes = 0;
     const elements = [true, false].map(checked => ({
         checked,
-        matches: selector => selector === 'input' || selector === '[data-channelview-target=channel]',
+        matches: selector => selector === 'input' || selector.includes('[data-channelview-target=channel]'),
         dispatchEvent(event) { assert.equal(event.type, 'change'); assert.equal(event.bubbles, true); changes++; },
     }));
     aggregate.select(elements.map(element => ({ element })), true);

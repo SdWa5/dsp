@@ -2,7 +2,7 @@ import { Controller } from '@hotwired/stimulus';
 import { getMeterView, onMeterView, setMeterView } from '../lib/meterview.js';
 
 /**
- * The Meters settings of the Channels menu: whether the meters mark the gate or compressor threshold, and only
+ * The Meters settings on the Display Settings page: whether the meters mark the gate or compressor threshold, and only
  * while it works. "Only when active" has no effect while the mark is off, so it is disabled then.
  */
 export default class extends Controller {

@@ -3,9 +3,25 @@
 {% set channel = input ? i : 8 + i %}
 {% set p = side ~ '.' ~ i %}
 {% set link = side ~ ':' ~ i %}
-<h2 class="page__title">{{ w.ch(channel, {class: 'ch--big'}) }}
-    {{ w.text('%channel% name'|trans({'%channel%': (input ? 'In' : 'Out') ~ (i + 1)}), p ~ '.name', [{command: 'channelName', args: {channel: channel, name: '@' ~ p ~ '.name'}}], 8) }}
-</h2>
+{# Group titles are editable once; every linked member keeps its own device-name binding and ID. #}
+<div class="channel-page-heading" data-controller="linkname" data-linkname-index-value="{{ channel }}">
+    <h2 class="page__title" data-linkname-target="heading">
+        <span data-linkname-target="plainTitle">{{ w.ch(channel, {class: 'ch--big', title: true, link: false}) }}</span>
+        <span class="channel-link-name" data-linkname-target="groupTitle" hidden>
+            <span data-linkname-target="fields"></span><span data-linkname-target="empty" hidden></span>
+        </span>
+    </h2>
+    <div class="channel-member-names">
+        {% for member in 0..7 %}
+            {% set memberId = (input ? 'In' : 'Out') ~ (member + 1) %}
+            {% set memberPath = side ~ '.' ~ member ~ '.name' %}
+            <label class="channel-name-edit" data-linkname-target="member" data-name-index="{{ member + (input ? 0 : 8) }}" title="{{ 'editor.tip.name'|trans }}"{{ member != i ? ' hidden' }}>
+                <span class="channel-name-id">{{ memberId }}</span>
+                {{ w.text('%channel% name'|trans({'%channel%': memberId}), memberPath, [{command: 'channelName', args: {channel: member + (input ? 0 : 8), name: '@' ~ memberPath}}], 8) }}
+            </label>
+        {% endfor %}
+    </div>
+</div>
 {% embed 'editor/_peq.html.twig' with {p: p, channel: channel, filters: true, bands: input ? 5 : 7} %}
     {% block common %}
         {% import 'editor/_widgets.html.twig' as w %}

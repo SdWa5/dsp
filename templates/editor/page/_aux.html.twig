@@ -1,5 +1,8 @@
 {% import 'editor/_widgets.html.twig' as w %}
-<h2 class="page__title">{{ w.ch(18, {class: 'ch--big'}) }} {{ w.text('Aux name', 'aux.name', [{command: 'channelName', args: {channel: 18, name: '@aux.name'}}], 8) }}</h2>
+<div class="channel-page-heading">
+    <h2 class="page__title">{{ w.ch(18, {class: 'ch--big', title: true}) }}</h2>
+    <label class="channel-name-edit" title="{{ 'editor.tip.name'|trans }}">{{ w.text('Aux name', 'aux.name', [{command: 'channelName', args: {channel: 18, name: '@aux.name'}}], 8) }}</label>
+</div>
 {% embed 'editor/_peq.html.twig' with {p: 'aux', channel: 18, filters: false, bands: 5} %}
     {% block common %}
         {% import 'editor/_widgets.html.twig' as w %}

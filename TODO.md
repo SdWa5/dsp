@@ -90,13 +90,6 @@ also postponed. Any additional form proven to need a connection belongs here.
 
 ## Editor
 
-- Consolidate and reorder display settings, especially the Channels header menu. The Channel display settings
-  modal currently contains only channel visibility and link-group control grouping, while other channel display
-  options remain scattered in the menu. Consider a dedicated Display Settings page containing all display
-  preferences, including channel visibility, grouping, link appearance and placement, meter thresholds and plot
-  options. Otherwise, at least group and reorder the existing channel display settings coherently and make the
-  modal's scope clear. Preserve existing browser preferences and keep device actions separate from display options.
-
 - Add a browser display preference for the Gain-page EQ overview to choose between the combined plot
   and separate input and output plots. Preserve the existing channel visibility selections in both views.
 

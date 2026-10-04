@@ -1,6 +1,7 @@
 // Browser-only channel visibility. Original indices and link groups always remain device identities.
 import { readPref, writePref } from './prefs.js';
 import { lcm, linkedMembers, linkRuns } from './link.js';
+import { channelParts, channelLabel } from './channels.js';
 
 const KEY = 'channel-display';
 const listeners = new Set();
@@ -21,6 +22,17 @@ export function channelMembers(index, state) {
     if (index >= 16) return [index];
     const base = index < 8 ? 0 : 8;
     return linkedMembers(state?.[base ? 'outputs' : 'inputs'] ?? [], index - base).map(i => base + i);
+}
+/** Representative captions include every member's name, even hidden members. Default names fill unnamed slots only when another member is renamed. */
+export function displayChannelParts(index, state, view = getChannelView()) {
+    const members = view.grouped ? channelMembers(index, state) : [index];
+    const parts = members.map(member => channelParts(member, state));
+    return {
+        members,
+        id: parts.map(part => part.id).join(', '),
+        name: parts.some(part => part.name) ? parts.map(part => part.name || part.id).join(', ') : '',
+        label: members.map(member => channelLabel(member, state)).join(', '),
+    };
 }
 export function representative(index, state, view = getChannelView()) {
     return channelMembers(index, state).find(i => channelVisible(i, view)) ?? null;

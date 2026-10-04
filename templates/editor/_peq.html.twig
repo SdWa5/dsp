@@ -9,7 +9,7 @@
     <div class="peq__bar">
         <label title="{{ 'editor.tip.eq_mag'|trans }}"><input type="checkbox" checked data-peq-target="mag" data-action="peq#toggleView"> {{ "Mag"|trans }}</label>
         <label title="{{ 'editor.tip.eq_phase'|trans }}"><input type="checkbox" data-peq-target="phase" data-action="peq#toggleView"> {{ "Phase"|trans }}</label>
-        <label><input type="checkbox" data-peq-target="labels" data-action="peq#toggleLabels"> {{ "Show all filters"|trans }}</label>
+        <label title="{{ 'editor.tip.eq_labels'|trans }}"><input type="checkbox" data-peq-target="labels" data-action="peq#toggleLabels"> {{ "Show all filters"|trans }}</label>
         <span class="peq__hint">{{ "Drag for frequency and gain. Wheel changes PEQ Q or HPF/LPF type. Double-click toggles bypass."|trans }}</span>
         <button type="button" class="toggle toggle--bypass" title="{{ 'editor.tip.eq_bypass'|trans }}" data-peq-target="eqBypass" data-action="peq#eqBypass">{{ "EQ Bypass"|trans }}</button>
         <button type="button" class="toggle" title="{{ 'editor.tip.eq_reset'|trans }}" data-action="peq#reset">{{ "EQ Reset"|trans }}</button>
@@ -20,6 +20,8 @@
                 data-action="pointerdown->peq#pointerdown pointermove->peq#pointermove pointerup->peq#pointerup pointercancel->peq#pointerup wheel->peq#wheel dblclick->peq#doubleClick pointerleave->peq#unhover"></canvas>
     </div>
     <div class="peq__panel">
+        {# Selected-band controls stay below the band table, with independent collapse keys. #}
+        <div class="group-stack peq__band-stack">
         <fieldset class="group peq__table-wrap" data-controller="collapse" data-collapse-key-value="{{ fold }}.bands">
         <legend>{{ w.fold('Bands', 'peq') }}</legend>
         <table class="peq__table">
@@ -41,7 +43,6 @@
             </tbody>
         </table>
         </fieldset>
-        <div class="group-stack">
         <fieldset class="group group--params" data-controller="collapse" data-collapse-key-value="{{ fold }}.selected">
             <legend>{{ w.fold('Selected band', 'selected_band') }}</legend>
             {% for name, spec in {Freq: ['freq', 300], Q: ['q', 100], Gain: ['gain', 240]} %}

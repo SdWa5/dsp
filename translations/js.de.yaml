@@ -238,3 +238,18 @@
 "No visible input channels.": "Keine sichtbaren Eingangskanäle."
 "Hidden members: %channels%": "Ausgeblendete Mitglieder: %channels%"
 "No visible compressor channels.": "Keine sichtbaren Kompressorkanäle."
+
+"Gain page": "Gain-Seite"
+"Gate page": "Gate-Seite"
+"Comp page": "Comp-Seite"
+"Matrix page": "Matrix-Seite"
+"Channel pages": "Kanalseiten"
+"Aux page": "Aux-Seite"
+"Auto EQ page": "Auto-EQ-Seite"
+"Panels": "Abschnitte"
+
+"Display Settings": "Anzeigeeinstellungen"
+"Browser-only name for %channels%. Up to %length% characters. Leave empty to use the group code.": "Browsername für %channels%. Bis zu %length% Zeichen. Leer lassen, um den Gruppencode zu verwenden."
+"Show or hide %panel%. Shared channel sections use the same setting on every channel page.": "%panel% auf- oder einklappen. Gemeinsame Kanalabschnitte verwenden dieselbe Einstellung auf jeder Kanalseite."
+"Select every linked member, including hidden channels. Clear every member when all are selected.": "Alle verknüpften Mitglieder einschließlich ausgeblendeter Kanäle auswählen. Alle Mitglieder abwählen, wenn bereits alle ausgewählt sind."
+"Group preference for %channels%. Applies to every member, including hidden channels. Mixed means members differ.": "Gruppeneinstellung für %channels%. Gilt für alle Mitglieder einschließlich ausgeblendeter Kanäle. Gemischt bedeutet, dass Mitglieder unterschiedliche Einstellungen haben."

@@ -4,7 +4,7 @@ import { channelId } from '../lib/channels.js';
 import { t } from '../lib/i18n.js';
 import { linkGroups, linkMark, linkName, linkPlacement } from '../lib/link.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
-import { getChannelView, onChannelView, channelVisible, displayedChannel, visibleRuns } from '../lib/channelview.js';
+import { getChannelView, onChannelView, channelVisible, channelMembers, displayedChannel, visibleRuns } from '../lib/channelview.js';
 
 /** The channel index (0..15) a node shows through its first channel label, 18 for Aux, -1 for none. */
 const channelOf = (node) => {
@@ -23,7 +23,7 @@ const channelOf = (node) => {
  * leave out their own marks.
  */
 export default class extends Controller {
-    static values = { display: Boolean };
+    static values = { display: Boolean, group: Boolean };
     connect() {
         this.shown = null;
         if ('TABLE' === this.element.tagName) {
@@ -61,7 +61,12 @@ export default class extends Controller {
             block.replaceWith(...block.children);
         }
         const channels = [...this.element.children].filter((node) => channelOf(node) >= 0);
-        for (const item of channels) item.hidden = this.displayValue && !displayedChannel(channelOf(item), store.state);
+        for (const item of channels) {
+            const index = channelOf(item);
+            // Preference groups include hidden members so fully hidden groups remain recoverable.
+            item.hidden = (this.displayValue && !displayedChannel(index, store.state))
+                || (this.groupValue && getChannelView().grouped && channelMembers(index, store.state)[0] !== index);
+        }
         // Aux follows visibility but never enters input/output link ordering or blocks.
         const items = channels.filter(node => channelOf(node) < 16);
         if (0 === items.length) {

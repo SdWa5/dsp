@@ -72,12 +72,12 @@ final class EditorControllerTest extends WebTestCase
     {
         $page = self::page();
         self::assertSame('t.racks 8x8 Matrix Editor', $page->filter('title')->text());
-        self::assertCount(23, $page->filter('section.page'));
+        self::assertCount(24, $page->filter('section.page'));
         self::assertCount(7, $page->filter('.tab'));
         // The changed-setting count stays hidden until the state arrives
         self::assertCount(7, $page->filter('.tab > .tab__count[hidden]'));
         self::assertCount(16, $page->filter('.chtab'));
-        self::assertCount(21, $page->filter('dialog'));
+        self::assertCount(20, $page->filter('dialog'));
         foreach ($page->filter('[data-editor-dialog-param]')->each(static fn (Crawler $n): string => (string) $n->attr('data-editor-dialog-param')) as $dialog) {
             self::assertCount(1, $page->filter('dialog#dialog-'.$dialog), \sprintf('No dialog "%s".', $dialog));
         }
@@ -162,8 +162,8 @@ final class EditorControllerTest extends WebTestCase
 
     public function testLinkDisplayOptions(): void
     {
-        // The same settings in the Channels menu and below the Link matrices, each copy with a radio group of its own
-        foreach (['.menu' => 'link-placement', '#dialog-link' => 'link-dialog-placement'] as $scope => $name) {
+        // The same settings on Display Settings and below the Link matrices, each copy with a radio group of its own
+        foreach (['section[data-page=display]' => 'link-display-placement', '#dialog-link' => 'link-dialog-placement'] as $scope => $name) {
             $boxes = self::page()->filter($scope.' input[data-editor-target=linkView]');
             self::assertSame(['code', 'shape', 'colour'], $boxes->each(static fn (Crawler $n): string => (string) $n->attr('value')));
             $radios = self::page()->filter($scope.' input[data-editor-target=linkPlacement]');
@@ -195,8 +195,8 @@ final class EditorControllerTest extends WebTestCase
             // Hidden until the state and the settings show it
             self::assertNotNull($mark->attr('hidden'));
         });
-        // Show the mark and only while it works, once in the Channels menu
-        $settings = self::page()->filter('.menu [data-controller=meterview]');
+        // Show the mark and only while it works, once on Display Settings
+        $settings = self::page()->filter('section[data-page=display] [data-controller=meterview]');
         self::assertCount(1, $settings);
         self::assertSame(['show', 'active'], $settings->filter('input[type=checkbox]')->each(static fn (Crawler $n): string => (string) $n->attr('data-meterview-target')));
         // A view setting, never a write to the device

@@ -268,7 +268,7 @@ export function eqView(mag = true, phase = false) {
 /** The saved view of a plot, key a channel path or "overview". The magnitude alone without one. */
 export function loadEqView(key) {
     const saved = readPref(VIEW_PREF, {})[key] ?? {};
-    return eqView(saved.mag ?? true, saved.phase ?? false);
+    return eqView(typeof saved.mag === 'boolean' ? saved.mag : true, typeof saved.phase === 'boolean' ? saved.phase : false);
 }
 
 export function saveEqView(key, mag, phase) {

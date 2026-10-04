@@ -1,0 +1,94 @@
+{% import 'editor/_widgets.html.twig' as w %}
+{# Browser preferences and section collapse keys stay independent of device state and change counts. #}
+<div class="display-settings" data-controller="displaysettings">
+    <h1 title="{{ 'editor.tip.panel.display'|trans }}">{{ 'Display Settings'|trans }}</h1>
+    <p>{{ 'Display preferences affect this browser only. Channel name edits are device settings.'|trans }}</p>
+    <fieldset class="card" data-display-section="appearance" data-controller="collapse" data-collapse-key-value="display.appearance"><legend class="card__title">{{ w.fold('Appearance', 'display_appearance') }}</legend>
+        <div class="display-settings__choices">
+            <label title="{{ 'editor.tip.display.theme'|trans }}">{{ 'Colour theme'|trans }} <select title="{{ 'editor.tip.display.theme'|trans }}" data-displaysettings-target="theme" data-action="change->displaysettings#theme">
+                {% for key, label in {auto: 'Automatic'|trans, light: 'Light'|trans, dark: 'Dark'|trans} %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+            </select></label>
+            {% set chosen = app.request.cookies.get('trackdsp_locale') %}
+                <label title="{{ 'editor.tip.display.language'|trans }}">{{ 'editor.menu.language'|trans }} <select title="{{ 'editor.tip.display.language'|trans }}" data-action="change->editor#language">
+                    {% for key, label in {auto: 'editor.menu.language_auto'|trans, en: 'English', de: 'Deutsch'} %}
+                        <option value="{{ key }}"{{ (chosen in ['en', 'de'] ? chosen : 'auto') == key ? ' selected' }}>{{ label }}</option>
+                    {% endfor %}
+                </select></label>
+        </div>
+    </fieldset>
+    <fieldset class="card" data-display-section="channels" data-controller="collapse" data-collapse-key-value="display.channels"><legend class="card__title">{{ w.fold('editor.menu.channels', 'display_channels') }}</legend>
+    <div class="display-settings__channels" data-controller="channelview">
+        <h3 title="{{ 'editor.tip.display.visibility'|trans }}">{{ 'Hidden channels'|trans }}</h3>
+        <p>{{ 'Hidden channels remain active. Linked edits still reach hidden members.'|trans }}</p>
+        <div class="channel-visibility">
+            {% for side, title in {inputs: 'Input', outputs: 'Output'} %}
+                <fieldset class="group channel-visibility__side" data-display-side="{{ side }}" data-controller="linkplace selectors" data-selectors-compact-value="true">
+                    <legend>{{ title|trans }} <button type="button" class="toggle" title="{{ ('editor.tip.display.show_' ~ side)|trans }}" data-action="channelview#showSide" data-channelview-side-param="{{ side }}">{{ (side == 'inputs' ? 'Show all input channels' : 'Show all output channels')|trans }}</button></legend>
+                    {% for i in 0..7 %}
+                        {% set index = (side == 'outputs' ? 8 : 0) + i %}
+                        <label class="check" title="{{ 'editor.tip.display.visibility'|trans }}"><input title="{{ 'editor.tip.display.visibility'|trans }}" type="checkbox" value="{{ index }}" checked data-channelview-target="channel" data-action="change->channelview#change">{{ w.ch(index) }}</label>
+                    {% endfor %}
+                </fieldset>
+            {% endfor %}
+            <fieldset class="group channel-visibility__side" data-display-side="aux"><legend>Aux</legend>
+                <label class="check" title="{{ 'editor.tip.display.visibility'|trans }}"><input title="{{ 'editor.tip.display.visibility'|trans }}" type="checkbox" value="18" checked data-channelview-target="channel" data-action="change->channelview#change">{{ w.ch(18) }}</label>
+            </fieldset>
+        </div>
+        <div class="display-settings__row"><label class="check" title="{{ 'editor.tip.display.grouped'|trans }}"><input title="{{ 'editor.tip.display.grouped'|trans }}" type="checkbox" data-channelview-target="grouped" data-action="change->channelview#change">{{ 'One control per link group'|trans }}</label></div>
+        <div class="display-settings__row"><button type="button" class="toggle" title="{{ 'editor.tip.display.show_all'|trans }}" data-action="channelview#showAll">{{ 'Show all channels'|trans }}</button></div>
+    </div>
+        <h3 title="{{ 'editor.tip.name'|trans }}">{{ 'Channel Names'|trans }}</h3>
+        <p>{{ 'Channel names are device settings and are saved with presets. Name edits write to the connected device.'|trans }}</p>
+        {{ include('editor/_channelnames.html.twig', {rows: true}) }}
+    </fieldset>
+    <fieldset class="card" data-display-section="links" data-controller="collapse" data-collapse-key-value="display.links"><legend class="card__title">{{ w.fold('Link Groups', 'display_links') }}</legend>
+        {{ include('editor/_linkview.html.twig', {name: 'link-display-placement', heading: 'link-view__heading', check: 'check'}) }}
+        <h3 title="{{ 'editor.tip.display.group_names'|trans }}">{{ 'editor.link_view.names'|trans }}</h3>
+        <div class="link-names__list link-names__list--rows" data-displaysettings-target="names"></div>
+        <p data-displaysettings-target="namesEmpty">{{ 'No link groups are available. Link channels in the Link dialog to name their group.'|trans }}</p>
+    </fieldset>
+    <fieldset class="card" data-display-section="meters" data-controller="collapse" data-collapse-key-value="display.meters"><legend class="card__title">{{ w.fold('editor.meter_view.title', 'display_meters') }}</legend>
+        {{ include('editor/_meterview.html.twig', {heading: 'link-view__heading', check: 'check'}) }}
+    </fieldset>
+    <fieldset class="card" data-display-section="eq" data-controller="collapse" data-collapse-key-value="display.eq"><legend class="card__title">{{ w.fold('EQ Plots', 'display_eq') }}</legend>
+        <h3 title="{{ 'editor.tip.panel.eq_overview'|trans }}">{{ 'Gain EQ overview'|trans }}</h3>
+        <div class="display-settings__choices">
+            {% for field, title in {mag: 'Mag', phase: 'Phase'} %}
+                <label class="check" title="{{ ('editor.tip.eq_' ~ field)|trans }}"><input title="{{ ('editor.tip.eq_' ~ field)|trans }}" type="checkbox" data-displaysettings-target="eq" data-path="overview" data-field="{{ field }}" data-action="change->displaysettings#eq">{{ title|trans }}</label>
+            {% endfor %}
+        </div>
+        <p>{{ 'Curves selected here remain selected when their channel is hidden globally.'|trans }}</p>
+        <div class="channel-visibility">
+            {% for side, title in {inputs: 'Input', outputs: 'Output'} %}
+                <fieldset class="group channel-visibility__side" data-display-side="{{ side }}" data-controller="linkplace selectors" data-selectors-compact-value="true"><legend>{{ title|trans }}</legend>
+                    {% for i in 0..7 %}<label class="check" title="{{ 'editor.tip.display.overview_channel'|trans }}"><input title="{{ 'editor.tip.display.overview_channel'|trans }}" type="checkbox" value="{{ side }}.{{ i }}" data-displaysettings-target="overview" data-action="change->displaysettings#overview">{{ w.ch(i + (side == 'outputs' ? 8 : 0)) }}</label>{% endfor %}
+                </fieldset>
+            {% endfor %}
+            <fieldset class="group channel-visibility__side" data-display-side="aux"><legend>Aux</legend>
+                <label class="check" title="{{ 'editor.tip.display.overview_channel'|trans }}"><input title="{{ 'editor.tip.display.overview_channel'|trans }}" type="checkbox" value="aux" data-displaysettings-target="overview" data-action="change->displaysettings#overview">{{ w.ch(18) }}</label>
+            </fieldset>
+        </div>
+        <h3 title="{{ 'editor.tip.display.channel_eq'|trans }}">{{ 'Channel EQ plots'|trans }}</h3>
+        <div class="display-settings__eq-list">
+            {% for side in ['inputs', 'outputs', 'aux'] %}
+                <div class="display-settings__eq-side" data-eq-side="{{ side }}"{% if side != 'aux' %} data-controller="linkplace" data-linkplace-group-value="true"{% endif %}>
+                {% for i in 0..(side == 'aux' ? 0 : 7) %}
+                    {% set path = side == 'aux' ? 'aux' : side ~ '.' ~ i %}
+                    <fieldset class="display-settings__eq"><legend>{{ w.ch(side == 'aux' ? 18 : i + (side == 'outputs' ? 8 : 0)) }}<span class="display-settings__eq-group-label" hidden></span></legend>
+                        {% for field, title in {mag: 'Mag', phase: 'Phase', labels: 'Show all filters'} %}
+                            <label class="check" title="{{ ('editor.tip.eq_' ~ field)|trans }}"><input title="{{ ('editor.tip.eq_' ~ field)|trans }}" type="checkbox" data-displaysettings-target="eq" data-path="{{ path }}" data-field="{{ field }}" data-action="change->displaysettings#eq">{{ title|trans }}</label>
+                        {% endfor %}
+                    </fieldset>
+                {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </fieldset>
+    <fieldset class="card" data-display-section="matrix" data-controller="collapse" data-collapse-key-value="display.matrix"><legend class="card__title">{{ w.fold('editor.tabs.matrix', 'display_matrix') }}</legend>
+        <label class="check" title="{{ 'editor.tip.display.matrix'|trans }}"><input title="{{ 'editor.tip.display.matrix'|trans }}" type="checkbox" data-displaysettings-target="matrix" data-action="change->displaysettings#matrix">{{ 'Inputs as matrix rows'|trans }}</label>
+    </fieldset>
+    <fieldset class="card" data-display-section="panels" data-controller="collapse" data-collapse-key-value="display.panels"><legend class="card__title">{{ w.fold('Panels', 'display_panels') }}</legend>
+        <p>{{ 'Checked panels are expanded. Shared channel sections use the same preference on every channel page.'|trans }}</p>
+        <div class="display-settings__panels" data-displaysettings-target="panels"></div>
+    </fieldset>
+</div>

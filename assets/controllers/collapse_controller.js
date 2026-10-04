@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus';
-import { readPref, writePref } from '../lib/prefs.js';
+import { readPref, onPref } from '../lib/prefs.js';
+import { setPanelCollapsed } from '../lib/displayprefs.js';
 
 const KEY = 'collapsed';
 
@@ -13,26 +14,17 @@ export default class extends Controller {
 
     connect() {
         this.apply(true === readPref(KEY, {})[this.keyValue]);
+        this.offPrefs = onPref(KEY, () => this.apply(true === readPref(KEY, {})[this.keyValue]));
     }
 
-    toggle() {
-        const collapsed = !this.element.classList.contains('is-collapsed');
-        this.apply(collapsed);
-        const all = readPref(KEY, {});
-        if (collapsed) {
-            all[this.keyValue] = true;
-        } else {
-            delete all[this.keyValue];
-        }
-        writePref(KEY, all);
-        if (!collapsed) {
-            // Canvases measure themselves on resize, and were 0 wide while folded
-            window.dispatchEvent(new Event('resize'));
-        }
-    }
+    disconnect() { this.offPrefs?.(); }
+
+    toggle() { setPanelCollapsed(this.keyValue, !this.element.classList.contains('is-collapsed')); }
 
     apply(collapsed) {
+        const reopening = !collapsed && this.element.classList.contains('is-collapsed');
         this.element.classList.toggle('is-collapsed', collapsed);
         this.toggleTargets.forEach((button) => button.setAttribute('aria-expanded', String(!collapsed)));
+        if (reopening) window.dispatchEvent(new Event('resize'));
     }
 }
