@@ -46,6 +46,10 @@ editor:
         stacked: Stacked per link group
         names: Group names
         no_groups: No link groups yet. Link channels above to name their group.
+        matrix: Link matrix
+        matrix_lower: Lower half
+        matrix_upper: Upper half
+        matrix_full: Full matrix
     meter_view:
         title: Meters
         show: Show gate/comp threshold
@@ -91,6 +95,9 @@ editor:
             placement_normal: "Keep channels in their original numerical order."
             placement_side: "Place linked channel members next to each other while retaining individual channel controls."
             placement_stacked: "Gather linked members under one group heading with its name, icon and colour. Tall processing strips remain side by side."
+            link_matrix_lower: "Show each channel pair of the Link dialog once, below the diagonal, with the column headers under the matrix. A lit cell takes the later channel of its pair out of its group."
+            link_matrix_upper: "Show each channel pair of the Link dialog once, above the diagonal, with the row headers on the right. A lit cell takes the later channel of its pair out of its group."
+            link_matrix_full: "Show the full Link dialog matrix with both halves. A lit cell takes its column channel out of its group."
             group_names: "Give each link group a browser-only name of up to 12 characters. Leave it empty to use the group code. Device channel names and link assignments remain unchanged."
             overview_channel: "Include this channel curve in the Gain EQ overview. Its selection is kept while the channel is hidden globally and returns when the channel is shown again."
             channel_eq: "Set magnitude, phase and filter-label visibility independently for every channel plot, including globally hidden channels."
@@ -194,7 +201,7 @@ editor:
             display: "Configure browser appearance, channels, links, meters, plots, matrix orientation and panel expansion."
             display_appearance: "Choose the browser colour theme and editor language. The language choice reloads the editor."
             display_channels: "Choose channel visibility and grouped controls. Hidden channels remain active. Channel-name fields below edit device settings."
-            display_links: "Configure link-group marks, placement and browser names. Edit link membership in the Link dialog."
+            display_links: "Configure link-group marks, placement, the Link matrix layout and browser names. Edit link membership in the Link dialog. The corner button of the Link matrix updates the same browser preference."
             display_meters: "Choose whether meters show gate or compressor threshold marks and whether inactive thresholds are hidden."
             display_eq: "Choose overview curves and magnitude, phase and filter labels for channel plots. These preferences change no audio processing."
             display_matrix: "Choose the matrix orientation. The corner button on the Matrix page updates the same browser preference."

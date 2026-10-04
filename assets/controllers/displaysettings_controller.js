@@ -2,7 +2,7 @@ import { Controller } from '@hotwired/stimulus';
 import { store } from '../lib/device.js';
 import { readPref, writePref, onPref } from '../lib/prefs.js';
 import { getLinkView, setLinkView, onLinkView } from '../lib/linkview.js';
-import { linkGroups, linkMark, linkName } from '../lib/link.js';
+import { linkGroups, linkMark, linkMatrixLayout, linkName } from '../lib/link.js';
 import { getChannelView, onChannelView } from '../lib/channelview.js';
 import { channelId } from '../lib/channels.js';
 import { renderLinkNames } from '../lib/linknames.js';
@@ -12,11 +12,11 @@ import { t } from '../lib/i18n.js';
 
 /** The complete browser display overview. Local shortcuts share preferences; no action sends a device write. */
 export default class extends Controller {
-    static targets = ['theme', 'matrix', 'eq', 'overview', 'separated', 'panels', 'names', 'namesEmpty'];
+    static targets = ['theme', 'matrix', 'linkMatrix', 'eq', 'overview', 'separated', 'panels', 'names', 'namesEmpty'];
 
     connect() {
         this.buildPanels();
-        this.offs = [onPref(['theme', 'matrix-swapped', 'eq-view', 'eq-filter-labels', 'eq-overview-hidden', 'eq-overview-separated', 'collapsed'], () => this.render()),
+        this.offs = [onPref(['theme', 'matrix-swapped', 'link-matrix-layout', 'eq-view', 'eq-filter-labels', 'eq-overview-hidden', 'eq-overview-separated', 'collapsed'], () => this.render()),
             onLinkView(() => this.render()), onChannelView(() => this.render()), store.subscribe(() => this.render())];
         this.render();
     }
@@ -25,6 +25,8 @@ export default class extends Controller {
         const theme = readPref('theme', 'auto');
         this.themeTarget.value = ['auto', 'light', 'dark'].includes(theme) ? theme : 'auto';
         this.matrixTarget.checked = readPref('matrix-swapped', false);
+        const layout = linkMatrixLayout(readPref('link-matrix-layout', 'lower'));
+        this.linkMatrixTargets.forEach(radio => { radio.checked = radio.value === layout; });
         this.separatedTarget.checked = overviewSeparated();
         for (const box of this.eqTargets) {
             const paths = eqPreferencePaths(box.dataset.path, store.state, getChannelView().grouped);
@@ -47,6 +49,7 @@ export default class extends Controller {
     }
     theme() { writePref('theme', this.themeTarget.value); }
     matrix() { writePref('matrix-swapped', this.matrixTarget.checked); }
+    linkMatrix(event) { writePref('link-matrix-layout', linkMatrixLayout(event.target.value)); }
     separate() { setOverviewSeparated(this.separatedTarget.checked); }
     eq(event) {
         const { path, field } = event.target.dataset;

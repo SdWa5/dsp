@@ -153,7 +153,7 @@ meter controls and the old channel-display modal have been replaced by the page.
 
 The page contains Appearance, Channels, Link Groups, Meters, EQ Plots, Matrix and Panels, in that order. Appearance
 sets theme and language using the existing theme key and locale cookie. Link Groups also edits browser group
-names with existing length and identity rules and shared colour/icon marks; link assignments stay in the Link dialog. EQ Plots shows overview
+names with existing length and identity rules and shared colour/icon marks, and chooses the Link matrix layout (lower half, upper half or full matrix) through the same `link-matrix-layout` preference as the matrix corner button; link assignments stay in the Link dialog. EQ Plots shows overview
 magnitude/phase and curve selection plus independent magnitude/phase/filter labels for all 17 channels, including
 hidden channels. Hidden channels has its own heading. Visibility and Gain EQ overview use Input, Output and Aux
 columns, matching Channel EQ plots and stacking on narrow screens. Grouping and Show all have separate rows. Input and output EQ controls follow shared link placement and use one group heading when
