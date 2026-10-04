@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { Store } from '../lib/store.js';
 import { linkedMembers } from '../lib/link.js';
-import { isChanged } from '../lib/defaults.js';
+import { factoryValue, isChanged } from '../lib/defaults.js';
 import { setMaskBits } from '../lib/channelview.js';
 
 // Exercise aggregate selectors through the real bound-control command resolver and store notifications.
@@ -12,8 +12,8 @@ const body = path => readFileSync(new URL(path, import.meta.url), 'utf8')
 function editor(state) {
     const store = new Store(); store.replace(state);
     const writes = [];
-    const Bound = new Function('Controller', 'store', 'send', 'getDefaults', 'getLabels', 'linkedMembers', 'isChanged', 'format',
-        body('../lib/bound_controller.js'))(class {}, store, commands => writes.push(...commands), () => state, () => ({}), linkedMembers, isChanged, () => '');
+    const Bound = new Function('Controller', 'store', 'send', 'getDefaults', 'getLabels', 'linkedMembers', 'isChanged', 'format', 'factoryValue',
+        body('../lib/bound_controller.js'))(class {}, store, commands => writes.push(...commands), () => state, () => ({}), linkedMembers, isChanged, () => '', factoryValue);
     const Selector = new Function('Controller', 'setMaskBits', 'history', body('../controllers/selectors_controller.js'))(class {}, setMaskBits, { begin() {}, end() {} });
     const aggregate = new Selector(); aggregate.render = () => {};
     const widgets = new Map();

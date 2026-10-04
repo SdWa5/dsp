@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { Store } from '../lib/store.js';
 import { linkedMembers } from '../lib/link.js';
-import { isChanged } from '../lib/defaults.js';
+import { factoryValue, isChanged } from '../lib/defaults.js';
 
 // Exercise the real shared toggle/write workflow with an isolated store and command sink.
 const body = (path) => readFileSync(new URL(path, import.meta.url), 'utf8')
@@ -13,9 +13,9 @@ function editor(state) {
     store.replace(state);
     const defaults = structuredClone(state);
     const writes = [];
-    const Bound = new Function('Controller', 'store', 'send', 'getDefaults', 'getLabels', 'linkedMembers', 'isChanged', 'format',
+    const Bound = new Function('Controller', 'store', 'send', 'getDefaults', 'getLabels', 'linkedMembers', 'isChanged', 'format', 'factoryValue',
         body('../lib/bound_controller.js'))(class {}, store, (commands) => writes.push(...commands), () => defaults,
-        () => ({}), linkedMembers, isChanged, () => '');
+        () => ({}), linkedMembers, isChanged, () => '', factoryValue);
     const Toggle = new Function('BoundController', 't', 'isChanged', 'getDefaults', 'store', 'GAIN_MUTED',
         body('../controllers/toggle_controller.js'))(Bound, (text) => text, isChanged, () => defaults, store, 0);
     const controls = [];
@@ -25,7 +25,7 @@ function editor(state) {
             sendValue: [{ command: 'routing', args: { channel, mask: '@' + bind } }] });
         const classes = new Set();
         widget.element = { disabled: false, title: '', querySelectorAll: () => [], matches: () => true,
-            classList: { toggle(name, on) { on ? classes.add(name) : classes.delete(name); } },
+            classList: { toggle(name, on) { on ? classes.add(name) : classes.delete(name); }, contains: (name) => classes.has(name) },
             setAttribute() {} };
         widget.connect();
         controls.push(widget);
@@ -64,6 +64,25 @@ test('all shared Aux views synchronize each boundary bit and preserve the remain
         assert.ok(views.every(({ widget }) => widget.element.disabled));
         const count = writes.length;
         views[0].widget.click();
+        assert.equal(writes.length, count);
+    } finally {
+        close();
+    }
+});
+
+test('the changed mark resets one routing bit and keeps the rest of the mask', () => {
+    const state = { aux: { select: 0 }, outputs: [{ route: 0b0101, link: 0 }] };
+    const { store, writes, toggle, close } = editor(state);
+    try {
+        const { widget } = toggle('outputs.0.route', 1, 8);
+        store.set('outputs.0.route', 0b1110);
+        store.notify();
+        assert.equal(widget.canReset(), true);
+        widget.resetToDefault();
+        assert.equal(store.get('outputs.0.route'), 0b1100);
+        assert.deepEqual(writes.at(-1), { command: 'routing', args: { channel: 8, mask: 0b1100 } });
+        const count = writes.length;
+        widget.resetToDefault();
         assert.equal(writes.length, count);
     } finally {
         close();

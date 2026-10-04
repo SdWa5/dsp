@@ -184,6 +184,11 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   their defaults and read without colour. An input gain counts from 0 dB, not from the factory's muting bottom
   step, and link groups never count. Display Settings > Changed settings switches the marks and the counts off,
   each on its own, per browser.
+- A click on a changed mark resets what it marks to the factory default. The bar of a field resets that field at
+  once, and linked channels follow. The triangle of a channel tab resets the channel with its linked channels,
+  and the bar of a page tab resets that page on every channel, hidden ones included. Both ask first and say how
+  many settings change. Names and link groups are never reset. Every reset is one undo step. On touch a tap on
+  the left edge of a field hits its bar.
 - Hovering a control shows what it does and its unit, in English or German. Every fader, switch and list shows
   the same tooltip on every page and in every dialog. Every section and dialog title says what the section holds,
   and the ones with abbreviations spell them out, for example FBQ, HPF, LPF, PEQ, Sub Control and Group Control.

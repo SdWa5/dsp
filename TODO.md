@@ -89,17 +89,6 @@ also postponed. Any additional form proven to need a connection belongs here.
 - Consider moving the Aux page button from the function-page header to the channel selector, between the
   input and output channels. Review the placement with the Matrix and Sub Control Aux changes before
   deciding whether to move it.
-- Reset a setting to its factory default by clicking its changed mark. A double-click on a fader already does
-  this for one value (`reset()` in `fader_controller.js`, `resetFader()` in `peq_controller.js`), and the PEQ's
-  EQ Reset asks before it resets every band of a channel. A click on the mark of a field resets that field
-  without asking, through the same write as the double-click, so linked channels follow it. Wherever a mark
-  stands for a clear set of settings, a click on it resets that set. The mark on a function page tab covers that
-  page on the current channel, and the mark on a channel tab covers the whole channel. A big reset such as a
-  whole channel asks first, and the question names how many settings it changes and which linked channels it
-  reaches as well. Decide where the line lies for a page tab, and where a reset makes no sense, for example on
-  the channel name. Today the mark on a field is a `box-shadow` and cannot be clicked on its own, so it needs a
-  hit area of its own, a pointer cursor and a tooltip that says a click resets it. With the marks switched
-  off, the double-click stays the way to reset a value
 - Link crossover points between outputs, so that a frequency set on one filter also lands on its partner, for
   example the HighPass of Out1 on the LowPass of Out2. Every pair links the frequency, and optionally the slope
   as well, which keeps the two sides of a crossover the same type and order, for example Linkwitz-Riley 24 on

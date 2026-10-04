@@ -33,6 +33,21 @@ export function isChanged(state, defaults, path, bit = -1) {
 }
 
 /**
+ * The value a reset writes at path: the factory value, or with bit >= 0 the current mask with only that bit taken
+ * from the factory. Null where there is no default.
+ */
+export function factoryValue(defaults, path, current, bit = -1) {
+    const factory = getPath(defaults, path);
+    if (undefined === factory || null === factory) {
+        return null;
+    }
+    if (bit >= 0) {
+        return ((current ?? 0) & ~(1 << bit)) | (factory & (1 << bit));
+    }
+    return factory;
+}
+
+/**
  * Every leaf path below node that differs from defaultNode, prefixed with prefix. Link membership is left out.
  */
 export function changedPaths(node, defaultNode, prefix = '') {

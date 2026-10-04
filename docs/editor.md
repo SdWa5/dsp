@@ -398,6 +398,23 @@ The comparison deviates from the factory file in two places. `getDefaults()` ret
 `changedPaths()` and `isChanged()` skip `link`, since link membership groups channels rather than setting them.
 `src/Model/FactoryDefaults.php` stays a plain reading of the factory file.
 
+A click on a mark resets what it marks (`changes_controller.js` on `.editor`, with the pure plans in
+`assets/lib/reset.js`). Over a changed field a floating `button.changed-mark` covers the bar. It moves into an
+open `<dialog>` when the field is in one, because a dialog covers the page. Its click resets the field through
+the widget's own write, `resetToDefault()` of a bound widget or `resetField()` of the PEQ, so linked channels
+follow as on any edit. A bound widget offers it only when it sends a command and binds no name or link
+(`canReset()`), and a mask bit resets only its own bit (`factoryValue()`). The triangle of a channel tab
+(`.chtab__changed.is-resettable`) resets the channel and its linked channels, except the routing, which only the
+clicked output resets (`channelReset()`). The bar of a page tab (`.tab.is-resettable .tab__mark`) resets every
+setting that page counts, on every channel (`pageReset()`). Both ask through `window.confirm` with the count. A
+capture-phase click listener takes these clicks before `editor#tab`. A mark that covers names only stays visible
+but is not resettable. The bulk resets write the store once and send one command per unit of the
+`#trackdsp-history` registry (`resetCommands()`, `getUnits()` in `device.js`), the same registry the undo replay
+uses, and `HistoryPatchTest` checks that every factory default but names and links has such a unit. Every reset is
+one history entry, "Reset setting", "Reset channel" or "Reset page". Nothing reacts while the marks are off,
+offline or during a replay. On touch, where nothing hovers, a tap within 12 px of a changed field's left edge
+counts as a click on its bar.
+
 Display Settings > Changed settings holds two switches, kept per browser under `trackdsp-changed-view` by
 `assets/lib/changeview.js`. "Mark changed settings" covers the bar on a field (`.is-changed`), the triangle on a
 channel tab (`.chtab__changed`) and the bar on a page tab (`.tab__mark`). "Count changed settings" covers the
