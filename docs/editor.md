@@ -175,7 +175,7 @@ rebuilding focused fields; aggregate selectors explain how selecting or clearing
 keep a session copy even when storage is unavailable or throws. `displayprefs.js` shares EQ-label, overview and
 collapse updates. Group EQ edits notify once per preference key and preserve other fields and channels.
 Controllers subscribe so edits on the page and local shortcuts agree immediately. Theme,
-language, plots, Link-dialog display controls, matrix swap and panel headers remain shortcuts.
+language, plots, Link-dialog display controls, matrix swap, the Link matrix layout and panel headers remain shortcuts.
 Browser-only EQ choices and panel headers remain editable offline while processing controls stay disabled. A language change
 retains its existing reload behavior. Group-name fields rebuild on membership changes rather than meter updates
 and retain focus while typing. No preference action sends a device command or changes saved preset content. Channels also includes all 17

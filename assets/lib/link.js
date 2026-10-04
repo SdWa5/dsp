@@ -222,6 +222,54 @@ export function toggleLink(groups, row, column) {
 }
 
 /**
+ * The layouts of the Link matrix, switched by its corner button: the lower half with the column headers below it,
+ * the same half mirrored on the diagonal (upper half, row headers on the right), and the full matrix.
+ */
+export const LINK_MATRIX_LAYOUTS = ['lower', 'upper', 'full'];
+
+/** A Link matrix layout from what a browser stored, the lower half when it is none. */
+export function linkMatrixLayout(stored) {
+    return LINK_MATRIX_LAYOUTS.includes(stored) ? stored : 'lower';
+}
+
+/**
+ * Whether the Link matrix shows cell (row, column) in a layout. order: the channel indices in display order, as
+ * linkPlacement returns it. A half shows each channel pair once and leaves the diagonal out.
+ */
+export function linkCellShown(order, row, column, layout) {
+    if ('full' === layout) {
+        return true;
+    }
+    const [r, c] = [order.indexOf(row), order.indexOf(column)];
+    return 'upper' === layout ? r < c : r > c;
+}
+
+/**
+ * A click on cell (row, column) in a layout. The full matrix keeps the rule of toggleLink. A half has one cell
+ * per pair, so a lit cell takes the later channel of the pair out of its group. The members of a group stand in
+ * index order in every placement, so the later one is the higher index.
+ */
+export function toggleLinkCell(groups, row, column, layout) {
+    return 'full' === layout ? toggleLink(groups, row, column) : toggleLink(groups, Math.min(row, column), Math.max(row, column));
+}
+
+/** The channels a channel is linked with, as a sorted key. */
+const partners = (groups, i) => groups.flatMap((g, k) => (0 !== g && g === groups[i] && k !== i ? [k] : [])).join(',');
+
+/**
+ * The channels a click on cell (row, column) would change: every channel whose partners differ afterwards. That
+ * covers two groups merging, a member leaving and a group dissolving alike. With column undefined (a header), the
+ * channel row and the other members of its group.
+ */
+export function linkFocus(groups, row, column, layout) {
+    if (undefined === column || row === column) {
+        return groups.flatMap((g, k) => (k === row || (0 !== g && g === groups[row]) ? [k] : []));
+    }
+    const next = toggleLinkCell(groups, row, column, layout);
+    return groups.flatMap((_g, k) => (partners(groups, k) !== partners(next, k) ? [k] : []));
+}
+
+/**
  * How a section with one item per channel of a side places its items: `order` lists the channel indices in display
  * order, and `blocks` the link groups that form a block of their own (only when stacked). In channel order
  * nothing moves, side by side and stacked put the members of a group next to each other.

@@ -163,6 +163,51 @@ try {
         const outputNamesBox = await linkNames.locator('[data-names-side=outputs]').boundingBox();
         assert.ok(outputNamesBox.y >= inputNamesBox.y + inputNamesBox.height);
         await linkNames.screenshot({ path: `/tmp/trackdsp-link-group-name-rows-${width}.png` });
+        // Link matrix: aligned cells, gaps around groups only, and the corner cycling lower half, upper half, full matrix.
+        const linkPlacementBefore = await page.locator('#dialog-link input[data-editor-target=linkPlacement]:checked').getAttribute('value');
+        const inputMatrix = page.locator('#dialog-link table[data-side=inputs]');
+        const matrixLayout = () => inputMatrix.evaluate(table => {
+            const head = table.tHead.rows[0];
+            const rows = [...table.tBodies[0].rows];
+            // A stacked group merges its row headers into its first row
+            const rowTh = rows.map(row => row.querySelector('th[scope=row]')).find(th => !th.hidden);
+            const cell = rowTh.parentElement.querySelector('td');
+            return {
+                layout: table.dataset.layout,
+                cells: table.querySelectorAll('td:not(.is-masked) .link-cell:not(:disabled)').length,
+                headBelow: head.getBoundingClientRect().top > table.tBodies[0].getBoundingClientRect().top,
+                rowHeadRight: rowTh.getBoundingClientRect().left > cell.getBoundingClientRect().left,
+                misaligned: rows.filter(row => new Set([...row.querySelectorAll('td:not(.is-masked) .link-cell:not(:disabled)')]
+                    .map(button => Math.round(button.getBoundingClientRect().top))).size > 1).length,
+                gaps: [...head.querySelectorAll('th.is-unit-start')].map(th => Number(th.dataset.index)),
+                // A header at a gap starts where its column's buttons start
+                gapOffsets: [...head.querySelectorAll('th.is-unit-start')].map(th => Math.round(th.getBoundingClientRect().left + parseFloat(getComputedStyle(th).borderLeftWidth)
+                    - table.querySelector(`tbody td[data-index="${th.dataset.index}"] .link-cell`).getBoundingClientRect().left)),
+            };
+        });
+        const expectedLayouts = { lower: [28, true, false], upper: [28, false, true], full: [56, false, false] };
+        for (const layout of ['lower', 'upper', 'full']) {
+            for (const placement of ['normal', 'side', 'stacked']) {
+                await page.locator(`#dialog-link input[data-editor-target=linkPlacement][value=${placement}]`).check();
+                const seen = await matrixLayout();
+                assert.deepEqual([seen.layout, seen.cells, seen.headBelow, seen.rowHeadRight], [layout, ...expectedLayouts[layout]]);
+                assert.equal(seen.misaligned, 0);
+                // In1 + In3 stacked: a gap before In2 only, never between channels alone
+                assert.deepEqual(seen.gaps, placement === 'stacked' ? [1] : []);
+                assert.ok(seen.gapOffsets.every(offset => Math.abs(offset) <= 1));
+            }
+            await inputMatrix.locator('.matrix__corner').click();
+            assert.equal(await inputMatrix.locator('.matrix__corner').evaluate(button => document.activeElement === button), true);
+        }
+        assert.equal(await inputMatrix.getAttribute('data-layout'), 'lower');
+        // Pointing at an empty cell fades every channel that a click there would not change
+        await page.locator(`#dialog-link input[data-editor-target=linkPlacement][value=normal]`).check();
+        await inputMatrix.locator('.link-cell[data-row="3"][data-column="1"]').hover();
+        assert.deepEqual(await inputMatrix.locator('th.is-focus').evaluateAll(nodes => nodes.map(th => th.dataset.index).sort()), ['1', '1', '3', '3']);
+        assert.equal(await page.locator('#dialog-link .link-matrices').evaluate(box => box.classList.contains('has-link-focus')), true);
+        await page.locator('#dialog-link .dialog__note').hover();
+        assert.equal(await page.locator('#dialog-link .link-matrices').evaluate(box => box.classList.contains('has-link-focus')), false);
+        await page.locator(`#dialog-link input[data-editor-target=linkPlacement][value=${linkPlacementBefore}]`).check();
         await page.locator('#dialog-link .dialog__close').click();
         assert.equal(writes.length, 0);
         await detailHeading.screenshot({ path: `/tmp/trackdsp-group-detail-title-${width}.png` });

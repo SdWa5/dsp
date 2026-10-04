@@ -341,11 +341,11 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 /* The head spans the padding as well, which its negative margin alone does not do in a wrapping row */
 .strips > .link-block > .link-block__head { flex-basis: calc(100% + 6px); }
 .eq-overview__side > .link-block, .checks > .link-block { gap: 2px; }
-/* Routing matrix, stacked: a gap before every further link group */
-.matrix:not(.link-matrix) tr.is-unit-start > td { padding-top: 10px; }
-.matrix:not(.link-matrix) td.is-unit-start { padding-left: 10px; }
-.matrix:not(.link-matrix) tr.is-unit-start > th { border-top: 10px solid transparent; background-clip: padding-box; }
-.matrix:not(.link-matrix) th.is-unit-start { border-left: 10px solid transparent; background-clip: padding-box; }
+/* Routing and Link matrix, stacked: a gap at a link group. A header keeps its background out of the gap */
+.matrix tr.is-unit-start > td { padding-top: 10px; }
+.matrix td.is-unit-start { padding-left: 10px; }
+.matrix tr.is-unit-start > th { border-top: 10px solid transparent; background-clip: padding-box; }
+.matrix th.is-unit-start { border-left: 10px solid transparent; background-clip: padding-box; }
 .strip__title .ch { justify-content: center; }
 .ch--big { font-size: 18px; }
 .ch--big .ch__name { color: var(--muted); }
@@ -619,13 +619,18 @@ details.card[open] > summary { border-bottom: 1px solid var(--panel-edge); }
 .link-matrices .matrix-wrap { flex: 1 1 420px; padding: 4px; }
 .link-cell { min-width: 44px; height: 30px; font-size: 11px; font-weight: 700; }
 .link-cell:disabled { visibility: hidden; }
-.link-cell { display: inline-flex; align-items: center; justify-content: center; gap: 3px; }
+/* Block-level, so a lit cell with its text and an empty one share the top edge rather than a baseline */
+.link-cell { display: flex; align-items: center; justify-content: center; gap: 3px; }
 .link-cell.is-on:not(:empty)::after { content: none; }
-/* Stacked: a link group is a block with one header naming its members, and a gap before each further group */
+/* Stacked: a link group is a block with one header naming its members */
 .link-matrix th.is-merged .ch { display: flex; }
 .link-matrix th.is-merged { vertical-align: middle; }
-.link-matrix tr.is-unit-start > * { padding-top: 10px; }
-.link-matrix :is(td, th).is-unit-start { padding-left: 10px; }
+/* A half shows each channel pair once. The lower half has its column headers below it, the upper half its row
+   headers on the right. A hidden cell keeps its column in place */
+.link-matrix[data-layout='lower'] thead { display: table-footer-group; }
+.link-matrix td.is-masked { visibility: hidden; }
+/* Pointing at a cell or header fades every channel a click there would not change */
+.has-link-focus .link-matrix :is(td, th[data-index]):not(.is-focus) { opacity: 0.35; }
 .link-view { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin: 0; padding: 8px 0 0; border: 0; }
 .link-view__heading { flex-basis: 100%; color: var(--muted); font-size: 11px; }
 /* A name field per link group being edited, the code as placeholder */

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { lcm, linkCommands, linkGaps, linkGroups, linkLayout, linkMark, linkName, linkNameKey, linkPlacement, linkRuns, linkUnits, linkedMembers, linkOrder, linkView, toggleLink } from '../lib/link.js';
+import { LINK_MATRIX_LAYOUTS, lcm, linkCellShown, linkCommands, linkFocus, linkGaps, linkGroups, linkLayout, linkMark, linkMatrixLayout, linkName, linkNameKey, linkPlacement, linkRuns, linkUnits, linkedMembers, linkOrder, linkView, toggleLink, toggleLinkCell } from '../lib/link.js';
 
 // An unlinked channel holds its own bit (factory default 1, 2, 4 …), a slave holds 0
 const side = (...links) => [0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ link: links[i] ?? 1 << i }));
@@ -152,4 +152,52 @@ test('a group name replaces the code, escaped, and stays with the group by its l
     assert.equal(linkMark(view, 1, 'Stage <L>'), '<span class="link-label" title="Stage &#60;L&#62;">Stage &#60;L&#62;</span>');
     assert.equal(linkMark({ ...view, shape: true }, 1, 'Stage'), '<span class="link-label" title="Stage">Stage</span><span class="link-shape" data-shape="1" aria-hidden="true"></span>');
     assert.equal(linkMark({ ...view, code: false }, 1, 'Stage'), '');
+});
+
+test('a Link matrix layout falls back to the lower half', () => {
+    assert.deepEqual(LINK_MATRIX_LAYOUTS, ['lower', 'upper', 'full']);
+    assert.equal(linkMatrixLayout('upper'), 'upper');
+    assert.equal(linkMatrixLayout('full'), 'full');
+    assert.equal(linkMatrixLayout(undefined), 'lower');
+    assert.equal(linkMatrixLayout('diagonal'), 'lower');
+});
+
+test('each half shows every channel pair once, by display position, and mirrors the other', () => {
+    const order = linkPlacement([1, 0, 2, 1, 0, 2, 2, 0], 'side').order;
+    const cells = (layout) => order.flatMap((row) => order.filter((column) => linkCellShown(order, row, column, layout)).map((column) => [row, column]));
+    assert.equal(cells('lower').length, 28);
+    assert.equal(cells('upper').length, 28);
+    assert.equal(cells('full').length, 64);
+    assert.deepEqual(cells('upper').map(([r, c]) => `${c},${r}`).sort(), cells('lower').map(([r, c]) => `${r},${c}`).sort());
+    for (const layout of ['lower', 'upper']) {
+        assert.ok(order.every((i) => !linkCellShown(order, i, i, layout)));
+    }
+    // Side by side puts In4 (3) right after In1 (0): the lower half has the cell in In4's row
+    assert.equal(linkCellShown(order, 3, 0, 'lower'), true);
+    assert.equal(linkCellShown(order, 3, 1, 'lower'), false);
+});
+
+test('a lit cell of a half takes the later channel out, the full matrix the column channel', () => {
+    const groups = [0, 0, 0, 0, 1, 0, 1, 1];
+    // The lower half has no cell in In8's column, yet In8 leaves through its row
+    assert.deepEqual(toggleLinkCell(groups, 7, 4, 'lower'), [0, 0, 0, 0, 1, 0, 1, 0]);
+    assert.deepEqual(toggleLinkCell(groups, 4, 7, 'upper'), [0, 0, 0, 0, 1, 0, 1, 0]);
+    assert.deepEqual(toggleLinkCell(groups, 7, 4, 'full'), toggleLink(groups, 7, 4));
+    assert.deepEqual(toggleLinkCell(groups, 7, 4, 'full'), [0, 0, 0, 0, 0, 0, 1, 1]);
+    // An empty cell links in every layout
+    assert.deepEqual(toggleLinkCell(groups, 2, 0, 'lower'), [1, 0, 1, 0, 2, 0, 2, 2]);
+});
+
+test('the focus of a cell names every channel a click would change', () => {
+    const groups = [1, 0, 1, 0, 2, 0, 2, 2];
+    // Linking In2 into In1 + In3 changes all three
+    assert.deepEqual(linkFocus(groups, 1, 0, 'lower'), [0, 1, 2]);
+    // Merging two groups changes all five
+    assert.deepEqual(linkFocus(groups, 4, 0, 'upper'), [0, 2, 4, 6, 7]);
+    // In8 leaving In5 + In7 + In8 changes all three, a pair dissolving both
+    assert.deepEqual(linkFocus(groups, 7, 6, 'lower'), [4, 6, 7]);
+    assert.deepEqual(linkFocus(groups, 2, 0, 'lower'), [0, 2]);
+    // A header names its channel and its group
+    assert.deepEqual(linkFocus(groups, 6), [4, 6, 7]);
+    assert.deepEqual(linkFocus(groups, 3), [3]);
 });

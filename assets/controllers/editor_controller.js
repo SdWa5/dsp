@@ -4,7 +4,7 @@ import { api, getDefaults, listen, on, send, status, store, history } from '../l
 import { changedPaths, pageChanges } from '../lib/defaults.js';
 import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel } from '../lib/channels.js';
-import { lcm, linkCommands, linkGroups, linkedMembers, linkMark, linkName, linkUnits, toggleLink } from '../lib/link.js';
+import { LINK_MATRIX_LAYOUTS, lcm, linkCellShown, linkCommands, linkFocus, linkGaps, linkGroups, linkedMembers, linkMark, linkMatrixLayout, linkName, linkUnits, toggleLinkCell } from '../lib/link.js';
 import { GAIN_MUTED, presetLabel, presetSlotInfo } from '../lib/scale.js';
 import { readPref, writePref, onPref } from '../lib/prefs.js';
 import { getLinkView, setLinkView, onLinkView } from '../lib/linkview.js';
@@ -13,6 +13,12 @@ import { getChannelView, onChannelView, setChannelView, channelVisible, represen
 import { renderLinkNames } from '../lib/linknames.js';
 
 const THEMES = ['auto', 'light', 'dark'];
+/** The corner button of the Link matrix: the glyph and title of each layout. */
+const LINK_MATRIX_CORNER = {
+    lower: ['◣ ⇄', 'Lower half, click for the upper half'],
+    upper: ['◥ ⇄', 'Upper half, click for the full matrix'],
+    full: ['▦ ⇄', 'Full matrix, click for the lower half'],
+};
 /** The changed-setting tooltip remains independent of browser display preferences. */
 const changedText = (count) => t(1 === count
     ? "%count% setting differs from the factory default"
@@ -30,6 +36,7 @@ export default class extends Controller {
         const theme = readPref('theme', 'auto');
         this.applyTheme(THEMES.includes(theme) ? theme : 'auto');
         this.showMatrix(readPref('matrix-swapped', false));
+        this.linkMatrixLayout = linkMatrixLayout(readPref('link-matrix-layout', 'lower'));
         this.linkViewSettings = { ...getLinkView() };
         this.showLinkViewSettings();
         this.offs = [
@@ -39,6 +46,7 @@ export default class extends Controller {
             onChannelView(() => { this.showState(); this.show(this.currentPage); }),
             onPref('theme', () => { const theme = readPref('theme', 'auto'); this.applyTheme(THEMES.includes(theme) ? theme : 'auto'); }),
             onPref('matrix-swapped', () => this.showMatrix(readPref('matrix-swapped', false))),
+            onPref('link-matrix-layout', () => { this.linkMatrixLayout = linkMatrixLayout(readPref('link-matrix-layout', 'lower')); if (this.linkDraft) this.showLinkDialog(); }),
             onLinkView(() => { this.linkViewSettings = { ...getLinkView() }; this.showLinkViewSettings(); this.showState(); if (this.linkDraft) this.showLinkDialog(); }),
         ];
         const page = window.location.hash.slice(1);
@@ -250,7 +258,8 @@ export default class extends Controller {
     /**
      * The Link matrix of each side from the groups being edited: a cell is lit while its row and column channel
      * share a group, with the group code, shape or colour as on the channel tabs. The rows and columns follow the
-     * placement, and "stacked" turns each link group into a block with one header that names its members.
+     * placement, "stacked" turns each link group into a block with one header that names its members, and the
+     * layout shows the lower half, the upper half or the full matrix.
      */
     showLinkDialog() {
         const { colour, placement } = this.linkViewSettings;
@@ -268,10 +277,17 @@ export default class extends Controller {
                 cell.innerHTML = linkMark(this.linkViewSettings, group, linkName(this.linkViewSettings, table.dataset.side, groups, group));
             }
         }
+        // A click changes the groups, so what the pointer rests on affects other channels now
+        this.focusLinkMatrix(this.linkFocusHolder);
     }
 
-    /** Orders the rows and columns of one Link matrix by the placement, and merges the headers of a group when stacked. */
+    /**
+     * Orders the rows and columns of one Link matrix by the placement, merges the headers of a group when stacked,
+     * and lays it out: the upper half takes the row headers to the right, the lower half its column headers below
+     * (in CSS), and a half hides the cells of the other one.
+     */
     placeLinkMatrix(table, groups, placement) {
+        const layout = this.linkMatrixLayout;
         const units = 'normal' === placement ? groups.map((_g, i) => [i]) : linkUnits(groups);
         const order = units.flat();
         const stacked = 'stacked' === placement;
@@ -279,8 +295,9 @@ export default class extends Controller {
         const head = table.tHead.rows[0];
         const body = table.tBodies[0];
         const byIndex = (cells) => order.map((i) => cells.find((c) => Number(c.dataset.index) === i));
-        const columnHeads = [...head.cells].slice(1);
-        const rowHeads = [...body.rows].map((row) => row.cells[0]);
+        const corner = head.querySelector('.link-matrix__corner');
+        const columnHeads = [...head.cells].filter((th) => undefined !== th.dataset.index);
+        const rowHeads = [...body.rows].map((row) => row.querySelector('th[scope=row]'));
         for (const heads of [columnHeads, rowHeads]) {
             // Every channel label back to its own header first, then a stacked group gathers them in its first one
             const labels = heads.flatMap((th) => [...th.querySelectorAll(':scope > .ch')]);
@@ -303,17 +320,83 @@ export default class extends Controller {
                 }
             }
         }
+        // The headers of the rows and the corner sit at the right edge of the upper half, else at the left
+        const upper = 'upper' === layout;
         head.append(...byIndex(columnHeads));
+        head[upper ? 'append' : 'prepend'](corner);
         body.append(...byIndex([...body.rows]));
-        // A gap before every group but the first, when stacked
-        const starts = new Set(stacked ? units.slice(1).map((u) => u[0]) : []);
+        table.dataset.layout = layout;
+        // A gap before and after every link group, when stacked
+        const starts = linkGaps(groups, placement);
         for (const row of body.rows) {
-            row.classList.toggle('is-unit-start', starts.has(Number(row.dataset.index)));
-            const cells = byIndex([...row.cells].slice(1));
+            const index = Number(row.dataset.index);
+            const th = row.querySelector('th[scope=row]');
+            row.classList.toggle('is-unit-start', starts.has(index));
+            const cells = byIndex([...row.querySelectorAll(':scope > td')]);
             row.append(...cells);
-            cells.forEach((cell) => cell.classList.toggle('is-unit-start', starts.has(Number(cell.dataset.index))));
+            row[upper ? 'append' : 'prepend'](th);
+            th.classList.toggle('matrix__end', upper);
+            for (const cell of cells) {
+                const column = Number(cell.dataset.index);
+                cell.classList.toggle('is-unit-start', starts.has(column));
+                cell.classList.toggle('is-masked', !linkCellShown(order, index, column, layout));
+            }
         }
         columnHeads.forEach((th) => th.classList.toggle('is-unit-start', starts.has(Number(th.dataset.index))));
+        const [glyph, title] = LINK_MATRIX_CORNER[layout];
+        const button = corner.querySelector('.matrix__corner');
+        button.textContent = glyph;
+        button.title = t(title);
+        button.setAttribute('aria-label', t(title));
+    }
+
+    /** The corner button of a Link matrix: lower half, upper half, full matrix and round again, kept per browser. */
+    cycleLinkMatrix(event) {
+        const layout = LINK_MATRIX_LAYOUTS[(LINK_MATRIX_LAYOUTS.indexOf(this.linkMatrixLayout) + 1) % LINK_MATRIX_LAYOUTS.length];
+        // The pref listener lays the matrices out again, which moves the corner and drops its focus
+        writePref('link-matrix-layout', layout);
+        event.currentTarget.focus();
+    }
+
+    /** Pointing at a cell or a header of a Link matrix fades every channel a click there would not change. */
+    linkFocus(event) {
+        const holder = event.target.closest('.link-matrix td, .link-matrix th[data-index]');
+        this.focusLinkMatrix(holder && !holder.classList.contains('is-masked') ? holder : null);
+    }
+
+    linkBlur() {
+        this.focusLinkMatrix(null);
+    }
+
+    focusLinkMatrix(holder) {
+        this.linkFocusHolder = holder;
+        const box = this.linkMatrixTargets[0]?.closest('.link-matrices');
+        if (!box || !this.linkDraft) {
+            return;
+        }
+        const table = holder?.closest('.link-matrix');
+        box.classList.toggle('has-link-focus', Boolean(table));
+        let channels = new Set();
+        if (table) {
+            const groups = this.linkDraft[table.dataset.side];
+            const button = holder.querySelector('.link-cell');
+            channels = new Set(button
+                ? linkFocus(groups, Number(button.dataset.row), Number(button.dataset.column), this.linkMatrixLayout)
+                : linkFocus(groups, Number(holder.dataset.index)));
+        }
+        for (const matrix of this.linkMatrixTargets) {
+            const lit = matrix === table;
+            for (const th of matrix.querySelectorAll('th[data-index]')) {
+                // A merged stacked header stands for every channel it names
+                const indices = th.classList.contains('is-merged')
+                    ? [...th.querySelectorAll(':scope > .ch')].map((label) => Number(label.dataset.channelIndexValue) % 8)
+                    : [Number(th.dataset.index)];
+                th.classList.toggle('is-focus', lit && indices.some((i) => channels.has(i)));
+            }
+            for (const button of matrix.querySelectorAll('.link-cell')) {
+                button.parentElement.classList.toggle('is-focus', lit && channels.has(Number(button.dataset.row)) && channels.has(Number(button.dataset.column)));
+            }
+        }
     }
 
     /**
@@ -339,7 +422,7 @@ export default class extends Controller {
 
     linkCell(event) {
         const { side, row, column } = event.currentTarget.dataset;
-        this.linkDraft[side] = toggleLink(this.linkDraft[side], Number(row), Number(column));
+        this.linkDraft[side] = toggleLinkCell(this.linkDraft[side], Number(row), Number(column), this.linkMatrixLayout);
         this.showLinkDialog();
     }
 
