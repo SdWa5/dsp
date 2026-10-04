@@ -8,3 +8,5 @@
 {% for key in ['normal', 'side', 'stacked'] %}
     <label class="{{ check }}" title="{{ ('editor.tip.display.placement_' ~ key)|trans }}"><input title="{{ ('editor.tip.display.placement_' ~ key)|trans }}" type="radio" name="{{ name }}" value="{{ key }}" data-editor-target="linkPlacement" data-action="change->editor#linkPlacement"> {{ ('editor.link_view.' ~ key)|trans }}</label>
 {% endfor %}
+{# One control per link group takes the place of the placement on tabs, strips and EQ switches, so say where it still applies #}
+<span class="link-view__scope" hidden data-editor-target="placementScope" title="{{ 'editor.tip.display.placement_scope'|trans }}">{{ 'editor.link_view.placement_scope'|trans }}</span>

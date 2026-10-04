@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.81.0] - 2026-10-04
+
+### Added
+
+- While "One control per link group" is on, a note below the placement options, in Display Settings and in the Link dialog, says that the placement orders only the Matrix, the routing graph and the selector lists, since tabs, strips and EQ switches show one control per group. The grouping tooltip says the same.
+
 ## [0.80.0] - 2026-10-04
 
 ### Added
