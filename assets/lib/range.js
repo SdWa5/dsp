@@ -26,3 +26,10 @@ export function faderDefault(defaults, path, min, max, override) {
 export function knobMuted(fmt, value, mute) {
     return true === mute || ('gain' === fmt && GAIN_MUTED === value) || ('delay' === fmt && 0 === value);
 }
+
+/**
+ * Whether the red knob is a ring rather than filled: a gain muted by its lowest step alone, not by its Mute button.
+ */
+export function knobHollow(fmt, value, mute) {
+    return true !== mute && 'gain' === fmt && GAIN_MUTED === value;
+}

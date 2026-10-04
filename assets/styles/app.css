@@ -25,7 +25,7 @@
     --field-text: #111;
     --warn-bg: #ffe08a;
     --warn-text: #3a2d00;
-    --changed: #c2185b;
+    --changed: #7e57c2;
     --changed-text: #fff;
     --fader-accent: #4b5563;
     --fader-track: #f3f4f6;
@@ -57,7 +57,7 @@
         --warn-text: #ffeebb;
         --rider-text: #40c4ff;
         --limit-text: #ffb74d;
-        --changed: #ff6ec7;
+        --changed: #b39ddb;
         --changed-text: #1b1b1b;
         --fader-accent: #7d8aa0;
         --fader-track: #1d2129;
@@ -84,7 +84,7 @@
     --warn-text: #ffeebb;
     --rider-text: #40c4ff;
     --limit-text: #ffb74d;
-    --changed: #ff6ec7;
+    --changed: #b39ddb;
     --changed-text: #1b1b1b;
     --fader-accent: #7d8aa0;
     --fader-track: #1d2129;
@@ -379,6 +379,9 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .fader input[type=range]:focus-visible::-moz-range-thumb { outline: 2px solid var(--head); outline-offset: 2px; }
 /* A gain at the bottom or muted by the channel's Mute button: the knob turns red, the track stays */
 .fader.is-muted input[type=range] { --knob: var(--mute); }
+/* A gain muted by its lowest step alone: a red ring, where its Mute button gives a filled knob */
+.fader.is-muted-gain input[type=range]::-webkit-slider-thumb { box-sizing: border-box; background: var(--field); border: 3px solid var(--mute); }
+.fader.is-muted-gain input[type=range]::-moz-range-thumb { box-sizing: border-box; background: var(--field); border: 3px solid var(--mute); }
 .fader--short input[type=range] { height: calc(var(--fader-height) / 2 - 24px); }
 .fader--tall input[type=range] { height: calc(var(--fader-height) * 1.5); }
 .fader--h { flex-direction: row; gap: 8px; }
@@ -398,6 +401,8 @@ input.fader__value:hover:not(:disabled) { border-color: var(--rider); }
 .toggle:hover:not(:disabled) { filter: brightness(1.08); }
 .toggle.is-on { background: var(--on); color: #111; }
 .toggle--mute.is-on { background: var(--mute); color: #fff; }
+/* Muted by its gain at the lowest step, not by the button itself: outlined, as on the channel tab */
+.toggle--mute.is-on.is-gain { background: none; color: var(--mute); box-shadow: inset 0 0 0 2px var(--mute); }
 .toggle--phantom.is-on { background: var(--phantom); color: #111; }
 .toggle--bypass.is-on { background: var(--mute); color: #fff; }
 .toggle--rider.is-on { background: var(--rider); color: #111; }

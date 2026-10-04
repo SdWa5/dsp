@@ -33,4 +33,16 @@ final class EditorAssetsTest extends WebTestCase
         $client->request('GET', '/assets/tests/i18n.test.js');
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testMuteByGainLooksApartFromTheMuteButton(): void
+    {
+        $css = file_get_contents(\dirname(__DIR__, 2).'/assets/styles/app.css');
+        self::assertIsString($css);
+        self::assertStringContainsString('.toggle--mute.is-on.is-gain {', $css);
+        self::assertStringContainsString('.fader.is-muted-gain input[type=range]::-webkit-slider-thumb {', $css);
+        self::assertStringContainsString('.fader.is-muted-gain input[type=range]::-moz-range-thumb {', $css);
+        // The changed mark is violet, far from the mute red
+        self::assertStringContainsString('--changed: #7e57c2;', $css);
+        self::assertStringNotContainsString('#c2185b', $css);
+    }
 }

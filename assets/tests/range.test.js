@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { faderDefault, knobMuted, rangeFill } from '../lib/range.js';
+import { faderDefault, knobHollow, knobMuted, rangeFill } from '../lib/range.js';
 
 test('the fill runs from 0 at min to 1 at max', () => {
     assert.equal(rangeFill(0, 0, 400), 0);
@@ -54,4 +54,14 @@ test('double-click defaults preserve zero, channel and band values, overrides an
     for (const value of [null, undefined, '25', false, NaN, Infinity]) {
         assert.equal(faderDefault({ value }, 'value', 0, 100), null);
     }
+});
+
+test('a gain knob muted by its lowest step alone is hollow', () => {
+    assert.equal(knobHollow('gain', 0, false), true);
+    assert.equal(knobHollow('gain', 0, undefined), true);
+    // Its Mute button wins: a filled knob
+    assert.equal(knobHollow('gain', 0, true), false);
+    assert.equal(knobHollow('gain', 280, false), false);
+    assert.equal(knobHollow('percent', 0, false), false);
+    assert.equal(knobHollow('delay', 0, false), false);
 });

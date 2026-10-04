@@ -89,13 +89,6 @@ also postponed. Any additional form proven to need a connection belongs here.
 - Consider moving the Aux page button from the function-page header to the channel selector, between the
   input and output channels. Review the placement with the Matrix and Sub Control Aux changes before
   deciding whether to move it.
-- Make an active Mute button and a gain turned to the bottom tell apart at a glance. Both light the Mute button
-  in the same red (`.toggle--mute.is-on`, `--mute` #ff5252), and since 0.56.0 both turn the gain knob red as
-  well, so only the tooltip says which one mutes. That red is also close to the colour of a changed setting
-  (`--changed` #c2185b, the mark on a value field), so a red mark alone does not say whether a channel is muted or
-  merely differs from the factory value. Give the mute by the gain a look of its own, for example an outlined
-  Mute button as the channel tab already has (`.chtab__mute.is-gain`), and move the mute red or the changed colour
-  far enough apart in both themes
 - Let the display of changed settings be switched in the UI, with two settings that each work on their own. The
   first switches the marks, which are the bar on a changed field (`.is-changed`), the triangle on a channel tab
   (`.chtab__changed`) and the colour of a changed function page tab. The second switches the amounts, which are
