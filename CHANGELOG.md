@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.77.0] - 2026-10-04
+
+### Changed
+
+- "One control per link group" moves from the Channels card of Display Settings to the Link Groups card, below the placement. A `channelview` controller now writes only the visibility or the grouping it holds, so the two cards cannot overwrite each other.
+
 ## [0.76.0] - 2026-10-04
 
 ### Added

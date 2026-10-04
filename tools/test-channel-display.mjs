@@ -59,7 +59,10 @@ try {
         const preferences = async (hidden, grouped) => {
             await page.evaluate(({ hidden, grouped }) => {
                 const dialog = document.querySelector('section[data-page=display]');
-                dialog.querySelectorAll('[data-channelview-target=channel]').forEach(box => box.checked = !hidden.includes(Number(box.value)));
+                const channels = dialog.querySelectorAll('[data-channelview-target=channel]');
+                channels.forEach(box => box.checked = !hidden.includes(Number(box.value)));
+                // Visibility and grouping sit in separate cards, each with its own controller
+                channels[0].dispatchEvent(new Event('change', { bubbles: true }));
                 const box = dialog.querySelector('[data-channelview-target=grouped]');
                 box.checked = grouped; box.dispatchEvent(new Event('change', { bubbles: true }));
             }, { hidden, grouped });
@@ -502,10 +505,15 @@ try {
         assert.equal(await visibleCheck(15).isChecked(), true);
         assert.equal(await visibleCheck(18).isChecked(), false);
         assert.equal(await settings.locator('[data-channelview-target=grouped]').isChecked(), true);
-        const visibilityRows = settings.locator('.display-settings__channels > .display-settings__row');
-        assert.equal(await visibilityRows.count(), 2);
-        const rows = await visibilityRows.evaluateAll(nodes => nodes.map(node => { const rect = node.getBoundingClientRect(); return { top: rect.top, bottom: rect.bottom }; }));
-        assert.ok(rows[1].top >= rows[0].bottom);
+        // Grouping sits with the placement in Link Groups, Channels keeps Show all
+        assert.equal(await settings.locator('.display-settings__channels > .display-settings__row').count(), 1);
+        assert.equal(await settings.locator('[data-display-section=links] [data-channelview-target=grouped]').count(), 1);
+        assert.equal(await settings.locator('[data-display-section=channels] [data-channelview-target=grouped]').count(), 0);
+        // Toggling grouping in its own card keeps the visibility chosen in Channels
+        await settings.locator('[data-channelview-target=grouped]').uncheck();
+        await settings.locator('[data-channelview-target=grouped]').check();
+        assert.equal(await visibleCheck(7).isChecked(), false);
+        assert.equal(await visibleCheck(18).isChecked(), false);
         // Colour, icon and placement apply to the complete individual visibility controls.
         await page.evaluate(() => {
             for (const key of ['code', 'shape', 'colour']) {

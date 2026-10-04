@@ -129,7 +129,7 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   a block that runs across. The matrix leaves a gap around each group and heads it with one bar outside the
   channel headers, and the routing graph frames each group under a head. Either way the code shows once per group.
 - The header’s Display Settings button opens `#display`, the complete browser display overview. Its sections cover
-  appearance and language, channel visibility and grouping, link appearance and names with shared colour marks, meter thresholds,
+  appearance and language, channel visibility, link appearance, grouping and names with shared colour marks, meter thresholds,
   EQ plot options and curve selection with shared link-group placement, matrix orientation and shared panel expansion. Local theme, language,
   plot, Link-dialog and panel controls remain synchronized shortcuts. All seven settings sections fold
   through their headings and retain their state per browser. Translated tooltips explain every display
