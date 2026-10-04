@@ -30,6 +30,20 @@ final class FactoryDefaultsTest extends TestCase
         self::assertFalse($defaults['outputs'][0]['mute']);
         self::assertSame(['gain' => 100, 'mute' => false, 'mask' => 0], $defaults['groups'][7]);
         self::assertCount(7, $defaults['outputs'][0]['peq']);
+        // The factory input gain mutes. The editor compares against 0 dB instead (referenceDefaults() in defaults.js)
+        self::assertSame(0, $defaults['inputs'][0]['gain']);
+        self::assertSame(280, $defaults['aux']['gain']);
+    }
+
+    public function testEveryChannelOfASideHasTheDefaultsOfItsFirst(): void
+    {
+        $defaults = FactoryDefaults::fromFile(self::FACTORY);
+        foreach (['inputs', 'outputs'] as $side) {
+            $first = array_diff_key($defaults[$side][0], array_flip(['name', 'route', 'link']));
+            foreach ($defaults[$side] as $index => $channel) {
+                self::assertSame($first, array_diff_key($channel, array_flip(['name', 'route', 'link'])), $side.' '.$index);
+            }
+        }
     }
 
     public function testMissingFile(): void

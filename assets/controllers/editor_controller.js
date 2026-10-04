@@ -8,6 +8,7 @@ import { LINK_MATRIX_LAYOUTS, lcm, linkCellShown, linkCommands, linkFocus, linkG
 import { GAIN_MUTED, presetLabel, presetSlotInfo } from '../lib/scale.js';
 import { readPref, writePref, onPref } from '../lib/prefs.js';
 import { getLinkView, setLinkView, onLinkView } from '../lib/linkview.js';
+import { applyChangeView, changedTitle, getChangeView, onChangeView } from '../lib/changeview.js';
 import { getChannelView, onChannelView, setChannelView, channelVisible, representative, displayChannelParts, channelLayout } from '../lib/channelview.js';
 
 import { renderLinkNames } from '../lib/linknames.js';
@@ -19,10 +20,6 @@ const LINK_MATRIX_CORNER = {
     upper: ['◥ ⇄', 'Upper half, click for the full matrix'],
     full: ['▦ ⇄', 'Full matrix, click for the lower half'],
 };
-/** The changed-setting tooltip remains independent of browser display preferences. */
-const changedText = (count) => t(1 === count
-    ? "%count% setting differs from the factory default"
-    : "%count% settings differ from the factory default", { count });
 
 /**
  * The editor frame: tabs, connection state, menus and the dialogs that do more than set one value
@@ -39,6 +36,7 @@ export default class extends Controller {
         this.linkMatrixLayout = linkMatrixLayout(readPref('link-matrix-layout', 'lower'));
         this.linkViewSettings = { ...getLinkView() };
         this.showLinkViewSettings();
+        applyChangeView(getChangeView(), document.documentElement);
         this.offs = [
             on('status', () => this.showStatus()),
             on('error', (message) => this.showError(message)),
@@ -47,6 +45,7 @@ export default class extends Controller {
             onPref('theme', () => { const theme = readPref('theme', 'auto'); this.applyTheme(THEMES.includes(theme) ? theme : 'auto'); }),
             onPref('matrix-swapped', () => this.showMatrix(readPref('matrix-swapped', false))),
             onPref('link-matrix-layout', () => { this.linkMatrixLayout = linkMatrixLayout(readPref('link-matrix-layout', 'lower')); if (this.linkDraft) this.showLinkDialog(); }),
+            onChangeView((view) => { applyChangeView(view, document.documentElement); this.showState(); }),
             onLinkView(() => { this.linkViewSettings = { ...getLinkView() }; this.showLinkViewSettings(); this.showState(); if (this.linkDraft) this.showLinkDialog(); }),
         ];
         const page = window.location.hash.slice(1);
@@ -135,7 +134,7 @@ export default class extends Controller {
                 const count = pages[tab.dataset.page]?.length ?? 0;
                 const badge = tab.querySelector('.tab__count');
                 tab.classList.toggle('is-changed', count > 0);
-                tab.title = count > 0 ? changedText(count) : '';
+                tab.title = changedTitle(count, getChangeView());
                 badge.hidden = 0 === count;
                 badge.textContent = count > 0 ? String(count) : '';
             }
@@ -177,7 +176,10 @@ export default class extends Controller {
             const count = changedPaths(state[side]?.[index], getDefaults()[side]?.[index]).length;
             if (count > 0) {
                 marks.push('<span class="chtab__changed" aria-hidden="true"></span>');
-                titles.push(changedText(count));
+                const title = changedTitle(count, getChangeView());
+                if ('' !== title) {
+                    titles.push(title);
+                }
             }
         }
         const html = marks.join('');

@@ -76,6 +76,10 @@ final class EditorControllerTest extends WebTestCase
         self::assertCount(7, $page->filter('.tab'));
         // The changed-setting count stays hidden until the state arrives
         self::assertCount(7, $page->filter('.tab > .tab__count[hidden]'));
+        self::assertCount(7, $page->filter('.tab > .tab__mark'));
+        $changes = $page->filter('[data-display-section=changes] [data-controller=changeview]');
+        self::assertCount(1, $changes->filter('input[data-changeview-target=marks]'));
+        self::assertCount(1, $changes->filter('input[data-changeview-target=counts]'));
         self::assertCount(16, $page->filter('.chtab'));
         self::assertCount(20, $page->filter('dialog'));
         foreach ($page->filter('[data-editor-dialog-param]')->each(static fn (Crawler $n): string => (string) $n->attr('data-editor-dialog-param')) as $dialog) {

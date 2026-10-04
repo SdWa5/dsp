@@ -56,6 +56,9 @@
         <div class="link-names__list link-names__list--rows" data-displaysettings-target="names"></div>
         <p data-displaysettings-target="namesEmpty">{{ 'No link groups are available. Link channels in the Link dialog to name their group.'|trans }}</p>
     </fieldset>
+    <fieldset class="card" data-display-section="changes" data-controller="collapse" data-collapse-key-value="display.changes"><legend class="card__title">{{ w.fold('editor.change_view.title', 'display_changes') }}</legend>
+        {{ include('editor/_changeview.html.twig', {check: 'check'}) }}
+    </fieldset>
     <fieldset class="card" data-display-section="meters" data-controller="collapse" data-collapse-key-value="display.meters"><legend class="card__title">{{ w.fold('editor.meter_view.title', 'display_meters') }}</legend>
         {{ include('editor/_meterview.html.twig', {heading: 'link-view__heading', check: 'check'}) }}
     </fieldset>

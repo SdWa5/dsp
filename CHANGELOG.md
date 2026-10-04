@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.84.0] - 2026-10-04
+
+### Added
+
+- Display Settings > Changed settings switches the marks of changed settings and the counts on the page tabs off, each on its own, per browser. The tooltip of a tab follows them.
+- FBQ shows the changed-setting bar.
+
+### Changed
+
+- An input gain counts as changed from 0 dB instead of from the factory's muting bottom step.
+- Link membership no longer counts as a changed setting.
+- A changed page tab shows its bar in a span of its own (`.tab__mark`).
+
 ## [0.83.0] - 2026-10-04
 
 ### Changed

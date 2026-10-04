@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { changedPaths, isChanged, pageChanges } from '../lib/defaults.js';
+import { changedPaths, isChanged, pageChanges, referenceDefaults } from '../lib/defaults.js';
 
 const defaults = {
     inputs: [{ name: 'In1', gain: 0, link: 1, peq: [{ gain: 120, bypass: false }] }],
@@ -91,4 +91,22 @@ test('display preferences, unrelated fields and unreported values do not mark pa
     state.link_view = { colour: true };
     assert.deepEqual(changedPages(state), []);
     assert.deepEqual(pageChanges(state, {}), { gain: [], gate: [], comp: [], delay: [], matrix: [], aux: [], autoeq: [] });
+});
+
+test('link membership never counts as changed', () => {
+    const state = { inputs: [{ name: 'In1', gain: 0, link: 3, peq: [{ gain: 120, bypass: false }] }] };
+    assert.equal(isChanged(state, defaults, 'inputs.0.link'), false);
+    assert.deepEqual(changedPaths(state.inputs[0], defaults.inputs[0], 'inputs.0'), []);
+});
+
+test('the reference defaults put every input gain at 0 dB and leave the rest', () => {
+    const factory = { inputs: [{ gain: 0, mute: false }, { gain: 0, mute: false }], outputs: [{ gain: 280 }], aux: { gain: 280 } };
+    const reference = referenceDefaults(factory);
+    assert.deepEqual(reference.inputs.map((channel) => channel.gain), [280, 280]);
+    assert.equal(reference.inputs[0].mute, false);
+    assert.equal(reference.outputs, factory.outputs);
+    assert.equal(factory.inputs[0].gain, 0);
+    assert.equal(isChanged({ inputs: [{ gain: 280 }] }, reference, 'inputs.0.gain'), false);
+    assert.equal(isChanged({ inputs: [{ gain: 0 }] }, reference, 'inputs.0.gain'), true);
+    assert.deepEqual(referenceDefaults({}), {});
 });

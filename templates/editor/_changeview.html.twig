@@ -1,0 +1,6 @@
+{# The Changed settings section on Display Settings: the marks and the counts of settings off their factory default #}
+<div class="menu__group" data-controller="changeview">
+    {% for field in ['marks', 'counts'] %}
+        <label class="{{ check|default('menu__check') }}" title="{{ ('editor.change_view.' ~ field ~ '_tip')|trans }}"><input title="{{ ('editor.change_view.' ~ field ~ '_tip')|trans }}" type="checkbox" data-changeview-target="{{ field }}" data-action="change->changeview#change"> {{ ('editor.change_view.' ~ field)|trans }}</label>
+    {% endfor %}
+</div>

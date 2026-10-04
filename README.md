@@ -181,7 +181,9 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
 - Every setting that differs from the factory default (`resources/factory_config.bin`) has a bar on its left
   edge. Every page tab shows the number of its changed settings as a badge, and every channel tab shows a corner
   triangle when its settings differ. The tooltip counts the changed settings. Auto EQ tracks output PEQ bands and EQ bypass. The marks clear when values return to
-  their defaults and read without colour.
+  their defaults and read without colour. An input gain counts from 0 dB, not from the factory's muting bottom
+  step, and link groups never count. Display Settings > Changed settings switches the marks and the counts off,
+  each on its own, per browser.
 - Hovering a control shows what it does and its unit, in English or German. Every fader, switch and list shows
   the same tooltip on every page and in every dialog. Every section and dialog title says what the section holds,
   and the ones with abbreviations spell them out, for example FBQ, HPF, LPF, PEQ, Sub Control and Group Control.
