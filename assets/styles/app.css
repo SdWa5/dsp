@@ -255,6 +255,12 @@ input[type=text], input[type=number], select { background: var(--field); color: 
 .autoeq__warnings:empty { display: none; }
 /* Gain page: EQ overview, one curve per channel. The swatch of a switch is its curve's colour and dash */
 .eq-overview { flex-direction: column; }
+.eq-overview__plots { display: grid; min-width: 0; gap: 16px; }
+.eq-overview__plots.is-separated { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.eq-overview__pane { margin: 0; min-width: 0; position: relative; }
+.eq-overview__pane figcaption { margin-bottom: 6px; font-weight: 600; }
+.eq-overview__empty { position: absolute; top: 50%; inset-inline: 8px; margin: 0; text-align: center; color: var(--muted); background: var(--screen); pointer-events: none; }
+@media (max-width: 700px) { .eq-overview__plots.is-separated { grid-template-columns: minmax(0, 1fr); } }
 .eq-overview__plot { width: 100%; height: 260px; background: var(--screen); border-radius: 4px; }
 .eq-overview__switches { display: flex; flex-wrap: wrap; gap: 6px 24px; }
 .eq-overview__side { display: flex; flex-wrap: wrap; gap: 4px 12px; }

@@ -90,9 +90,6 @@ also postponed. Any additional form proven to need a connection belongs here.
 
 ## Editor
 
-- Add a browser display preference for the Gain-page EQ overview to choose between the combined plot
-  and separate input and output plots. Preserve the existing channel visibility selections in both views.
-
 - Consider moving the Aux page button from the function-page header to the channel selector, between the
   input and output channels. Review the placement with the Matrix and Sub Control Aux changes before
   deciding whether to move it.

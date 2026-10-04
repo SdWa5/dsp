@@ -153,6 +153,7 @@ editor:
         eq_reset: "Sets every band of this channel back to 0 dB at its default frequency."
         eq_mag: "Shows the magnitude in dB on the left axis."
         eq_phase: "Shows the phase in degrees, on the right axis while the magnitude shows too."
+        eq_separate: "Show Input, Output and Aux EQ curves in separate plots. Curve selections and magnitude/phase settings stay unchanged."
         band:
             freq: "Centre frequency of the band, in Hz."
             q: "Q is the width of the band. A higher Q acts on a narrower range."
@@ -473,3 +474,6 @@ editor:
 "Channel names are device settings and are saved with presets. Name edits write to the connected device.": "Channel names are device settings and are saved with presets. Name edits write to the connected device."
 "Channel Names": "Channel Names"
 "Hidden channels": "Hidden channels"
+
+"Separate plots": "Separate plots"
+"No visible curves selected.": "No visible curves selected."

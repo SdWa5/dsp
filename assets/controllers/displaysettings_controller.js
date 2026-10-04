@@ -6,17 +6,17 @@ import { linkGroups, linkMark, linkName } from '../lib/link.js';
 import { getChannelView, onChannelView } from '../lib/channelview.js';
 import { channelId } from '../lib/channels.js';
 import { renderLinkNames } from '../lib/linknames.js';
-import { eqPreferencePaths, eqPreferenceSelection, setEqPreference, overviewHidden, selectOverview, setPanelCollapsed } from '../lib/displayprefs.js';
+import { eqPreferencePaths, eqPreferenceSelection, setEqPreference, overviewHidden, selectOverview, setPanelCollapsed, overviewSeparated, setOverviewSeparated } from '../lib/displayprefs.js';
 import { panelOptions, panelRows } from '../lib/displaypanels.js';
 import { t } from '../lib/i18n.js';
 
 /** The complete browser display overview. Local shortcuts share preferences; no action sends a device write. */
 export default class extends Controller {
-    static targets = ['theme', 'matrix', 'eq', 'overview', 'panels', 'names', 'namesEmpty'];
+    static targets = ['theme', 'matrix', 'eq', 'overview', 'separated', 'panels', 'names', 'namesEmpty'];
 
     connect() {
         this.buildPanels();
-        this.offs = [onPref(['theme', 'matrix-swapped', 'eq-view', 'eq-filter-labels', 'eq-overview-hidden', 'collapsed'], () => this.render()),
+        this.offs = [onPref(['theme', 'matrix-swapped', 'eq-view', 'eq-filter-labels', 'eq-overview-hidden', 'eq-overview-separated', 'collapsed'], () => this.render()),
             onLinkView(() => this.render()), onChannelView(() => this.render()), store.subscribe(() => this.render())];
         this.render();
     }
@@ -25,6 +25,7 @@ export default class extends Controller {
         const theme = readPref('theme', 'auto');
         this.themeTarget.value = ['auto', 'light', 'dark'].includes(theme) ? theme : 'auto';
         this.matrixTarget.checked = readPref('matrix-swapped', false);
+        this.separatedTarget.checked = overviewSeparated();
         for (const box of this.eqTargets) {
             const paths = eqPreferencePaths(box.dataset.path, store.state, getChannelView().grouped);
             const selected = eqPreferenceSelection(paths, box.dataset.field);
@@ -46,6 +47,7 @@ export default class extends Controller {
     }
     theme() { writePref('theme', this.themeTarget.value); }
     matrix() { writePref('matrix-swapped', this.matrixTarget.checked); }
+    separate() { setOverviewSeparated(this.separatedTarget.checked); }
     eq(event) {
         const { path, field } = event.target.dataset;
         setEqPreference(eqPreferencePaths(path, store.state, getChannelView().grouped), field, event.target.checked);

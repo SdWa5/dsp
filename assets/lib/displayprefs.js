@@ -10,6 +10,9 @@ export function setFilterLabels(path, show) {
     if (EQ_PATHS.includes(path)) writePref('eq-filter-labels', { ...readPref('eq-filter-labels', {}), [path]: Boolean(show) });
 }
 export function overviewHidden() { return new Set(readPref('eq-overview-hidden', []).filter(path => EQ_PATHS.includes(path))); }
+/** Layout is independent of curve selection and the shared magnitude/phase view. */
+export function overviewSeparated() { return readPref('eq-overview-separated', false); }
+export function setOverviewSeparated(separated) { writePref('eq-overview-separated', Boolean(separated)); }
 export function selectOverview(paths, show) {
     const hidden = overviewHidden();
     paths.filter(path => EQ_PATHS.includes(path)).forEach(path => show ? hidden.delete(path) : hidden.add(path));

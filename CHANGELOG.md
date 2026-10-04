@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.72.0] - 2026-10-04
+
+### Added
+
+- The Gain-page EQ overview can show separate Input, Output and Aux plots. Display Settings and the local Separate plots shortcut synchronize immediately and preserve curve selections, channel visibility, link-group selections and magnitude/phase preferences. Combined remains the default.
+- Separate overview plots have canvas-specific hover highlighting, responsive columns, empty-state messages and redraw correctly after resizing or expanding their panel.
+
 ## [0.71.1] - 2026-10-04
 
 ### Fixed

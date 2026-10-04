@@ -1,6 +1,13 @@
 // The EQ overview's channel curves: which channels share a curve through their link, and which curve the pointer is on.
 import { linkGroups, linkedMembers } from './link.js';
 
+/** Partition already selected, visible channels without changing their identities or preferences. */
+export function overviewPlots(channels, separated) {
+    return separated
+        ? ['inputs', 'outputs', 'aux'].map(key => ({ key, channels: channels.filter(([path]) => path.split('.')[0] === key) }))
+        : [{ key: 'combined', channels }];
+}
+
 /**
  * The curve paths that belong together with one: the members of its link group on the same side, in channel order,
  * or the path alone. Linked channels share one EQ, so their curves lie on top of each other.

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { curveColourSource, linkedPaths, nearestCurve } from '../lib/overview.js';
+import { curveColourSource, linkedPaths, nearestCurve, overviewPlots } from '../lib/overview.js';
 
 // In2+In3 linked (master In2 holds the mask), Out5..Out8 linked
 const channel = (link = 0) => ({ link });
@@ -8,6 +8,26 @@ const state = {
     inputs: [channel(), channel(0b110), channel(), channel(), channel(), channel(), channel(), channel()],
     outputs: [channel(), channel(), channel(), channel(), channel(0b11110000), channel(), channel(), channel()],
 };
+
+test('separate plots retain selected channel identities and leave missing sides empty', () => {
+    const channels = [['inputs.0', channel()], ['outputs.7', channel()], ['inputs.3', channel()], ['aux', channel()]];
+    assert.deepEqual(overviewPlots(channels, false), [{ key: 'combined', channels }]);
+    const plots = overviewPlots(channels, true);
+    assert.deepEqual(plots.map(({ key, channels: selected }) => [key, selected.map(([path]) => path)]), [
+        ['inputs', ['inputs.0', 'inputs.3']], ['outputs', ['outputs.7']], ['aux', ['aux']],
+    ]);
+    assert.equal(plots[0].channels[0], channels[0]);
+    assert.deepEqual(overviewPlots([channels[1]], true).map(plot => plot.channels.length), [0, 1, 0]);
+    assert.deepEqual(overviewPlots([], true).map(plot => plot.channels), [[], [], []]);
+});
+
+test('hit testing a separate plot never picks a curve from another side', () => {
+    const runs = [[[0, 100], [100, 100]]];
+    const channels = [['inputs.0', { runs }], ['outputs.0', { runs }], ['aux', { runs }]];
+    for (const { channels: selected } of overviewPlots(channels, true)) {
+        assert.equal(nearestCurve(selected.map(([path, curve]) => ({ path, ...curve })), 50, 100), selected[0][0]);
+    }
+});
 
 test('a linked curve belongs with every member of its group', () => {
     assert.deepEqual(linkedPaths('inputs.2', state), ['inputs.1', 'inputs.2']);

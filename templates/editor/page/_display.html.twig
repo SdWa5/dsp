@@ -53,6 +53,7 @@
     <fieldset class="card" data-display-section="eq" data-controller="collapse" data-collapse-key-value="display.eq"><legend class="card__title">{{ w.fold('EQ Plots', 'display_eq') }}</legend>
         <h3 title="{{ 'editor.tip.panel.eq_overview'|trans }}">{{ 'Gain EQ overview'|trans }}</h3>
         <div class="display-settings__choices">
+            <label class="check" title="{{ 'editor.tip.eq_separate'|trans }}"><input title="{{ 'editor.tip.eq_separate'|trans }}" type="checkbox" data-displaysettings-target="separated" data-action="change->displaysettings#separate">{{ 'Separate plots'|trans }}</label>
             {% for field, title in {mag: 'Mag', phase: 'Phase'} %}
                 <label class="check" title="{{ ('editor.tip.eq_' ~ field)|trans }}"><input title="{{ ('editor.tip.eq_' ~ field)|trans }}" type="checkbox" data-displaysettings-target="eq" data-path="overview" data-field="{{ field }}" data-action="change->displaysettings#eq">{{ title|trans }}</label>
             {% endfor %}

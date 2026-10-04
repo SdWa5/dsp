@@ -108,6 +108,15 @@ on the left. The phase alone reads in degrees on the left, and beside the magnit
 the right. Both share the grid, so ±180° lies on the ±18 dB lines and each 6 dB line is 60°. The choice is kept per
 channel and for the overview in the `eq-view` preference.
 
+The Gain overview's Separate plots checkbox switches between the default combined canvas and labelled Input,
+Output and Aux canvases. The shortcut and Display Settings → EQ Plots → Gain EQ overview share the boolean
+`eq-overview-separated` preference, which defaults to false and has the same session fallback as other browser
+preferences. Separate plots form three columns on desktop and stack below 700 px. Curve selections, global channel
+visibility, link-group mixed selections and the shared Mag/Phase view stay unchanged when switching layouts.
+An empty plot shows a translated message while its grid remains visible. Each canvas retains its own hover geometry;
+highlighting still applies to the pointed channel's link group across all switches. Resizing, expanding the shared
+`gain.eq` panel and live EQ edits redraw the visible canvases. These controls never write to the device.
+
 The phase is that of the whole channel, the PEQ bands as biquads and the HPF and LPF from their analogue
 Butterworth prototype (`crossoverResponse()`). LK is two Butterworths of half the order in series. BL is drawn as a
 Butterworth at 0.8 times the frequency ratio, as its magnitude always was, so its phase is an approximation. The
@@ -237,7 +246,9 @@ HPF and LPF retain their shared vertical stack. Existing collapse keys and bindi
 storage failures, representative changes, layouts and real bound-control aggregate writes. The isolated browser
 regression intercepts every API request and checks 1440 px and 390 px views, hidden-page recovery, group selectors,
 both matrix orientations, every link placement and settings/shortcut synchronization. It also checks
-reloads, panel expansion, per-channel plot choices and storage fallback. Provide an installed Playwright module and a running editor.
+reloads, panel expansion, per-channel plot choices and storage fallback. Its `check-eq-overview.mjs` helper covers
+combined/separate layouts, canvas-specific hover, empty plots, live EQ changes and layout switches while collapsed.
+Provide an installed Playwright module and a running editor.
 
 ```bash
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node tools/test-channel-display.mjs

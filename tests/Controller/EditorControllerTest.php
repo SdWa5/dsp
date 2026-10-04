@@ -299,11 +299,22 @@ final class EditorControllerTest extends WebTestCase
         foreach ($paths as $path) {
             self::assertTrue(self::has($path.'.peq'), $path);
         }
-        // Mag and Phase as on a channel tab, two switches that can both be on
+        // Layout shares one set of magnitude/phase controls and the existing collapse key.
         $view = $overview->filter('.peq__bar input[type=checkbox]');
-        self::assertSame(['mag', 'phase'], $view->each(static fn (Crawler $n): string => (string) $n->attr('data-eqoverview-target')));
+        self::assertSame(['mag', 'phase', 'separated'], $view->each(static fn (Crawler $n): string => (string) $n->attr('data-eqoverview-target')));
         self::assertNotNull($view->eq(0)->attr('checked'));
         self::assertNull($view->eq(1)->attr('checked'));
+        self::assertNull($view->eq(2)->attr('checked'));
+        self::assertSame('gain.eq', $overview->attr('data-collapse-key-value'));
+        $panes = $overview->filter('.eq-overview__pane');
+        self::assertSame(['combined', 'inputs', 'outputs', 'aux'], $panes->each(static fn (Crawler $n): string => (string) $n->attr('data-overview-side')));
+        self::assertNull($panes->eq(0)->attr('hidden'));
+        for ($i = 1; $i < 4; ++$i) {
+            self::assertNotNull($panes->eq($i)->attr('hidden'));
+        }
+        self::assertCount(4, $overview->filter('canvas[aria-label]'));
+        self::assertCount(4, $overview->filter('.eq-overview__empty[hidden]'));
+        self::assertCount(1, self::page()->filter('section[data-page=display] [data-displaysettings-target=separated][title]'));
         // Pointing at a curve or at its switch picks it out, and leaving lets go
         self::assertSame('pointermove->eqoverview#hoverPlot pointerleave->eqoverview#unhover', $overview->filter('canvas')->attr('data-action'));
         // One handler on the switches, so a link group's whole block points at its curves
