@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
-import { store } from '../lib/device.js';
+import { store, history } from '../lib/device.js';
 import { channelId } from '../lib/channels.js';
 import { getChannelView, onChannelView, selectionState, setMaskBits } from '../lib/channelview.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
@@ -91,7 +91,9 @@ export default class extends Controller {
         // One command for a shared mask. Different output masks keep their other bits independently.
         const byPath = new Map();
         widgets.forEach(widget => { const entry = byPath.get(widget.bindValue) ?? { widget, bits: [] }; entry.bits.push(widget.bitValue); byPath.set(widget.bindValue, entry); });
+        history.begin('Change group selection');
         for (const { widget, bits } of byPath.values()) widget.commit(setMaskBits(widget.current, bits, on));
+        history.end();
         this.render();
     }
 }

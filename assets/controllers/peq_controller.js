@@ -1,7 +1,7 @@
 import { t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
 import { isChanged } from '../lib/defaults.js';
-import { getDefaults, getLabels, send, store } from '../lib/device.js';
+import { getDefaults, getLabels, send, store, history } from '../lib/device.js';
 import { linkedMembers } from '../lib/link.js';
 import { faderDefault, paintRange } from '../lib/range.js';
 import { onPref } from '../lib/prefs.js';
@@ -210,9 +210,11 @@ export default class extends Controller {
     }
 
     reset() {
+        history.begin('Reset EQ bands');
         resetEqBands(this.channel.peq,
             () => window.confirm(t('Reset all EQ bands on this channel?')),
             (i, values) => this.setBand(i, values));
+        history.end();
     }
 
     /** Page controls and local shortcuts reflect the same saved channel view. */

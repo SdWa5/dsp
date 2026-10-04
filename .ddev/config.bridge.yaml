@@ -8,3 +8,14 @@ web_extra_daemons:
   - name: trackdsp-bridge
     command: "TRACKDSP_TARGET=demo php bin/console trackdsp:bridge"
     directory: /var/www/html
+
+# A running bridge keeps the code it was started with. After every `ddev exec` and `ddev composer`, the hook
+# restarts it when src/, config/, the console, the lock file or .env changed since its start, and not while
+# writes are queued. It stays silent when nothing changed.
+hooks:
+  # Runs on the host: an exec task would itself be a `ddev exec` and fire post-exec again without end.
+  # TRACKDSP_BRIDGE_RELOAD stops the nested call, which inherits it.
+  post-exec:
+    - exec-host: '[ -n "${TRACKDSP_BRIDGE_RELOAD:-}" ] || TRACKDSP_BRIDGE_RELOAD=1 ddev exec .ddev/bridge-reload.sh'
+  post-composer:
+    - exec-host: '[ -n "${TRACKDSP_BRIDGE_RELOAD:-}" ] || TRACKDSP_BRIDGE_RELOAD=1 ddev exec .ddev/bridge-reload.sh'

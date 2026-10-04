@@ -2,6 +2,8 @@
 // Every controller imports the same instances from here.
 import { commandKey, SendQueue } from './queue.js';
 import { Store } from './store.js';
+import { HistoryService } from './historyservice.js';
+import { historyMessage } from './history.js';
 
 export const HEADER = 'X-Trackdsp';
 
@@ -57,6 +59,11 @@ export async function api(path, body = undefined, method = 'POST') {
 
 export const queue = new SendQueue((commands) => api('write', { commands }), (error) => emit('error', error.message));
 
+/** Session-only history. The server supplies the editable-field registry used by guarded replay. */
+export const history = new HistoryService({ store, queue, api, status, updateStatus,
+    units: typeof document === 'undefined' ? [] : JSON.parse(document.getElementById('trackdsp-history')?.textContent ?? '[]'),
+    report: message => reportError(historyMessage(message)) });
+
 /**
  * Sends commands in order. Commands with a key replace a queued one with the same key.
  * @param {object[]} commands
@@ -79,7 +86,9 @@ export function listen() {
     }
     source = new EventSource('/api/events');
     source.addEventListener('status', (e) => {
-        Object.assign(status, { bridge: true }, JSON.parse(e.data));
+        const data = JSON.parse(e.data);
+        if (!data.connected || (status.target && data.target !== status.target)) history.reset('History cleared after disconnecting.');
+        Object.assign(status, { bridge: true }, data);
         if (!status.connected) {
             store.replace(null);
         }

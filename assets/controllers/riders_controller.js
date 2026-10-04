@@ -1,6 +1,6 @@
 import { t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
-import { api, on, status, store, updateStatus } from '../lib/device.js';
+import { api, on, status, store, updateStatus, history } from '../lib/device.js';
 import { channelId, channelLabel } from '../lib/channels.js';
 import { linkedMembers } from '../lib/link.js';
 
@@ -140,7 +140,7 @@ export default class extends Controller {
 
     async call(path, body) {
         try {
-            updateStatus(await api(path, body));
+            await history.run('Change gain riders', async () => updateStatus(await api(path, body)), { paths: [] });
             this.close();
         } catch (error) {
             this.errorTarget.textContent = error.message;

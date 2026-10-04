@@ -9,7 +9,8 @@
     <script type="application/json" id="trackdsp-labels">{{ labels|json_encode|raw }}</script>
     <script type="application/json" id="trackdsp-defaults">{{ defaults|json_encode|raw }}</script>
     <script type="application/json" id="trackdsp-i18n">{{ i18n|json_encode(constant('JSON_HEX_TAG') b-or constant('JSON_HEX_AMP') b-or constant('JSON_HEX_APOS') b-or constant('JSON_HEX_QUOT'))|raw }}</script>
-    <div class="editor" data-controller="editor">
+    <script type="application/json" id="trackdsp-history">{{ history_units|json_encode|raw }}</script>
+    <div class="editor" data-controller="editor history">
         <header class="editor__head">
             <div class="bar">
                 <nav class="menu" aria-label="{{ 'editor.menu.label'|trans }}">
@@ -18,6 +19,15 @@
                         <div class="menu__list">
                             <button type="button" data-action="editor#openFile">{{ 'editor.menu.open_file'|trans }}<small>{{ 'editor.menu.open_file_hint'|trans }}</small></button>
                             <button type="button" data-action="editor#saveFile">{{ 'editor.menu.save_file'|trans }}<small>{{ 'editor.menu.save_file_hint'|trans }}</small></button>
+                        </div>
+                    </div>
+                    <div class="menu__item">
+                        <button type="button" class="menu__title">{{ 'Edit'|trans }}</button>
+                        <div class="menu__list">
+                            <button type="button" data-history-target="undo" data-action="history#undo" disabled>{{ 'Undo'|trans }}</button>
+                            <button type="button" data-history-target="redo" data-action="history#redo" disabled>{{ 'Redo'|trans }}</button>
+                            <hr>
+                            <button type="button" data-history-target="clear" data-action="history#clear" disabled title="{{ 'Clear this browser session’s undo and redo history.'|trans }}">{{ 'Clear History'|trans }}</button>
                         </div>
                     </div>
                     <div class="menu__item">
@@ -94,6 +104,7 @@
         </header>
 
         <main class="editor__main">
+            <p class="history-status" data-history-target="announcement" role="status" aria-live="polite" aria-atomic="true"></p>
             <section class="card channel-warning" data-editor-target="channelWarning" hidden role="alert">
                 <p data-editor-target="channelWarningText"></p>
                 <button type="button" class="big" data-action="editor#unhideChannel">{{ 'Unhide channel'|trans }}</button>

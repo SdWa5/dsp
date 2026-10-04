@@ -98,6 +98,7 @@ One JSON object per line in each direction.
 | `ride` | `channel` (input 0..7), `settings` (`target`, `min`, `max`, `slew`, `average`, `silence`, `deadband`, `hold`, `boost`, missing keys take the defaults) | status. Starts the rider, or replaces the settings of a running one |
 | `unride` | `channel` | status. The gain stays where it is |
 | `riders` | `riders`: list of rider settings, each with its `channel` | status. Replaces every running rider, as opening a preset file does. An empty list stops them all |
+| `history` | `changes`: list of `{path, before, after, mask?}`, `guards`: list of `{path, value, membership}`, `riders` (optional): `{channels, before, after}` | `{"queued": n}`. Guarded undo/redo replay, see below |
 
 Error codes are `invalid` (bad request) and `offline` (no device connection).
 A subscribed client receives `{"event": "status"|"state"|"meters", "data": ...}`. Right after `subscribe`
@@ -122,7 +123,18 @@ where every rider reports `{"channel", "gain", "average", "status"}`. The status
 | POST | `/api/discover` | – | `{"networks": [...], "devices": [{"target", "kind", "info", "busy", "connected"}]}` |
 | POST | `/api/ride` | `{"channel": 0, "settings": {"target": -18, "min": -20, "max": 0}}` | status |
 | POST | `/api/unride` | `{"channel": 0}` | status |
+| POST | `/api/history` | the `history` op's parameters | `{"queued": n}`, 409 on a conflict |
 | | `/api/autoeq/*` | | the auto EQ steps, listed in [automation.md](automation.md#in-the-browser) |
+
+The `history` op replays one undo or redo step of the editor. `path` names an editable field of the state, as
+listed by `App\Bridge\HistoryPatch::units()`; raw bytes, slot metadata and unknown values are rejected with 400.
+Every field must still hold `before`, or only the bits in `mask` must for routing and selection masks, every
+guarded link group must have the recorded membership, and the current settings of the listed rider channels must
+equal `riders.before`. If any check fails, nothing is queued and the answer names the setting. While writes are queued or a re-read runs, it answers "History is waiting for device writes." instead. HTTP answers 409;
+the socket reports code `offline`, as it does for every 409. The bridge then rebuilds each affected command from
+its current state, so the untouched arguments of compound commands keep their live values, and queues per-channel
+settings before link flags. Rider settings in `riders.after` replace those channels only. Rider ticks wait until
+the replayed frames are written. Retrying with a stale `before` is a conflict, not a partial write.
 
 `command` is the name of a builder in `App\Protocol\Commands` and `args` are its parameters by name, for
 example `gainDb {channel, db}` or `peq {channel, band, gainRaw, freqIndex, qIndex, type, bypass}`.

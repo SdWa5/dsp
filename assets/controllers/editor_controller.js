@@ -1,6 +1,6 @@
 import { languageCookie, t } from '../lib/i18n.js';
 import { Controller } from '@hotwired/stimulus';
-import { api, getDefaults, listen, on, send, status, store } from '../lib/device.js';
+import { api, getDefaults, listen, on, send, status, store, history } from '../lib/device.js';
 import { changedPaths, pageChanges } from '../lib/defaults.js';
 import { describeConnection } from '../lib/connection.js';
 import { channelId, channelLabel } from '../lib/channels.js';
@@ -568,14 +568,14 @@ export default class extends Controller {
         event.preventDefault();
         const number = Number(event.target.elements.number.value);
         if (this.requireState() && window.confirm(t("Recall %preset%? It replaces all live settings.", { preset: presetLabel(number) }))) {
-            send([{ command: 'loadPreset', args: { number } }], false);
+            history.run('Recall preset', () => send([{ command: 'loadPreset', args: { number } }], false)).catch(error => this.showError(error.message));
             event.target.closest('dialog').close();
         }
     }
 
     factory() {
         if (this.requireState() && window.confirm(t("Recall the factory default F00? It replaces all live settings."))) {
-            send([{ command: 'loadPreset', args: { number: 0 } }], false);
+            history.run('Recall factory settings', () => send([{ command: 'loadPreset', args: { number: 0 } }], false)).catch(error => this.showError(error.message));
         }
     }
 
@@ -597,7 +597,8 @@ export default class extends Controller {
         if (copies > 0 && !window.confirm(t("Linking copies the settings of the first channel of each group to %count% channel(s). Their names stay. Go on?", { count: copies }))) {
             return;
         }
-        await send([...commands, { command: 'activate', args: {} }], false);
+        const sides = new Set(commands.flatMap(c => [c.args.channel, c.args.target]).filter(c => Number.isInteger(c)).map(c => c < 8 ? 'inputs.' : 'outputs.'));
+        await history.run('Change links', () => send([...commands, { command: 'activate', args: {} }], false), { paths: history.history.paths.filter(p => [...sides].some(side => p.startsWith(side))) });
         event.target.closest('dialog').close();
         this.refresh();
     }
@@ -614,7 +615,8 @@ export default class extends Controller {
         if (!this.requireState() || !window.confirm(t("Copy every setting of %source% to %target%?", { source: name(source), target: name(target) }))) {
             return;
         }
-        await send([{ command: 'copyChannel', args: { source, target } }], false);
+        const prefix = `${target < 8 ? 'inputs' : 'outputs'}.${target % 8}.`;
+        await history.run('Copy channel', () => send([{ command: 'copyChannel', args: { source, target } }], false), { paths: history.history.paths.filter(p => p.startsWith(prefix)) });
         event.target.closest('dialog').close();
         this.refresh();
     }

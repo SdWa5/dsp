@@ -5,6 +5,30 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.74.0] - 2026-10-04
+
+### Added
+
+- An Edit menu with Undo, Redo and Clear History, and the shortcuts Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z and Ctrl+Y, step through up to 100 device edits of the browser session. Entries name the action and setting, disabled entries explain why, and results are announced in a live region. Text fields keep their native undo.
+- Each drag, wheel burst, committed text edit, toggle, reset, group selection, gain correction, copy, link change, preset or factory recall, applied preset file, Auto EQ Apply or Revert and manual rider change is one action. Linked members, including hidden ones, are recorded together.
+- `POST /api/history` and the bridge `history` op replay one step. They check every expected value, link membership and affected rider setting before queueing anything, restore only changed fields and mask bits, and rebuild compound commands from the current state.
+- Regression tests cover history grouping, branching, limits, unknown values, queue failures, every editable command family, routing bits 0, 7 and 8, changed link membership, guarded rider replay and mocked desktop/mobile menu, shortcut and conflict behaviour.
+
+- A ddev `post-exec` and `post-composer` hook restarts the bridge daemon once its code changed since it started, unless device writes are queued.
+
+### Changed
+
+- Incoming bridge state is kept apart from optimistic browser edits, and the send queue reports batch outcomes. Rider ticks pause while replayed frames are written.
+- Display preferences, navigation, incoming state, meters and automatic rider movements never create history entries. A reload, disconnect or target change clears history, as does a failed write whose result cannot be read back.
+
+## [0.73.0] - 2026-10-04
+
+### Added
+
+- The Matrix routing graph edits direct input/output and Aux connections by dragging from either endpoint, with a connection preview, compatible targets and mouse, touch and keyboard controls. Matrix and Aux selectors update immediately through the existing routing commands.
+- Double-clicking a graph connection removes it. Focused connections also support keyboard removal. Edits preserve unrelated routing bits and independent destination behavior.
+- The TODO list records medium-priority editor-wide undo and redo work.
+
 ## [0.72.0] - 2026-10-04
 
 ### Added

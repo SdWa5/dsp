@@ -7,12 +7,14 @@ import { t } from '../lib/i18n.js';
 // Projection has separate tests; API calls, confirmation and live state are injected here.
 const source = readFileSync(new URL('../controllers/presetfile_controller.js', import.meta.url), 'utf8')
     .replace(/^import .*;\n/gm, '').replace('export default class', 'return class');
-const controllerClass = new Function('Controller', 'api', 'getLabels', 'on', 'status', 'store', 'presetSections', 't', source);
+const controllerClass = new Function('Controller', 'api', 'getLabels', 'on', 'status', 'store', 'presetSections', 't', 'history', source);
+// Bulk history is covered by historyservice.test.js; here it only runs the wrapped work.
+const history = { run: (label, work) => work() };
 function preview(api, connected = true) {
     const status = { connected };
     const store = { state: connected ? {} : null, subscribe: () => () => {} };
     const Controller = controllerClass(class {}, api, () => ({}), () => () => {}, status, store,
-        () => [], t);
+        () => [], t, history);
     const controller = new Controller();
     const target = () => ({ textContent: '', value: '', children: [],
         replaceChildren() { this.children = []; }, append(child) { this.children.push(child); } });

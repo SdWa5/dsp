@@ -74,6 +74,13 @@ final class ApiController
         });
     }
 
+    /** Guarded live-setting replay. Conflicts reject the whole patch before any write is queued. */
+    #[Route('/history', methods: ['POST'])]
+    public function history(Request $request): JsonResponse
+    {
+        return $this->call(fn (): mixed => $this->bridge->request('history', self::body($request)));
+    }
+
     /**
      * Starts or changes the gain rider of an input: {"channel": 0, "settings": {"target": -18, ...}}, see
      * RiderSettings::fromArray() for the keys. The rider runs in the bridge.

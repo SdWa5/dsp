@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
-import { api, getLabels, on, status, store } from '../lib/device.js';
+import { api, getLabels, on, status, store, history } from '../lib/device.js';
 import { presetSections } from '../lib/preset.js';
 import { t } from '../lib/i18n.js';
 
@@ -72,8 +72,7 @@ export default class extends Controller {
         this.busy = true;
         this.connection();
         try {
-            await api('upload', this.file);
-            await api('refresh');
+            await history.run('Apply preset file', async () => { await api('upload', this.file); await api('refresh'); });
             this.element.close();
         } catch (error) {
             this.messageTarget.textContent = error.message;

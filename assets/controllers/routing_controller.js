@@ -1,11 +1,13 @@
 import { Controller } from '@hotwired/stimulus';
-import { store } from '../lib/device.js';
+import { store, send } from '../lib/device.js';
 import { channelId, channelParts } from '../lib/channels.js';
 import { linkGroups, linkName } from '../lib/link.js';
 import { getLinkView, onLinkView } from '../lib/linkview.js';
 import { routingEdges, routingLayout, routingPath, AUX, GRAPH_WIDTH, NODE_WIDTH, NODE_HEIGHT, SOURCES, sourceChannel } from '../lib/routing.js';
 import { t } from '../lib/i18n.js';
 import { getChannelView, onChannelView, channelVisible, visibleRuns, visibleEdge } from '../lib/channelview.js';
+import { routingEdit, routingEndpoint, routingRemoval } from '../lib/routingedit.js';
+import { RoutingGesture } from '../lib/routinggesture.js';
 
 const SVG = 'http://www.w3.org/2000/svg';
 // One colour per source, the inputs as on the EQ overview, Aux in grey
@@ -19,19 +21,53 @@ const HEAD = 14;
 /**
  * Inputs, Aux and outputs form three columns. Every direct or Aux route is coloured by its source.
  * Link placement and group frames apply to the outer columns; Aux stays independent in a separate bottom row between the columns.
- * Hover focus matches the matrix. This graph only displays routing; the matrix and selectors edit it.
+ * Hover focus matches the matrix. Either endpoint can start a pointer or keyboard route toggle.
+ * Writes preserve unrelated destination bits and keep the Matrix's independent per-output behavior.
  */
 export default class extends Controller {
-    static targets = ['svg'];
+    static targets = ['svg', 'announcement'];
 
     connect() {
         this.signature = null;
+        this.gesture = new RoutingGesture(this.svgTarget, (first, second) => this.edit(first, second), (first, second) => this.commit(first, second));
         this.offs = [store.subscribe(() => this.render()), onLinkView(() => this.render()), onChannelView(() => this.render())];
         this.render();
     }
 
     disconnect() {
         this.offs.forEach((off) => off());
+        this.gesture.disconnect();
+    }
+
+    edit(first, second) {
+        return routingEdit(store.state, routingEndpoint(first.dataset.routingEndpoint), routingEndpoint(second.dataset.routingEndpoint));
+    }
+
+    commit(first, second) {
+        const edit = this.edit(first, second);
+        this.write(edit);
+    }
+
+    remove(event) {
+        const edge = event.target.closest('.routing__hit');
+        if (!edge || !this.svgTarget.contains(edge)) return;
+        event.preventDefault();
+        this.gesture.cancel();
+        this.write(routingRemoval(store.state, Number(edge.dataset.source), Number(edge.dataset.output)));
+    }
+
+    removeKey(event) {
+        if (!event.repeat && ['Delete', 'Backspace', 'Enter', ' '].includes(event.key)) this.remove(event);
+    }
+
+    write(edit) {
+        if (!edit) return;
+        store.set(edit.path, edit.mask);
+        store.notify();
+        send([edit.command]);
+        this.announcementTarget.textContent = t(edit.enabled ? 'Connected %source% to %destination%.' : 'Disconnected %source% from %destination%.', {
+            source: channelId(sourceChannel(edit.source)), destination: channelId(edit.output === AUX ? 18 : 8 + edit.output),
+        });
     }
 
     render() {
@@ -48,11 +84,16 @@ export default class extends Controller {
             outputs: visibleRuns(groups.outputs, placement, 8),
         };
         // The state updates often, the graph only redraws when a connection, a name or the link display changes
-        const signature = JSON.stringify([edges, names, groups, view, getChannelView()]);
+        const reported = [...Array.from({ length: 8 }, (_, index) => Number.isInteger(state?.outputs?.[index]?.route)), Number.isInteger(state?.aux?.select)];
+        const signature = JSON.stringify([edges, names, groups, view, getChannelView(), reported, state !== null]);
         if (signature === this.signature) {
             return;
         }
         this.signature = signature;
+        const active = this.svgTarget.contains(document.activeElement) ? document.activeElement : null;
+        const focused = active?.dataset.routingEndpoint ?? (active?.matches('.routing__hit')
+            ? `${active.dataset.output === '8' ? 'aux' : 'output'}:${active.dataset.output}` : null);
+        this.gesture.cancel();
         const layout = routingLayout(runs, { height: NODE.height, head: HEAD, pad: MARGIN, aux: channelVisible(18) });
         const svg = this.svgTarget;
         svg.setAttribute('viewBox', `${-MARGIN} ${-MARGIN} ${WIDTH + 2 * MARGIN} ${layout.height + 2 * MARGIN}`);
@@ -83,6 +124,14 @@ export default class extends Controller {
                 'data-source': source,
                 'data-output': output,
             });
+            const label = t('%source% to %destination%. Double-click or press Delete to remove this connection.', {
+                source: channelId(sourceChannel(source)), destination: channelId(output === AUX ? 18 : 8 + output),
+            });
+            const hit = this.svgNode(svg, 'path', {
+                class: 'routing__hit', d: routingPath({ source, output }, layout),
+                'data-source': source, 'data-output': output, role: 'button', tabindex: 0, 'aria-label': label,
+            });
+            this.svgNode(hit, 'title').textContent = label;
         }
         names.forEach((parts, n) => {
             if (!channelVisible(n < 8 ? n : n === AUX ? 18 : n - SOURCES + 8)) return;
@@ -99,6 +148,16 @@ export default class extends Controller {
                 node.dataset.aux = '1';
                 node.dataset.output = String(AUX);
             }
+            const endpoint = `${isAux ? 'aux' : isSource ? 'input' : 'output'}:${isAux ? AUX : isSource ? n : n - SOURCES}`;
+            const available = state !== null && (isAux ? reported.some(Boolean) : isSource ? reported.some(Boolean) : reported[n - SOURCES]);
+            node.dataset.routingEndpoint = endpoint;
+            node.setAttribute('role', 'button');
+            node.setAttribute('tabindex', available ? '0' : '-1');
+            node.setAttribute('aria-disabled', String(!available));
+            node.setAttribute('aria-pressed', 'false');
+            node.setAttribute('aria-label', [parts.id, parts.name].filter(Boolean).join(' '));
+            node.setAttribute('aria-describedby', 'routing-help');
+            this.svgNode(node, 'title').textContent = t('Drag between compatible channels to toggle a route. Enter or Space selects an endpoint; Escape cancels.');
             this.svgNode(node, 'rect', { class: 'routing__box', width: NODE.width, height: NODE.height, rx: 4 });
             if (group > 0) {
                 // A framed member leaves its colour and code to the frame's head
@@ -117,7 +176,14 @@ export default class extends Controller {
             if ('' !== parts.name) {
                 this.svgNode(text, 'tspan', { dx: 6 }).textContent = parts.name;
             }
+            // Chromium negotiates touch scrolling on HTML boxes, not SVG group/shape touch-action rules.
+            // A transparent HTML surface blocks scrolling only inside enabled node rectangles.
+            const surface = this.svgNode(node, 'foreignObject', { width: NODE.width, height: NODE.height });
+            const handle = document.createElement('div');
+            handle.className = 'routing__handle';
+            surface.append(handle);
         });
+        if (focused) svg.querySelector(`[data-routing-endpoint="${focused}"]`)?.focus({ preventScroll: true });
         // The page's hover focus (routefocus_controller.js) goes onto the new lines and nodes
         this.dispatch('rendered');
     }
