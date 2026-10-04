@@ -28,7 +28,8 @@ final class BridgeProcess
         );
         $this->process->start();
         $deadline = microtime(true) + 10;
-        while (!file_exists($this->socket)) {
+        // Unix bind creates the path before listen accepts connections. The command reports after listen.
+        while (!str_contains($this->process->getOutput(), 'Bridge on ')) {
             if (!$this->process->isRunning() || microtime(true) > $deadline) {
                 throw new \RuntimeException('The bridge did not start: '.$this->process->getErrorOutput().$this->process->getOutput());
             }

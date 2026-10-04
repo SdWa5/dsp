@@ -49,6 +49,18 @@ final class BridgeProcessTest extends TestCase
         self::assertStringContainsString('Bridge on', $bridge->process()->getOutput());
     }
 
+    public function testTheSocketAcceptsAConnectionAsSoonAsTheBridgeIsStarted(): void
+    {
+        $bridge = new BridgeProcess();
+        try {
+            $stream = @stream_socket_client('unix://'.$bridge->socket, $errno, $errstr, 1.0);
+            self::assertNotFalse($stream, \sprintf('Connection refused right after the start (%d: %s).', $errno, $errstr));
+            fclose($stream);
+        } finally {
+            $bridge->stop();
+        }
+    }
+
     public function testSecondBridgeOnTheSameSocketFails(): void
     {
         $bridge = new BridgeProcess();

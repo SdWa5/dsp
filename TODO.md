@@ -17,10 +17,6 @@
   clone command in the README, the sibling entry in the sdwa5 repository, and whether the project name
   `trackdsp` goes with it, which is also the composer package, the ddev name, `bin/trackdsp` and the
   `trackdsp:` command prefix
-- (low priority) Investigate the flaky `PlaybackTest::testAnInterruptBeforeTheRunLeavesTheDeviceAlone`
-  (`tests/Measurement/PlaybackTest.php`). It failed once in `composer ci` on 2026-10-03 with a refused
-  connection on the scripted bridge socket and passed on the rerun without a change. Find out why the socket
-  can be unready, for example by running the test in a loop, and make the test wait for it or fail clearly
 
 ## Rewrite
 
