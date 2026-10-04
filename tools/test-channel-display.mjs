@@ -143,6 +143,20 @@ try {
         assert.equal(await pageLinkField.evaluate(input => document.activeElement === input), true);
         await page.locator('[data-editor-dialog-param=link]').first().evaluate(button => button.click());
         assert.equal(await page.locator('#dialog-link input[data-key="inputs:0"]').inputValue(), 'Page Group');
+        // Group names keep all input fields together above the separate output row.
+        const linkNames = page.locator('#dialog-link [data-editor-target=linkNames]');
+        assert.deepEqual(await linkNames.locator('.link-names__row').evaluateAll(rows => rows.map(row => row.dataset.namesSide)), ['inputs', 'outputs']);
+        assert.equal(await linkNames.evaluate(node => getComputedStyle(node).flexDirection), 'column');
+        for (const [side, heading] of [['inputs', 'Input'], ['outputs', 'Output']]) {
+            const row = linkNames.locator(`[data-names-side="${side}"]`);
+            assert.equal(await row.getAttribute('aria-label'), heading);
+            assert.ok(await row.locator('input').count() > 0);
+            assert.ok(await row.locator('input').evaluateAll((inputs, side) => inputs.every(input => input.dataset.key.startsWith(side + ':')), side));
+        }
+        const inputNamesBox = await linkNames.locator('[data-names-side=inputs]').boundingBox();
+        const outputNamesBox = await linkNames.locator('[data-names-side=outputs]').boundingBox();
+        assert.ok(outputNamesBox.y >= inputNamesBox.y + inputNamesBox.height);
+        await linkNames.screenshot({ path: `/tmp/trackdsp-link-group-name-rows-${width}.png` });
         await page.locator('#dialog-link .dialog__close').click();
         assert.equal(writes.length, 0);
         await detailHeading.screenshot({ path: `/tmp/trackdsp-group-detail-title-${width}.png` });

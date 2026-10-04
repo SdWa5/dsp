@@ -137,7 +137,7 @@ talks to the bridge through the JSON API below. A ddev with another `project_tld
   changes stay available for the current visit when storage is blocked. Display preferences send no device
   writes. Channel names are also editable here through the existing
   device controls and Names dialog shortcut. Input, Output and Aux names have separate rows; link-group names
-  use Input and Output rows, and panel choices use one row per page context. Controls wrap within their rows. Name edits write to the connected device and belong to presets.
+  use Input and Output rows in Display Settings and the Link dialog, and panel choices use one row per page context. Controls wrap within their rows. Name edits write to the connected device and belong to presets.
 - Grouped channel tabs and Gain EQ overview switches show every member’s channel name and update after any
   member rename, including hidden members. Shared channel captions show all IDs once before the names.
   Turning grouping off restores individual captions. Channel-page titles omit repeated device names; grouped
