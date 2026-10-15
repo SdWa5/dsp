@@ -393,7 +393,17 @@ restarts it by hand.
 ```bash
 ddev exec composer ci          # coding standard, PHPStan level 8, PHPUnit, browser code tests (node --test)
 ddev exec composer cs-fix      # apply the Symfony coding standard
+python3 -B -m unittest discover -s .github/tests -v  # CI installer regression tests
 ```
+
+The GitHub workflow grants `contents: read`, pins checkout v4, PHP setup v2, Composer install v3 and
+Node setup v4 to upstream commits and does not persist checkout credentials. An action update means
+reviewing its upstream release and replacing the commit SHA while keeping the version-family comment.
+gitleaks 8.30.1 is installed through `.github/scripts/install-ci-tool.sh`, which compares the
+downloaded archive with a committed SHA-256 before extracting or installing it. A gitleaks update
+changes its version and checksum together. Five installer regression tests run in their own job and
+cover valid and nested archives, corruption, failed downloads and preservation of an existing
+installation after failed verification.
 
 The tests need no device. They replay all 143 USB captures in [captures/](captures/) against the command builders,
 check the model against the editor display and run the command line, the bridge (in the test process and as a

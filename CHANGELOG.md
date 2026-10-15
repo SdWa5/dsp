@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- A checksum-verified CI tool installer and five regression cases for valid and nested archives,
+  corruption, failed downloads and preservation of an existing installation after failed verification.
+
+### Changed
+
+- GitHub Actions pins checkout v4, PHP setup v2, Composer install v3 and Node setup v4 to upstream
+  commits and does not persist checkout credentials.
+- gitleaks 8.30.1 is verified against its committed SHA-256 before extraction or installation.
+- The README describes CI dependency maintenance.
+
 ## [1.1.0] - 2026-10-05
 
 ### Added
