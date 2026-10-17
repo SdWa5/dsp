@@ -2,6 +2,11 @@
 
 ## Rewrite
 
+- Network access and login. Today any client that reaches the editor can control the DSP, so on a shared
+  festival or crew WiFi everybody on that network can change the PA. Proposal: a configurable list of crew
+  networks that work without a login, and a configured login for every other client, which otherwise gets a
+  denial. It covers the editor, the API, the event stream and uploads. Verify on the appliance with the Matrix
+  DSP, the Deco WiFi and the VIM3, none of which were at hand on 2026-10-15 and 2026-10-16 (ca. 4 Stunden)
 - Browser editor: check every page and dialog against the device, with a harmless round trip per control
 - PHPUnit group `device` with read-only checks and reversible writes over LAN and USB
 - Packaging: `sdwa5-dsp:serve`, FrankenPHP static binary, installer, desktop entry
