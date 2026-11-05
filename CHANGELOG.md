@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `TODO.md`: the simulation baseline is planned for statistical analysis in both directions, with prediction
+  intervals, a randomised measurement plan, a Bayesian calibration and hold-out positions.
 - GitHub Actions pins checkout v4, PHP setup v2, Composer install v3 and Node setup v4 to upstream
   commits and does not persist checkout credentials.
 - gitleaks 8.30.1 is verified against its committed SHA-256 before extraction or installation.

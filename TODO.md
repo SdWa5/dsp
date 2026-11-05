@@ -6,6 +6,8 @@ High priority, set by the owner on 2026-11-05. Before the UMC1820 measurements s
 Auto EQ and the system tuning, every speaker type is simulated, so that its frequency and phase response are
 predicted from physics rather than read off the measurement they are meant to check. Simulation and measurement
 are then brought as close together as the evidence allows, the way an experiment is checked against its model.
+Data and experiments are designed, wherever possible, so that the comparison can be analysed statistically in
+both directions, from simulation to measurement and from measurement to simulation (owner, 2026-11-05).
 The speaker side, meaning the cabinet models and their inputs, is SPEC-22 in sdwa5-3d.
 
 1. Simulate each cabinet type with established tools rather than our own code. Use a lumped-element model for
@@ -16,17 +18,29 @@ The speaker side, meaning the cabinet models and their inputs, is SPEC-22 in sdw
    win11 VM of the vendor editor or Wine is their place.
 2. Simulate the conditions of the measurement rather than free field. That means the mic distance and height,
    half space or ground plane, and the setup of [docs/measurements.md](docs/measurements.md). Export magnitude
-   and phase, with the phase split into minimum phase and excess delay, so that it compares directly with the
-   transfer function measured against the reference loopback.
-3. Write down the predictions and their expected uncertainty before measuring, and commit them. A model that is
-   adjusted after seeing the measurement is no longer an independent check.
-4. Measure with a known chain. That needs mic calibration files or at least the mic matching test, the loopback
-   reference for timing, gated impulse responses or a ground-plane and near-field merge for the low end, and
-   several repeats per position so that the spread is known.
-5. Compare per frequency band with that spread as the error bar. A gap is closed only by correcting a physical
-   input with evidence, such as Thiele/Small parameters from an impedance sweep, dimensions measured under
-   SPEC-5 of sdwa5-3d or a corrected mic position, and never by a fudge factor. Record every correction with its
-   reason, and keep the gaps that remain, because an unexplained gap is a finding.
+   and phase on the frequency grid and with the smoothing the measurement uses, with the phase split into minimum
+   phase and excess delay, so that both sides compare point by point with the transfer function measured against
+   the reference loopback.
+3. Propagate the uncertainty of every input through the simulation, for example by Monte Carlo over the
+   tolerances of the Thiele/Small parameters, the dimensions and the mic position, so that each prediction is a
+   distribution with an interval per band rather than a single curve. Write the predictions, their intervals and
+   the random seed down before measuring, and commit them. A model that is adjusted after seeing the measurement
+   is no longer an independent check.
+4. Plan the measurements as an experiment and measure with a known chain. Fix positions, repeats and their order
+   in advance, and randomise the order so that drift, such as temperature or amplifier warm-up, does not line up
+   with one cabinet or position. The chain needs mic calibration files or at least the mic matching test, the
+   loopback reference for timing, and gated impulse responses or a ground-plane and near-field merge for the low
+   end. Keep the raw impulse responses with the full setup, and repeat each position often enough that the spread
+   is known per band.
+5. Analyse in both directions with an established statistics library rather than our own code. From simulation
+   to measurement, test whether each measured band lies within the predicted interval. From measurement to
+   simulation, fit the physical inputs to the measurements with their uncertainty, for example by a Bayesian
+   calibration, and test the fitted values against the datasheet values and their tolerances. Hold some positions
+   or cabinets out of the fit and predict them, so that the fitted model is tested on data it has not seen. A gap
+   is closed only by correcting a physical input with evidence, such as Thiele/Small parameters from an impedance
+   sweep, dimensions measured under SPEC-5 of sdwa5-3d or a corrected mic position, and never by a fudge factor.
+   Record every correction with its reason, and keep the gaps that remain, because an unexplained gap is a
+   finding.
 6. The reconciled model of each cabinet becomes the reference that the Auto EQ target and steps 5 and 6 of the
    system tuning predict with, next to the measured PEQ shapes under Automation.
 
