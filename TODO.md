@@ -1,5 +1,35 @@
 # TODO
 
+## Simulation baseline
+
+High priority, set by the owner on 2026-11-05. Before the UMC1820 measurements serve as the baseline for the
+Auto EQ and the system tuning, every speaker type is simulated, so that its frequency and phase response are
+predicted from physics rather than read off the measurement they are meant to check. Simulation and measurement
+are then brought as close together as the evidence allows, the way an experiment is checked against its model.
+The speaker side, meaning the cabinet models and their inputs, is SPEC-22 in sdwa5-3d.
+
+1. Simulate each cabinet type with established tools rather than our own code. Use a lumped-element model for
+   the bass and the horn loading, for example Hornresp for the folded and front-loaded horns and VituixCAD or
+   WinISD for direct radiators and reflex boxes, and BEM, for example ABEC or Akabak 3, where baffle diffraction
+   and directivity matter. The inputs are the drivers' Thiele/Small parameters from their datasheets and the
+   cabinet geometry of the sdwa5-3d specs, each with its provenance. Most of these tools run on Windows, so the
+   win11 VM of the vendor editor or Wine is their place.
+2. Simulate the conditions of the measurement rather than free field. That means the mic distance and height,
+   half space or ground plane, and the setup of [docs/measurements.md](docs/measurements.md). Export magnitude
+   and phase, with the phase split into minimum phase and excess delay, so that it compares directly with the
+   transfer function measured against the reference loopback.
+3. Write down the predictions and their expected uncertainty before measuring, and commit them. A model that is
+   adjusted after seeing the measurement is no longer an independent check.
+4. Measure with a known chain. That needs mic calibration files or at least the mic matching test, the loopback
+   reference for timing, gated impulse responses or a ground-plane and near-field merge for the low end, and
+   several repeats per position so that the spread is known.
+5. Compare per frequency band with that spread as the error bar. A gap is closed only by correcting a physical
+   input with evidence, such as Thiele/Small parameters from an impedance sweep, dimensions measured under
+   SPEC-5 of sdwa5-3d or a corrected mic position, and never by a fudge factor. Record every correction with its
+   reason, and keep the gaps that remain, because an unexplained gap is a finding.
+6. The reconciled model of each cabinet becomes the reference that the Auto EQ target and steps 5 and 6 of the
+   system tuning predict with, next to the measured PEQ shapes under Automation.
+
 ## Rewrite
 
 - Network access and login. Today any client that reaches the editor can control the DSP, so on a shared
