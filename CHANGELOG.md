@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `TODO.md`: proposal for a home testbed of the system tuning with an actively driven Bose 301 Series II.
 - `TODO.md`: proposal that the Auto EQ leaves pass and allpass bands alone.
 - `TODO.md`: the event of 2026-12-19 with the system tuning work in order and an output plan.
+- `TODO.md`: owner's next steps, fetching the measurement gear from the van and preparing the stereo speakers.
 - A checksum-verified CI tool installer and five regression cases for valid and nested archives,
   corruption, failed downloads and preservation of an existing installation after failed verification.
 
