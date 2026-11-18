@@ -44,6 +44,19 @@ The speaker side, meaning the cabinet models and their inputs, is SPEC-22 in sdw
 6. The reconciled model of each cabinet becomes the reference that the Auto EQ target and steps 5 and 6 of the
    system tuning predict with, next to the measured PEQ shapes under Automation.
 
+- (proposal) Pilot steps 1 to 5 on a home rig before the PA cabinets, whose Thiele/Small parameters and horn
+  paths SPEC-22 still lacks. The rig is the 8x8, the UMC1820, a Rotel RA-820AX (30 W into 8 Ω) and a mirrored
+  pair of Bose 301 Series II (8 Ω, one 8" woofer, two 3" tweeters, ported, owner's photos of 2026-11-18). Bose
+  publishes no Thiele/Small parameters, so they come from impedance sweeps of the woofer in the box and in free
+  air with an added mass, taken with REW, a 10 Ω reference resistor and two UMC1820 line inputs. The pilot
+  covers the woofer and the port below about 500 Hz with near-field measurements, which neither the room nor the
+  reflecting tweeter reaches. The tweeters and the passive crossover stay out, because no schematic is at hand
+  and later 301 models protect their tweeters with a lamp whose resistance rises with level. The same rig gives
+  the Auto EQ a living room with modes, the case of the fitter item under Automation. Step 4 also needs the
+  amplifier inside the reference, here and on the PA, because the loopback ends at the 8x8's output while the
+  amplifier's coupling capacitors turn the low-end phase. A resistive divider from the speaker terminal to a
+  free line input closes that gap once the amplifier's outputs are confirmed as ground-referenced (ca. 3 hours)
+
 ## Rewrite
 
 - Network access and login. Today any client that reaches the editor can control the DSP, so on a shared
