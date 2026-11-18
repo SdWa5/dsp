@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `TODO.md`: simulation baseline, simulating every speaker type before measuring and reconciling both.
 - `TODO.md`: network access and login for the editor, API, event stream and uploads.
+- `TODO.md`: proposal to pilot the simulation baseline on a home rig with impedance-derived Thiele/Small
+  parameters and an amplifier loopback.
 - A checksum-verified CI tool installer and five regression cases for valid and nested archives,
   corruption, failed downloads and preservation of an existing installation after failed verification.
 
