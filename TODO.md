@@ -10,7 +10,10 @@ a DCX remote control follow only if time remains before the event. The items are
 ca. 26 hours.
 
 The owner's next step, set on 2026-11-18, is to fetch the audio interface, the matrix DSP, the measurement
-mic(s) and the cables from the van, bringing the new car battery there on the same trip. Independently of that,
+mic(s), the cables and the Tulun TIP-10000Q from the van, bringing the new car battery there on the same
+trip. The Tulun is the second amplifier of the home testbed, because the Rotel RA-820AX has two channels. It
+runs with its gains at minimum and the tweeters behind their series capacitor and a low limiter, and a check
+of its fan noise and hiss at the tweeter comes before the first measurement. Independently of that,
 the owner prepares the stereo speakers for channel separation.
 
 1. The Auto EQ leaves pass and allpass bands alone (Automation, ca. 30 minutes).
