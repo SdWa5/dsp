@@ -9,6 +9,10 @@ DCX2496 stays out of the wizard, so the tops behind it are tuned as one group pe
 a DCX remote control follow only if time remains before the event. The items are in working order and add up to
 ca. 26 hours.
 
+The owner's next step, set on 2026-11-18, is to fetch the audio interface, the matrix DSP, the measurement
+mic(s) and the cables from the van, bringing the new car battery there on the same trip. Independently of that,
+the owner prepares the stereo speakers for channel separation.
+
 1. The Auto EQ leaves pass and allpass bands alone (Automation, ca. 30 minutes).
 2. Measure the 8x8's PEQ, allpass, HPF and LPF shapes on the bench with `sdwa5-dsp:filter-shapes` (Automation,
    ca. 45 minutes).
