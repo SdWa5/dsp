@@ -54,8 +54,10 @@ The speaker side, meaning the cabinet models and their inputs, is SPEC-22 in sdw
   and later 301 models protect their tweeters with a lamp whose resistance rises with level. The same rig gives
   the Auto EQ a living room with modes, the case of the fitter item under Automation. Step 4 also needs the
   amplifier inside the reference, here and on the PA, because the loopback ends at the 8x8's output while the
-  amplifier's coupling capacitors turn the low-end phase. A resistive divider from the speaker terminal to a
-  free line input closes that gap once the amplifier's outputs are confirmed as ground-referenced (ca. 3 hours)
+  amplifier's coupling capacitors turn the low-end phase. A resistive divider from the speaker terminal to IN7
+  or IN8, which have no +48V, closes that gap once the amplifier's outputs are confirmed as ground-referenced.
+  Wired out for the testbed under Automation, the woofer's sweeps run without the crossover in the path
+  (ca. 3 hours)
 
 ## Rewrite
 
@@ -250,6 +252,23 @@ also postponed. Any additional form proven to need a connection belongs here.
   The input PEQ has to match on every input that feeds the PA, and it also colours every other output those
   inputs feed, for example a recording or a video feed. So the output bands stay the better place, with the
   band split set per group.
+- (proposal) Develop the system tuning, crossover linking and multi-way EQ on a home testbed before the PA. One
+  Bose 301 Series II gets its woofer and its forward tweeter wired out past the passive crossover, reversibly,
+  and plays active from Out1 and Out2 through the two channels of the Rotel RA-820AX. That gives two real ways
+  with an acoustic offset and a crossover near 2 kHz, close to the 2520 Hz of Tecnare L, inside a gated window
+  the room does not reach. Each step is checked against a fault or setting planted on purpose, such as a
+  swapped lead, an inverted output, 0.50 ms of delay on one way or mismatched crossover types for the allpass
+  step to close. A second stereo amplifier adds the other box, so that the woofers and the tweeters run as link
+  groups. The tweeter needs a series film capacitor about an octave below the crossover, sized from its
+  measured impedance, its high-pass in the HPF section rather than a PEQ band, a low limiter, and no EQ bypass
+  until the Protocol item on `3C` is measured. Tecnare L validates the result afterwards in its own chain,
+  because a bug in code under development would otherwise risk a compression driver. Horn subs against tops
+  stay a PA test (ca. 1 hour 30 minutes)
+- (proposal) The Auto EQ owns bands 1 to `--bands` whatever their type (`App\AutoEq\AutoEq::record()`). It
+  bypasses a High Pass, Low Pass or Allpass band there while the pink noise plays and writes a peak or a flat
+  band over it on apply. A high-pass in those bands that protects a tweeter is then off during the recording,
+  and an allpass of the system tuning is lost. Let it leave bands of types 3 to 6 alone, neither bypassing,
+  counting nor writing them, and name them in its warnings (ca. 30 minutes)
 
 ## Rig import
 
