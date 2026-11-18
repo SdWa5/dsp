@@ -1,8 +1,31 @@
 # TODO
 
+## Event 2026-12-19
+
+Set by the owner on 2026-11-18. The system tuning under Automation, all seven steps, is to measure and tune the
+whole rig at the event on 2026-12-19, and it goes before the simulation baseline. The rig is one 8x8, up to 12
+Flexy, up to 6 Achenbach 18, the SKRAM, up to 3 Tecnare M2122, up to 2 Eighteensound 2-ways and the UMC1820. The
+DCX2496 stays out of the wizard, so the tops behind it are tuned as one group per 8x8 output. Manual DCX steps or
+a DCX remote control follow only if time remains before the event. The items are in working order and add up to
+ca. 26 hours.
+
+1. The Auto EQ leaves pass and allpass bands alone (Automation, ca. 30 minutes).
+2. Measure the 8x8's PEQ, allpass, HPF and LPF shapes on the bench with `sdwa5-dsp:filter-shapes` (Automation,
+   ca. 45 minutes).
+3. The PEQ fitter's overlapping bands (Automation, ca. 1 hour 20 minutes).
+4. The system tuning, steps 1 to 7, on the command line and in the browser (Automation, ca. 17 hours).
+5. Auto EQ with two mics (Automation, ca. 1 hour).
+6. Network access and login, because the editor runs on the event WiFi (Rewrite, ca. 4 hours).
+7. (proposal) Output plan. With the patch of MARK Salzburg in sdwa5-3d's `docs/signal-chain.md`, the Achenbach
+   needs OUT8, whose panel connection is broken, and OUT6 feeds the DCX, so it cannot be the reference loopback
+   while tuning. Repair OUT8 before the event and borrow OUT7 from the video mapping as the reference while
+   tuning (ca. 30 minutes plus the repair).
+8. A dry run of the whole wizard on the home testbed or the bench before the event (Automation, ca. 1 hour).
+
 ## Simulation baseline
 
-High priority, set by the owner on 2026-11-05. Before the UMC1820 measurements serve as the baseline for the
+High priority, set by the owner on 2026-11-05, and second to the event of 2026-12-19 since 2026-11-18. Before the
+UMC1820 measurements serve as the baseline for the
 Auto EQ and the system tuning, every speaker type is simulated, so that its frequency and phase response are
 predicted from physics rather than read off the measurement they are meant to check. Simulation and measurement
 are then brought as close together as the evidence allows, the way an experiment is checked against its model.

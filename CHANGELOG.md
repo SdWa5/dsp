@@ -15,12 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   parameters and an amplifier loopback.
 - `TODO.md`: proposal for a home testbed of the system tuning with an actively driven Bose 301 Series II.
 - `TODO.md`: proposal that the Auto EQ leaves pass and allpass bands alone.
+- `TODO.md`: the event of 2026-12-19 with the system tuning work in order and an output plan.
 - A checksum-verified CI tool installer and five regression cases for valid and nested archives,
   corruption, failed downloads and preservation of an existing installation after failed verification.
 
 ### Changed
 
 - `TODO.md`: the home rig pilot names IN7 or IN8 for the amplifier loopback.
+- `TODO.md`: the simulation baseline follows the event of 2026-12-19.
 - `TODO.md`: the simulation baseline is planned for statistical analysis in both directions, with prediction
   intervals, a randomised measurement plan, a Bayesian calibration and hold-out positions.
 - GitHub Actions pins checkout v4, PHP setup v2, Composer install v3 and Node setup v4 to upstream
