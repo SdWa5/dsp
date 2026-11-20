@@ -164,6 +164,14 @@ also postponed. Any additional form proven to need a connection belongs here.
 
 ## Editor
 
+- (proposal) Page navigation as the editor grows. Today every page is rendered into the one editor document and
+  switched with `hidden`, and `editor#tab` records the page with `history.replaceState`, so the browser's back
+  button leaves the editor instead of returning to the previous page. Use `pushState` plus a `popstate` handler
+  so back and forward step through pages (ca. 15 Minuten). Keep live-control pages in the document, because a
+  tab switch then costs no round trip over the crew WiFi and the event stream state stays on the elements. Add
+  `symfony/ux-turbo` once page-like parts arrive that need no live device state, such as a preset library,
+  measurement reports or one page per device (Several devices); those become routes and Turbo Drive or a lazy
+  Turbo Frame loads them without a full reload (ca. 1 Stunde)
 - Link crossover points between outputs, so that a frequency set on one filter also lands on its partner, for
   example the HighPass of Out1 on the LowPass of Out2. Every pair links the frequency, and optionally the slope
   as well, which keeps the two sides of a crossover the same type and order, for example Linkwitz-Riley 24 on
